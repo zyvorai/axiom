@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOST="${1:-}"
-USER="${2:-sus}"
+USER="${2:-zyvorai}"
 PASS="${3:-}"
 
 run_kubectl() {

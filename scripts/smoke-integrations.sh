@@ -17,7 +17,7 @@ AXIOM_URL="${AXIOM_URL:-}"
 AXIOM_USER="${AXIOM_USER:-demo}"
 AXIOM_PASS="${AXIOM_PASS:-demo}"
 LAB_HOST="${LAB_HOST:-}"
-LAB_USER="${LAB_USER:-sus}"
+LAB_USER="${LAB_USER:-zyvorai}"
 
 POSTGRES_HOST="${POSTGRES_HOST:-postgres-lab.axiom-system.svc}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"

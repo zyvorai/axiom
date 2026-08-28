@@ -82,7 +82,7 @@ Axiom uses the Kubernetes API and does not depend on a specific distro. In a k3s
 One command deploys Axiom to a remote k3s node (**HTTPS only**, self-signed TLS):
 
 ```bash
-./scripts/deploy-remote.sh 212.8.248.187 sus
+./scripts/deploy-remote.sh 80.79.5.173 zyvorai
 ```
 
 Flow: rsync → generate/reuse `.run/tls` cert → Secret `zyvor-axiom-tls` → podman build → k3s import → kubectl apply → `curl -k` health.
@@ -90,7 +90,7 @@ Flow: rsync → generate/reuse `.run/tls` cert → Secret `zyvor-axiom-tls` → 
 Fast redeploy (skip image rebuild):
 
 ```bash
-./scripts/deploy-remote.sh 212.8.248.187 sus --quick
+./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick
 ```
 
 Check last target and health:
@@ -102,12 +102,12 @@ Check last target and health:
 Or via Make:
 
 ```bash
-make deploy-remote H=212.8.248.187 U=sus
+make deploy-remote H=80.79.5.173 U=zyvorai
 ```
 
 ### Prerequisites (remote host)
 
-- SSH access (key-based recommended): `ssh sus@212.8.248.187`
+- SSH access (key-based recommended): `ssh zyvorai@80.79.5.173`
 - k3s with `kubectl` configured for the deploy user (`~/.kube/config`)
 - `podman` or `docker` for image builds
 - `openssl` for self-signed cert generation
@@ -116,25 +116,27 @@ make deploy-remote H=212.8.248.187 U=sus
 
 | Setting | Default |
 |---------|---------|
+| Remote SSH user | `zyvorai` (override: 2nd arg or `DEPLOY_USER`) |
 | Remote checkout | `~/.deployment/axiom` |
 | Image | `zyvor-axiom:dev` (local k3s import) |
-| NodePort | `30590` (HTTPS) |
-| Login | `demo` / `demo` (or `demo@zyvor.dev` / `demo`) |
+| NodePort | `30590` (HTTPS; use `30591` if `30590` is taken) |
+| Lab login | `demo` / `demo` (shown automatically when SSO is off) |
 | TLS | Self-signed, reused under `.run/tls/` |
 
 Override with environment variables: `AXIOM_IMAGE_TAG`, `AXIOM_NODE_PORT`, `AXIOM_USERNAME`, `AXIOM_PASSWORD`.
 
 ### After deploy
 
-- UI: `https://212.8.248.187:30590` (accept self-signed warning)
-- Health: `curl -k https://212.8.248.187:30590/api/v1/health`
+- UI: `https://80.79.5.173:30591` (accept self-signed warning; port may differ if `30590` is in use)
+- Health: `curl -k https://80.79.5.173:30591/api/v1/health`
+- **Lab sign-in:** username `demo`, password `demo` — the login form appears automatically when SSO is not configured
 
 ### Troubleshooting
 
 ```bash
-ssh sus@212.8.248.187 kubectl -n axiom-system get pods,svc
-ssh sus@212.8.248.187 kubectl -n axiom-system logs -l app=zyvor-axiom --tail=50
-ssh sus@212.8.248.187 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
+ssh zyvorai@80.79.5.173 kubectl -n axiom-system get pods,svc
+ssh zyvorai@80.79.5.173 kubectl -n axiom-system logs -l app=zyvor-axiom --tail=50
+ssh zyvorai@80.79.5.173 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
 ```
 
 If the NodePort is blocked, open TCP `30590` on the host firewall (the deploy script attempts this automatically).
@@ -142,7 +144,7 @@ If the NodePort is blocked, open TCP `30590` on the host firewall (the deploy sc
 Uninstall:
 
 ```bash
-./scripts/deploy-remote.sh 212.8.248.187 sus --uninstall
+./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
 ```
 
 ## Production hardening checklist

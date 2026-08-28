@@ -77,7 +77,9 @@ AXIOM_ADDR=:5090 \
 ./bin/zyvor-axiom
 ```
 
-Open `http://localhost:5090` and sign in with `demo / demo`.
+Open `http://localhost:5090` — the login form appears automatically in lab mode. Sign in with **`demo` / `demo`**.
+
+Remote k3s lab deploys use the same credentials unless you override `AXIOM_USERNAME` / `AXIOM_PASSWORD`. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Production Kubernetes build
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Configure Haven Keycloak for Axiom OIDC on the lab, then enable Settings integrations.
 # Usage:
-#   ./scripts/keycloak-oidc-lab.sh 212.8.248.187 sus
+#   ./scripts/keycloak-oidc-lab.sh 80.79.5.173 zyvorai
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST="${1:-}"
-USER="${2:-sus}"
+USER="${2:-zyvorai}"
 AXIOM_PUBLIC_URL="${AXIOM_PUBLIC_URL:-https://212.8.248.187:30590}"
 KC_PUBLIC_URL="${KC_PUBLIC_URL:-http://auth.212.8.248.187.nip.io:30591}"
 REALM="${KC_REALM:-platform}"

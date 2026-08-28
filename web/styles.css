@@ -538,6 +538,8 @@ nav button.active .nav-icon { color: #ff7550; opacity: 1; }
   position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
   color: var(--muted); pointer-events: none; display: grid; place-items: center;
 }
+.login-demo-hint { margin: 0; font-size: 11px; }
+.login-demo-hint .mono { color: var(--text); }
 .login-form label { position: relative; display: block; }
 .login-form label input { padding-left: 38px; }
 .sidebar-bottom { margin-top: auto; }

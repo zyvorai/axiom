@@ -184,6 +184,35 @@ const SSO_PROVIDERS = [
   { id: 'okta', label: 'Continue with Okta', authKey: 'saml' },
 ];
 
+function ssoConfigured(providers) {
+  if (!providers) return false;
+  return !!(providers.oidc?.enabled || providers.saml?.enabled || providers.ldap?.enabled);
+}
+
+function isLocalDevHost() {
+  const h = location.hostname;
+  return h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+}
+
+function resolveLoginShowDemo() {
+  if (state.loginShowDemo) return true;
+  const providers = state.authProviders;
+  if (providers?.lab?.operator_login) return true;
+  // No SSO (or providers not loaded yet): surface demo/operator login for lab hosts.
+  if (!ssoConfigured(providers)) return true;
+  return isLocalDevHost();
+}
+
+function defaultLoginUsername() {
+  return state.authProviders?.local?.default_username || savedLoginUsername();
+}
+
+function demoCredentialHint() {
+  const user = defaultLoginUsername();
+  if (user === 'demo' || user === 'demo@zyvor.dev') return 'demo / demo';
+  return `${user} / (your AXIOM_PASSWORD)`;
+}
+
 function zyvorMark(size = 'lg') {
   const px = size === 'sm' ? 40 : 48;
   return `<button type="button" class="z-mark" data-login-mark style="width:${px}px;height:${px}px;border:0;border-radius:${size === 'sm' ? 12 : 16}px;display:grid;place-items:center;background:linear-gradient(135deg,#ff7550,#c8452a);color:#fff" aria-label="Zyvor">
@@ -1105,7 +1134,19 @@ function wireTheme() {
 }
 
 function loginView() {
-  const savedUser = savedLoginUsername();
+  const savedUser = defaultLoginUsername();
+  const showDemo = resolveLoginShowDemo();
+  const ssoOn = ssoConfigured(state.authProviders);
+  const localOn = state.authProviders?.local?.enabled !== false;
+  const subtitle = ssoOn
+    ? 'Single sign-on enforced by your Zyvor organization.'
+    : 'Lab environment — sign in with operator credentials to explore the console.';
+  const demoForm = `<form class="login-form" id="login-form" style="margin-top:20px">
+    <label>Username<span class="login-field-icon">${icon('user', 16)}</span><input name="user" type="text" value="${enc(savedUser)}" autocomplete="username" required /></label>
+    <label>Password<span class="login-field-icon">${icon('lock', 16)}</span><input name="pass" type="password" value="demo" autocomplete="current-password" required /></label>
+    <p class="login-demo-hint muted">Default credentials: <span class="mono">${enc(demoCredentialHint())}</span></p>
+    <button class="primary-button" type="submit" id="login-submit">Enter console ${icon('arrow')}</button>
+  </form>`;
   return `<main class="login-shell" style="display:flex;align-items:center;background:var(--bg)">
     <style>@media (max-width:800px){.login-shell .login-hero{display:none!important}.login-shell>div:nth-child(2){display:block!important;padding:64px 24px!important}.login-shell .login-mobile-brand{display:flex!important;align-items:center;gap:10px;margin-bottom:28px}}</style>
     <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div class="grid-bg" style="position:absolute;inset:0;opacity:.4"></div><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div><div class="aurora aurora-c"></div></div>
@@ -1122,13 +1163,13 @@ function loginView() {
       </section>
       <section class="fade-up glass specular" style="padding:40px;border-radius:24px">
         <div class="login-mobile-brand" style="display:none">${zyvorMark('sm')}<b>zyvor · Axiom</b></div>
-        <div class="eyebrow" style="color:#ff7550">AXIOM CONSOLE</div><h2 style="margin:8px 0;font-size:26px">Sign in to continue</h2><p class="muted">Single sign-on enforced by your Zyvor organization.</p>
-        <div style="margin-top:32px;display:grid;gap:12px">${SSO_PROVIDERS.map((provider, i) => `<button type="button" class="sso-btn fade-up" data-sso-id="${provider.id}" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left"><span>${state.loginPending === provider.id ? '◌' : ssoIcon(provider.id)}</span><b>${state.loginPending === provider.id ? 'Authenticating…' : provider.label}</b><small class="muted" style="margin-left:auto">SSO</small></button>`).join('')}</div>
-        ${state.loginShowDemo ? `<form class="login-form" id="login-form" style="margin-top:20px"><label>Username<span class="login-field-icon">${icon('user', 16)}</span><input name="user" type="text" value="${enc(savedUser)}" autocomplete="username" required /></label><label>Password<span class="login-field-icon">${icon('lock', 16)}</span><input name="pass" type="password" value="demo" autocomplete="current-password" required /></label><button class="primary-button" type="submit" id="login-submit">Enter console ${icon('arrow')}</button></form>` : ''}
+        <div class="eyebrow" style="color:#ff7550">AXIOM CONSOLE</div><h2 style="margin:8px 0;font-size:26px">Sign in to continue</h2><p class="muted">${subtitle}</p>
+        ${ssoOn ? `<div style="margin-top:32px;display:grid;gap:12px">${SSO_PROVIDERS.map((provider, i) => `<button type="button" class="sso-btn fade-up" data-sso-id="${provider.id}" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left"><span>${state.loginPending === provider.id ? '◌' : ssoIcon(provider.id)}</span><b>${state.loginPending === provider.id ? 'Authenticating…' : provider.label}</b><small class="muted" style="margin-left:auto">SSO</small></button>`).join('')}</div>` : ''}
+        ${showDemo ? demoForm : (localOn ? `<button type="button" class="sso-btn" id="login-demo-reveal" style="width:100%;margin-top:${ssoOn ? '20px' : '32px'};padding:14px 16px;border-radius:16px">Sign in with username &amp; password</button>` : '')}
         <div class="glass-inset" style="margin-top:28px;padding:10px 12px;border-radius:12px;font-size:12px;display:flex;align-items:center;gap:8px">${icon('lock', 14)} Sessions are scoped per device and expire automatically.</div>
       </section>
     </div>
-    <button type="button" id="login-demo-toggle" style="position:absolute;bottom:20px;left:0;right:0;border:0;background:none;color:var(--muted);font-size:11px">Axiom by Zyvor · zyvor.dev</button>
+    <a href="https://zyvor.dev" target="_blank" rel="noopener noreferrer" style="position:absolute;bottom:20px;left:0;right:0;border:0;background:none;color:var(--muted);font-size:11px;text-align:center;text-decoration:none">Axiom by Zyvor · zyvor.dev</a>
   </main>`;
 }
 
@@ -1147,9 +1188,9 @@ function wireLogin() {
       setTimeout(() => window.location.assign(provider.login_url || `/api/v1/auth/${selected.authKey}/login`), 900);
     };
   });
-  const toggleDemo = () => { state.loginShowDemo = !state.loginShowDemo; render(); };
-  $('#login-demo-toggle')?.addEventListener('click', toggleDemo);
-  $$('[data-login-mark]').forEach(mark => mark.addEventListener('click', e => { if (e.shiftKey) toggleDemo(); }));
+  const revealDemo = () => { state.loginShowDemo = true; render(); };
+  $('#login-demo-reveal')?.addEventListener('click', revealDemo);
+  $$('[data-login-mark]').forEach(mark => mark.addEventListener('click', e => { if (e.shiftKey) revealDemo(); }));
   $('#login-form')?.addEventListener('submit', event => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -4284,6 +4325,7 @@ restoreCreds();
   try {
     state.authProviders = await fetch('/api/v1/auth/providers', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null);
   } catch { state.authProviders = null; }
+  state.loginShowDemo = resolveLoginShowDemo();
 
   const ssoReturn = new URLSearchParams(location.search).get('sso') === '1';
   if (ssoReturn) {

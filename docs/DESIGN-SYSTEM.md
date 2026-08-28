@@ -63,8 +63,10 @@ SSO-first login UI (Google / GitHub / Okta labels) wired to real providers via `
 | GitHub | OIDC |
 | Okta | SAML |
 
+- When SSO is **not** configured, `GET /api/v1/auth/providers` returns `lab.operator_login: true` and the **demo / demo** username/password form is shown by default (no hidden easter egg)
+- SSO buttons are hidden until OIDC/SAML/LDAP is enabled
 - Enabled providers redirect to `login_url` after 900ms pending animation
-- **Demo fallback:** click footer “Axiom by Zyvor · zyvor.dev” or Shift+click the zyvor mark → local username/password form (`demo` / `demo@zyvor.dev`)
+- With SSO on, use “Sign in with username & password” for operator break-glass access
 
 ## Shell
 

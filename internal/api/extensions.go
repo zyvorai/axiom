@@ -28,7 +28,13 @@ func (s *Server) authProviders(w http.ResponseWriter, r *http.Request) {
 	ldapEnabled := s.auth.LDAPEnabled || s.auth.LDAPURL != ""
 	apiKeyEnabled := s.auth.APIKey != ""
 
+	operatorLogin := !oidcEnabled && !samlEnabled && !ldapEnabled
+
 	writeJSON(w, http.StatusOK, map[string]any{
+		"lab": map[string]any{
+			"operator_login": operatorLogin,
+			"hint":           "demo / demo",
+		},
 		"local": map[string]any{
 			"enabled":          true,
 			"default_username": s.username,

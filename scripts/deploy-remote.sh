@@ -11,10 +11,10 @@
 #
 # Usage:
 #   ./scripts/deploy-remote.sh <host> [user] [password]
-#   ./scripts/deploy-remote.sh 212.8.248.187 sus
-#   ./scripts/deploy-remote.sh 212.8.248.187 sus --quick        # skip image rebuild
-#   ./scripts/deploy-remote.sh 212.8.248.187 sus --skip-images  # manifests only
-#   ./scripts/deploy-remote.sh 212.8.248.187 sus --uninstall
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick        # skip image rebuild
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --skip-images  # manifests only
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
 #
 # Environment:
 #   DEPLOY_HOST / DEPLOY_USER / DEPLOY_PASS
@@ -58,7 +58,7 @@ for arg in "$@"; do
 done
 
 HOST="${POSITIONAL[0]:-${DEPLOY_HOST:-}}"
-USER="${POSITIONAL[1]:-${DEPLOY_USER:-root}}"
+USER="${POSITIONAL[1]:-${DEPLOY_USER:-zyvorai}}"
 PASS="${POSITIONAL[2]:-${DEPLOY_PASS:-}}"
 
 if [[ -z "$HOST" ]] && axiom_load_deploy_last "$(cd "$SCRIPT_DIR/.." && pwd)"; then
