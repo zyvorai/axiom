@@ -1,0 +1,274 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------------------------- */
+/* KubeCloud OS — Apple "Liquid Glass" theme tokens                       */
+/* --------------------------------------------------------------------- */
+
+@layer base {
+    :root {
+        --background: 30 20% 97%;
+        --foreground: 220 20% 10%;
+        --card: 0 0% 100%;
+        --card-foreground: 220 20% 10%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 220 20% 10%;
+        --primary: 187 92% 42%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 15% 92%;
+        --secondary-foreground: 220 15% 20%;
+        --muted: 220 14% 90%;
+        --muted-foreground: 220 10% 40%;
+        --accent: 12 85% 55%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 220 15% 85%;
+        --input: 220 15% 88%;
+        --ring: 187 92% 42%;
+        --radius: 1rem;
+        --brand: 12 85% 55%;
+        --brand-hex: #f0583a;
+        --zeus: 187 92% 54%;
+
+        --glass-bg: 255 255 255 / 0.55;
+        --glass-border: 255 255 255 / 0.6;
+        --glass-shadow: 0 30px 60px -30px rgb(15 23 42 / 0.15);
+        --grid-color: 15 23 42 / 0.05;
+
+        --k-ok: 128 30% 55%;
+        --k-warn: 22 88% 55%;
+        --k-err: 4 90% 58%;
+        --k-info: 205 45% 62%;
+
+        /* iPhone 17 palette */
+        --i17-cosmic: #f26b3a;
+        --i17-deep-blue: #2a4f80;
+        --i17-sky-blue: #7ab6dd;
+        --i17-lavender: #b49bd8;
+        --i17-sage: #9ac495;
+        --i17-mist: #8ab0c9;
+        --i17-white: #f4efe6;
+        --i17-silver: #c9ccd0;
+        --i17-gold: #d7c39a;
+    }
+
+    .dark {
+        --background: 20 10% 3%;
+        --foreground: 30 20% 96%;
+        --card: 20 8% 8%;
+        --card-foreground: 30 20% 96%;
+        --popover: 20 8% 6%;
+        --popover-foreground: 30 20% 96%;
+        --primary: 187 92% 54%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 8% 14%;
+        --secondary-foreground: 30 20% 96%;
+        --muted: 220 8% 14%;
+        --muted-foreground: 30 8% 65%;
+        --accent: 12 88% 60%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 4 90% 58%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 220 6% 18%;
+        --input: 220 6% 18%;
+        --ring: 187 92% 54%;
+        --brand: 12 88% 60%;
+        --brand-hex: #ff7550;
+        --zeus: 187 92% 60%;
+
+        --glass-bg: 255 255 255 / 0.04;
+        --glass-border: 255 255 255 / 0.10;
+        --glass-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
+        --grid-color: 255 255 255 / 0.05;
+
+        --k-ok: 128 45% 62%;
+        --k-warn: 22 92% 62%;
+        --k-err: 4 90% 65%;
+        --k-info: 205 65% 72%;
+
+        /* iPhone 17 palette – vivid for dark mode */
+        --i17-cosmic: #ff7550;
+        --i17-deep-blue: #4d80c7;
+        --i17-sky-blue: #6ab6f0;
+        --i17-lavender: #b49bd8;
+        --i17-sage: #93c88f;
+        --i17-mist: #7fa8c7;
+        --i17-white: #f4efe6;
+        --i17-silver: #d0d3d8;
+        --i17-gold: #e0c996;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    html,
+    body,
+    #root {
+        min-height: 100%;
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+    }
+    body {
+        font-family:
+            "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+            "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        letter-spacing: -0.01em;
+    }
+}
+
+@layer components {
+    .glass {
+        background: rgb(var(--glass-bg));
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid rgb(var(--glass-border));
+        box-shadow: var(--glass-shadow);
+        border-radius: var(--radius);
+    }
+    .glass-inset {
+        background: rgb(var(--glass-bg));
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        border: 1px solid rgb(var(--glass-border));
+    }
+    .specular {
+        position: relative;
+        isolation: isolate;
+    }
+    .specular::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+            135deg,
+            rgb(255 255 255 / 0.55),
+            rgb(255 255 255 / 0) 40%,
+            rgb(255 255 255 / 0) 60%,
+            rgb(255 255 255 / 0.25)
+        );
+        -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        opacity: 0.65;
+    }
+    .dark .specular::before {
+        opacity: 0.35;
+    }
+    .grid-bg {
+        background-image:
+            linear-gradient(rgb(var(--grid-color)) 1px, transparent 1px),
+            linear-gradient(90deg, rgb(var(--grid-color)) 1px, transparent 1px);
+        background-size: 48px 48px;
+    }
+    .noise::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.08;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+    }
+    .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        box-shadow: 0 0 0 3px rgb(255 255 255 / 0.03);
+    }
+    .status-dot.ok    { background: hsl(var(--k-ok)); box-shadow: 0 0 12px hsl(var(--k-ok) / 0.6); }
+    .status-dot.warn  { background: hsl(var(--k-warn)); box-shadow: 0 0 12px hsl(var(--k-warn) / 0.6); }
+    .status-dot.err   { background: hsl(var(--k-err)); box-shadow: 0 0 12px hsl(var(--k-err) / 0.6); }
+    .status-dot.info  { background: hsl(var(--k-info)); box-shadow: 0 0 12px hsl(var(--k-info) / 0.6); }
+
+    .mono {
+        font-family: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono",
+            "Roboto Mono", monospace;
+        font-feature-settings: "ss01", "ss02", "cv01";
+    }
+}
+
+@layer utilities {
+    .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: rgb(255 255 255 / 0.12);
+        border-radius: 999px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+}
+.fade-up {
+    animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.aurora {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: floatOrb 22s ease-in-out infinite;
+}
+.aurora-a {
+    width: 640px; height: 640px; left: -12%; top: -18%;
+    background: radial-gradient(circle at 30% 30%, rgba(240, 88, 58, 0.55), transparent 62%);
+}
+.aurora-b {
+    width: 560px; height: 560px; right: -10%; top: 8%;
+    background: radial-gradient(circle at 60% 40%, rgba(106, 182, 240, 0.42), transparent 62%);
+    animation-delay: -7s;
+}
+.aurora-c {
+    width: 700px; height: 700px; left: 28%; bottom: -30%;
+    background: radial-gradient(circle at 40% 60%, rgba(180, 155, 216, 0.35), transparent 62%);
+    animation-delay: -13s;
+}
+
+@keyframes zGlow {
+    0%, 100% { box-shadow: 0 12px 40px -8px rgba(242, 107, 58, 0.5); }
+    50% { box-shadow: 0 12px 56px -4px rgba(242, 107, 58, 0.85); }
+}
+.z-mark {
+    animation: zGlow 4s ease-in-out infinite;
+}
+
+.sso-btn {
+    transition: background-color 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sso-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+.sso-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.99);
+}
+
+.glass {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+}
+
+@keyframes floatOrb {
+    0%,100% { transform: translate3d(0,0,0) scale(1); }
+    50% { transform: translate3d(20px,-30px,0) scale(1.08); }
+}
+.orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: floatOrb 18s ease-in-out infinite;
+    pointer-events: none;
+}

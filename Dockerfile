@@ -1,10 +1,17 @@
+FROM node:20-slim AS ui
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm install --legacy-peer-deps
+COPY frontend/ ./
+RUN npx craco build
+
 FROM golang:1.27 AS build
 WORKDIR /src
 COPY go.production.mod go.production.sum ./
 RUN cp go.production.mod go.mod && cp go.production.sum go.sum && go mod download
 COPY . .
-RUN ./scripts/sync-ui.sh \
- && CGO_ENABLED=0 go build -modfile=go.production.mod -tags kubernetes \
+COPY --from=ui /src/frontend/build/ ./internal/ui/dist/
+RUN CGO_ENABLED=0 go build -modfile=go.production.mod -tags kubernetes \
       -trimpath -ldflags="-s -w" -o /out/zyvor-axiom ./cmd/zyvor-axiom
 
 FROM gcr.io/distroless/static-debian12:nonroot
