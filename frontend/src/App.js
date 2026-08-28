@@ -13,6 +13,7 @@ import Pods from "@/pages/Pods";
 import Networking from "@/pages/Networking";
 import VirtualMachines from "@/pages/VirtualMachines";
 import Storage from "@/pages/Storage";
+import Atlas from "@/pages/Atlas";
 import Logs from "@/pages/Logs";
 import Events from "@/pages/Events";
 import Secrets from "@/pages/Secrets";
@@ -58,6 +59,7 @@ export default function App() {
                                 <Route path="/networking" element={<Networking />} />
                                 <Route path="/vms" element={<VirtualMachines />} />
                                 <Route path="/storage" element={<Storage />} />
+                                <Route path="/atlas" element={<Atlas />} />
                                 <Route path="/logs" element={<Logs />} />
                                 <Route path="/events" element={<Events />} />
                                 <Route path="/secrets" element={<Secrets />} />

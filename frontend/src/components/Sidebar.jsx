@@ -14,6 +14,7 @@ import {
     AlertTriangle,
     Layers,
     SlidersHorizontal,
+    Cloudy,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -28,6 +29,7 @@ const ITEMS = [
     { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },
     { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone, key: "vms" },
     { to: "/storage", label: "Storage", icon: Database, key: "storage" },
+    { to: "/atlas", label: "Atlas", icon: Cloudy, key: "atlas" },
     { to: "/logs", label: "Pod Logs", icon: ScrollText, key: "logs" },
     { to: "/events", label: "Events", icon: BellRing, key: "events" },
     { to: "/secrets", label: "Secrets", icon: KeySquare, key: "secrets" },
