@@ -25,6 +25,10 @@ type Config struct {
 	AtlasURL    string
 	AtlasToken  string
 	ClusterName string
+
+	OIDCGroupsClaim string
+	OIDCAdminGroup  string
+	OIDCViewerGroup string
 }
 
 func FromEnv() Config {
@@ -48,6 +52,10 @@ func FromEnv() Config {
 		AtlasURL:    strings.TrimSpace(os.Getenv("AXIOM_ATLAS_URL")),
 		AtlasToken:  strings.TrimSpace(os.Getenv("AXIOM_ATLAS_TOKEN")),
 		ClusterName: strings.TrimSpace(os.Getenv("AXIOM_CLUSTER_NAME")),
+
+		OIDCGroupsClaim: env("AXIOM_OIDC_GROUPS_CLAIM", "groups"),
+		OIDCAdminGroup:  strings.TrimSpace(os.Getenv("AXIOM_OIDC_ADMIN_GROUP")),
+		OIDCViewerGroup: strings.TrimSpace(os.Getenv("AXIOM_OIDC_VIEWER_GROUP")),
 	}
 }
 

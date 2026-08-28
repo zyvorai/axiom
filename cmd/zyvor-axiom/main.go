@@ -63,6 +63,10 @@ func main() {
 		LDAPEnabled: cfg.LDAPEnabled,
 		LDAPDomain:  cfg.LDAPDomain,
 		LDAPURL:     cfg.LDAPURL,
+
+		OIDCGroupsClaim: cfg.OIDCGroupsClaim,
+		OIDCAdminGroup:  cfg.OIDCAdminGroup,
+		OIDCViewerGroup: cfg.OIDCViewerGroup,
 	}))
 	mux.Handle("/", ui.Handler())
 	srv := &http.Server{Addr: cfg.Addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second}

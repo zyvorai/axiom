@@ -25,6 +25,14 @@ type AuthOptions struct {
 	LDAPEnabled bool
 	LDAPDomain  string
 	LDAPURL     string
+
+	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup map an ID token's groups
+	// claim to a viewer/admin role. When OIDCAdminGroup and OIDCViewerGroup
+	// are both unset (the default), every OIDC session stays admin — the
+	// same behavior as before this existed.
+	OIDCGroupsClaim string
+	OIDCAdminGroup  string
+	OIDCViewerGroup string
 }
 
 type Server struct {

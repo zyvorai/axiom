@@ -181,10 +181,12 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	if user == "" {
 		user = "oidc-user"
 	}
+	role := resolveOIDCRole(tok.IDToken, s.auth.OIDCGroupsClaim, s.auth.OIDCAdminGroup, s.auth.OIDCViewerGroup)
 	token, err := auth.SignSession(s.sessionSecret(), auth.Session{
 		User:   user,
 		Email:  email,
 		Issuer: issuer,
+		Role:   role,
 		Exp:    time.Now().Add(12 * time.Hour).Unix(),
 	})
 	if err != nil {
@@ -272,6 +274,68 @@ func oidcIdentity(idToken, accessToken, userinfoURL string, r *http.Request) (us
 		}
 	}
 	return user, email
+}
+
+// resolveOIDCRole maps an ID token's groups claim to viewer/admin. When
+// adminGroup and viewerGroup are both unset, every OIDC session stays
+// admin, matching Axiom's behavior before this mapping existed.
+func resolveOIDCRole(idToken, groupsClaim, adminGroup, viewerGroup string) string {
+	adminGroup = strings.TrimSpace(adminGroup)
+	viewerGroup = strings.TrimSpace(viewerGroup)
+	if adminGroup == "" && viewerGroup == "" {
+		return "admin"
+	}
+	groups := decodeJWTClaimGroups(idToken, groupsClaim)
+	if adminGroup != "" && containsFold(groups, adminGroup) {
+		return "admin"
+	}
+	if viewerGroup != "" && containsFold(groups, viewerGroup) {
+		return "viewer"
+	}
+	// Authenticated via OIDC but in neither configured group: default to
+	// the more restrictive role rather than silently granting admin.
+	return "viewer"
+}
+
+func containsFold(list []string, want string) bool {
+	for _, v := range list {
+		if strings.EqualFold(v, want) {
+			return true
+		}
+	}
+	return false
+}
+
+// decodeJWTClaimGroups reads a single claim from a JWT's payload and
+// coerces it to a string slice, handling both a JSON array of strings and
+// a single string value (some IdPs emit a bare string for a one-group user).
+func decodeJWTClaimGroups(jwtToken, claim string) []string {
+	parts := strings.Split(jwtToken, ".")
+	if len(parts) < 2 {
+		return nil
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil
+	}
+	var m map[string]any
+	if json.Unmarshal(raw, &m) != nil {
+		return nil
+	}
+	switch v := m[claim].(type) {
+	case []any:
+		out := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
+	case string:
+		return []string{v}
+	default:
+		return nil
+	}
 }
 
 func decodeJWTClaims(jwt string) map[string]string {
