@@ -21,6 +21,7 @@ import {
     Rocket,
     FileCog,
     Gauge,
+    CalendarClock,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -32,6 +33,7 @@ const ITEMS = [
     { to: "/overview", label: "Overview", icon: LayoutDashboard, key: "overview" },
     { to: "/nodes", label: "Nodes", icon: Server, key: "nodes" },
     { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads" },
+    { to: "/jobs", label: "Jobs & CronJobs", icon: CalendarClock, key: "jobs" },
     { to: "/pods", label: "Pods", icon: Component, key: "pods" },
     { to: "/platform-intents", label: "Platform Intents", icon: Sparkles, key: "platform-intents" },
     { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },

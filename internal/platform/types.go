@@ -617,3 +617,23 @@ type VMConsoleInfo struct {
 	VNCPath   string `json:"vncPath"`
 	Virtctl   string `json:"virtctl"`
 }
+
+type JobSummary struct {
+	Namespace    string `json:"namespace"`
+	Name         string `json:"name"`
+	OwnerCronJob string `json:"ownerCronJob,omitempty"`
+	Status       string `json:"status"`
+	Completions  string `json:"completions"`
+	Duration     string `json:"duration,omitempty"`
+	Age          string `json:"age"`
+}
+
+type CronJobSummary struct {
+	Namespace    string `json:"namespace"`
+	Name         string `json:"name"`
+	Schedule     string `json:"schedule"`
+	Suspend      bool   `json:"suspend"`
+	Active       int    `json:"active"`
+	LastSchedule string `json:"lastSchedule,omitempty"`
+	Age          string `json:"age"`
+}

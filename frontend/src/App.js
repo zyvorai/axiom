@@ -25,6 +25,7 @@ import WorkloadDetail from "@/pages/WorkloadDetail";
 import PodDetail from "@/pages/PodDetail";
 import Logs from "@/pages/Logs";
 import Events from "@/pages/Events";
+import Jobs from "@/pages/Jobs";
 import Secrets from "@/pages/Secrets";
 import Backups from "@/pages/Backups";
 import Alerts from "@/pages/Alerts";
@@ -80,6 +81,7 @@ export default function App() {
                                 <Route path="/atlas" element={<Atlas />} />
                                 <Route path="/logs" element={<Logs />} />
                                 <Route path="/events" element={<Events />} />
+                                <Route path="/jobs" element={<Jobs />} />
                                 <Route path="/secrets" element={<Secrets />} />
                                 <Route path="/backups" element={<Backups />} />
                                 <Route path="/alerts" element={<Alerts />} />

@@ -92,4 +92,11 @@ type Provider interface {
 	ListResourceQuotas(context.Context, string) ([]ResourceQuotaSummary, error)
 	ListLimitRanges(context.Context, string) ([]LimitRangeSummary, error)
 	ListIngresses(context.Context, string) ([]IngressSummary, error)
+
+	ListJobs(context.Context, string) ([]JobSummary, error)
+	DeleteJob(context.Context, string, string) error
+	ListCronJobs(context.Context, string) ([]CronJobSummary, error)
+	TriggerCronJob(context.Context, string, string) (JobSummary, error)
+	SetCronJobSuspend(context.Context, string, string, bool) error
+	DeleteCronJob(context.Context, string, string) error
 }

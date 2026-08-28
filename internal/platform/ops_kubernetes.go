@@ -13,7 +13,9 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -884,4 +886,152 @@ func (k *KubernetesProvider) ListIngresses(ctx context.Context, ns string) ([]In
 		return out[i].Namespace < out[j].Namespace
 	})
 	return out, nil
+}
+
+func jobStatus(j batchv1.Job) string {
+	for _, c := range j.Status.Conditions {
+		if c.Type == batchv1.JobFailed && c.Status == corev1.ConditionTrue {
+			return "Failed"
+		}
+		if c.Type == batchv1.JobComplete && c.Status == corev1.ConditionTrue {
+			return "Complete"
+		}
+	}
+	if j.Status.Active > 0 {
+		return "Running"
+	}
+	return "Pending"
+}
+
+func jobDuration(j batchv1.Job) string {
+	if j.Status.StartTime == nil {
+		return ""
+	}
+	end := j.Status.CompletionTime
+	if end == nil {
+		return age(j.Status.StartTime.Time)
+	}
+	return end.Sub(j.Status.StartTime.Time).Round(time.Second).String()
+}
+
+func jobToSummary(j batchv1.Job) JobSummary {
+	owner := ""
+	for _, ref := range j.OwnerReferences {
+		if ref.Kind == "CronJob" {
+			owner = ref.Name
+		}
+	}
+	completions := "1"
+	if j.Spec.Completions != nil {
+		completions = strconv.Itoa(int(*j.Spec.Completions))
+	}
+	return JobSummary{
+		Namespace:    j.Namespace,
+		Name:         j.Name,
+		OwnerCronJob: owner,
+		Status:       jobStatus(j),
+		Completions:  fmt.Sprintf("%d/%s", j.Status.Succeeded, completions),
+		Duration:     jobDuration(j),
+		Age:          age(j.CreationTimestamp.Time),
+	}
+}
+
+func (k *KubernetesProvider) ListJobs(ctx context.Context, ns string) ([]JobSummary, error) {
+	list, err := k.client.BatchV1().Jobs(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]JobSummary, 0, len(list.Items))
+	for _, j := range list.Items {
+		out = append(out, jobToSummary(j))
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) DeleteJob(ctx context.Context, ns, name string) error {
+	prop := metav1.DeletePropagationForeground
+	return k.client.BatchV1().Jobs(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
+}
+
+func (k *KubernetesProvider) ListCronJobs(ctx context.Context, ns string) ([]CronJobSummary, error) {
+	list, err := k.client.BatchV1().CronJobs(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]CronJobSummary, 0, len(list.Items))
+	for _, c := range list.Items {
+		lastSchedule := ""
+		if c.Status.LastScheduleTime != nil {
+			lastSchedule = age(c.Status.LastScheduleTime.Time) + " ago"
+		}
+		out = append(out, CronJobSummary{
+			Namespace:    c.Namespace,
+			Name:         c.Name,
+			Schedule:     c.Spec.Schedule,
+			Suspend:      c.Spec.Suspend != nil && *c.Spec.Suspend,
+			Active:       len(c.Status.Active),
+			LastSchedule: lastSchedule,
+			Age:          age(c.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) TriggerCronJob(ctx context.Context, ns, name string) (JobSummary, error) {
+	cj, err := k.client.BatchV1().CronJobs(ns).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return JobSummary{}, err
+	}
+	labels := map[string]string{}
+	for key, v := range cj.Spec.JobTemplate.Labels {
+		labels[key] = v
+	}
+	annotations := map[string]string{"cronjob.kubernetes.io/instantiate": "manual"}
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: name + "-manual-",
+			Namespace:    ns,
+			Labels:       labels,
+			Annotations:  annotations,
+			OwnerReferences: []metav1.OwnerReference{{
+				APIVersion: "batch/v1",
+				Kind:       "CronJob",
+				Name:       cj.Name,
+				UID:        cj.UID,
+			}},
+		},
+		Spec: cj.Spec.JobTemplate.Spec,
+	}
+	created, err := k.client.BatchV1().Jobs(ns).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
+		return JobSummary{}, err
+	}
+	return jobToSummary(*created), nil
+}
+
+func (k *KubernetesProvider) SetCronJobSuspend(ctx context.Context, ns, name string, suspend bool) error {
+	cj, err := k.client.BatchV1().CronJobs(ns).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	cj.Spec.Suspend = &suspend
+	_, err = k.client.BatchV1().CronJobs(ns).Update(ctx, cj, metav1.UpdateOptions{})
+	return err
+}
+
+func (k *KubernetesProvider) DeleteCronJob(ctx context.Context, ns, name string) error {
+	prop := metav1.DeletePropagationForeground
+	return k.client.BatchV1().CronJobs(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
 }

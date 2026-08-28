@@ -6,6 +6,7 @@ const MAP = {
     Running:  { dot: "ok",   label: "Running",  color: "text-emerald-500 dark:text-emerald-400" },
     Bound:    { dot: "ok",   label: "Bound",    color: "text-emerald-500 dark:text-emerald-400" },
     Normal:   { dot: "ok",   label: "Normal",   color: "text-emerald-500 dark:text-emerald-400" },
+    Complete: { dot: "ok",   label: "Complete", color: "text-emerald-500 dark:text-emerald-400" },
     Degraded: { dot: "warn", label: "Degraded", color: "text-amber-500 dark:text-amber-400" },
     Warning:  { dot: "warn", label: "Warning",  color: "text-amber-500 dark:text-amber-400" },
     Pending:  { dot: "warn", label: "Pending",  color: "text-amber-500 dark:text-amber-400" },

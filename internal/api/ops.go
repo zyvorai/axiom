@@ -107,6 +107,69 @@ func (s *Server) listIngresses(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) listJobs(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListJobs(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
+func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteJob(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("job.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("job", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) listCronJobs(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListCronJobs(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
+func (s *Server) triggerCronJob(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	v, err := s.provider.TriggerCronJob(r.Context(), ns, name)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("cronjob.trigger", ns+"/"+name, "", s.auditUser(r))
+	EmitStateChanged("cronjob", "trigger")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) suspendCronJob(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	var req struct {
+		Suspend bool `json:"suspend"`
+	}
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	err := s.provider.SetCronJobSuspend(r.Context(), ns, name, req.Suspend)
+	if err == nil {
+		action := "cronjob.resume"
+		if req.Suspend {
+			action = "cronjob.suspend"
+		}
+		platform.RecordAxiomAudit(action, ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("cronjob", action)
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) deleteCronJob(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteCronJob(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("cronjob.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("cronjob", "delete")
+	}
+	respondAction(w, err)
+}
+
 func (s *Server) listBackups(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListBackups(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)

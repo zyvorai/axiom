@@ -463,3 +463,112 @@ func (d *DemoProvider) ListIngresses(ctx context.Context, ns string) ([]IngressS
 	}
 	return out, nil
 }
+
+var (
+	demoJobsMu     sync.Mutex
+	demoJobCounter int
+	demoJobs       = map[string]JobSummary{
+		"default/nightly-etl-29123456": {Namespace: "default", Name: "nightly-etl-29123456", OwnerCronJob: "nightly-etl", Status: "Complete", Completions: "1/1", Duration: "42s", Age: "13h"},
+		"default/nightly-etl-29123457": {Namespace: "default", Name: "nightly-etl-29123457", OwnerCronJob: "nightly-etl", Status: "Complete", Completions: "1/1", Duration: "39s", Age: "37h"},
+		"commerce/report-export-8821":  {Namespace: "commerce", Name: "report-export-8821", OwnerCronJob: "report-export", Status: "Failed", Completions: "0/1", Duration: "12s", Age: "2d"},
+	}
+	demoCronJobs = map[string]CronJobSummary{
+		"default/nightly-etl":    {Namespace: "default", Name: "nightly-etl", Schedule: "0 2 * * *", Suspend: false, Active: 0, LastSchedule: "13h ago", Age: "60d"},
+		"commerce/report-export": {Namespace: "commerce", Name: "report-export", Schedule: "0 */6 * * *", Suspend: false, Active: 0, LastSchedule: "2d ago", Age: "45d"},
+	}
+)
+
+func (d *DemoProvider) ListJobs(ctx context.Context, ns string) ([]JobSummary, error) {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	out := make([]JobSummary, 0, len(demoJobs))
+	for _, j := range demoJobs {
+		if ns != "" && ns != "all" && j.Namespace != ns {
+			continue
+		}
+		out = append(out, j)
+	}
+	sort.Slice(out, func(i, k int) bool {
+		if out[i].Namespace == out[k].Namespace {
+			return out[i].Name < out[k].Name
+		}
+		return out[i].Namespace < out[k].Namespace
+	})
+	return out, nil
+}
+
+func (d *DemoProvider) DeleteJob(ctx context.Context, ns, name string) error {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	key := ns + "/" + name
+	if _, ok := demoJobs[key]; !ok {
+		return fmt.Errorf("job %s/%s not found", ns, name)
+	}
+	delete(demoJobs, key)
+	return nil
+}
+
+func (d *DemoProvider) ListCronJobs(ctx context.Context, ns string) ([]CronJobSummary, error) {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	out := make([]CronJobSummary, 0, len(demoCronJobs))
+	for _, c := range demoCronJobs {
+		if ns != "" && ns != "all" && c.Namespace != ns {
+			continue
+		}
+		out = append(out, c)
+	}
+	sort.Slice(out, func(i, k int) bool {
+		if out[i].Namespace == out[k].Namespace {
+			return out[i].Name < out[k].Name
+		}
+		return out[i].Namespace < out[k].Namespace
+	})
+	return out, nil
+}
+
+func (d *DemoProvider) TriggerCronJob(ctx context.Context, ns, name string) (JobSummary, error) {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	cj, ok := demoCronJobs[ns+"/"+name]
+	if !ok {
+		return JobSummary{}, fmt.Errorf("cronjob %s/%s not found", ns, name)
+	}
+	demoJobCounter++
+	job := JobSummary{
+		Namespace:    ns,
+		Name:         fmt.Sprintf("%s-manual-%d", name, demoJobCounter),
+		OwnerCronJob: name,
+		Status:       "Running",
+		Completions:  "0/1",
+		Age:          "now",
+	}
+	demoJobs[job.Namespace+"/"+job.Name] = job
+	cj.LastSchedule = "now"
+	demoCronJobs[ns+"/"+name] = cj
+	return job, nil
+}
+
+func (d *DemoProvider) SetCronJobSuspend(ctx context.Context, ns, name string, suspend bool) error {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	key := ns + "/" + name
+	cj, ok := demoCronJobs[key]
+	if !ok {
+		return fmt.Errorf("cronjob %s/%s not found", ns, name)
+	}
+	cj.Suspend = suspend
+	demoCronJobs[key] = cj
+	return nil
+}
+
+func (d *DemoProvider) DeleteCronJob(ctx context.Context, ns, name string) error {
+	demoJobsMu.Lock()
+	defer demoJobsMu.Unlock()
+	key := ns + "/" + name
+	if _, ok := demoCronJobs[key]; !ok {
+		return fmt.Errorf("cronjob %s/%s not found", ns, name)
+	}
+	delete(demoCronJobs, key)
+	return nil
+}
