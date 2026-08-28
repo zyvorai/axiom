@@ -9,6 +9,7 @@ import Login from "@/pages/Login";
 import Overview from "@/pages/Overview";
 import Onboarding from "@/pages/Onboarding";
 import Nodes from "@/pages/Nodes";
+import NodeDetail from "@/pages/NodeDetail";
 import Workloads from "@/pages/Workloads";
 import Pods from "@/pages/Pods";
 import Networking from "@/pages/Networking";
@@ -68,6 +69,7 @@ export default function App() {
                                 <Route path="/overview" element={<Overview />} />
                                 <Route path="/getting-started" element={<Onboarding />} />
                                 <Route path="/nodes" element={<Nodes />} />
+                                <Route path="/nodes/:name" element={<NodeDetail />} />
                                 <Route path="/workloads" element={<Workloads />} />
                                 <Route path="/workloads/:namespace/:kind/:name" element={<WorkloadDetail />} />
                                 <Route path="/pods" element={<Pods />} />

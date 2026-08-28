@@ -121,4 +121,8 @@ type Provider interface {
 
 	ListStorageClasses(context.Context) ([]StorageClassSummary, error)
 	ListPersistentVolumes(context.Context) ([]PersistentVolumeSummary, error)
+
+	GetNodeMetrics(context.Context, string) (NodeMetricSeries, error)
+	AddTaint(context.Context, string, string, string, string) error
+	RemoveTaint(context.Context, string, string, string) error
 }

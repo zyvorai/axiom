@@ -179,6 +179,12 @@ type NodeCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+type TaintSummary struct {
+	Key    string `json:"key"`
+	Value  string `json:"value,omitempty"`
+	Effect string `json:"effect"`
+}
+
 type Node struct {
 	Name              string          `json:"name"`
 	Status            string          `json:"status"`
@@ -195,6 +201,7 @@ type Node struct {
 	KernelVersion     string          `json:"kernelVersion,omitempty"`
 	ContainerRuntime  string          `json:"containerRuntime,omitempty"`
 	Conditions        []NodeCondition `json:"conditions,omitempty"`
+	Taints            []TaintSummary  `json:"taints,omitempty"`
 	Unschedulable     bool            `json:"unschedulable,omitempty"`
 	Age               string          `json:"age"`
 }
@@ -719,6 +726,20 @@ type CRDSummary struct {
 	Plural  string `json:"plural"`
 	Scope   string `json:"scope"`
 	Age     string `json:"age"`
+}
+
+type NodeMetricPoint struct {
+	At     string `json:"at"`
+	CPU    int64  `json:"cpuMillicores"`
+	Memory int64  `json:"memoryBytes"`
+}
+
+type NodeMetricSeries struct {
+	Name          string            `json:"name"`
+	CPUMillicores int64             `json:"cpuMillicores"`
+	MemoryBytes   int64             `json:"memoryBytes"`
+	Points        []NodeMetricPoint `json:"points"`
+	Source        string            `json:"source"`
 }
 
 type StorageClassSummary struct {

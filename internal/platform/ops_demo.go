@@ -713,6 +713,19 @@ func (d *DemoProvider) GetPodMetrics(ctx context.Context, ns, name string) (PodM
 	}, nil
 }
 
+func (d *DemoProvider) GetNodeMetrics(ctx context.Context, name string) (NodeMetricSeries, error) {
+	points := make([]NodeMetricPoint, 0, 8)
+	now := time.Now().UTC()
+	for i := 7; i >= 0; i-- {
+		points = append(points, NodeMetricPoint{
+			At:     now.Add(-time.Duration(i) * time.Minute).Format("15:04:05"),
+			CPU:    3200 + int64(i*130%900),
+			Memory: 24_000_000_000 + int64(i*900_000_000%4_000_000_000),
+		})
+	}
+	return NodeMetricSeries{Name: name, CPUMillicores: 3200, MemoryBytes: 24_000_000_000, Points: points, Source: "demo"}, nil
+}
+
 func (d *DemoProvider) ListCRDs(ctx context.Context) ([]CRDSummary, error) {
 	return []CRDSummary{
 		{Group: "monitoring.coreos.com", Version: "v1", Kind: "PrometheusRule", Plural: "prometheusrules", Scope: "Namespaced", Age: "60d"},

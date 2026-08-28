@@ -109,6 +109,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/nodes/{name}/cordon", s.cordon)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/uncordon", s.uncordon)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/drain", s.drain)
+	mux.HandleFunc("GET /api/v1/nodes/{name}/metrics", s.nodeMetrics)
+	mux.HandleFunc("POST /api/v1/nodes/{name}/taints", s.addTaint)
+	mux.HandleFunc("DELETE /api/v1/nodes/{name}/taints/{key}", s.removeTaint)
 	mux.HandleFunc("GET /api/v1/events", s.events)
 	mux.HandleFunc("GET /api/v1/namespaces", s.namespaces)
 	mux.HandleFunc("POST /api/v1/namespaces", s.createNamespace)
@@ -448,6 +451,33 @@ func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
 	err := s.provider.Drain(r.Context(), r.PathValue("name"))
 	if err == nil {
 		EmitStateChanged("node", "drain")
+	}
+	respondAction(w, err)
+}
+func (s *Server) nodeMetrics(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.GetNodeMetrics(r.Context(), r.PathValue("name"))
+	respond(w, v, err)
+}
+func (s *Server) addTaint(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Effect string `json:"effect"`
+	}
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	err := s.provider.AddTaint(r.Context(), r.PathValue("name"), req.Key, req.Value, req.Effect)
+	if err == nil {
+		EmitStateChanged("node", "taint")
+	}
+	respondAction(w, err)
+}
+func (s *Server) removeTaint(w http.ResponseWriter, r *http.Request) {
+	err := s.provider.RemoveTaint(r.Context(), r.PathValue("name"), r.PathValue("key"), r.URL.Query().Get("effect"))
+	if err == nil {
+		EmitStateChanged("node", "untaint")
 	}
 	respondAction(w, err)
 }

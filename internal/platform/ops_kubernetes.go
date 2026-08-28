@@ -1354,6 +1354,39 @@ func (k *KubernetesProvider) GetPodMetrics(ctx context.Context, ns, name string)
 	}, nil
 }
 
+type nodeMetricsAPIResponse struct {
+	Usage struct {
+		CPU    string `json:"cpu"`
+		Memory string `json:"memory"`
+	} `json:"usage"`
+}
+
+// GetNodeMetrics reuses the pod-metrics ring buffer (recordPodMetric/podMetricPoints)
+// keyed by "node:<name>" — node names never contain a "/", so this can't collide
+// with a pod key ("namespace/name").
+func (k *KubernetesProvider) GetNodeMetrics(ctx context.Context, name string) (NodeMetricSeries, error) {
+	data, err := k.client.CoreV1().RESTClient().Get().
+		AbsPath(fmt.Sprintf("/apis/metrics.k8s.io/v1beta1/nodes/%s", name)).
+		Do(ctx).Raw()
+	if err != nil {
+		return NodeMetricSeries{}, err
+	}
+	var resp nodeMetricsAPIResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return NodeMetricSeries{}, err
+	}
+	cpu := parseCPUMillis(resp.Usage.CPU)
+	mem := parseMemoryBytes(resp.Usage.Memory)
+	key := "node:" + name
+	recordPodMetric(key, cpu, mem)
+	podPoints := podMetricPoints(key)
+	points := make([]NodeMetricPoint, len(podPoints))
+	for i, p := range podPoints {
+		points[i] = NodeMetricPoint{At: p.At, CPU: p.CPU, Memory: p.Memory}
+	}
+	return NodeMetricSeries{Name: name, CPUMillicores: cpu, MemoryBytes: mem, Points: points, Source: "metrics-server"}, nil
+}
+
 // --- Generic CRD browser ---
 
 var crdGVR = schema.GroupVersionResource{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}

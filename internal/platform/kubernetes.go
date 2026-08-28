@@ -28,9 +28,9 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
@@ -140,7 +140,7 @@ func (k *KubernetesProvider) Overview(ctx context.Context) (Overview, error) {
 	return Overview{
 		Cluster: "zyvor", Health: health,
 		Workloads: len(deps.Items) + len(sts.Items),
-		Pods: len(pods.Items), RunningPods: running,
+		Pods:      len(pods.Items), RunningPods: running,
 		Nodes: len(nodes.Items), ReadyNodes: readyNodes,
 		VMs: len(vms), ReadyVMs: readyVMs,
 		CPUPercent: util.CPUPercent, MemoryPercent: util.MemoryPercent,
@@ -561,6 +561,10 @@ func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 				ip = a.Address
 			}
 		}
+		taints := make([]TaintSummary, 0, len(n.Spec.Taints))
+		for _, t := range n.Spec.Taints {
+			taints = append(taints, TaintSummary{Key: t.Key, Value: t.Value, Effect: string(t.Effect)})
+		}
 		out = append(out, Node{
 			Name:              n.Name,
 			Status:            status,
@@ -577,6 +581,7 @@ func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 			KernelVersion:     n.Status.NodeInfo.KernelVersion,
 			ContainerRuntime:  n.Status.NodeInfo.ContainerRuntimeVersion,
 			Conditions:        conditions,
+			Taints:            taints,
 			Unschedulable:     n.Spec.Unschedulable,
 			Age:               age(n.CreationTimestamp.Time),
 		})
@@ -590,6 +595,39 @@ func (k *KubernetesProvider) Cordon(ctx context.Context, name string, cordon boo
 		return err
 	}
 	node.Spec.Unschedulable = cordon
+	_, err = k.client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
+	return err
+}
+
+func (k *KubernetesProvider) AddTaint(ctx context.Context, name, key, value, effect string) error {
+	node, err := k.client.CoreV1().Nodes().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	taint := corev1.Taint{Key: key, Value: value, Effect: corev1.TaintEffect(effect)}
+	for _, t := range node.Spec.Taints {
+		if t.Key == taint.Key && t.Effect == taint.Effect {
+			return nil
+		}
+	}
+	node.Spec.Taints = append(node.Spec.Taints, taint)
+	_, err = k.client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
+	return err
+}
+
+func (k *KubernetesProvider) RemoveTaint(ctx context.Context, name, key, effect string) error {
+	node, err := k.client.CoreV1().Nodes().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	kept := node.Spec.Taints[:0]
+	for _, t := range node.Spec.Taints {
+		if t.Key == key && string(t.Effect) == effect {
+			continue
+		}
+		kept = append(kept, t)
+	}
+	node.Spec.Taints = kept
 	_, err = k.client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
 	return err
 }

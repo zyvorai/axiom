@@ -312,3 +312,12 @@ func (sp *SwitchableProvider) ListStorageClasses(a0 context.Context) ([]StorageC
 func (sp *SwitchableProvider) ListPersistentVolumes(a0 context.Context) ([]PersistentVolumeSummary, error) {
 	return sp.current().ListPersistentVolumes(a0)
 }
+func (sp *SwitchableProvider) GetNodeMetrics(a0 context.Context, a1 string) (NodeMetricSeries, error) {
+	return sp.current().GetNodeMetrics(a0, a1)
+}
+func (sp *SwitchableProvider) AddTaint(a0 context.Context, a1 string, a2 string, a3 string, a4 string) error {
+	return sp.current().AddTaint(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) RemoveTaint(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().RemoveTaint(a0, a1, a2, a3)
+}

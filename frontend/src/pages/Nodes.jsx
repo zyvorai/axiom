@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
@@ -65,7 +66,9 @@ export default function Nodes() {
                     <GlassCard key={n.name} data-testid={NODES.row(n.name)} className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="min-w-0">
-                                <div className="mono truncate text-sm">{n.name}</div>
+                                <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="mono truncate text-sm hover:underline">
+                                    {n.name}
+                                </Link>
                                 <div className="mt-1 text-xs text-muted-foreground">
                                     {n.role} · {n.internalIp}
                                 </div>

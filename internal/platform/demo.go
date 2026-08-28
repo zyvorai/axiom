@@ -269,11 +269,15 @@ func (d *DemoProvider) ListNodes(ctx context.Context) ([]Node, error) {
 		{Name: "axiom-01", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.11", Pods: 18, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-02", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.12", Pods: 21, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-03", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.13", Pods: 17, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
-		{Name: "gpu-01", Status: "Ready", Role: "agent", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.21", Pods: 11, CPU: "32", Memory: "256Gi", AllocatableCPU: "32", AllocatableMemory: "256Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "17d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
+		{Name: "gpu-01", Status: "Ready", Role: "agent", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.21", Pods: 11, CPU: "32", Memory: "256Gi", AllocatableCPU: "32", AllocatableMemory: "256Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "17d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}, Taints: []TaintSummary{{Key: "nvidia.com/gpu", Value: "true", Effect: "NoSchedule"}}},
 	}, nil
 }
 func (d *DemoProvider) Cordon(ctx context.Context, name string, cordon bool) error { return nil }
 func (d *DemoProvider) Drain(ctx context.Context, name string) error               { return nil }
+func (d *DemoProvider) AddTaint(ctx context.Context, name, key, value, effect string) error {
+	return nil
+}
+func (d *DemoProvider) RemoveTaint(ctx context.Context, name, key, effect string) error { return nil }
 func (d *DemoProvider) ListEvents(ctx context.Context, ns string) ([]Event, error) {
 	now := time.Now()
 	return []Event{{Namespace: "payments", Type: "Normal", Reason: "ScalingReplicaSet", Object: "Deployment/payments-api", Message: "Scaled up replica set payments-api to 12", Count: 1, Time: now.Add(-8 * time.Minute)}, {Namespace: "observability", Type: "Warning", Reason: "BackOff", Object: "Pod/otel-collector-69d8", Message: "Back-off restarting failed container collector", Count: 4, Time: now.Add(-3 * time.Minute)}}, nil
@@ -342,8 +346,8 @@ func (d *DemoProvider) rebuildPodsLocked(w Workload) {
 			}(),
 			IP: fmt.Sprintf("10.42.%d.%d", (i%4)+1, 20+i), Age: w.Age,
 			Containers: []string{w.Name}, ContainerInfo: cinfo,
-			Ports: []PodPort{{Container: w.Name, ContainerPort: 8080, Protocol: "TCP"}},
-			Labels: map[string]string{"app": w.Name, "app.kubernetes.io/name": w.Name},
+			Ports:      []PodPort{{Container: w.Name, ContainerPort: 8080, Protocol: "TCP"}},
+			Labels:     map[string]string{"app": w.Name, "app.kubernetes.io/name": w.Name},
 			WorkloadID: w.Name, Replica: i + 1, Replicas: w.Desired, Floor: string(FloorForNamespace(w.Namespace)),
 			CPULimit: "500m", MemLimit: "512Mi", QOS: "Burstable", Image: w.Image, Sealed: sealed,
 		})
@@ -424,7 +428,7 @@ func (d *DemoProvider) ListServices(ctx context.Context, ns string) ([]Service, 
 		}
 		out = append(out, Service{
 			Namespace: w.Namespace, Name: w.Name, Type: "ClusterIP", ClusterIP: fmt.Sprintf("10.43.%d.%d", len(out)+1, 10),
-			Ports: []ServicePort{{Name: "http", Port: 80, TargetPort: "8080", Protocol: "TCP"}},
+			Ports:    []ServicePort{{Name: "http", Port: 80, TargetPort: "8080", Protocol: "TCP"}},
 			Selector: map[string]string{"app": w.Name}, Endpoints: eps, Age: w.Age,
 		})
 	}
