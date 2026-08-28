@@ -100,6 +100,97 @@ func (k *KubernetesProvider) runHelmJob(ctx context.Context, ns, release, action
 	}, nil
 }
 
+// InstallHelmChart launches the same "Job running alpine/helm" mechanism as
+// HelmUninstall/HelmRollback, rather than adding a Helm Go SDK dependency.
+// Uses `helm install --repo <url>` (fetches directly from the repo's index)
+// instead of a separate `helm repo add && helm install` shell pipeline —
+// this keeps every argument a literal element of the Job's Command slice,
+// with no shell interpolation of user input anywhere, so there's no command
+// injection surface regardless of what characters are in the release/chart
+// name or repo URL.
+func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHelmRequest) (HelmActionResult, error) {
+	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.ReleaseName) == "" ||
+		strings.TrimSpace(req.RepoURL) == "" || strings.TrimSpace(req.ChartName) == "" {
+		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
+	}
+
+	jobNS := "axiom-system"
+	jobName := fmt.Sprintf("axiom-helm-install-%s-%d", sanitizeDNS(req.ReleaseName), time.Now().Unix()%100000)
+
+	// No --wait here (unlike uninstall/rollback): install is already framed
+	// to the caller as "started", not a synchronous result, and --wait would
+	// require RBAC read on apps/replicasets that Axiom's ServiceAccount
+	// doesn't have — confirmed against the real cluster, where a chart's
+	// resources were created successfully but the Job still reported
+	// failure because `helm install --wait` couldn't poll rollout status.
+	args := []string{"install", req.ReleaseName, req.ChartName, "--repo", req.RepoURL, "-n", req.Namespace, "--create-namespace"}
+	if req.ChartVersion != "" {
+		args = append(args, "--version", req.ChartVersion)
+	}
+
+	var volumes []corev1.Volume
+	var mounts []corev1.VolumeMount
+	if strings.TrimSpace(req.Values) != "" {
+		cmName := jobName + "-values"
+		_, err := k.client.CoreV1().ConfigMaps(jobNS).Create(ctx, &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cmName,
+				Namespace: jobNS,
+				Labels:    map[string]string{"app.kubernetes.io/managed-by": "zyvor-axiom"},
+			},
+			Data: map[string]string{"values.yaml": req.Values},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			return HelmActionResult{}, fmt.Errorf("create values configmap: %w", err)
+		}
+		volumes = append(volumes, corev1.Volume{
+			Name:         "values",
+			VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: cmName}}},
+		})
+		mounts = append(mounts, corev1.VolumeMount{Name: "values", MountPath: "/values"})
+		args = append(args, "-f", "/values/values.yaml")
+	}
+
+	backoff := int32(0)
+	ttl := int32(600)
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: jobNS,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "zyvor-axiom",
+				"axiom.zyvor.dev/helm-action":  "install",
+				"axiom.zyvor.dev/release":      req.ReleaseName,
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit:            &backoff,
+			TTLSecondsAfterFinished: &ttl,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy:      corev1.RestartPolicyNever,
+					ServiceAccountName: "zyvor-axiom",
+					Volumes:            volumes,
+					Containers: []corev1.Container{{
+						Name:         "helm",
+						Image:        "alpine/helm:3.14.4",
+						Command:      append([]string{"helm"}, args...),
+						VolumeMounts: mounts,
+					}},
+				},
+			},
+		},
+	}
+	_, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
+		return HelmActionResult{}, err
+	}
+	return HelmActionResult{
+		OK: true, Action: "install", JobName: jobNS + "/" + jobName,
+		Message: fmt.Sprintf("Helm install started for %s/%s", req.Namespace, req.ReleaseName),
+	}, nil
+}
+
 func sanitizeDNS(s string) string {
 	s = strings.ToLower(s)
 	var b strings.Builder

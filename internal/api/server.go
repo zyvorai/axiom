@@ -179,6 +179,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/helm/releases/{namespace}/{name}/history", s.helmHistory)
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/uninstall", s.helmUninstall)
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/rollback", s.helmRollback)
+	mux.HandleFunc("POST /api/v1/helm/install", s.helmInstall)
 	mux.HandleFunc("GET /api/v1/external-secrets", s.externalSecrets)
 	mux.HandleFunc("GET /api/v1/vm-snapshots", s.vmSnapshots)
 	mux.HandleFunc("POST /api/v1/vm-snapshots", s.createVMSnapshot)

@@ -121,17 +121,94 @@ function HelmRow({ r, onChanged }) {
     );
 }
 
+function InstallChartDialog({ open, onOpenChange, onInstalled }) {
+    const [form, setForm] = useState({ namespace: "default", releaseName: "", repoUrl: "", chartName: "", chartVersion: "", values: "" });
+    const [busy, setBusy] = useState(false);
+    const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+    const submit = async () => {
+        setBusy(true);
+        try {
+            await api.post("/helm/install", form);
+            toast.success(`Install started for ${form.releaseName}`);
+            onOpenChange(false);
+            onInstalled();
+        } catch (e) {
+            toast.error("Install failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="glass max-w-lg border-white/10">
+                <DialogHeader>
+                    <DialogTitle>Install chart</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Release name</Label>
+                            <Input value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="border-white/10 bg-white/[0.03]" />
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Chart repo URL</Label>
+                        <Input value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="border-white/10 bg-white/[0.03]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Chart name</Label>
+                            <Input value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="border-white/10 bg-white/[0.03]" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Version (optional)</Label>
+                            <Input value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="border-white/10 bg-white/[0.03]" />
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Values YAML (optional)</Label>
+                        <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="min-h-[100px] border-white/10 bg-white/[0.03] mono text-xs" spellCheck={false} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                        Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.
+                    </p>
+                </div>
+                <DialogFooter>
+                    <Button onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        {busy ? "Starting…" : "Install"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function HelmTab() {
     const [reload, setReload] = useState(0);
     const releases = useEndpoint("/helm/releases", [reload]);
+    const [installOpen, setInstallOpen] = useState(false);
     return (
-        <GlassCard className="p-0 overflow-hidden">
-            <Rows
-                items={releases}
-                empty="No Helm releases."
-                render={(r) => <HelmRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
-            />
-        </GlassCard>
+        <div className="space-y-3">
+            <div className="flex justify-end">
+                <Button size="sm" onClick={() => setInstallOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Install chart
+                </Button>
+            </div>
+            <GlassCard className="p-0 overflow-hidden">
+                <Rows
+                    items={releases}
+                    empty="No Helm releases."
+                    render={(r) => <HelmRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
+                />
+            </GlassCard>
+            <InstallChartDialog open={installOpen} onOpenChange={setInstallOpen} onInstalled={() => setReload((n) => n + 1)} />
+        </div>
     );
 }
 

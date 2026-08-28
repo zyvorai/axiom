@@ -735,6 +735,15 @@ type CRDSummary struct {
 	Age     string `json:"age"`
 }
 
+type InstallHelmRequest struct {
+	Namespace    string `json:"namespace"`
+	ReleaseName  string `json:"releaseName"`
+	RepoURL      string `json:"repoUrl"`
+	ChartName    string `json:"chartName"`
+	ChartVersion string `json:"chartVersion,omitempty"`
+	Values       string `json:"values,omitempty"`
+}
+
 type RBACPolicyRule struct {
 	APIGroups []string `json:"apiGroups"`
 	Resources []string `json:"resources"`

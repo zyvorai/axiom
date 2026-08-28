@@ -372,6 +372,22 @@ func (s *Server) helmRollback(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, v)
 }
 
+func (s *Server) helmInstall(w http.ResponseWriter, r *http.Request) {
+	var req platform.InstallHelmRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.InstallHelmChart(r.Context(), req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, req.RepoURL+" "+req.ChartName, s.auditUser(r))
+	EmitStateChanged("helm", "install")
+	writeJSON(w, http.StatusAccepted, v)
+}
+
 func (s *Server) externalSecrets(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListExternalSecrets(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)

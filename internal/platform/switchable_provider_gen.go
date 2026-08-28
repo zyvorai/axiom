@@ -345,3 +345,6 @@ func (sp *SwitchableProvider) DeleteRoleBinding(a0 context.Context, a1 string, a
 func (sp *SwitchableProvider) TriggerGitOpsSync(a0 context.Context, a1 string, a2 string, a3 string) error {
 	return sp.current().TriggerGitOpsSync(a0, a1, a2, a3)
 }
+func (sp *SwitchableProvider) InstallHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
+	return sp.current().InstallHelmChart(a0, a1)
+}

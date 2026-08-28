@@ -22,6 +22,13 @@ func (d *DemoProvider) HelmRollback(ctx context.Context, ns, name string, revisi
 	return HelmActionResult{OK: true, Action: "rollback", Message: fmt.Sprintf("demo rollback %s/%s to %d", ns, name, revision)}, nil
 }
 
+func (d *DemoProvider) InstallHelmChart(ctx context.Context, req InstallHelmRequest) (HelmActionResult, error) {
+	if req.Namespace == "" || req.ReleaseName == "" || req.RepoURL == "" || req.ChartName == "" {
+		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
+	}
+	return HelmActionResult{OK: true, Action: "install", Message: fmt.Sprintf("demo install %s/%s from %s (%s)", req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName)}, nil
+}
+
 func (d *DemoProvider) ListExternalSecrets(ctx context.Context, ns string) ([]ExternalSecretSummary, error) {
 	all := []ExternalSecretSummary{
 		{Namespace: "external-secrets", Name: "atlas-demo-gateway-auth", Store: "vault-lab", Refresh: "1h", Status: "SecretSyncedError", Ready: false, Age: "11d"},

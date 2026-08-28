@@ -138,4 +138,6 @@ type Provider interface {
 	DeleteRoleBinding(context.Context, string, string) error
 
 	TriggerGitOpsSync(context.Context, string, string, string) error
+
+	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 }

@@ -15,6 +15,12 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments", "statefulsets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Read-only: Helm needs this to apply/verify a Deployment's owned
+  # ReplicaSets during `helm install` (confirmed against a real cluster —
+  # installs fail without it, even with --wait removed).
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["networkpolicies", "ingresses"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
