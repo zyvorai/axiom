@@ -1,6 +1,6 @@
 # Zyvor Axiom API Reference
 
-All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OIDC session, or API key when configured). JSON mutation bodies are limited to 1 MiB and reject unknown fields unless noted.
+All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OIDC session, or API key when configured). JSON mutation bodies are limited to 1 MiB and reject unknown fields unless noted. Authenticated callers with a `viewer` role (see [Users](#users)) can call every `GET` route but get `403` on any mutating one.
 
 ## Session and health
 
@@ -9,9 +9,20 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 | GET | `/api/v1/health` | Unauthenticated liveness/readiness |
 | GET | `/api/v1/session` | Authenticated user, role, mode, cluster |
 | GET | `/api/v1/overview` | Cluster health summary |
-| GET | `/api/v1/regions` | Region / multi-cluster metadata |
+| GET | `/api/v1/regions` | Legacy cosmetic region breakdown of the active cluster (kept for the existing hero/topbar copy) |
 | GET | `/api/v1/metrics/utilization` | CPU/memory utilization aggregates |
 | GET | `/api/v1/realtime/capabilities` | SSE / streaming feature flags |
+
+`GET /api/v1/session` returns `role` as a human label (`"Platform Admin"` or `"Viewer"`) resolved from whichever account authenticated the request — the env operator account and API-key auth are always admin; local accounts (see [Users](#users)) and OIDC/SAML sessions carry their own role (SSO sessions default to admin today).
+
+## Clusters
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/clusters` | List registered clusters, with the currently-active one flagged |
+| POST | `/api/v1/clusters/{name}/activate` | Switch the active cluster — every subsequent request across the whole API hits the new one |
+
+The backend `Provider` is always a `SwitchableProvider` delegating to whichever cluster is active. A normal in-cluster (ServiceAccount) deployment registers exactly one cluster — this is not a stub, it's the honest single-cluster case. A kubeconfig with multiple contexts registers one provider per context. Demo mode registers three independent demo clusters.
 
 ## Authentication
 
@@ -62,6 +73,29 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 ```json
 {"replicas": 6}
 ```
+
+## Jobs and CronJobs
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/jobs?namespace=...` | List Jobs (status, completions, duration, owning CronJob if any) |
+| DELETE | `/api/v1/jobs/{namespace}/{name}` | Delete a Job |
+| GET | `/api/v1/cronjobs?namespace=...` | List CronJobs (schedule, suspend state, last-scheduled time) |
+| POST | `/api/v1/cronjobs/{namespace}/{name}/trigger` | Run now — builds a Job from the CronJob's JobTemplate, same as `kubectl create job --from=cronjob` |
+| POST | `/api/v1/cronjobs/{namespace}/{name}/suspend` | `{"suspend": true\|false}` — suspend or resume the schedule |
+| DELETE | `/api/v1/cronjobs/{namespace}/{name}` | Delete a CronJob |
+
+## ConfigMaps, quotas, and ingresses
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/configmaps?namespace=...` | List ConfigMaps (namespace, name, keys) |
+| POST | `/api/v1/configmaps` | Create a ConfigMap (`{"namespace","name","data":{...}}`) |
+| GET | `/api/v1/configmaps/{namespace}/{name}` | ConfigMap detail (full data) |
+| DELETE | `/api/v1/configmaps/{namespace}/{name}` | Delete a ConfigMap |
+| GET | `/api/v1/resourcequotas?namespace=...` | ResourceQuotas (hard vs. used, per namespace) |
+| GET | `/api/v1/limitranges?namespace=...` | LimitRanges (Container/Pod/PVC default/min/max) |
+| GET | `/api/v1/ingresses?namespace=...` | Ingresses (class, hosts, TLS, load-balancer address) — the OpenShift-Route equivalent |
 
 ## Pods
 
@@ -198,6 +232,20 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | POST | `/api/v1/integrations/oidc/test` | Test OIDC discovery |
 | POST | `/api/v1/integrations/postgres/test` | Test Postgres connectivity |
 | POST | `/api/v1/integrations/probe/test` | HTTP / in-cluster probe |
+| POST | `/api/v1/integrations/slack/test` | Send a real test message to the configured Slack webhook |
+| POST | `/api/v1/integrations/webhook/test` | Send a real test POST to the configured alert webhook |
+
+`PUT /api/v1/integrations` also accepts `slackWebhookUrl`, `alertWebhookUrl`, and `notifyOnWarnings` (bool). When `notifyOnWarnings` is true and at least one webhook is set, a background dispatcher polls `GET /api/v1/alerts`-equivalent Warning events every 60s and forwards new ones to both configured channels.
+
+## Users
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/users` | List local accounts (username, role, createdAt — never the password hash) |
+| POST | `/api/v1/users` | Create a local account: `{"username","password","role":"admin"\|"viewer"}` (password ≥ 8 chars) |
+| DELETE | `/api/v1/users/{username}` | Delete a local account |
+
+Local accounts are independent of the single env-configured operator account (`AXIOM_USERNAME`/`AXIOM_PASSWORD`, always admin) and of OIDC/SAML logins (also always admin today). A `viewer` account authenticates and can call every `GET` endpoint, but any mutating request returns `403 {"error":"read-only user: this account cannot perform write actions"}`.
 
 ## Intent placement
 

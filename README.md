@@ -24,11 +24,18 @@ Pages:
 - **Storage** — PVCs grouped by StorageClass
 - **Atlas** — live storage control-plane view (backends/pools/volumes/buckets/policies) when Atlas is connected, with a "Create volume" flow
 - **Pod Logs** — chunked-HTTP live tail with container selection, deep-linkable from Pod detail
+- **Jobs & CronJobs** — CronJob run-now/suspend-resume/delete, Job status/completions/duration, separate from the Workloads table
+- **ConfigMaps** — full CRUD alongside Secrets
+- **Quotas & Limits** — ResourceQuotas (hard/used) and LimitRanges per namespace, read-only
+- **Ingresses** — hosts, class, TLS, address — OpenShift-Route-equivalent view
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
 - **Ops hub** — tabbed Helm / GitOps / Agents / Identity / Audit / Access (RBAC) / Cost
-- **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection
+- **Users** — local accounts (admin/viewer roles) layered on top of the env-configured operator account and any SSO login
+- **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection, plus Slack/webhook alert notifications
 
-Real auth throughout: local Basic-auth sign-in form plus SSO buttons that redirect to OIDC/SAML when configured (`GET /api/v1/auth/providers`), with a lab-mode "fill demo/demo" hint when no SSO is set up.
+Real auth throughout: local Basic-auth sign-in form plus SSO buttons that redirect to OIDC/SAML when configured (`GET /api/v1/auth/providers`), with a lab-mode "fill demo/demo" hint when no SSO is set up. Local accounts created under Settings → Users get an `admin` or `viewer` role — viewers can read every page but every mutating request is rejected with 403 at the auth middleware, not just hidden in the UI.
+
+Multi-cluster switching is real, not cosmetic: the sidebar cluster switcher is backed by `GET /api/v1/clusters` / `POST /api/v1/clusters/{name}/activate`. A production deployment running in-cluster via ServiceAccount (the normal case) honestly reports exactly one cluster; demo mode ships three independent demo clusters so the switcher has something real to exercise.
 
 ## Backend
 
@@ -46,16 +53,20 @@ Production Kubernetes support is kept behind the `kubernetes` build tag and uses
 
 ### API surface
 
-See [`docs/API.md`](docs/API.md) for the full reference (~90 routes). Core groups:
+See [`docs/API.md`](docs/API.md) for the full reference (100+ routes). Core groups:
 
-- **Cluster:** health, session, overview, regions, utilization, events
+- **Cluster:** health, session, overview, regions, utilization, events, real cluster list/switch
 - **Workloads:** CRUD, scale, stop/start, restart, seal/unseal, rollout, Still previews
+- **Jobs/CronJobs:** list, delete, trigger (run-now), suspend/resume
+- **Config:** ConfigMaps (CRUD), ResourceQuotas, LimitRanges, Ingresses
 - **Pods:** list, logs, one-shot exec, interactive terminal (WebSocket), evict, window proxy
 - **Nodes:** list, cordon, uncordon, drain
 - **Network:** namespaces, services, topology, PacketWolf status/proxy
 - **VMs:** KubeVirt lifecycle, snapshots, clones, exports, restores
 - **Ops:** Helm, GitOps, secrets, backups, Velero, alerts, audit, RBAC, cost
 - **Platform:** Atlas, Haven identity, agent runs, integrations, intent placement
+- **Notifications:** Slack/webhook config + test, automatic Warning-event dispatch
+- **Users:** local account CRUD (admin/viewer)
 - **Auth:** providers, OIDC/SAML login, logout
 
 ## Run the tested local demo
@@ -140,12 +151,32 @@ Lab deploys use HTTP Basic auth (`AXIOM_USERNAME` / `AXIOM_PASSWORD`, default `d
 - Enable OIDC/SAML via Settings → Integrations or environment variables
 - Place Axiom behind an identity-aware proxy when using LDAP (`AXIOM_LDAP_ENABLED`)
 - Grant the ServiceAccount only the RBAC verbs in `deploy/k8s/rbac.yaml` and narrow namespaces further where possible
+- Prefer `viewer`-role local accounts (Settings → Users) for anyone who only needs read access, instead of sharing the single admin operator credential
 
 A browser can't attach an `Authorization` header to a plain link or WebSocket, which the pod-window proxy and interactive terminal both need for local Basic-auth sessions. Axiom accepts a `?access_token=<base64 user:pass>` query parameter for exactly this case (`internal/auth/basic.go`); OIDC/SAML sessions ride their cookie and need nothing extra.
+
+### Users and roles
+
+Beyond the single env-configured operator account (always `admin`) and any OIDC/SAML login (also always `admin` today — SSO doesn't carry a granular role yet), Settings → Users manages local accounts with bcrypt-hashed passwords, persisted in a `zyvor-axiom-users` Secret in production (in-memory in demo). Each account is `admin` or `viewer`:
+
+- `viewer` accounts can read every page and every `GET` endpoint
+- Any mutating request (`POST`/`PUT`/`PATCH`/`DELETE`) from a `viewer` is rejected with `403` at the auth middleware (`internal/auth/basic.go`), before it reaches any handler — enforcement is centralized, not per-page
+
+### Multi-cluster
+
+`internal/platform.Provider` is always a `*SwitchableProvider` that delegates every call to whichever cluster is currently active (`internal/platform/switchable_provider_gen.go` — one generated delegator method per `Provider` interface method, so no handler code needs to know clusters exist). `GET /api/v1/clusters` lists registered clusters; `POST /api/v1/clusters/{name}/activate` switches the active one.
+
+- **Kubernetes mode, in-cluster (the normal deploy)**: exactly one cluster is registered, since a ServiceAccount token has no notion of "other contexts". Name it with `AXIOM_CLUSTER_NAME` instead of the generic `in-cluster` default.
+- **Kubernetes mode, kubeconfig with multiple contexts**: one provider is registered per context, and switching is real.
+- **Demo mode**: three independent demo clusters are registered so the switcher has real (if fake) behavior to exercise without a live kubeconfig.
 
 ## Storage: Atlas
 
 Axiom's Atlas page (and `/api/v1/atlas*`) talks to [Atlas](../atlas), Zyvor's separate storage control-plane service, when `AXIOM_ATLAS_URL` (and optionally `AXIOM_ATLAS_TOKEN`) is configured — via Settings → Integrations, or automatically when deploying with `./scripts/deploy-remote.sh <host> <user> --with-atlas` (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)). Atlas is entirely optional; without it the Atlas page shows an honest "not connected" state.
+
+## Alert notifications
+
+Settings → Notifications configures a Slack incoming-webhook URL and/or a generic alert-webhook URL, each with a one-shot "Test" button (`POST /api/v1/integrations/slack/test`, `.../webhook/test`). When "Forward Warning events automatically" is on, a background dispatcher (`platform.RunAlertDispatcher`) polls `ListAlerts` every 60s and pushes new cluster Warning events to whichever channels are configured — this is genuine outbound delivery (a real Slack message / a real HTTP POST), not a UI-only toggle.
 
 ## Detailed documentation
 

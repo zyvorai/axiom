@@ -48,7 +48,11 @@ kubectl apply -f deploy/k8s/deployment.yaml
 kubectl apply -f deploy/k8s/nodeport.yaml   # lab NodePort 30590
 ```
 
+`deploy/k8s/rbac.yaml` grants: core resources (Pods, Services, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, ...), `apps` Deployments/StatefulSets, `batch` Jobs/CronJobs, `networking.k8s.io` NetworkPolicies/Ingresses, plus the KubeVirt/Helm/Velero/GitOps/Haven CRD groups Axiom optionally reads. If you narrow this ClusterRole, keep `secrets` write access in Axiom's own namespace — both the Integrations hub and local Users store (`zyvor-axiom-users` Secret) depend on it.
+
 For least privilege, replace the ClusterRole with namespace-scoped Roles where your operating model permits it.
+
+Optionally set `AXIOM_CLUSTER_NAME` on the Deployment to label the single connected cluster shown in the sidebar switcher and Settings → Clusters (defaults to `in-cluster` — see [ARCHITECTURE.md](ARCHITECTURE.md#multi-cluster-switchableprovider)).
 
 ## 5. Expose the UI
 
@@ -168,11 +172,13 @@ Uninstall:
 
 - Real TLS certificate (replace self-signed lab cert)
 - OIDC/SAML or identity-aware proxy instead of reference Basic Auth
+- Local `viewer`-role accounts (Settings → Users) for anyone who doesn't need write access, instead of sharing the admin credential
 - namespace-scoped RBAC where possible
 - network policy protecting the Axiom namespace
 - external secret management
 - audit log forwarding
 - immutable image tags/digests
 - PodSecurity admission profile
-- resource quotas and LimitRanges
+- resource quotas and LimitRanges (viewable live on Axiom's own Quotas & Limits page)
 - backups for cluster state and Axiom configuration
+- configure Settings → Notifications (Slack/webhook) so cluster Warning events actually reach someone

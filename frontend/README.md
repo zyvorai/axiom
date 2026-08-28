@@ -34,7 +34,7 @@ src/
   lib/
     api.js               axios instance, log streaming, withAccessToken() for WS/plain-link auth
     auth.js               AuthProvider (local Basic-auth + OIDC/SAML)
-    cluster.js             cosmetic region/cluster-switcher state
+    cluster.js             real cluster-switcher state (GET/POST /api/v1/clusters*)
     theme.js                dark/light toggle
   index.css              design tokens + "Liquid Glass" utility classes
 ```
