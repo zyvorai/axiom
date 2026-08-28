@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
@@ -542,7 +543,9 @@ export default function Workloads() {
                                     className="border-white/5 hover:bg-white/[0.03]"
                                 >
                                     <TableCell>
-                                        <div className="font-medium">{w.name}</div>
+                                        <Link to={`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`} className="font-medium hover:underline">
+                                            {w.name}
+                                        </Link>
                                         <div className="mono truncate text-[11px] text-muted-foreground">{w.image}</div>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{w.namespace}</TableCell>

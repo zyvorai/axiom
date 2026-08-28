@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
@@ -199,7 +200,11 @@ export default function Pods() {
                         <TableBody>
                             {rows.map((p) => (
                                 <TableRow key={`${p.namespace}/${p.name}`} className="border-white/5 hover:bg-white/[0.03]">
-                                    <TableCell className="font-medium">{p.name}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <Link to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`} className="hover:underline">
+                                            {p.name}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell className="mono text-xs">{p.namespace}</TableCell>
                                     <TableCell className="mono text-xs">{p.node}</TableCell>
                                     <TableCell className="mono">{p.ready}</TableCell>

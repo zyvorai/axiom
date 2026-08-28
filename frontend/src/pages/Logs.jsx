@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api, streamPodLogs } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,8 +15,10 @@ import { Play, Square, Trash2, TerminalSquare } from "lucide-react";
 import { LOGS } from "@/constants/testIds";
 
 export default function Logs() {
+    const [searchParams] = useSearchParams();
     const [pods, setPods] = useState(null);
-    const [selected, setSelected] = useState("");
+    const [selected, setSelected] = useState(searchParams.get("pod") || "");
+    const [container, setContainer] = useState("");
     const [running, setRunning] = useState(false);
     const [lines, setLines] = useState([]);
     const controllerRef = useRef(null);
@@ -26,7 +29,12 @@ export default function Logs() {
         api.get("/pods").then((r) => {
             if (!alive) return;
             setPods(r.data);
-            if (r.data[0]) setSelected(`${r.data[0].namespace}/${r.data[0].name}`);
+            const fromUrl = searchParams.get("pod");
+            if (fromUrl && r.data.some((p) => `${p.namespace}/${p.name}` === fromUrl)) {
+                setSelected(fromUrl);
+            } else if (!fromUrl && r.data[0]) {
+                setSelected(`${r.data[0].namespace}/${r.data[0].name}`);
+            }
         });
         return () => {
             alive = false;
@@ -39,11 +47,20 @@ export default function Logs() {
         if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
     }, [lines]);
 
+    const selectedPod = useMemo(() => (pods || []).find((p) => `${p.namespace}/${p.name}` === selected), [pods, selected]);
+    const containerOptions = selectedPod?.containers || [];
+
+    useEffect(() => {
+        setContainer(containerOptions[0] || "");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selected]);
+
     const start = () => {
         if (!selected || running) return;
         setLines([]);
         const [namespace, name] = selected.split("/");
         controllerRef.current = streamPodLogs(namespace, name, {
+            container: container || undefined,
             onLine: (line) => setLines((prev) => (prev.length > 500 ? [...prev.slice(-500), line] : [...prev, line])),
             onError: () => setRunning(false),
             onEnd: () => setRunning(false),
@@ -85,8 +102,14 @@ export default function Logs() {
                     <TerminalSquare className="h-4 w-4 text-[#ff7550]" />
                     <span className="text-sm font-medium">Pod</span>
                 </div>
-                <Select value={selected} onValueChange={setSelected}>
-                    <SelectTrigger data-testid={LOGS.podSelect} className="w-[320px] border-white/10 bg-white/[0.03]">
+                <Select
+                    value={selected}
+                    onValueChange={(v) => {
+                        stop();
+                        setSelected(v);
+                    }}
+                >
+                    <SelectTrigger data-testid={LOGS.podSelect} className="w-[300px] border-white/10 bg-white/[0.03]">
                         <SelectValue placeholder="Choose pod" />
                     </SelectTrigger>
                     <SelectContent>
@@ -97,6 +120,20 @@ export default function Logs() {
                         ))}
                     </SelectContent>
                 </Select>
+                {containerOptions.length > 1 && (
+                    <Select value={container} onValueChange={setContainer}>
+                        <SelectTrigger className="w-[160px] border-white/10 bg-white/[0.03]">
+                            <SelectValue placeholder="Container" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {containerOptions.map((c) => (
+                                <SelectItem key={c} value={c}>
+                                    {c}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
                 {running ? (
                     <Button
                         data-testid={LOGS.stopBtn}

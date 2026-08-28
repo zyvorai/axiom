@@ -26,6 +26,19 @@ export function restoreBasicAuth() {
     return token;
 }
 
+// A plain <a target="_blank"> navigation to an API route won't carry the
+// Authorization header a local Basic-auth session relies on (only cookies —
+// i.e. OIDC/SAML sessions — survive that). The backend accepts a base64
+// user:pass via ?access_token= for exactly this case (see
+// internal/auth/basic.go's credentialsFromRequest), so append it for local
+// sessions; OIDC/SAML sessions ride their cookie and need nothing extra.
+export function withAccessToken(path) {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const url = `${API}${path}`;
+    if (!token) return url;
+    return url + (url.includes("?") ? "&" : "?") + `access_token=${encodeURIComponent(token)}`;
+}
+
 // Streams a pod's log endpoint (chunked text/plain, not SSE) line by line.
 // Returns an AbortController the caller can use to stop the stream.
 export function streamPodLogs(namespace, name, { container, follow = true, tail = 200, onLine, onError, onEnd } = {}) {
