@@ -250,7 +250,17 @@ PY
 kubectl apply -f deploy/k8s/rbac.yaml
 kubectl apply -f deploy/k8s/deployment.yaml
 kubectl apply -f deploy/k8s/secret.yaml
-kubectl apply -f deploy/k8s/nodeport.yaml
+if ! kubectl apply -f deploy/k8s/nodeport.yaml; then
+  echo \"ERROR: nodePort \$AXIOM_NODE_PORT is already allocated to another Service on this cluster.\" >&2
+  echo \"Find it with: kubectl get svc -A -o wide | grep \$AXIOM_NODE_PORT\" >&2
+  echo \"Re-run with a free port: AXIOM_NODE_PORT=<port> $0 ${HOST} ${USER} --quick\" >&2
+  exit 1
+fi
+LIVE_PORT=\$(kubectl -n axiom-system get svc zyvor-axiom-nodeport -o jsonpath='{.spec.ports[0].nodePort}')
+if [ \"\$LIVE_PORT\" != \"\$AXIOM_NODE_PORT\" ]; then
+  echo \"ERROR: zyvor-axiom-nodeport is live on \$LIVE_PORT, not the requested \$AXIOM_NODE_PORT — the apply was rejected (nodePort already allocated elsewhere). Re-run with a free port: AXIOM_NODE_PORT=<port> $0 ${HOST} ${USER} --quick\" >&2
+  exit 1
+fi
 # Optional env bootstrap only — prefer Settings → Integrations in the UX.
 # (Atlas/OIDC URLs and tokens are persisted to zyvor-axiom-integrations.)
 true
