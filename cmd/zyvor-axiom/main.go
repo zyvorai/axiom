@@ -51,6 +51,8 @@ func main() {
 		log.Printf("local user accounts loaded: %d", n)
 	}
 
+	platform.SetAuditStore(platform.OpenAuditStore(cfg.Mode, provider))
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:      cfg.APIKey,
