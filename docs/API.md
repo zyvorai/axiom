@@ -108,6 +108,7 @@ The backend `Provider` is always a `SwitchableProvider` delegating to whichever 
 | DELETE | `/api/v1/pods/{namespace}/{name}` | Terminate Pod |
 | POST | `/api/v1/pods/{namespace}/{name}/evict` | Policy-aware eviction |
 | GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod (reverse-proxies into the pod's container port) |
+| GET | `/api/v1/pods/{namespace}/{name}/metrics` | Live CPU/memory for the pod and each container, plus a short in-memory rolling time series (not historical Prometheus data) |
 
 Exec accepts a shell string or argv array:
 
@@ -120,6 +121,47 @@ Exec accepts a shell string or argv array:
 ```
 
 `/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header — for local Basic-auth sessions, append `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra.
+
+## Autoscaling, disruption budgets, network policies
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/hpas?namespace=...` | List HorizontalPodAutoscalers |
+| POST | `/api/v1/hpas` | Create an HPA: `{"namespace","name","targetKind","targetName","minReplicas","maxReplicas","targetCpuPercent"}` |
+| DELETE | `/api/v1/hpas/{namespace}/{name}` | Delete an HPA |
+| GET | `/api/v1/poddisruptionbudgets?namespace=...` | List PodDisruptionBudgets (read-only) |
+| GET | `/api/v1/networkpolicies?namespace=...` | List NetworkPolicies |
+| DELETE | `/api/v1/networkpolicies/{namespace}/{name}` | Delete a NetworkPolicy |
+
+Creating a NetworkPolicy has no dedicated form endpoint — use `POST /api/v1/apply` with a NetworkPolicy manifest (see [Generic apply](#generic-apply) below).
+
+## Generic apply
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/apply` | Server-side apply of any manifest: `{"manifest":"<yaml or json>"}` |
+
+**kubernetes build only.** Parses the manifest, resolves its GVK to a GVR via discovery, and applies it with `types.ApplyPatchType` / `FieldManager: "zyvor-axiom"` — a real `kubectl apply`, not a dry run (see [`POST /api/v1/validate`](#helm-gitops-ops) for dry-run-only validation). In the demo build this always returns `{"valid":false,"message":"apply is not available in demo mode — requires a real cluster (build with -tags kubernetes)"}`.
+
+Response shape:
+
+```json
+{"valid":true,"kind":"Deployment","apiVersion":"apps/v1","namespace":"apps","name":"hello-axiom","message":"applied"}
+```
+
+```json
+{"valid":false,"errors":["human-readable parse or apply error"]}
+```
+
+## Custom resources (CRDs)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/crds` | List installed CustomResourceDefinitions (group, version, kind, plural, scope, age) |
+| GET | `/api/v1/crds/{group}/{version}/{plural}?namespace=...` | List instances of a CRD. Omit `namespace` for cluster-scoped CRDs or to list across all namespaces for a namespaced CRD |
+| GET | `/api/v1/crds/{group}/{version}/{plural}/{name}?namespace=...` | Get one CRD instance's raw manifest |
+
+Listing CRD *definitions* only requires the `apiextensions.k8s.io` RBAC grant Axiom always ships with. Listing/getting CRD *instances* requires the ServiceAccount to actually have RBAC for that specific group/resource — `deploy/k8s/rbac.yaml` grants a curated allowlist (NetworkPolicies, PrometheusRule, KubeVirt, Argo CD, Flux, etc.), not a wildcard. Browsing a CRD outside that allowlist returns the real Kubernetes `403 Forbidden` message from the API server, not a misleading empty list.
 
 ## Nodes
 

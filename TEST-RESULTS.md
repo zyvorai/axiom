@@ -1,6 +1,36 @@
 # Zyvor Axiom Validation Results
 
-## 2026-08-28 (latest) — audit persistence, CI, user edit, viewer banner, real Keycloak SSO, namespace RBAC — plus a regression found and fixed
+## 2026-08-28 (latest) — Tier-1 Kubernetes-console gap closure: HPA, generic apply, PDB, NetworkPolicy CRUD, bulk actions, per-pod metrics, CRD browser
+
+Seven features closing the remaining gaps against best-in-class Kubernetes consoles (OpenShift Console, Lens, Rancher), scoped from a fresh "what's missing" audit and implemented one at a time, backend-then-frontend, following the session's established Provider-interface + demo/kubernetes dual-implementation pattern:
+
+```text
+go test ./cmd/... ./internal/...                                        PASS
+go vet ./cmd/... ./internal/...                                         PASS
+go build ./cmd/zyvor-axiom                                              PASS (demo build)
+go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (kubernetes build)
+npx craco build (frontend/)                                             PASS
+```
+
+**HorizontalPodAutoscaler** (list/create/delete) — new Autoscaling page. Verified via Chrome against the local demo server: opened the Create dialog, picked a real workload from the target-workload dropdown, created a real HPA, watched it appear in the list with a success toast, deleted it, confirmed the list returned to its original state. Verified against the real 80.79.5.173 cluster via curl (empty list — no HPAs exist on that cluster yet, which is itself the correct honest response).
+
+**PodDisruptionBudgets** (read-only) — added as a third `Section` on the existing Quotas page. Verified via Chrome (demo) and curl (real cluster — six real PDBs across `kubevirt`, `packetwolf`, `rook-ceph`, `zeus-os`, `zyvor-relay`).
+
+**NetworkPolicy CRUD** — list/delete on the Networking page plus a "Create via YAML" flow (reuses the generic apply endpoint rather than a bespoke rule-builder form). Verified via Chrome (demo: pre-filled template, apply correctly rejected with the demo-mode message) and curl (real cluster — ten real NetworkPolicies across `cluster-network-addons`, `ironwolf-system`, `packetwolf`, `zeus-os*`, `zyvor-qa-sandbox`).
+
+**Generic server-side apply** — `POST /api/v1/apply` reuses `ValidateManifest`'s parse/discover path with a real `Patch(types.ApplyPatchType)` instead of a dry-run `Create`. Wired into three places: the Workloads launch wizard's YAML tab (Validate → Apply), the NetworkPolicy create-via-YAML flow, and new editable-YAML tabs on both Pod detail and Workload detail (replacing the old read-only `<pre>` with a `<textarea>` + Save button). Verified via Chrome against the demo server (all three surfaces correctly show the "not available in demo mode" message) and for real against the live cluster: applied a real `Namespace` manifest via curl, confirmed it was created, then deleted it immediately since it was only a verification artifact with no lasting purpose.
+
+**Per-pod/container CPU & memory graphs** — new Metrics tab on Pod detail, reusing the `Sparkline` component (extracted from Overview.jsx into `frontend/src/components/Sparkline.jsx` for this purpose) against a new `GET /api/v1/pods/{ns}/{name}/metrics`, backed by the same raw `metrics.k8s.io` `AbsPath` trick as node metrics plus a small in-memory per-pod ring buffer. Verified via Chrome (demo: synthetic but realistic-looking CPU/memory curves) and curl (real cluster: real live CPU/memory numbers from a real Axiom pod, `"source":"metrics-server"`).
+
+**Generic CRD browser** — new Custom Resources page: search/select any installed CRD, browse its instances via `AutoTable` (extracted from Atlas.jsx into `frontend/src/components/AutoTable.jsx`), open one for its raw manifest. Verified via Chrome (demo: PrometheusRule instances, detail dialog) and curl (real cluster: real CRDs from cert-manager, KubeVirt, and dozens of others). **Found a real UX gap during real-cluster verification**: the ClusterRole's RBAC for CRD instances is an intentional per-group allowlist (not a wildcard), so browsing a CRD outside that allowlist (e.g. cert-manager's `Challenge`) returned a real `403 Forbidden` from the Kubernetes API — but the frontend was swallowing that into the same "no instances found" empty state as a genuinely-empty CRD, which is actively misleading. Fixed by threading the actual error message through to the UI (`CustomResources.jsx`'s `instancesError` state) so a permission gap reads as "Permission denied: ..." instead of silently looking like there's just nothing there.
+
+**Bulk multi-select actions** — no backend changes; a checkbox column plus an "N selected" toolbar on Pods (bulk evict) and Workloads (bulk restart/delete), firing `Promise.allSettled` over the existing single-resource endpoints. Verified via Chrome (demo): selected two pods, toolbar appeared with count; selected a workload, toolbar showed Restart/Delete buttons.
+
+### Live remote deployment (real k3s cluster, 80.79.5.173)
+
+Full deploy with `./scripts/deploy-remote.sh 80.79.5.173 sus` (RBAC ClusterRole picked up the new `autoscaling`/`policy` verbs), then a `--quick` redeploy for the CRD-error-surfacing fix. All seven features re-verified against real cluster data after each deploy, as summarized above.
+
+## 2026-08-28 (earlier) — audit persistence, CI, user edit, viewer banner, real Keycloak SSO, namespace RBAC — plus a regression found and fixed
 
 Continuation of the "what else is missing" punch list, implemented one item at a time:
 

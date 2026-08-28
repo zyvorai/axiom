@@ -13,6 +13,9 @@ Zyvor Axiom API (Go net/http)
   +-- Config API (ConfigMaps CRUD · ResourceQuotas · LimitRanges · Ingresses)
   +-- Pod API (logs · one-shot exec · interactive terminal WebSocket · evict · window proxy)
   +-- Node API (cordon · drain)
+  +-- Autoscaling / disruption / network-policy API (HPA · PDB · NetworkPolicy)
+  +-- Generic apply API (server-side apply of any manifest, kubernetes build only)
+  +-- Custom resource API (list any installed CRD, browse/get its instances)
   +-- Cluster API (list/activate — real multi-cluster switch)
   +-- Network + PacketWolf proxy
   +-- KubeVirt VM lifecycle
@@ -34,8 +37,11 @@ SwitchableProvider (internal/platform) — implements Provider, delegates to the
         +-- Deployments / StatefulSets / DaemonSets / Services
         +-- Jobs / CronJobs
         +-- ConfigMaps / ResourceQuotas / LimitRanges / Ingresses
-        +-- Pods / Logs / Exec (one-shot + WebSocket PTY) / Eviction
+        +-- Pods / Logs / Exec (one-shot + WebSocket PTY) / Eviction / per-pod metrics
         +-- Nodes / Events / Namespaces
+        +-- HorizontalPodAutoscalers / PodDisruptionBudgets / NetworkPolicies
+        +-- Generic server-side apply (any GVK, via discovery + dynamic client)
+        +-- Generic CRD browser (any installed CRD, via dynamic client)
         +-- KubeVirt CRDs (when installed)
         +-- Helm 3 releases (when CLI available)
         +-- External Secrets · Velero · Flux/Argo (best-effort list)
@@ -68,6 +74,14 @@ Registration differs by mode (`internal/platform/factory_demo.go`, `factory_kube
 `GET /api/v1/realtime/capabilities` advertises `interactiveExec` (real WebSocket PTY availability, kubernetes-build-only) and `logFollow`. `GET /api/v1/pods/{namespace}/{name}/terminal` (kubernetes build only) upgrades to a WebSocket and pipes a real PTY (`remotecommand.NewSPDYExecutor` with `TTY:true`) — the client sends raw keystrokes plus a `__resize__:WIDTHxHEIGHT` control message, and receives raw terminal output as binary WebSocket frames. The frontend's `PodTerminal.jsx` component (xterm.js) implements this protocol.
 
 Because a plain WebSocket can't carry a custom `Authorization` header, local Basic-auth sessions authenticate the WebSocket (and the pod-window proxy, and a plain-link navigation to any API route) via `?access_token=<base64 user:pass>` — see `internal/auth/basic.go`'s `credentialsFromRequest`. OIDC/SAML sessions ride their cookie and need nothing extra.
+
+## Generic apply and the CRD browser
+
+`ApplyManifest` (`internal/platform/ops_kubernetes.go`) reuses `ValidateManifest`'s exact parse-and-discover path — YAML/JSON → `unstructured.Unstructured` → GVK→GVR via `restmapper.NewDeferredDiscoveryRESTMapper` — but replaces the dry-run `Create` with a real `Patch(types.ApplyPatchType, FieldManager: "zyvor-axiom")`. This is the one endpoint that lets an operator apply an arbitrary manifest through Axiom instead of only the handful of typed resources every other endpoint models explicitly; the frontend's editable-YAML tabs (Workload/Pod detail) and the NetworkPolicy "Create via YAML" flow all funnel through it. It only exists under the `kubernetes` build tag — the demo provider returns a fixed "not available in demo mode" result rather than simulating a fake apply.
+
+The CRD browser (`ListCRDs`/`ListCRDInstances`/`GetCRDInstance`) is a separate, narrower mechanism: `ListCRDs` reads `apiextensions.k8s.io` CustomResourceDefinition objects (a well-known GVR, no extra `k8s.io/apiextensions-apiserver` dependency needed), while `ListCRDInstances`/`GetCRDInstance` build a GVR directly from a CRD's own `.spec.names.plural` and hit it with the dynamic client — no restmapper round-trip needed, since the CRD object already carries everything required. Listing CRD *definitions* only needs the `apiextensions.k8s.io` RBAC grant Axiom always ships with; listing/getting CRD *instances* needs the ServiceAccount to actually have RBAC for that specific group, which `deploy/k8s/rbac.yaml` grants as a curated per-group allowlist, not a wildcard `list` on everything. Browsing an ungranted CRD's instances surfaces the real Kubernetes `403 Forbidden` message to the frontend rather than a misleading empty list — see `CustomResources.jsx`'s `instancesError` state, which distinguishes "genuinely empty" from "you don't have RBAC for this."
+
+Per-pod metrics (`GetPodMetrics`) reuse the same raw `AbsPath("/apis/metrics.k8s.io/v1beta1/namespaces/{ns}/pods/{name}")` REST-on-the-existing-client trick as node metrics, plus an in-memory per-pod ring buffer (`podMetricsHist`, keyed `namespace/name`, capped at 48 samples with ≥20s spacing) so the frontend can render a short rolling sparkline without a real time-series backend. Entries are evicted once the map exceeds 500 pods (mirrors `RateLimiter.sweepLocked` in `internal/auth/ratelimit.go`) so a long-running process doesn't accumulate unbounded per-pod history. This is explicitly a live rolling window, not historical Prometheus data — the UI says so.
 
 ## Integrations hub
 
