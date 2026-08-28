@@ -2,8 +2,115 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Network, Boxes, ArrowRightLeft } from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Network, Boxes, ArrowRightLeft, Radar } from "lucide-react";
 import { NET } from "@/constants/testIds";
+
+function flowItems(flows) {
+    if (!flows) return null;
+    if (Array.isArray(flows)) return flows;
+    if (Array.isArray(flows.items)) return flows.items;
+    if (Array.isArray(flows.flows)) return flows.flows;
+    return null;
+}
+
+function PacketWolfPanel() {
+    const [status, setStatus] = useState(null);
+    const [flows, setFlows] = useState(null);
+    const [flowsError, setFlowsError] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        const load = () => api.get("/packetwolf/status").then((r) => alive && setStatus(r.data));
+        load();
+        const t = setInterval(load, 10000);
+        return () => {
+            alive = false;
+            clearInterval(t);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!status?.reachable) return;
+        let alive = true;
+        const load = () =>
+            api
+                .get("/packetwolf/proxy/api/v1/flows", { params: { limit: 25 } })
+                .then((r) => alive && (setFlows(r.data), setFlowsError(null)))
+                .catch((e) => alive && setFlowsError(e?.response?.data?.error || e.message));
+        load();
+        const t = setInterval(load, 8000);
+        return () => {
+            alive = false;
+            clearInterval(t);
+        };
+    }, [status?.reachable]);
+
+    if (!status) return <Skeleton className="h-24 rounded-2xl bg-white/[0.04]" />;
+
+    const tone = status.reachable ? "ok" : status.configured ? "warn" : "info";
+    const label = status.reachable ? "Connected" : status.configured ? "Unreachable" : "Not configured";
+    const items = flowItems(flows);
+
+    return (
+        <GlassCard className="p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                    <Radar className="h-4 w-4 text-[#ff7550]" /> PacketWolf
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className={`status-dot ${tone}`} />
+                    <span className="text-xs text-muted-foreground">{label}</span>
+                </div>
+            </div>
+            <div className="px-4 py-3 text-xs text-muted-foreground">
+                {status.message || status.baseUrl || "eBPF flow visibility via the PacketWolf integration."}
+            </div>
+            {status.reachable && (
+                <div className="max-h-[360px] overflow-auto scrollbar-thin border-t border-white/5">
+                    {flowsError && <div className="px-4 py-6 text-center text-sm text-muted-foreground">{flowsError}</div>}
+                    {!flowsError && items && items.length > 0 && (
+                        <Table>
+                            <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
+                                <TableRow className="border-white/5 hover:bg-transparent">
+                                    <TableHead>Source</TableHead>
+                                    <TableHead>Destination</TableHead>
+                                    <TableHead>Proto</TableHead>
+                                    <TableHead>Verdict</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {items.slice(0, 25).map((f, i) => (
+                                    <TableRow key={i} className="border-white/5 hover:bg-white/[0.03]">
+                                        <TableCell className="mono text-xs">{String(f.source ?? f.src ?? f.from ?? "—")}</TableCell>
+                                        <TableCell className="mono text-xs">{String(f.destination ?? f.dst ?? f.to ?? "—")}</TableCell>
+                                        <TableCell className="text-xs">{String(f.protocol ?? f.proto ?? "—")}</TableCell>
+                                        <TableCell className="text-xs">{String(f.verdict ?? f.action ?? f.disposition ?? "—")}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                    {!flowsError && items && items.length === 0 && (
+                        <div className="px-4 py-6 text-center text-sm text-muted-foreground">No flows in the current window.</div>
+                    )}
+                    {!flowsError && flows && !items && (
+                        <pre className="mono whitespace-pre-wrap px-4 py-3 text-[11px] text-muted-foreground">
+                            {JSON.stringify(flows, null, 2)}
+                        </pre>
+                    )}
+                </div>
+            )}
+        </GlassCard>
+    );
+}
 
 export default function Networking() {
     const [d, setD] = useState(null);
@@ -108,6 +215,8 @@ export default function Networking() {
                     </div>
                 </GlassCard>
             </div>
+
+            <PacketWolfPanel />
         </div>
     );
 }
