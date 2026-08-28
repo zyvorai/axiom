@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend and refresh internal/ui/dist
+        run: ./scripts/sync-ui.sh
+
+      - name: go vet (demo build)
+        run: go vet ./cmd/... ./internal/...
+
+      - name: go test (demo build)
+        run: go test ./cmd/... ./internal/...
+
+      - name: go build (demo build)
+        run: go build -o bin/zyvor-axiom ./cmd/zyvor-axiom
+
+      - name: go vet (kubernetes build)
+        run: go vet -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...
+
+      - name: go build (kubernetes build)
+        run: go build -tags kubernetes -modfile=go.production.mod -o bin/zyvor-axiom-kubernetes ./cmd/zyvor-axiom
+
+      - name: Validate Kubernetes manifests
+        run: |
+          pip install --quiet pyyaml
+          for f in deploy/k8s/*.yaml; do
+            python3 -c "import yaml,sys; list(yaml.safe_load_all(open(sys.argv[1])))" "$f"
+          done
