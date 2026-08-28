@@ -1,0 +1,87 @@
+package platform
+
+import (
+	"context"
+	"io"
+)
+
+type Provider interface {
+	Overview(context.Context) (Overview, error)
+	ListWorkloads(context.Context, string) ([]Workload, error)
+	Launch(context.Context, LaunchRequest) (Workload, error)
+	Scale(context.Context, string, string, string, int32) error
+	Start(context.Context, string, string, string) error
+	Stop(context.Context, string, string, string) error
+	Restart(context.Context, string, string, string) error
+	DeleteWorkload(context.Context, string, string, string) error
+	SealWorkload(context.Context, string, string, string) error
+	UnsealWorkload(context.Context, string, string, string) error
+	ListPods(context.Context, string) ([]Pod, error)
+	DeletePod(context.Context, string, string) error
+	EvictPod(context.Context, string, string) error
+	ListNodes(context.Context) ([]Node, error)
+	ListVirtualMachines(context.Context, string) ([]VirtualMachine, error)
+	StartVirtualMachine(context.Context, string, string) error
+	StopVirtualMachine(context.Context, string, string) error
+	ListVolumes(context.Context, string) ([]Volume, error)
+	Utilization(context.Context) (UtilizationSeries, error)
+	Cordon(context.Context, string, bool) error
+	Drain(context.Context, string) error
+	ListEvents(context.Context, string) ([]Event, error)
+	PodLogs(context.Context, string, string, string, bool, int64, bool) (io.ReadCloser, error)
+	ExecCommand(context.Context, string, string, string, []string) (string, error)
+	ListNamespaces(context.Context) ([]Namespace, error)
+	CreateNamespace(context.Context, string) (Namespace, error)
+	DeleteNamespace(context.Context, string) error
+	ListServices(context.Context, string) ([]Service, error)
+	NetworkMap(context.Context, string) (NetworkMap, error)
+	PodProxyTarget(context.Context, string, string, int32) (string, error)
+	GetNode(context.Context, string) (Node, error)
+	GetRolloutStatus(context.Context, string, string, string) (RolloutStatus, error)
+	RolloutAction(context.Context, string, string, string, string) error
+	GetResource(context.Context, string, string, string) (ResourceDetail, error)
+	WorkloadNetworkGuard(context.Context, string, string, string) (NetworkGuardSummary, error)
+
+	ListSecrets(context.Context, string) ([]SecretSummary, error)
+	GetSecret(context.Context, string, string, bool) (SecretDetail, error)
+	CreateSecret(context.Context, CreateSecretRequest) (SecretDetail, error)
+	DeleteSecret(context.Context, string, string) error
+	ListBackups(context.Context, string) ([]BackupSnapshot, error)
+	CreateBackup(context.Context, CreateBackupRequest) (BackupSnapshot, error)
+	RestoreBackup(context.Context, RestoreBackupRequest) (Volume, error)
+	ListHelmReleases(context.Context, string) ([]HelmRelease, error)
+	HelmUninstall(context.Context, string, string) (HelmActionResult, error)
+	HelmRollback(context.Context, string, string, int) (HelmActionResult, error)
+	ListHelmHistory(context.Context, string, string) ([]HelmRelease, error)
+	ListExternalSecrets(context.Context, string) ([]ExternalSecretSummary, error)
+	ListVMSnapshots(context.Context, string) ([]VMSnapshot, error)
+	CreateVMSnapshot(context.Context, CreateVMSnapshotRequest) (VMSnapshot, error)
+	LiveMigrateVM(context.Context, string, string) (HelmActionResult, error)
+	ListVMClones(context.Context, string) ([]VMClone, error)
+	CreateVMClone(context.Context, CreateVMCloneRequest) (VMClone, error)
+	ListVMExports(context.Context, string) ([]VMExport, error)
+	CreateVMExport(context.Context, CreateVMExportRequest) (VMExport, error)
+	ListVMRestores(context.Context, string) ([]VMRestore, error)
+	CreateVMRestore(context.Context, CreateVMRestoreRequest) (VMRestore, error)
+	ListVeleroBackups(context.Context, string) ([]VeleroBackup, error)
+	ListVeleroSchedules(context.Context, string) ([]VeleroSchedule, error)
+	ListGitOps(context.Context) ([]GitOpsItem, error)
+	ListAlerts(context.Context, string) (AlertsResponse, error)
+	ListRBAC(context.Context, string) (RBACSummary, error)
+	EstimateCost(context.Context) (CostEstimate, error)
+	ValidateManifest(context.Context, string) (ValidateResult, error)
+	VMConsole(context.Context, string, string) (VMConsoleInfo, error)
+
+	ListAgentRuns(context.Context, string) ([]AgentRun, error)
+	GetAgentRun(context.Context, string, string) (AgentRun, error)
+	CreateAgentRun(context.Context, CreateAgentRunRequest) (AgentRun, error)
+	ApproveAgentRun(context.Context, string, string) (AgentRun, error)
+	DenyAgentRun(context.Context, string, string) (AgentRun, error)
+	ListPlatformIntents(context.Context, string) ([]PlatformIntent, error)
+
+	GetHavenIdentity(context.Context, string) (HavenIdentitySummary, error)
+	ListIdentityPlanes(context.Context, string) ([]IdentityPlane, error)
+	ListHavenKeycloaks(context.Context, string) ([]HavenKeycloak, error)
+	ListHavenDatabases(context.Context, string) ([]HavenDatabase, error)
+	GetHavenAdminBootstrap(context.Context, string, string) (HavenAdminBootstrap, error)
+}

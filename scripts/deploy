@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# ============================================================================
+# deploy — one command to ship Axiom to a remote k3s host
+# ============================================================================
+#   ./scripts/deploy remote 212.8.248.187 sus
+#   ./scripts/deploy remote --quick
+#   ./scripts/deploy status
+# ============================================================================
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=lib/deploy-remote-ui.sh
+source "$SCRIPT_DIR/lib/deploy-remote-ui.sh"
+
+usage() {
+  cat <<EOF
+Usage:
+  $(basename "$0") remote [host] [user] [password] [options]
+  $(basename "$0") status
+
+Subcommands:
+  remote    Deploy to a k3s host via SSH (default if first arg looks like IP/hostname)
+  status    Show last deploy target and quick health check
+
+Options (remote):
+  --quick           Skip image rebuild
+  --skip-images     Apply manifests only
+  --skip-sync       Skip rsync
+  --uninstall       Remove Axiom from cluster
+  --dry-run         Show plan only
+
+Examples:
+  $(basename "$0") remote 212.8.248.187 sus
+  $(basename "$0") remote --quick
+  $(basename "$0") status
+
+Last target: $(axiom_deploy_state_file "$REPO_DIR") (auto-saved after each remote deploy)
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  -h|--help|help|'')
+    usage
+    exit 0
+    ;;
+  status)
+    if axiom_load_deploy_last "$REPO_DIR"; then
+      axiom_ui_banner "Deploy status" "${USER:-?}@${HOST:-?}"
+      axiom_ui_kv "Host" "${HOST:-?}"
+      axiom_ui_kv "User" "${USER:-root}"
+      axiom_ui_kv "Updated" "${UPDATED:-?}"
+      axiom_ui_kv "Mode" "${MODE:-?}"
+      axiom_ui_kv "Image tag" "${IMAGE_TAG:-?}"
+      if [ -n "${HOST:-}" ]; then
+        port="${AXIOM_NODE_PORT:-30590}"
+        code=$(curl -sk -o /dev/null -w '%{http_code}' --connect-timeout 5 "https://${HOST}:${port}/api/v1/health" 2>/dev/null || echo "000")
+        if [ "$code" = "200" ]; then
+          info "Health → https://${HOST}:${port}/api/v1/health ($code)"
+        else
+          warn "Health → https://${HOST}:${port}/api/v1/health ($code)"
+        fi
+      fi
+    else
+      warn "No .deploy-last yet — run: $(basename "$0") remote <host> <user>"
+    fi
+    exit 0
+    ;;
+  remote)
+    exec "$SCRIPT_DIR/deploy-remote.sh" "$@"
+    ;;
+  *)
+    if [[ "$cmd" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ "$cmd" == *.* ]] || [[ "$cmd" == *@* ]]; then
+      exec "$SCRIPT_DIR/deploy-remote.sh" "$cmd" "$@"
+    fi
+    error "Unknown subcommand: $cmd (try: remote, status)"
+    ;;
+esac

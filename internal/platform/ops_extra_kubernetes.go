@@ -1,0 +1,286 @@
+//go:build kubernetes
+
+package platform
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"strings"
+	"time"
+
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+var (
+	externalSecretGVRs = []schema.GroupVersionResource{
+		{Group: "external-secrets.io", Version: "v1", Resource: "externalsecrets"},
+		{Group: "external-secrets.io", Version: "v1beta1", Resource: "externalsecrets"},
+	}
+	vmSnapshotGVRs = []schema.GroupVersionResource{
+		{Group: "snapshot.kubevirt.io", Version: "v1beta1", Resource: "virtualmachinesnapshots"},
+		{Group: "snapshot.kubevirt.io", Version: "v1alpha1", Resource: "virtualmachinesnapshots"},
+	}
+	vmimGVR = schema.GroupVersionResource{Group: "kubevirt.io", Version: "v1", Resource: "virtualmachineinstancemigrations"}
+)
+
+func (k *KubernetesProvider) ListHelmHistory(ctx context.Context, ns, name string) ([]HelmRelease, error) {
+	list, err := k.client.CoreV1().Secrets(ns).List(ctx, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("owner=helm,name=%s", name),
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]HelmRelease, 0, len(list.Items))
+	for _, s := range list.Items {
+		if s.Type != "helm.sh/release.v1" && s.Labels["owner"] != "helm" {
+			continue
+		}
+		out = append(out, helmReleaseFromSecret(s))
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Revision > out[j].Revision })
+	return out, nil
+}
+
+func (k *KubernetesProvider) HelmUninstall(ctx context.Context, ns, name string) (HelmActionResult, error) {
+	return k.runHelmJob(ctx, ns, name, "uninstall", []string{"uninstall", name, "-n", ns, "--wait"})
+}
+
+func (k *KubernetesProvider) HelmRollback(ctx context.Context, ns, name string, revision int) (HelmActionResult, error) {
+	args := []string{"rollback", name, "-n", ns, "--wait"}
+	if revision > 0 {
+		args = []string{"rollback", name, fmt.Sprintf("%d", revision), "-n", ns, "--wait"}
+	}
+	return k.runHelmJob(ctx, ns, name, "rollback", args)
+}
+
+func (k *KubernetesProvider) runHelmJob(ctx context.Context, ns, release, action string, args []string) (HelmActionResult, error) {
+	jobNS := "axiom-system"
+	jobName := fmt.Sprintf("axiom-helm-%s-%s-%d", action, sanitizeDNS(release), time.Now().Unix()%100000)
+	backoff := int32(0)
+	ttl := int32(600)
+	sa := "zyvor-axiom"
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: jobNS,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "zyvor-axiom",
+				"axiom.zyvor.dev/helm-action":  action,
+				"axiom.zyvor.dev/release":      release,
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit:            &backoff,
+			TTLSecondsAfterFinished: &ttl,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy:      corev1.RestartPolicyNever,
+					ServiceAccountName: sa,
+					Containers: []corev1.Container{{
+						Name:    "helm",
+						Image:   "alpine/helm:3.14.4",
+						Command: append([]string{"helm"}, args...),
+					}},
+				},
+			},
+		},
+	}
+	_, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
+		return HelmActionResult{}, err
+	}
+	return HelmActionResult{
+		OK: true, Action: action, JobName: jobNS + "/" + jobName,
+		Message: fmt.Sprintf("Helm %s started for %s/%s", action, ns, release),
+	}, nil
+}
+
+func sanitizeDNS(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			b.WriteRune(r)
+		} else {
+			b.WriteByte('-')
+		}
+	}
+	out := b.String()
+	if len(out) > 40 {
+		out = out[:40]
+	}
+	return strings.Trim(out, "-")
+}
+
+func (k *KubernetesProvider) ListExternalSecrets(ctx context.Context, ns string) ([]ExternalSecretSummary, error) {
+	if k.dynamic == nil {
+		return []ExternalSecretSummary{}, nil
+	}
+	var list *unstructured.UnstructuredList
+	var err error
+	for _, gvr := range externalSecretGVRs {
+		list, err = k.dynamic.Resource(gvr).Namespace(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+		if err == nil {
+			break
+		}
+		if !isMissingCRD(err) {
+			return nil, err
+		}
+	}
+	if err != nil {
+		return []ExternalSecretSummary{}, nil
+	}
+	out := make([]ExternalSecretSummary, 0, len(list.Items))
+	for _, item := range list.Items {
+		store, _, _ := unstructured.NestedString(item.Object, "spec", "secretStoreRef", "name")
+		refresh, _, _ := unstructured.NestedString(item.Object, "spec", "refreshInterval")
+		ready := false
+		status := "Unknown"
+		conds, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
+		for _, c := range conds {
+			m, _ := c.(map[string]any)
+			if fmt.Sprint(m["type"]) == "Ready" {
+				status = fmt.Sprint(m["reason"])
+				ready = fmt.Sprint(m["status"]) == "True"
+				if msg := fmt.Sprint(m["message"]); msg != "" && msg != "<nil>" {
+					status = msg
+					if len(status) > 80 {
+						status = status[:80] + "…"
+					}
+				}
+			}
+		}
+		out = append(out, ExternalSecretSummary{
+			Namespace: item.GetNamespace(), Name: item.GetName(), Store: store,
+			Refresh: refresh, Status: status, Ready: ready, Age: age(item.GetCreationTimestamp().Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) ListVMSnapshots(ctx context.Context, ns string) ([]VMSnapshot, error) {
+	if k.dynamic == nil {
+		return []VMSnapshot{}, nil
+	}
+	var list *unstructured.UnstructuredList
+	var err error
+	for _, gvr := range vmSnapshotGVRs {
+		list, err = k.dynamic.Resource(gvr).Namespace(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+		if err == nil {
+			break
+		}
+		if !isMissingCRD(err) {
+			return nil, err
+		}
+	}
+	if err != nil {
+		return []VMSnapshot{}, nil
+	}
+	out := make([]VMSnapshot, 0, len(list.Items))
+	for _, item := range list.Items {
+		vm, _, _ := unstructured.NestedString(item.Object, "spec", "source", "name")
+		ready, _, _ := unstructured.NestedBool(item.Object, "status", "readyToUse")
+		phase, _, _ := unstructured.NestedString(item.Object, "status", "phase")
+		if phase == "" {
+			if ready {
+				phase = "Succeeded"
+			} else {
+				phase = "InProgress"
+			}
+		}
+		out = append(out, VMSnapshot{
+			Namespace: item.GetNamespace(), Name: item.GetName(), VM: vm,
+			Ready: ready, Status: phase, Age: age(item.GetCreationTimestamp().Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) CreateVMSnapshot(ctx context.Context, req CreateVMSnapshotRequest) (VMSnapshot, error) {
+	if k.dynamic == nil {
+		return VMSnapshot{}, fmt.Errorf("dynamic client unavailable")
+	}
+	if req.Namespace == "" || req.VM == "" {
+		return VMSnapshot{}, fmt.Errorf("namespace and vm are required")
+	}
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		name = fmt.Sprintf("%s-snap-%d", req.VM, time.Now().Unix()%100000)
+	}
+	var lastErr error
+	for _, gvr := range vmSnapshotGVRs {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"apiVersion": gvr.Group + "/" + gvr.Version,
+			"kind":       "VirtualMachineSnapshot",
+			"metadata": map[string]any{
+				"name":      name,
+				"namespace": req.Namespace,
+			},
+			"spec": map[string]any{
+				"source": map[string]any{
+					"apiGroup": "kubevirt.io",
+					"kind":     "VirtualMachine",
+					"name":     req.VM,
+				},
+			},
+		}}
+		created, err := k.dynamic.Resource(gvr).Namespace(req.Namespace).Create(ctx, obj, metav1.CreateOptions{})
+		if err == nil {
+			return VMSnapshot{
+				Namespace: created.GetNamespace(), Name: created.GetName(), VM: req.VM,
+				Status: "InProgress", Age: age(created.GetCreationTimestamp().Time),
+			}, nil
+		}
+		lastErr = err
+		if !isMissingCRD(err) {
+			return VMSnapshot{}, err
+		}
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("VirtualMachineSnapshot CRD not available")
+	}
+	return VMSnapshot{}, lastErr
+}
+
+func (k *KubernetesProvider) LiveMigrateVM(ctx context.Context, ns, name string) (HelmActionResult, error) {
+	if k.dynamic == nil {
+		return HelmActionResult{}, fmt.Errorf("dynamic client unavailable")
+	}
+	migName := fmt.Sprintf("%s-migrate-%d", name, time.Now().Unix()%100000)
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "kubevirt.io/v1",
+		"kind":       "VirtualMachineInstanceMigration",
+		"metadata": map[string]any{
+			"name":      migName,
+			"namespace": ns,
+		},
+		"spec": map[string]any{
+			"vmiName": name,
+		},
+	}}
+	_, err := k.dynamic.Resource(vmimGVR).Namespace(ns).Create(ctx, obj, metav1.CreateOptions{})
+	if err != nil {
+		return HelmActionResult{}, err
+	}
+	return HelmActionResult{
+		OK: true, Action: "migrate", JobName: ns + "/" + migName,
+		Message: fmt.Sprintf("Live migration requested for %s/%s", ns, name),
+	}, nil
+}

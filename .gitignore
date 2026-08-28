@@ -1,0 +1,27 @@
+# Build outputs
+bin/
+*.exe
+*.test
+
+# Local runtime / deploy state
+.run/
+.deploy-last
+
+# Secrets and env
+.env
+.env.*
+*.pem
+*credentials*
+*token.json*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+
+# Go workspace noise
+go.work
+go.work.sum

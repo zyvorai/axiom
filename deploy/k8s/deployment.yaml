@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: axiom-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zyvor-axiom-auth
+  namespace: axiom-system
+type: Opaque
+stringData:
+  username: demo
+  password: demo
+---
+# Image tag is patched by scripts/deploy-remote.sh (default: zyvor-axiom:dev).
+# For registry deploys, set image to ghcr.io/zyvorai/axiom:<version>.
+# Remote deploy always mounts zyvor-axiom-tls (self-signed) — HTTPS only.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zyvor-axiom
+  template:
+    metadata:
+      labels:
+        app: zyvor-axiom
+    spec:
+      serviceAccountName: zyvor-axiom
+      containers:
+        - name: zyvor-axiom
+          image: zyvor-axiom:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: https
+              containerPort: 5090
+          env:
+            - name: AXIOM_MODE
+              value: kubernetes
+            - name: AXIOM_ADDR
+              value: :5090
+            - name: AXIOM_TLS_CERT
+              value: /etc/axiom/tls/tls.crt
+            - name: AXIOM_TLS_KEY
+              value: /etc/axiom/tls/tls.key
+            - name: AXIOM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: username
+            - name: AXIOM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: password
+            # Optional env bootstrap only. Prefer Settings → Integrations in the UX
+            # (persisted to ConfigMap/Secret zyvor-axiom-integrations).
+            - name: AXIOM_ATLAS_URL
+              value: ""
+            - name: AXIOM_ATLAS_CONSOLE_URL
+              value: ""
+            - name: AXIOM_OIDC_ISSUER
+              value: ""
+            - name: AXIOM_OIDC_LOGIN_URL
+              value: ""
+            - name: AXIOM_OIDC_CLIENT_ID
+              value: ""
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/axiom/tls
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: tls
+          secret:
+            secretName: zyvor-axiom-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+spec:
+  selector:
+    app: zyvor-axiom
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
