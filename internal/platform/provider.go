@@ -125,4 +125,6 @@ type Provider interface {
 	GetNodeMetrics(context.Context, string) (NodeMetricSeries, error)
 	AddTaint(context.Context, string, string, string, string) error
 	RemoveTaint(context.Context, string, string, string) error
+
+	ListGateways(context.Context, string) ([]GatewaySummary, error)
 }

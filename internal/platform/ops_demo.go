@@ -465,6 +465,21 @@ func (d *DemoProvider) ListIngresses(ctx context.Context, ns string) ([]IngressS
 	return out, nil
 }
 
+func (d *DemoProvider) ListGateways(ctx context.Context, ns string) ([]GatewaySummary, error) {
+	all := []GatewaySummary{
+		{Kind: "GatewayClass", Name: "nginx", Status: "Accepted", Age: "60d"},
+		{Kind: "Gateway", Namespace: "commerce", Name: "checkout-gateway", Class: "nginx", Hosts: []string{"checkout.zyvor.dev"}, Status: "Programmed", Age: "20d"},
+		{Kind: "HTTPRoute", Namespace: "commerce", Name: "checkout-route", Hosts: []string{"checkout.zyvor.dev"}, Status: "Accepted", Age: "20d"},
+	}
+	out := make([]GatewaySummary, 0, len(all))
+	for _, g := range all {
+		if ns == "" || ns == "all" || g.Namespace == "" || g.Namespace == ns {
+			out = append(out, g)
+		}
+	}
+	return out, nil
+}
+
 var (
 	demoJobsMu     sync.Mutex
 	demoJobCounter int

@@ -170,6 +170,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/admission-webhooks", s.listAdmissionWebhooks)
 	mux.HandleFunc("GET /api/v1/storageclasses", s.listStorageClasses)
 	mux.HandleFunc("GET /api/v1/persistentvolumes", s.listPersistentVolumes)
+	mux.HandleFunc("GET /api/v1/gateways", s.listGateways)
 	mux.HandleFunc("GET /api/v1/backups", s.listBackups)
 	mux.HandleFunc("POST /api/v1/backups", s.createBackup)
 	mux.HandleFunc("POST /api/v1/backups/restore", s.restoreBackup)

@@ -321,3 +321,6 @@ func (sp *SwitchableProvider) AddTaint(a0 context.Context, a1 string, a2 string,
 func (sp *SwitchableProvider) RemoveTaint(a0 context.Context, a1 string, a2 string, a3 string) error {
 	return sp.current().RemoveTaint(a0, a1, a2, a3)
 }
+func (sp *SwitchableProvider) ListGateways(a0 context.Context, a1 string) ([]GatewaySummary, error) {
+	return sp.current().ListGateways(a0, a1)
+}

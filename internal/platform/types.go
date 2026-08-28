@@ -728,6 +728,16 @@ type CRDSummary struct {
 	Age     string `json:"age"`
 }
 
+type GatewaySummary struct {
+	Kind      string   `json:"kind"`
+	Namespace string   `json:"namespace,omitempty"`
+	Name      string   `json:"name"`
+	Class     string   `json:"class,omitempty"`
+	Hosts     []string `json:"hosts,omitempty"`
+	Status    string   `json:"status,omitempty"`
+	Age       string   `json:"age"`
+}
+
 type NodeMetricPoint struct {
 	At     string `json:"at"`
 	CPU    int64  `json:"cpuMillicores"`

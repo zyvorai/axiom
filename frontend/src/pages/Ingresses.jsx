@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,16 +13,18 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Search, Lock, LockOpen, Waypoints } from "lucide-react";
+import { Search, Lock, LockOpen, Waypoints, Router } from "lucide-react";
 
 export default function Ingresses() {
     const [data, setData] = useState(null);
+    const [gateways, setGateways] = useState(null);
     const [q, setQ] = useState("");
 
     useEffect(() => {
         let alive = true;
         const load = () => api.get("/ingresses").then((r) => alive && setData(r.data));
         load();
+        api.get("/gateways").then((r) => alive && setGateways(r.data || [])).catch(() => alive && setGateways([]));
         const t = setInterval(load, 15000);
         return () => {
             alive = false;
@@ -112,6 +115,13 @@ export default function Ingresses() {
                     </Table>
                 </div>
             </GlassCard>
+
+            <AutoTable
+                title="Gateway API"
+                icon={Router}
+                items={gateways}
+                emptyHint={gateways === null ? "Loading…" : "No Gateway API objects found (GatewayClass/Gateway/HTTPRoute)."}
+            />
         </div>
     );
 }

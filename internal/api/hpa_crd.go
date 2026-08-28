@@ -129,3 +129,10 @@ func (s *Server) listPersistentVolumes(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListPersistentVolumes(r.Context())
 	respond(w, v, err)
 }
+
+// --- Gateway API ---
+
+func (s *Server) listGateways(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListGateways(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}

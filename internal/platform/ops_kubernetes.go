@@ -47,6 +47,18 @@ var (
 		{Group: "helm.toolkit.fluxcd.io", Version: "v2beta2", Resource: "helmreleases"},
 		{Group: "helm.toolkit.fluxcd.io", Version: "v2beta1", Resource: "helmreleases"},
 	}
+	gatewayClassGVRs = []schema.GroupVersionResource{
+		{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "gatewayclasses"},
+		{Group: "gateway.networking.k8s.io", Version: "v1beta1", Resource: "gatewayclasses"},
+	}
+	gatewayGVRs = []schema.GroupVersionResource{
+		{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "gateways"},
+		{Group: "gateway.networking.k8s.io", Version: "v1beta1", Resource: "gateways"},
+	}
+	httpRouteGVRs = []schema.GroupVersionResource{
+		{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "httproutes"},
+		{Group: "gateway.networking.k8s.io", Version: "v1beta1", Resource: "httproutes"},
+	}
 )
 
 const (
@@ -890,6 +902,116 @@ func (k *KubernetesProvider) ListIngresses(ctx context.Context, ns string) ([]In
 		return out[i].Namespace < out[j].Namespace
 	})
 	return out, nil
+}
+
+// ListGateways lists Gateway API objects (GatewayClass, Gateway, HTTPRoute)
+// via the dynamic client, since gateway.networking.k8s.io isn't in
+// client-go's typed clientset. Tolerates the CRDs being absent, same as
+// ListGitOps.
+func (k *KubernetesProvider) ListGateways(ctx context.Context, ns string) ([]GatewaySummary, error) {
+	if k.dynamic == nil {
+		return []GatewaySummary{}, nil
+	}
+	var out []GatewaySummary
+	out = append(out, k.listGatewayGVR(ctx, gatewayClassGVRs, "GatewayClass", "", gatewayClassStatus)...)
+	out = append(out, k.listGatewayGVR(ctx, gatewayGVRs, "Gateway", ns, gatewayStatus)...)
+	out = append(out, k.listGatewayGVR(ctx, httpRouteGVRs, "HTTPRoute", ns, httpRouteStatus)...)
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Kind == out[j].Kind {
+			if out[i].Namespace == out[j].Namespace {
+				return out[i].Name < out[j].Name
+			}
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Kind < out[j].Kind
+	})
+	if out == nil {
+		out = []GatewaySummary{}
+	}
+	return out, nil
+}
+
+type gatewayStatusFn func(unstructured.Unstructured) (class, status string, hosts []string)
+
+func (k *KubernetesProvider) listGatewayGVR(ctx context.Context, gvrs []schema.GroupVersionResource, kind, ns string, statusFn gatewayStatusFn) []GatewaySummary {
+	for _, gvr := range gvrs {
+		var list *unstructured.UnstructuredList
+		var err error
+		if ns != "" && ns != "all" {
+			list, err = k.dynamic.Resource(gvr).Namespace(ns).List(ctx, metav1.ListOptions{})
+		} else {
+			list, err = k.dynamic.Resource(gvr).Namespace(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
+		}
+		if err != nil {
+			if isMissingCRD(err) {
+				continue
+			}
+			continue
+		}
+		out := make([]GatewaySummary, 0, len(list.Items))
+		for _, item := range list.Items {
+			class, status, hosts := statusFn(item)
+			out = append(out, GatewaySummary{
+				Kind: kind, Namespace: item.GetNamespace(), Name: item.GetName(),
+				Class: class, Hosts: hosts, Status: status, Age: age(item.GetCreationTimestamp().Time),
+			})
+		}
+		return out
+	}
+	return nil
+}
+
+func gatewayClassStatus(item unstructured.Unstructured) (string, string, []string) {
+	conditions, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
+	return "", conditionStatus(conditions, "Accepted"), nil
+}
+
+func gatewayStatus(item unstructured.Unstructured) (string, string, []string) {
+	className, _, _ := unstructured.NestedString(item.Object, "spec", "gatewayClassName")
+	listeners, _, _ := unstructured.NestedSlice(item.Object, "spec", "listeners")
+	hosts := make([]string, 0, len(listeners))
+	for _, l := range listeners {
+		if lm, ok := l.(map[string]any); ok {
+			if h, ok := lm["hostname"].(string); ok && h != "" {
+				hosts = append(hosts, h)
+			}
+		}
+	}
+	conditions, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
+	return className, conditionStatus(conditions, "Programmed"), hosts
+}
+
+func httpRouteStatus(item unstructured.Unstructured) (string, string, []string) {
+	hostnames, _, _ := unstructured.NestedStringSlice(item.Object, "spec", "hostnames")
+	parents, _, _ := unstructured.NestedSlice(item.Object, "status", "parents")
+	status := "Unknown"
+	if len(parents) > 0 {
+		if pm, ok := parents[0].(map[string]any); ok {
+			if conditions, ok := pm["conditions"].([]any); ok {
+				status = conditionStatus(conditions, "Accepted")
+			}
+		}
+	}
+	return "", status, hostnames
+}
+
+func conditionStatus(conditions []any, wantType string) string {
+	for _, c := range conditions {
+		cm, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		if t, _ := cm["type"].(string); t == wantType {
+			if s, _ := cm["status"].(string); s == "True" {
+				return wantType
+			}
+			if reason, ok := cm["reason"].(string); ok && reason != "" {
+				return reason
+			}
+			return "False"
+		}
+	}
+	return "Unknown"
 }
 
 func jobStatus(j batchv1.Job) string {
