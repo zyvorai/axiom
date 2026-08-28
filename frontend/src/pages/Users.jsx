@@ -31,21 +31,35 @@ import {
 import { UserPlus, Trash2, ShieldCheck, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
+function parseNamespaces(text) {
+    return text
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
 function CreateUserDialog({ open, onOpenChange, onCreated }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("viewer");
+    const [namespacesText, setNamespacesText] = useState("");
     const [busy, setBusy] = useState(false);
 
     const submit = async () => {
         setBusy(true);
         try {
-            await api.post("/users", { username, password, role });
+            await api.post("/users", {
+                username,
+                password,
+                role,
+                namespaces: role === "viewer" ? parseNamespaces(namespacesText) : [],
+            });
             toast.success(`User ${username} created`);
             onOpenChange(false);
             setUsername("");
             setPassword("");
             setRole("viewer");
+            setNamespacesText("");
             onCreated();
         } catch (e) {
             toast.error("Create failed", { description: e?.response?.data?.error || e.message });
@@ -81,6 +95,17 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                             </SelectContent>
                         </Select>
                     </div>
+                    {role === "viewer" && (
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Input
+                                value={namespacesText}
+                                onChange={(e) => setNamespacesText(e.target.value)}
+                                placeholder="team-a, team-b"
+                                className="border-white/10 bg-white/[0.03]"
+                            />
+                        </div>
+                    )}
                 </div>
                 <DialogFooter>
                     <Button onClick={submit} disabled={busy || !username || password.length < 8} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
@@ -95,17 +120,24 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
 function EditUserDialog({ user, onOpenChange, onUpdated }) {
     const [role, setRole] = useState(user?.role || "viewer");
     const [password, setPassword] = useState("");
+    const [namespacesText, setNamespacesText] = useState("");
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         setRole(user?.role || "viewer");
         setPassword("");
+        setNamespacesText((user?.namespaces || []).join(", "));
     }, [user]);
 
     const submit = async () => {
         const patch = {};
         if (role !== user.role) patch.role = role;
         if (password) patch.password = password;
+        if (role === "viewer") {
+            const next = parseNamespaces(namespacesText);
+            const current = user.namespaces || [];
+            if (next.join(",") !== current.join(",")) patch.namespaces = next;
+        }
         if (Object.keys(patch).length === 0) {
             onOpenChange(false);
             return;
@@ -142,6 +174,17 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                             </SelectContent>
                         </Select>
                     </div>
+                    {role === "viewer" && (
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Input
+                                value={namespacesText}
+                                onChange={(e) => setNamespacesText(e.target.value)}
+                                placeholder="team-a, team-b"
+                                className="border-white/10 bg-white/[0.03]"
+                            />
+                        </div>
+                    )}
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">New password (leave blank to keep current)</Label>
                         <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="border-white/10 bg-white/[0.03]" />
@@ -207,6 +250,7 @@ export default function Users() {
                         <TableRow className="border-white/5 hover:bg-transparent">
                             <TableHead>Username</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Namespaces</TableHead>
                             <TableHead>Created</TableHead>
                             <TableHead />
                         </TableRow>
@@ -232,6 +276,19 @@ export default function Users() {
                                         {u.role}
                                     </Badge>
                                 </TableCell>
+                                <TableCell>
+                                    {u.namespaces && u.namespaces.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                            {u.namespaces.map((ns) => (
+                                                <Badge key={ns} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                    {ns}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground">All namespaces</span>
+                                    )}
+                                </TableCell>
                                 <TableCell className="mono text-xs text-muted-foreground">
                                     {u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}
                                 </TableCell>
@@ -249,7 +306,7 @@ export default function Users() {
                         ))}
                         {data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
+                                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
                                     No local accounts yet — the env-configured operator account signs in separately.
                                 </TableCell>
                             </TableRow>

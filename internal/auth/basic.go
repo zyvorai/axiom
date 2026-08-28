@@ -10,8 +10,9 @@ import (
 
 // UserAuthenticator checks local multi-user credentials beyond the single
 // env-configured operator account. Implemented by platform.UserHub.
+// namespaces is non-empty only for a namespace-restricted viewer account.
 type UserAuthenticator interface {
-	Authenticate(username, password string) (role string, ok bool)
+	Authenticate(username, password string) (role string, namespaces []string, ok bool)
 }
 
 // Identity is the resolved caller of an authorized request, attached to the
@@ -20,6 +21,23 @@ type UserAuthenticator interface {
 type Identity struct {
 	User string
 	Role string
+	// Namespaces restricts this identity to the listed namespaces when
+	// non-empty. Only ever set for local viewer accounts — the env admin
+	// account, API keys, and OIDC/SAML sessions are always unrestricted.
+	Namespaces []string
+}
+
+func (id Identity) namespaceRestricted() bool {
+	return len(id.Namespaces) > 0
+}
+
+func (id Identity) allowsNamespace(ns string) bool {
+	for _, allowed := range id.Namespaces {
+		if allowed == ns {
+			return true
+		}
+	}
+	return false
 }
 
 type ctxKey string
@@ -69,8 +87,88 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			_, _ = w.Write([]byte(`{"error":"read-only user: this account cannot perform write actions"}`))
 			return
 		}
+		if id.namespaceRestricted() {
+			if ns, scoped := namespaceOfRequest(r); scoped {
+				if ns == "" || strings.EqualFold(ns, "all") || !id.allowsNamespace(ns) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusForbidden)
+					_, _ = w.Write([]byte(`{"error":"this account is restricted to specific namespaces"}`))
+					return
+				}
+			}
+		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), identityCtxKey, id)))
 	})
+}
+
+// namespacedResourcePrefixes lists the API paths that expose namespaced
+// resources — via a `?namespace=` query parameter on the list form, or a
+// `{namespace}` path segment on the single-resource GET form. Deliberately
+// conservative: cluster-wide administrative views (RBAC, Cost, Audit, Users,
+// Clusters, Nodes, Settings/Integrations) are intentionally left out, since
+// namespace-scoping a viewer is about workload/resource visibility, not
+// administrative surfaces.
+var namespacedResourcePrefixes = []string{
+	"/api/v1/workloads",
+	"/api/v1/pods",
+	"/api/v1/services",
+	"/api/v1/secrets",
+	"/api/v1/configmaps",
+	"/api/v1/resourcequotas",
+	"/api/v1/limitranges",
+	"/api/v1/ingresses",
+	"/api/v1/jobs",
+	"/api/v1/cronjobs",
+	"/api/v1/events",
+	"/api/v1/network",
+	"/api/v1/volumes",
+	"/api/v1/backups",
+	"/api/v1/external-secrets",
+	"/api/v1/vm-snapshots",
+	"/api/v1/vm-clones",
+	"/api/v1/vm-exports",
+	"/api/v1/vm-restores",
+	"/api/v1/vms",
+	"/api/v1/alerts",
+	"/api/v1/agent-runs",
+	"/api/v1/platform-intents",
+	"/api/v1/resources",
+	"/api/v1/helm/releases",
+	"/api/v1/velero/backups",
+	"/api/v1/velero/schedules",
+	"/api/v1/haven/identity",
+}
+
+// namespaceOfRequest returns the namespace a request targets and whether
+// this route is namespace-scoped at all. For a matched route with no
+// namespace given (neither query param nor path segment), it returns
+// ("", true) — meaning "all namespaces" — which a namespace-restricted
+// identity must never be allowed.
+func namespaceOfRequest(r *http.Request) (string, bool) {
+	prefix, ok := matchNamespacedPrefix(r.URL.Path)
+	if !ok {
+		return "", false
+	}
+	if vals, present := r.URL.Query()["namespace"]; present && len(vals) > 0 {
+		return vals[0], true
+	}
+	rest := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, prefix), "/")
+	if rest == "" {
+		return "", true
+	}
+	if seg, _, found := strings.Cut(rest, "/"); found {
+		return seg, true
+	}
+	return rest, true
+}
+
+func matchNamespacedPrefix(path string) (string, bool) {
+	for _, prefix := range namespacedResourcePrefixes {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return prefix, true
+		}
+	}
+	return "", false
 }
 
 func isMutatingMethod(m string) bool {
@@ -138,8 +236,8 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 		return Identity{User: g.Username, Role: "admin"}, true
 	}
 	if g.Users != nil {
-		if role, ok := g.Users.Authenticate(u, p); ok {
-			return Identity{User: u, Role: role}, true
+		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
+			return Identity{User: u, Role: role, Namespaces: namespaces}, true
 		}
 	}
 	return Identity{}, false

@@ -53,23 +53,25 @@ func TestBasicMiddleware(t *testing.T) {
 
 type fakeUserAuthenticator struct {
 	users map[string]struct {
-		password string
-		role     string
+		password   string
+		role       string
+		namespaces []string
 	}
 }
 
-func (f *fakeUserAuthenticator) Authenticate(username, password string) (string, bool) {
+func (f *fakeUserAuthenticator) Authenticate(username, password string) (string, []string, bool) {
 	u, ok := f.users[username]
 	if !ok || u.password != password {
-		return "", false
+		return "", nil, false
 	}
-	return u.role, true
+	return u.role, u.namespaces, true
 }
 
 func TestGuardMultiUserAndReadOnly(t *testing.T) {
 	users := &fakeUserAuthenticator{users: map[string]struct {
-		password string
-		role     string
+		password   string
+		role       string
+		namespaces []string
 	}{
 		"alice": {password: "viewerpass", role: "viewer"},
 		"bob":   {password: "adminpass", role: "admin"},
@@ -127,5 +129,67 @@ func TestGuardMultiUserAndReadOnly(t *testing.T) {
 	h.ServeHTTP(w, r)
 	if w.Code != 204 {
 		t.Fatalf("env admin POST: expected 204 got %d", w.Code)
+	}
+}
+
+func TestGuardNamespaceRestriction(t *testing.T) {
+	users := &fakeUserAuthenticator{users: map[string]struct {
+		password   string
+		role       string
+		namespaces []string
+	}{
+		"carol": {password: "viewerpass", role: "viewer", namespaces: []string{"team-a", "team-b"}},
+	}}
+	g := Guard{Username: "demo", Password: "demo", Users: users}
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	}))
+
+	auth := func(r *http.Request) {
+		r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("carol:viewerpass")))
+	}
+
+	cases := []struct {
+		name       string
+		path       string
+		wantStatus int
+	}{
+		{"allowed namespace via query param", "/api/v1/pods?namespace=team-a", 204},
+		{"disallowed namespace via query param", "/api/v1/pods?namespace=team-c", 403},
+		{"no namespace param on a namespaced list endpoint means all — blocked", "/api/v1/pods", 403},
+		{"explicit all is blocked", "/api/v1/pods?namespace=all", 403},
+		{"allowed namespace via path segment", "/api/v1/secrets/team-b/my-secret", 204},
+		{"disallowed namespace via path segment", "/api/v1/secrets/team-c/my-secret", 403},
+		{"non-namespaced endpoint is unaffected", "/api/v1/nodes", 204},
+		{"users endpoint (admin-only surface) is unaffected", "/api/v1/session", 204},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest("GET", tc.path, nil)
+			auth(r)
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			if w.Code != tc.wantStatus {
+				t.Fatalf("%s: expected %d got %d (body: %s)", tc.path, tc.wantStatus, w.Code, w.Body.String())
+			}
+		})
+	}
+
+	// An unrestricted viewer (no namespaces) must not be affected at all.
+	usersUnrestricted := &fakeUserAuthenticator{users: map[string]struct {
+		password   string
+		role       string
+		namespaces []string
+	}{
+		"dave": {password: "viewerpass", role: "viewer"},
+	}}
+	g2 := Guard{Username: "demo", Password: "demo", Users: usersUnrestricted}
+	h2 := g2.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+	r := httptest.NewRequest("GET", "/api/v1/pods", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("dave:viewerpass")))
+	w := httptest.NewRecorder()
+	h2.ServeHTTP(w, r)
+	if w.Code != 204 {
+		t.Fatalf("unrestricted viewer on namespaced list endpoint: expected 204 got %d", w.Code)
 	}
 }

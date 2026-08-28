@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/zyvorai/axiom/internal/platform"
 )
@@ -20,15 +21,16 @@ func (s *Server) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Role     string `json:"role"`
+		Username   string   `json:"username"`
+		Password   string   `json:"password"`
+		Role       string   `json:"role"`
+		Namespaces []string `json:"namespaces"`
 	}
 	if err := decode(r, &req); err != nil {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	v, err := s.users.Create(r.Context(), req.Username, req.Password, req.Role)
+	v, err := s.users.Create(r.Context(), req.Username, req.Password, req.Role, req.Namespaces)
 	if err != nil {
 		fail(w, http.StatusBadRequest, err)
 		return
@@ -44,15 +46,16 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.PathValue("username")
 	var req struct {
-		Role     *string `json:"role"`
-		Password *string `json:"password"`
+		Role       *string   `json:"role"`
+		Password   *string   `json:"password"`
+		Namespaces *[]string `json:"namespaces"`
 	}
 	if err := decode(r, &req); err != nil {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	if req.Role == nil && req.Password == nil {
-		fail(w, http.StatusBadRequest, errSSO("nothing to update: provide role and/or password"))
+	if req.Role == nil && req.Password == nil && req.Namespaces == nil {
+		fail(w, http.StatusBadRequest, errSSO("nothing to update: provide role, password, and/or namespaces"))
 		return
 	}
 	var v platform.UserView
@@ -72,6 +75,14 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		platform.RecordAxiomAudit("user.password_reset", username, "", s.auditUser(r))
+	}
+	if req.Namespaces != nil {
+		v, err = s.users.UpdateNamespaces(r.Context(), username, *req.Namespaces)
+		if err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+		platform.RecordAxiomAudit("user.namespaces_change", username, strings.Join(v.Namespaces, ","), s.auditUser(r))
 	}
 	writeJSON(w, http.StatusOK, v)
 }

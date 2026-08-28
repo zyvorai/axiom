@@ -26,23 +26,52 @@ func NormalizeRole(r string) string {
 
 // User is a local Axiom account, distinct from the single env-configured
 // operator account (AXIOM_USERNAME/AXIOM_PASSWORD) and from OIDC/SAML users.
+//
+// Namespaces restricts a viewer account to reading only the listed
+// namespaces; empty means unrestricted (every namespace), which is also the
+// only valid value for an admin account — namespace-scoping only applies to
+// viewers, since an admin needs cross-namespace write access anyway.
 type User struct {
-	Username     string `json:"username"`
-	PasswordHash string `json:"passwordHash"`
-	Role         string `json:"role"`
-	CreatedAt    string `json:"createdAt"`
+	Username     string   `json:"username"`
+	PasswordHash string   `json:"passwordHash"`
+	Role         string   `json:"role"`
+	Namespaces   []string `json:"namespaces,omitempty"`
+	CreatedAt    string   `json:"createdAt"`
 }
 
 // UserView is the safe representation returned by the Users API — never
 // includes the password hash.
 type UserView struct {
-	Username  string `json:"username"`
-	Role      string `json:"role"`
-	CreatedAt string `json:"createdAt"`
+	Username   string   `json:"username"`
+	Role       string   `json:"role"`
+	Namespaces []string `json:"namespaces,omitempty"`
+	CreatedAt  string   `json:"createdAt"`
 }
 
 func (u User) View() UserView {
-	return UserView{Username: u.Username, Role: u.Role, CreatedAt: u.CreatedAt}
+	return UserView{Username: u.Username, Role: u.Role, Namespaces: u.Namespaces, CreatedAt: u.CreatedAt}
+}
+
+// normalizeNamespaces trims/dedupes and enforces that only viewers can be
+// namespace-restricted — an admin account always gets unrestricted (nil).
+func normalizeNamespaces(role string, namespaces []string) []string {
+	if role != RoleViewer {
+		return nil
+	}
+	seen := map[string]bool{}
+	out := make([]string, 0, len(namespaces))
+	for _, ns := range namespaces {
+		ns = strings.TrimSpace(ns)
+		if ns == "" || seen[ns] {
+			continue
+		}
+		seen[ns] = true
+		out = append(out, ns)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func HashPassword(password string) (string, error) {
@@ -150,14 +179,14 @@ func (h *UserHub) Load(ctx context.Context) error {
 }
 
 // Authenticate implements auth.UserAuthenticator.
-func (h *UserHub) Authenticate(username, password string) (string, bool) {
+func (h *UserHub) Authenticate(username, password string) (string, []string, bool) {
 	h.mu.RLock()
 	u, ok := h.cache[strings.ToLower(strings.TrimSpace(username))]
 	h.mu.RUnlock()
 	if !ok || !CheckPassword(u.PasswordHash, password) {
-		return "", false
+		return "", nil, false
 	}
-	return u.Role, true
+	return u.Role, u.Namespaces, true
 }
 
 func (h *UserHub) List() []UserView {
@@ -170,7 +199,7 @@ func (h *UserHub) List() []UserView {
 	return out
 }
 
-func (h *UserHub) Create(ctx context.Context, username, password, role string) (UserView, error) {
+func (h *UserHub) Create(ctx context.Context, username, password, role string, namespaces []string) (UserView, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return UserView{}, fmt.Errorf("username is required")
@@ -182,10 +211,12 @@ func (h *UserHub) Create(ctx context.Context, username, password, role string) (
 	if err != nil {
 		return UserView{}, err
 	}
+	normRole := NormalizeRole(role)
 	u := User{
 		Username:     username,
 		PasswordHash: hash,
-		Role:         NormalizeRole(role),
+		Role:         normRole,
+		Namespaces:   normalizeNamespaces(normRole, namespaces),
 		CreatedAt:    time.Now().UTC().Format(time.RFC3339),
 	}
 	if err := h.store.Create(ctx, u); err != nil {
@@ -197,7 +228,8 @@ func (h *UserHub) Create(ctx context.Context, username, password, role string) (
 	return u.View(), nil
 }
 
-// UpdateRole changes an existing local account's role.
+// UpdateRole changes an existing local account's role. Promoting to admin
+// clears any namespace restriction, since admins are never namespace-scoped.
 func (h *UserHub) UpdateRole(ctx context.Context, username, role string) (UserView, error) {
 	key := strings.ToLower(strings.TrimSpace(username))
 	h.mu.RLock()
@@ -207,6 +239,31 @@ func (h *UserHub) UpdateRole(ctx context.Context, username, role string) (UserVi
 		return UserView{}, fmt.Errorf("user %q not found", username)
 	}
 	u.Role = NormalizeRole(role)
+	u.Namespaces = normalizeNamespaces(u.Role, u.Namespaces)
+	if err := h.store.Update(ctx, u); err != nil {
+		return UserView{}, err
+	}
+	h.mu.Lock()
+	h.cache[key] = u
+	h.mu.Unlock()
+	return u.View(), nil
+}
+
+// UpdateNamespaces sets the namespace restriction for an existing viewer
+// account. Pass an empty slice to remove the restriction. No-ops (returns an
+// error) for an admin account, since admins can't be namespace-scoped.
+func (h *UserHub) UpdateNamespaces(ctx context.Context, username string, namespaces []string) (UserView, error) {
+	key := strings.ToLower(strings.TrimSpace(username))
+	h.mu.RLock()
+	u, ok := h.cache[key]
+	h.mu.RUnlock()
+	if !ok {
+		return UserView{}, fmt.Errorf("user %q not found", username)
+	}
+	if u.Role != RoleViewer {
+		return UserView{}, fmt.Errorf("only viewer accounts can be namespace-restricted")
+	}
+	u.Namespaces = normalizeNamespaces(u.Role, namespaces)
 	if err := h.store.Update(ctx, u); err != nil {
 		return UserView{}, err
 	}
