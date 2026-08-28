@@ -184,6 +184,8 @@ func NewWithHub(provider platform.Provider, mode, username, password, allowOrigi
 	mux.HandleFunc("POST /api/v1/integrations/oidc/test", s.testOIDC)
 	mux.HandleFunc("POST /api/v1/integrations/postgres/test", s.testPostgres)
 	mux.HandleFunc("POST /api/v1/integrations/probe/test", s.testProbe)
+	mux.HandleFunc("POST /api/v1/integrations/slack/test", s.testSlackNotify)
+	mux.HandleFunc("POST /api/v1/integrations/webhook/test", s.testAlertWebhook)
 
 	RegisterSSE(mux)
 	RegisterRealtime(mux, provider)

@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, PlugZap, Save, Database, Activity } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ShieldCheck, PlugZap, Save, Database, Activity, BellRing } from "lucide-react";
 import { toast } from "sonner";
 
 function Field({ label, ...props }) {
@@ -185,6 +186,44 @@ export default function Settings() {
         }
     };
 
+    const saveNotify = async () => {
+        setBusy("notify-save");
+        try {
+            const { data: v } = await api.put("/integrations", {
+                notifyOnWarnings: !!form.notifyOnWarnings,
+                ...(form.slackWebhookUrl ? { slackWebhookUrl: form.slackWebhookUrl } : {}),
+                ...(form.alertWebhookUrl ? { alertWebhookUrl: form.alertWebhookUrl } : {}),
+            });
+            setData(v);
+            setForm({ ...v, slackWebhookUrl: "", alertWebhookUrl: "" });
+            toast.success("Notification settings saved");
+        } catch (e) {
+            toast.error("Save failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const testSlack = async () => {
+        setBusy("slack-test");
+        try {
+            const { data: r } = await api.post("/integrations/slack/test");
+            r.ok ? toast.success("Slack message sent") : toast.error("Slack test failed", { description: r.error || r.hint });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const testWebhook = async () => {
+        setBusy("webhook-test");
+        try {
+            const { data: r } = await api.post("/integrations/webhook/test");
+            r.ok ? toast.success("Webhook delivered") : toast.error("Webhook test failed", { description: r.error || r.hint });
+        } finally {
+            setBusy("");
+        }
+    };
+
     if (!data || !form) {
         return (
             <div className="space-y-4">
@@ -264,6 +303,58 @@ export default function Settings() {
                 <Field label="Container" value={form.probePodContainer || ""} onChange={(e) => set({ probePodContainer: e.target.value })} />
                 <Field label="Probe URL" value={form.probeUrl || ""} onChange={(e) => set({ probeUrl: e.target.value })} placeholder="http://localhost:8080/healthz" />
             </IntegrationCard>
+
+            <GlassCard className="p-5">
+                <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <BellRing className="h-4 w-4 text-[#ff7550]" />
+                        <div className="text-sm font-medium">Notifications</div>
+                    </div>
+                    <Badge
+                        className={
+                            data.notifyConfigured
+                                ? "border-[#93c88f]/40 bg-[#93c88f]/10 text-[#93c88f] hover:bg-[#93c88f]/10"
+                                : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.03]"
+                        }
+                    >
+                        {data.notifyConfigured ? "configured" : "not configured"}
+                    </Badge>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <Field
+                        label={data.slackWebhookUrlSet ? "Slack webhook URL (set — leave blank to keep)" : "Slack webhook URL"}
+                        type="password"
+                        value={form.slackWebhookUrl || ""}
+                        onChange={(e) => set({ slackWebhookUrl: e.target.value })}
+                        placeholder="https://hooks.slack.com/services/…"
+                    />
+                    <Field
+                        label={data.alertWebhookUrlSet ? "Alert webhook URL (set — leave blank to keep)" : "Alert webhook URL"}
+                        type="password"
+                        value={form.alertWebhookUrl || ""}
+                        onChange={(e) => set({ alertWebhookUrl: e.target.value })}
+                        placeholder="https://your-endpoint.example.com/hooks/axiom"
+                    />
+                </div>
+                <div className="mt-3 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5">
+                    <div>
+                        <div className="text-sm">Forward Warning events automatically</div>
+                        <div className="text-xs text-muted-foreground">Polls every 60s and pushes new cluster Warning events to the channels above.</div>
+                    </div>
+                    <Switch checked={!!form.notifyOnWarnings} onCheckedChange={(v) => set({ notifyOnWarnings: v })} />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                    <Button size="sm" onClick={saveNotify} disabled={busy === "notify-save"} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Save className="mr-1.5 h-3.5 w-3.5" /> {busy === "notify-save" ? "Saving…" : "Save"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={testSlack} disabled={busy === "slack-test"} className="rounded-xl border-white/10 bg-white/[0.03]">
+                        <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {busy === "slack-test" ? "Testing…" : "Test Slack"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={testWebhook} disabled={busy === "webhook-test"} className="rounded-xl border-white/10 bg-white/[0.03]">
+                        <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {busy === "webhook-test" ? "Testing…" : "Test webhook"}
+                    </Button>
+                </div>
+            </GlassCard>
 
             <GlassCard className="p-5 text-sm text-muted-foreground">
                 API-key sign-in is configured via the <span className="mono text-foreground">AXIOM_API_KEY</span>{" "}

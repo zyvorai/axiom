@@ -27,6 +27,10 @@ type Integrations struct {
 	ProbePodName       string `json:"probePodName"`
 	ProbePodContainer  string `json:"probePodContainer"`
 	ProbeURL           string `json:"probeUrl"`
+
+	SlackWebhookURL  string `json:"slackWebhookUrl,omitempty"`
+	AlertWebhookURL  string `json:"alertWebhookUrl,omitempty"`
+	NotifyOnWarnings bool   `json:"notifyOnWarnings"`
 }
 
 // IntegrationsView is the safe GET payload (secrets never returned in cleartext).
@@ -53,6 +57,11 @@ type IntegrationsView struct {
 	ProbePodContainer string `json:"probePodContainer"`
 	ProbeURL          string `json:"probeUrl"`
 	ProbeConfigured   bool   `json:"probeConfigured"`
+
+	SlackWebhookURLSet bool `json:"slackWebhookUrlSet"`
+	AlertWebhookURLSet bool `json:"alertWebhookUrlSet"`
+	NotifyOnWarnings   bool `json:"notifyOnWarnings"`
+	NotifyConfigured   bool `json:"notifyConfigured"`
 }
 
 func (i Integrations) View() IntegrationsView {
@@ -79,6 +88,11 @@ func (i Integrations) View() IntegrationsView {
 		ProbePodContainer: i.ProbePodContainer,
 		ProbeURL:          i.ProbeURL,
 		ProbeConfigured:   strings.TrimSpace(i.ProbeURL) != "",
+
+		SlackWebhookURLSet: strings.TrimSpace(i.SlackWebhookURL) != "",
+		AlertWebhookURLSet: strings.TrimSpace(i.AlertWebhookURL) != "",
+		NotifyOnWarnings:   i.NotifyOnWarnings,
+		NotifyConfigured:   strings.TrimSpace(i.SlackWebhookURL) != "" || strings.TrimSpace(i.AlertWebhookURL) != "",
 	}
 }
 
@@ -106,6 +120,9 @@ func (i Integrations) Normalize() Integrations {
 	i.ProbePodName = strings.TrimSpace(i.ProbePodName)
 	i.ProbePodContainer = strings.TrimSpace(i.ProbePodContainer)
 	i.ProbeURL = strings.TrimSpace(i.ProbeURL)
+
+	i.SlackWebhookURL = strings.TrimSpace(i.SlackWebhookURL)
+	i.AlertWebhookURL = strings.TrimSpace(i.AlertWebhookURL)
 	return i
 }
 
@@ -130,6 +147,12 @@ type IntegrationsPatch struct {
 	ProbePodName      *string `json:"probePodName"`
 	ProbePodContainer *string `json:"probePodContainer"`
 	ProbeURL          *string `json:"probeUrl"`
+
+	SlackWebhookURL      *string `json:"slackWebhookUrl"`
+	SlackWebhookURLClear bool    `json:"slackWebhookUrlClear"`
+	AlertWebhookURL      *string `json:"alertWebhookUrl"`
+	AlertWebhookURLClear bool    `json:"alertWebhookUrlClear"`
+	NotifyOnWarnings     *bool   `json:"notifyOnWarnings"`
 }
 
 func (i Integrations) Apply(p IntegrationsPatch) Integrations {
@@ -186,6 +209,20 @@ func (i Integrations) Apply(p IntegrationsPatch) Integrations {
 	}
 	if p.ProbeURL != nil {
 		i.ProbeURL = *p.ProbeURL
+	}
+
+	if p.SlackWebhookURLClear {
+		i.SlackWebhookURL = ""
+	} else if p.SlackWebhookURL != nil && strings.TrimSpace(*p.SlackWebhookURL) != "" {
+		i.SlackWebhookURL = *p.SlackWebhookURL
+	}
+	if p.AlertWebhookURLClear {
+		i.AlertWebhookURL = ""
+	} else if p.AlertWebhookURL != nil && strings.TrimSpace(*p.AlertWebhookURL) != "" {
+		i.AlertWebhookURL = *p.AlertWebhookURL
+	}
+	if p.NotifyOnWarnings != nil {
+		i.NotifyOnWarnings = *p.NotifyOnWarnings
 	}
 	return i.Normalize()
 }

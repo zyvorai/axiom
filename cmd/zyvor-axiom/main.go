@@ -39,6 +39,9 @@ func main() {
 		log.Printf("Atlas storage client enabled url=%s", hub.Get().AtlasURL)
 	}
 	cur := hub.Get()
+	dispatchCtx, stopDispatch := context.WithCancel(context.Background())
+	defer stopDispatch()
+	go platform.RunAlertDispatcher(dispatchCtx, provider, hub)
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithHub(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, api.AuthOptions{
 		APIKey:      cfg.APIKey,

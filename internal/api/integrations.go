@@ -75,3 +75,24 @@ func (s *Server) testProbe(w http.ResponseWriter, r *http.Request) {
 	}
 	s.writeConnectionTest(w, platform.TestPodProbe(r.Context(), s.provider, s.hub.Get()))
 }
+
+func (s *Server) testSlackNotify(w http.ResponseWriter, r *http.Request) {
+	if s.hub == nil {
+		s.writeConnectionTest(w, platform.ConnectionTestResult{Service: "slack", Error: "integrations not available"})
+		return
+	}
+	res := platform.SendSlackMessage(r.Context(), s.hub.Get().SlackWebhookURL, "Axiom test notification — Slack webhook is wired up correctly.")
+	s.writeConnectionTest(w, res)
+}
+
+func (s *Server) testAlertWebhook(w http.ResponseWriter, r *http.Request) {
+	if s.hub == nil {
+		s.writeConnectionTest(w, platform.ConnectionTestResult{Service: "webhook", Error: "integrations not available"})
+		return
+	}
+	res := platform.SendAlertWebhook(r.Context(), s.hub.Get().AlertWebhookURL, map[string]any{
+		"source":  "zyvor-axiom",
+		"message": "Axiom test notification — webhook is wired up correctly.",
+	})
+	s.writeConnectionTest(w, res)
+}
