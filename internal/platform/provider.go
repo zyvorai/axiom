@@ -131,4 +131,9 @@ type Provider interface {
 	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
 
 	DiagnosePod(context.Context, string, string) (PodDiagnosis, error)
+
+	CreateRole(context.Context, CreateRoleRequest) (RBACRoleSummary, error)
+	DeleteRole(context.Context, string, string) error
+	CreateRoleBinding(context.Context, CreateRoleBindingRequest) (RBACBindingSummary, error)
+	DeleteRoleBinding(context.Context, string, string) error
 }

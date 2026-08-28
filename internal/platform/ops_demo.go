@@ -219,7 +219,21 @@ func (d *DemoProvider) ListAlerts(ctx context.Context, ns string) (AlertsRespons
 	}}, nil
 }
 
+var (
+	demoRBACMu sync.Mutex
+	demoRoles  = map[string]RBACRoleSummary{
+		"default/app-editor":  {Namespace: "default", Name: "app-editor", Rules: 5, Age: "15d"},
+		"platform/ops-reader": {Namespace: "platform", Name: "ops-reader", Rules: 3, Age: "20d"},
+	}
+	demoRoleBindings = map[string]RBACBindingSummary{
+		"default/app-editor-binding":  {Namespace: "default", Name: "app-editor-binding", RoleRef: "Role/app-editor", Subjects: 2, Age: "15d"},
+		"platform/ops-reader-binding": {Namespace: "platform", Name: "ops-reader-binding", RoleRef: "Role/ops-reader", Subjects: 1, Age: "20d"},
+	}
+)
+
 func (d *DemoProvider) ListRBAC(ctx context.Context, ns string) (RBACSummary, error) {
+	demoRBACMu.Lock()
+	defer demoRBACMu.Unlock()
 	summary := RBACSummary{
 		ClusterRoles: []RBACRoleSummary{
 			{Name: "cluster-admin", Rules: 1, Age: "120d"},
@@ -230,32 +244,65 @@ func (d *DemoProvider) ListRBAC(ctx context.Context, ns string) (RBACSummary, er
 			{Name: "zyvor-axiom", RoleRef: "ClusterRole/zyvor-axiom", Subjects: 1, Age: "30d"},
 			{Name: "cluster-admin", RoleRef: "ClusterRole/cluster-admin", Subjects: 2, Age: "120d"},
 		},
-		Roles: []RBACRoleSummary{
-			{Namespace: "default", Name: "app-editor", Rules: 5, Age: "15d"},
-			{Namespace: "platform", Name: "ops-reader", Rules: 3, Age: "20d"},
-		},
-		RoleBindings: []RBACBindingSummary{
-			{Namespace: "default", Name: "app-editor-binding", RoleRef: "Role/app-editor", Subjects: 2, Age: "15d"},
-			{Namespace: "platform", Name: "ops-reader-binding", RoleRef: "Role/ops-reader", Subjects: 1, Age: "20d"},
-		},
+		Roles:        []RBACRoleSummary{},
+		RoleBindings: []RBACBindingSummary{},
 	}
-	if ns != "" && ns != "all" {
-		roles := summary.Roles[:0]
-		for _, r := range summary.Roles {
-			if r.Namespace == ns {
-				roles = append(roles, r)
-			}
+	for _, r := range demoRoles {
+		if ns == "" || ns == "all" || r.Namespace == ns {
+			summary.Roles = append(summary.Roles, r)
 		}
-		summary.Roles = roles
-		bindings := summary.RoleBindings[:0]
-		for _, b := range summary.RoleBindings {
-			if b.Namespace == ns {
-				bindings = append(bindings, b)
-			}
+	}
+	for _, b := range demoRoleBindings {
+		if ns == "" || ns == "all" || b.Namespace == ns {
+			summary.RoleBindings = append(summary.RoleBindings, b)
 		}
-		summary.RoleBindings = bindings
 	}
 	return summary, nil
+}
+
+func (d *DemoProvider) CreateRole(ctx context.Context, req CreateRoleRequest) (RBACRoleSummary, error) {
+	if req.Namespace == "" || req.Name == "" {
+		return RBACRoleSummary{}, fmt.Errorf("namespace and name are required")
+	}
+	if len(req.Rules) == 0 {
+		return RBACRoleSummary{}, fmt.Errorf("at least one rule is required")
+	}
+	role := RBACRoleSummary{Namespace: req.Namespace, Name: req.Name, Rules: len(req.Rules), Age: "now"}
+	demoRBACMu.Lock()
+	demoRoles[req.Namespace+"/"+req.Name] = role
+	demoRBACMu.Unlock()
+	return role, nil
+}
+
+func (d *DemoProvider) DeleteRole(ctx context.Context, ns, name string) error {
+	demoRBACMu.Lock()
+	defer demoRBACMu.Unlock()
+	delete(demoRoles, ns+"/"+name)
+	return nil
+}
+
+func (d *DemoProvider) CreateRoleBinding(ctx context.Context, req CreateRoleBindingRequest) (RBACBindingSummary, error) {
+	if req.Namespace == "" || req.Name == "" || req.RoleName == "" {
+		return RBACBindingSummary{}, fmt.Errorf("namespace, name, and roleName are required")
+	}
+	if len(req.Subjects) == 0 {
+		return RBACBindingSummary{}, fmt.Errorf("at least one subject is required")
+	}
+	binding := RBACBindingSummary{
+		Namespace: req.Namespace, Name: req.Name, RoleRef: "Role/" + req.RoleName,
+		Subjects: len(req.Subjects), Age: "now",
+	}
+	demoRBACMu.Lock()
+	demoRoleBindings[req.Namespace+"/"+req.Name] = binding
+	demoRBACMu.Unlock()
+	return binding, nil
+}
+
+func (d *DemoProvider) DeleteRoleBinding(ctx context.Context, ns, name string) error {
+	demoRBACMu.Lock()
+	defer demoRBACMu.Unlock()
+	delete(demoRoleBindings, ns+"/"+name)
+	return nil
 }
 
 func (d *DemoProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {

@@ -735,6 +735,31 @@ type CRDSummary struct {
 	Age     string `json:"age"`
 }
 
+type RBACPolicyRule struct {
+	APIGroups []string `json:"apiGroups"`
+	Resources []string `json:"resources"`
+	Verbs     []string `json:"verbs"`
+}
+
+type CreateRoleRequest struct {
+	Namespace string           `json:"namespace"`
+	Name      string           `json:"name"`
+	Rules     []RBACPolicyRule `json:"rules"`
+}
+
+type RBACSubject struct {
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+type CreateRoleBindingRequest struct {
+	Namespace string        `json:"namespace"`
+	Name      string        `json:"name"`
+	RoleName  string        `json:"roleName"`
+	Subjects  []RBACSubject `json:"subjects"`
+}
+
 type PodDiagnosis struct {
 	Namespace string   `json:"namespace"`
 	Name      string   `json:"name"`

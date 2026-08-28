@@ -60,9 +60,16 @@ rules:
   - apiGroups: ["subresources.kubevirt.io"]
     resources: ["virtualmachineinstances/vnc", "virtualmachineinstances/console"]
     verbs: ["get"]
+  # ClusterRole/ClusterRoleBinding stay read-only deliberately — write access
+  # to Role/RoleBinding is granted below, but a UI path to create
+  # cluster-scoped roles would be a materially bigger privilege-escalation
+  # surface than a namespace-scoped one.
   - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+    resources: ["clusterroles", "clusterrolebindings"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "watch", "create", "delete"]
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["prometheusrules", "alertmanagers", "alertmanagerconfigs"]
     verbs: ["get", "list", "watch"]

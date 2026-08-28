@@ -231,6 +231,58 @@ func (s *Server) rbac(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) createRole(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateRoleRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateRole(r.Context(), req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("rbac.role.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("rbac", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteRole(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteRole(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("rbac.role.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("rbac", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createRoleBinding(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateRoleBindingRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateRoleBinding(r.Context(), req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("rbac.rolebinding.create", req.Namespace+"/"+req.Name, req.RoleName, s.auditUser(r))
+	EmitStateChanged("rbac", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteRoleBinding(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteRoleBinding(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("rbac.rolebinding.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("rbac", "delete")
+	}
+	respondAction(w, err)
+}
+
 func (s *Server) cost(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.EstimateCost(r.Context())
 	respond(w, v, err)

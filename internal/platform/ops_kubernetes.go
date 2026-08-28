@@ -596,6 +596,71 @@ func (k *KubernetesProvider) ListRBAC(ctx context.Context, ns string) (RBACSumma
 	return summary, nil
 }
 
+// CreateRole/CreateRoleBinding are deliberately namespaced-only — Axiom
+// grants write RBAC for Role/RoleBinding but leaves ClusterRole/
+// ClusterRoleBinding read-only, since a UI path to create cluster-scoped
+// roles is a materially bigger privilege-escalation surface than a
+// namespace-scoped one, and every other write feature in this app is
+// namespace-scoped already (see deploy/k8s/rbac.yaml).
+func (k *KubernetesProvider) CreateRole(ctx context.Context, req CreateRoleRequest) (RBACRoleSummary, error) {
+	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.Name) == "" {
+		return RBACRoleSummary{}, fmt.Errorf("namespace and name are required")
+	}
+	if len(req.Rules) == 0 {
+		return RBACRoleSummary{}, fmt.Errorf("at least one rule is required")
+	}
+	rules := make([]rbacv1.PolicyRule, 0, len(req.Rules))
+	for _, r := range req.Rules {
+		rules = append(rules, rbacv1.PolicyRule{APIGroups: r.APIGroups, Resources: r.Resources, Verbs: r.Verbs})
+	}
+	created, err := k.client.RbacV1().Roles(req.Namespace).Create(ctx, &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace},
+		Rules:      rules,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return RBACRoleSummary{}, err
+	}
+	return RBACRoleSummary{Namespace: created.Namespace, Name: created.Name, Rules: len(created.Rules), Age: age(created.CreationTimestamp.Time)}, nil
+}
+
+func (k *KubernetesProvider) DeleteRole(ctx context.Context, ns, name string) error {
+	return k.client.RbacV1().Roles(ns).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+func (k *KubernetesProvider) CreateRoleBinding(ctx context.Context, req CreateRoleBindingRequest) (RBACBindingSummary, error) {
+	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.RoleName) == "" {
+		return RBACBindingSummary{}, fmt.Errorf("namespace, name, and roleName are required")
+	}
+	if len(req.Subjects) == 0 {
+		return RBACBindingSummary{}, fmt.Errorf("at least one subject is required")
+	}
+	subjects := make([]rbacv1.Subject, 0, len(req.Subjects))
+	for _, s := range req.Subjects {
+		subjNS := s.Namespace
+		if subjNS == "" {
+			subjNS = req.Namespace
+		}
+		subjects = append(subjects, rbacv1.Subject{Kind: s.Kind, Name: s.Name, Namespace: subjNS})
+	}
+	created, err := k.client.RbacV1().RoleBindings(req.Namespace).Create(ctx, &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace},
+		RoleRef:    rbacv1.RoleRef{APIGroup: "rbac.authorization.k8s.io", Kind: "Role", Name: req.RoleName},
+		Subjects:   subjects,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return RBACBindingSummary{}, err
+	}
+	return RBACBindingSummary{
+		Namespace: created.Namespace, Name: created.Name,
+		RoleRef:  created.RoleRef.Kind + "/" + created.RoleRef.Name,
+		Subjects: len(created.Subjects), Age: age(created.CreationTimestamp.Time),
+	}, nil
+}
+
+func (k *KubernetesProvider) DeleteRoleBinding(ctx context.Context, ns, name string) error {
+	return k.client.RbacV1().RoleBindings(ns).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
 func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {
 	pods, err := k.client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {

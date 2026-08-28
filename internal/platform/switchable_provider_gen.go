@@ -330,3 +330,15 @@ func (sp *SwitchableProvider) CreateVeleroSchedule(a0 context.Context, a1 Create
 func (sp *SwitchableProvider) DiagnosePod(a0 context.Context, a1 string, a2 string) (PodDiagnosis, error) {
 	return sp.current().DiagnosePod(a0, a1, a2)
 }
+func (sp *SwitchableProvider) CreateRole(a0 context.Context, a1 CreateRoleRequest) (RBACRoleSummary, error) {
+	return sp.current().CreateRole(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteRole(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteRole(a0, a1, a2)
+}
+func (sp *SwitchableProvider) CreateRoleBinding(a0 context.Context, a1 CreateRoleBindingRequest) (RBACBindingSummary, error) {
+	return sp.current().CreateRoleBinding(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteRoleBinding(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteRoleBinding(a0, a1, a2)
+}
