@@ -193,6 +193,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/velero/schedules", s.veleroSchedules)
 	mux.HandleFunc("POST /api/v1/velero/schedules", s.createVeleroSchedule)
 	mux.HandleFunc("GET /api/v1/gitops", s.gitops)
+	mux.HandleFunc("POST /api/v1/gitops/{kind}/{namespace}/{name}/sync", s.triggerGitOpsSync)
 	mux.HandleFunc("GET /api/v1/alerts", s.alerts)
 	mux.HandleFunc("GET /api/v1/audit", s.audit)
 	mux.HandleFunc("GET /api/v1/rbac", s.rbac)

@@ -193,6 +193,10 @@ func (d *DemoProvider) ListGitOps(ctx context.Context) ([]GitOpsItem, error) {
 	}, nil
 }
 
+func (d *DemoProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name string) error {
+	return nil
+}
+
 func (d *DemoProvider) ListAlerts(ctx context.Context, ns string) (AlertsResponse, error) {
 	events, _ := d.ListEvents(ctx, ns)
 	warnings := make([]Event, 0)

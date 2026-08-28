@@ -440,6 +440,64 @@ func (k *KubernetesProvider) ListGitOps(ctx context.Context) ([]GitOpsItem, erro
 	return out, nil
 }
 
+// TriggerGitOpsSync forces a re-sync, branching by kind (already known from
+// ListGitOps's Kind field): Flux Kustomization/HelmRelease get their
+// standard force-reconcile annotation bumped; Argo Application gets its
+// top-level `operation.sync` field set, the same mechanism `argocd app
+// sync` uses. Both are a JSON merge patch via the dynamic client, matching
+// how Flux/Argo/Velero are already accessed everywhere else in this file —
+// no SDK for either engine.
+func (k *KubernetesProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name string) error {
+	if k.dynamic == nil {
+		return fmt.Errorf("dynamic client unavailable")
+	}
+	switch kind {
+	case "Kustomization":
+		return k.patchFirstGVR(ctx, fluxKustomizationGVRs, ns, name, fluxReconcilePatch())
+	case "HelmRelease":
+		return k.patchFirstGVR(ctx, fluxHelmReleaseGVRs, ns, name, fluxReconcilePatch())
+	case "Application":
+		return k.patchFirstGVR(ctx, argoAppGVRs, ns, name, argoSyncPatch())
+	default:
+		return fmt.Errorf("unsupported gitops kind %q", kind)
+	}
+}
+
+func (k *KubernetesProvider) patchFirstGVR(ctx context.Context, gvrs []schema.GroupVersionResource, ns, name string, patch []byte) error {
+	var lastErr error
+	for _, gvr := range gvrs {
+		_, err := k.dynamic.Resource(gvr).Namespace(ns).Patch(ctx, name, types.MergePatchType, patch, metav1.PatchOptions{})
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		if !isMissingCRD(err) {
+			return err
+		}
+	}
+	return lastErr
+}
+
+func fluxReconcilePatch() []byte {
+	patch, _ := json.Marshal(map[string]any{
+		"metadata": map[string]any{
+			"annotations": map[string]any{
+				"reconcile.fluxcd.io/requestedAt": time.Now().UTC().Format(time.RFC3339Nano),
+			},
+		},
+	})
+	return patch
+}
+
+func argoSyncPatch() []byte {
+	patch, _ := json.Marshal(map[string]any{
+		"operation": map[string]any{
+			"sync": map[string]any{},
+		},
+	})
+	return patch
+}
+
 type gitOpsStatusFn func(unstructured.Unstructured) (status, source string)
 
 func (k *KubernetesProvider) listGitOpsGVR(ctx context.Context, gvrs []schema.GroupVersionResource, kind string, statusFn gitOpsStatusFn) []GitOpsItem {

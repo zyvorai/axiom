@@ -217,6 +217,16 @@ func (s *Server) gitops(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) triggerGitOpsSync(w http.ResponseWriter, r *http.Request) {
+	kind, ns, name := r.PathValue("kind"), r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.TriggerGitOpsSync(r.Context(), kind, ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("gitops.sync", ns+"/"+name, kind, s.auditUser(r))
+		EmitStateChanged("gitops", "sync")
+	}
+	respondAction(w, err)
+}
+
 func (s *Server) alerts(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListAlerts(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)

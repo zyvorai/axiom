@@ -136,4 +136,6 @@ type Provider interface {
 	DeleteRole(context.Context, string, string) error
 	CreateRoleBinding(context.Context, CreateRoleBindingRequest) (RBACBindingSummary, error)
 	DeleteRoleBinding(context.Context, string, string) error
+
+	TriggerGitOpsSync(context.Context, string, string, string) error
 }

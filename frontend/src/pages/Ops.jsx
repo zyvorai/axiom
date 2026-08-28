@@ -136,7 +136,24 @@ function HelmTab() {
 }
 
 function GitOpsTab() {
-    const apps = useEndpoint("/gitops");
+    const [refresh, setRefresh] = useState(0);
+    const apps = useEndpoint("/gitops", [refresh]);
+    const [syncing, setSyncing] = useState("");
+
+    const sync = async (a) => {
+        const busyKey = `${a.namespace}/${a.name}`;
+        setSyncing(busyKey);
+        try {
+            await api.post(`/gitops/${a.kind}/${a.namespace}/${encodeURIComponent(a.name)}/sync`);
+            toast.success(`${a.name}: sync requested`);
+            setRefresh((n) => n + 1);
+        } catch (e) {
+            toast.error("Sync failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setSyncing("");
+        }
+    };
+
     return (
         <GlassCard className="p-0 overflow-hidden">
             <Rows
@@ -148,9 +165,21 @@ function GitOpsTab() {
                             <div className="mono truncate text-sm">{a.name}</div>
                             <div className="text-[11px] text-muted-foreground">{a.kind} · {a.namespace}</div>
                         </div>
-                        <div className="col-span-5 mono truncate text-xs text-muted-foreground">{a.source}</div>
+                        <div className="col-span-4 mono truncate text-xs text-muted-foreground">{a.source}</div>
                         <div className="col-span-2"><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></div>
                         <div className="col-span-1 text-right text-xs text-muted-foreground">{a.age}</div>
+                        <div className="col-span-1 flex justify-end">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={syncing === `${a.namespace}/${a.name}`}
+                                onClick={() => sync(a)}
+                                className="h-7 px-2 text-muted-foreground hover:text-[#6ab6f0]"
+                                title="Sync"
+                            >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                            </Button>
+                        </div>
                     </div>
                 )}
             />

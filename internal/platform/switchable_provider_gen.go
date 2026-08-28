@@ -342,3 +342,6 @@ func (sp *SwitchableProvider) CreateRoleBinding(a0 context.Context, a1 CreateRol
 func (sp *SwitchableProvider) DeleteRoleBinding(a0 context.Context, a1 string, a2 string) error {
 	return sp.current().DeleteRoleBinding(a0, a1, a2)
 }
+func (sp *SwitchableProvider) TriggerGitOpsSync(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().TriggerGitOpsSync(a0, a1, a2, a3)
+}
