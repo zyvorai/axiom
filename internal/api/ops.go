@@ -56,6 +56,57 @@ func (s *Server) deleteSecret(w http.ResponseWriter, r *http.Request) {
 	respondAction(w, err)
 }
 
+func (s *Server) listConfigMaps(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListConfigMaps(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
+func (s *Server) createConfigMap(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateConfigMapRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateConfigMap(r.Context(), req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("configmap.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("configmap", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) getConfigMap(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.GetConfigMap(r.Context(), r.PathValue("namespace"), r.PathValue("name"))
+	respond(w, v, err)
+}
+
+func (s *Server) deleteConfigMap(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteConfigMap(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("configmap.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("configmap", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) listResourceQuotas(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListResourceQuotas(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
+func (s *Server) listLimitRanges(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListLimitRanges(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
+func (s *Server) listIngresses(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListIngresses(r.Context(), r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
 func (s *Server) listBackups(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListBackups(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)

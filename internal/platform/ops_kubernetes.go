@@ -711,3 +711,177 @@ func (k *KubernetesProvider) VMConsole(ctx context.Context, ns, name string) (VM
 		Virtctl: fmt.Sprintf("virtctl vnc %s -n %s", found.Name, found.Namespace),
 	}, nil
 }
+
+func (k *KubernetesProvider) ListConfigMaps(ctx context.Context, ns string) ([]ConfigMapSummary, error) {
+	list, err := k.client.CoreV1().ConfigMaps(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]ConfigMapSummary, 0, len(list.Items))
+	for _, c := range list.Items {
+		if c.Namespace == "kube-system" || c.Namespace == "kube-public" || c.Namespace == "kube-node-lease" {
+			continue
+		}
+		keys := make([]string, 0, len(c.Data))
+		for key := range c.Data {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		out = append(out, ConfigMapSummary{
+			Namespace: c.Namespace, Name: c.Name,
+			Keys: keys, KeyCount: len(keys), Age: age(c.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) GetConfigMap(ctx context.Context, ns, name string) (ConfigMapDetail, error) {
+	c, err := k.client.CoreV1().ConfigMaps(ns).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return ConfigMapDetail{}, err
+	}
+	return ConfigMapDetail{
+		Namespace: c.Namespace, Name: c.Name, Data: c.Data, Labels: c.Labels,
+		Age: age(c.CreationTimestamp.Time),
+	}, nil
+}
+
+func (k *KubernetesProvider) CreateConfigMap(ctx context.Context, req CreateConfigMapRequest) (ConfigMapDetail, error) {
+	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.Name) == "" {
+		return ConfigMapDetail{}, fmt.Errorf("namespace and name are required")
+	}
+	if len(req.Data) == 0 {
+		return ConfigMapDetail{}, fmt.Errorf("at least one data entry is required")
+	}
+	created, err := k.client.CoreV1().ConfigMaps(req.Namespace).Create(ctx, &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace, Labels: req.Labels},
+		Data:       req.Data,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return ConfigMapDetail{}, err
+	}
+	return k.GetConfigMap(ctx, created.Namespace, created.Name)
+}
+
+func (k *KubernetesProvider) DeleteConfigMap(ctx context.Context, ns, name string) error {
+	return k.client.CoreV1().ConfigMaps(ns).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+func (k *KubernetesProvider) ListResourceQuotas(ctx context.Context, ns string) ([]ResourceQuotaSummary, error) {
+	list, err := k.client.CoreV1().ResourceQuotas(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]ResourceQuotaSummary, 0, len(list.Items))
+	for _, q := range list.Items {
+		hard := map[string]string{}
+		for k, v := range q.Status.Hard {
+			hard[string(k)] = v.String()
+		}
+		used := map[string]string{}
+		for k, v := range q.Status.Used {
+			used[string(k)] = v.String()
+		}
+		out = append(out, ResourceQuotaSummary{
+			Namespace: q.Namespace, Name: q.Name, Hard: hard, Used: used,
+			Age: age(q.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) ListLimitRanges(ctx context.Context, ns string) ([]LimitRangeSummary, error) {
+	list, err := k.client.CoreV1().LimitRanges(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	fmtRes := func(rl corev1.ResourceList) string {
+		cpu, hasCPU := rl[corev1.ResourceCPU]
+		mem, hasMem := rl[corev1.ResourceMemory]
+		var parts []string
+		if hasCPU {
+			parts = append(parts, "cpu="+cpu.String())
+		}
+		if hasMem {
+			parts = append(parts, "mem="+mem.String())
+		}
+		return strings.Join(parts, " ")
+	}
+	out := make([]LimitRangeSummary, 0, len(list.Items))
+	for _, lr := range list.Items {
+		items := make([]LimitRangeItem, 0, len(lr.Spec.Limits))
+		for _, l := range lr.Spec.Limits {
+			items = append(items, LimitRangeItem{
+				Type:           string(l.Type),
+				Max:            fmtRes(l.Max),
+				Min:            fmtRes(l.Min),
+				Default:        fmtRes(l.Default),
+				DefaultRequest: fmtRes(l.DefaultRequest),
+			})
+		}
+		out = append(out, LimitRangeSummary{
+			Namespace: lr.Namespace, Name: lr.Name, Limits: items,
+			Age: age(lr.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) ListIngresses(ctx context.Context, ns string) ([]IngressSummary, error) {
+	list, err := k.client.NetworkingV1().Ingresses(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]IngressSummary, 0, len(list.Items))
+	for _, ing := range list.Items {
+		hosts := make([]string, 0, len(ing.Spec.Rules))
+		for _, r := range ing.Spec.Rules {
+			if r.Host != "" {
+				hosts = append(hosts, r.Host)
+			}
+		}
+		class := ""
+		if ing.Spec.IngressClassName != nil {
+			class = *ing.Spec.IngressClassName
+		}
+		address := ""
+		if len(ing.Status.LoadBalancer.Ingress) > 0 {
+			lb := ing.Status.LoadBalancer.Ingress[0]
+			if lb.IP != "" {
+				address = lb.IP
+			} else {
+				address = lb.Hostname
+			}
+		}
+		out = append(out, IngressSummary{
+			Namespace: ing.Namespace, Name: ing.Name, Class: class,
+			Hosts: hosts, Address: address, TLS: len(ing.Spec.TLS) > 0,
+			Age: age(ing.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}

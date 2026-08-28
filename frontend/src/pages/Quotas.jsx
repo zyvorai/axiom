@@ -1,0 +1,124 @@
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import GlassCard from "@/components/GlassCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Gauge, Ruler } from "lucide-react";
+
+function Section({ title, icon: Icon, rows, columns, empty }) {
+    return (
+        <GlassCard className="p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
+                </div>
+            </div>
+            <div className="max-h-[420px] overflow-auto scrollbar-thin">
+                {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>}
+                {rows.map((r, i) => (
+                    <div key={i} className="grid grid-cols-12 items-start gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        {columns.map((c) => (
+                            <div key={c.key} className={`${c.span || "col-span-3"} min-w-0 text-xs`}>
+                                {c.render ? c.render(r) : <span className="mono truncate text-foreground">{r[c.key]}</span>}
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+        </GlassCard>
+    );
+}
+
+function ResourceMap({ map }) {
+    const entries = Object.entries(map || {});
+    if (entries.length === 0) return <span className="text-muted-foreground">—</span>;
+    return (
+        <div className="flex flex-wrap gap-1">
+            {entries.map(([k, v]) => (
+                <Badge key={k} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                    {k}={v}
+                </Badge>
+            ))}
+        </div>
+    );
+}
+
+export default function Quotas() {
+    const [quotas, setQuotas] = useState(null);
+    const [limitRanges, setLimitRanges] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        Promise.all([
+            api.get("/resourcequotas").catch(() => ({ data: [] })),
+            api.get("/limitranges").catch(() => ({ data: [] })),
+        ]).then(([q, l]) => {
+            if (!alive) return;
+            setQuotas(q.data);
+            setLimitRanges(l.data);
+        });
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    if (!quotas) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-end justify-between">
+                <div>
+                    <h1 className="text-3xl font-semibold tracking-tight">Quotas &amp; Limits</h1>
+                    <p className="text-sm text-muted-foreground">ResourceQuotas and LimitRanges enforced per namespace.</p>
+                </div>
+            </div>
+
+            <Section
+                title="Resource quotas"
+                icon={Gauge}
+                rows={quotas}
+                empty="No ResourceQuotas configured."
+                columns={[
+                    { key: "name", span: "col-span-3", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                    { key: "hard", span: "col-span-4", render: (r) => <><div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Hard</div><ResourceMap map={r.hard} /></> },
+                    { key: "used", span: "col-span-4", render: (r) => <><div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Used</div><ResourceMap map={r.used} /></> },
+                    { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
+                ]}
+            />
+
+            <Section
+                title="Limit ranges"
+                icon={Ruler}
+                rows={limitRanges || []}
+                empty="No LimitRanges configured."
+                columns={[
+                    { key: "name", span: "col-span-3", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                    {
+                        key: "limits",
+                        span: "col-span-9",
+                        render: (r) => (
+                            <div className="space-y-1.5">
+                                {(r.limits || []).map((l, i) => (
+                                    <div key={i} className="flex flex-wrap items-center gap-1.5">
+                                        <Badge className="text-[10px] bg-white/10 text-foreground border-none">{l.type}</Badge>
+                                        {l.default && <span className="mono text-[11px] text-muted-foreground">default: {l.default}</span>}
+                                        {l.defaultRequest && <span className="mono text-[11px] text-muted-foreground">request: {l.defaultRequest}</span>}
+                                        {l.max && <span className="mono text-[11px] text-muted-foreground">max: {l.max}</span>}
+                                        {l.min && <span className="mono text-[11px] text-muted-foreground">min: {l.min}</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        ),
+                    },
+                ]}
+            />
+        </div>
+    );
+}

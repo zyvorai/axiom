@@ -340,3 +340,126 @@ func (d *DemoProvider) VMConsole(ctx context.Context, ns, name string) (VMConsol
 	}
 	return VMConsoleInfo{}, fmt.Errorf("vm %s/%s not found", ns, name)
 }
+
+var (
+	demoConfigMapsMu sync.Mutex
+	demoConfigMaps   = map[string]ConfigMapDetail{
+		"default/app-config": {
+			Namespace: "default", Name: "app-config", Age: "5d",
+			Data:   map[string]string{"LOG_LEVEL": "info", "FEATURE_FLAGS": "beta-checkout=true"},
+			Labels: map[string]string{"app": "edge"},
+		},
+		"observability/otel-collector-config": {
+			Namespace: "observability", Name: "otel-collector-config", Age: "19d",
+			Data: map[string]string{"config.yaml": "receivers:\n  otlp:\n    protocols:\n      grpc:"},
+		},
+	}
+)
+
+func configMapKey(ns, name string) string { return ns + "/" + name }
+
+func (d *DemoProvider) ListConfigMaps(ctx context.Context, ns string) ([]ConfigMapSummary, error) {
+	demoConfigMapsMu.Lock()
+	defer demoConfigMapsMu.Unlock()
+	out := make([]ConfigMapSummary, 0, len(demoConfigMaps))
+	for _, c := range demoConfigMaps {
+		if ns != "" && ns != "all" && c.Namespace != ns {
+			continue
+		}
+		keys := make([]string, 0, len(c.Data))
+		for k := range c.Data {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		out = append(out, ConfigMapSummary{Namespace: c.Namespace, Name: c.Name, Keys: keys, KeyCount: len(keys), Age: c.Age})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (d *DemoProvider) GetConfigMap(ctx context.Context, ns, name string) (ConfigMapDetail, error) {
+	demoConfigMapsMu.Lock()
+	defer demoConfigMapsMu.Unlock()
+	c, ok := demoConfigMaps[configMapKey(ns, name)]
+	if !ok {
+		return ConfigMapDetail{}, fmt.Errorf("configmap %s/%s not found", ns, name)
+	}
+	return c, nil
+}
+
+func (d *DemoProvider) CreateConfigMap(ctx context.Context, req CreateConfigMapRequest) (ConfigMapDetail, error) {
+	if req.Namespace == "" || req.Name == "" {
+		return ConfigMapDetail{}, fmt.Errorf("namespace and name are required")
+	}
+	if len(req.Data) == 0 {
+		return ConfigMapDetail{}, fmt.Errorf("at least one data entry is required")
+	}
+	detail := ConfigMapDetail{Namespace: req.Namespace, Name: req.Name, Data: req.Data, Labels: req.Labels, Age: "now"}
+	demoConfigMapsMu.Lock()
+	demoConfigMaps[configMapKey(req.Namespace, req.Name)] = detail
+	demoConfigMapsMu.Unlock()
+	return detail, nil
+}
+
+func (d *DemoProvider) DeleteConfigMap(ctx context.Context, ns, name string) error {
+	demoConfigMapsMu.Lock()
+	defer demoConfigMapsMu.Unlock()
+	key := configMapKey(ns, name)
+	if _, ok := demoConfigMaps[key]; !ok {
+		return fmt.Errorf("configmap %s/%s not found", ns, name)
+	}
+	delete(demoConfigMaps, key)
+	return nil
+}
+
+func (d *DemoProvider) ListResourceQuotas(ctx context.Context, ns string) ([]ResourceQuotaSummary, error) {
+	all := []ResourceQuotaSummary{
+		{Namespace: "tenant-a", Name: "tenant-a-quota", Age: "30d",
+			Hard: map[string]string{"requests.cpu": "20", "requests.memory": "40Gi", "pods": "100"},
+			Used: map[string]string{"requests.cpu": "6", "requests.memory": "12Gi", "pods": "23"}},
+		{Namespace: "tenant-b", Name: "tenant-b-quota", Age: "30d",
+			Hard: map[string]string{"requests.cpu": "10", "requests.memory": "20Gi", "pods": "50"},
+			Used: map[string]string{"requests.cpu": "3", "requests.memory": "6Gi", "pods": "11"}},
+	}
+	out := make([]ResourceQuotaSummary, 0, len(all))
+	for _, q := range all {
+		if ns == "" || ns == "all" || q.Namespace == ns {
+			out = append(out, q)
+		}
+	}
+	return out, nil
+}
+
+func (d *DemoProvider) ListLimitRanges(ctx context.Context, ns string) ([]LimitRangeSummary, error) {
+	all := []LimitRangeSummary{
+		{Namespace: "tenant-a", Name: "tenant-a-limits", Age: "30d", Limits: []LimitRangeItem{
+			{Type: "Container", Default: "cpu=500m mem=512Mi", DefaultRequest: "cpu=100m mem=128Mi", Max: "cpu=2 mem=2Gi"},
+		}},
+	}
+	out := make([]LimitRangeSummary, 0, len(all))
+	for _, l := range all {
+		if ns == "" || ns == "all" || l.Namespace == ns {
+			out = append(out, l)
+		}
+	}
+	return out, nil
+}
+
+func (d *DemoProvider) ListIngresses(ctx context.Context, ns string) ([]IngressSummary, error) {
+	all := []IngressSummary{
+		{Namespace: "commerce", Name: "checkout", Class: "nginx", Hosts: []string{"checkout.zyvor.dev"}, Address: "203.0.113.10", TLS: true, Age: "20d"},
+		{Namespace: "payments", Name: "payments-api", Class: "nginx", Hosts: []string{"api.payments.zyvor.dev"}, Address: "203.0.113.11", TLS: true, Age: "9d"},
+	}
+	out := make([]IngressSummary, 0, len(all))
+	for _, i := range all {
+		if ns == "" || ns == "all" || i.Namespace == ns {
+			out = append(out, i)
+		}
+	}
+	return out, nil
+}

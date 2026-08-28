@@ -84,4 +84,12 @@ type Provider interface {
 	ListHavenKeycloaks(context.Context, string) ([]HavenKeycloak, error)
 	ListHavenDatabases(context.Context, string) ([]HavenDatabase, error)
 	GetHavenAdminBootstrap(context.Context, string, string) (HavenAdminBootstrap, error)
+
+	ListConfigMaps(context.Context, string) ([]ConfigMapSummary, error)
+	GetConfigMap(context.Context, string, string) (ConfigMapDetail, error)
+	CreateConfigMap(context.Context, CreateConfigMapRequest) (ConfigMapDetail, error)
+	DeleteConfigMap(context.Context, string, string) error
+	ListResourceQuotas(context.Context, string) ([]ResourceQuotaSummary, error)
+	ListLimitRanges(context.Context, string) ([]LimitRangeSummary, error)
+	ListIngresses(context.Context, string) ([]IngressSummary, error)
 }

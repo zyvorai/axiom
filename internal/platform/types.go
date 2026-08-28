@@ -334,6 +334,62 @@ type CreateSecretRequest struct {
 	Labels    map[string]string `json:"labels,omitempty"`
 }
 
+type ConfigMapSummary struct {
+	Namespace string   `json:"namespace"`
+	Name      string   `json:"name"`
+	Keys      []string `json:"keys"`
+	KeyCount  int      `json:"keyCount"`
+	Age       string   `json:"age"`
+}
+
+type ConfigMapDetail struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Data      map[string]string `json:"data,omitempty"`
+	Labels    map[string]string `json:"labels,omitempty"`
+	Age       string            `json:"age"`
+}
+
+type CreateConfigMapRequest struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Data      map[string]string `json:"data"`
+	Labels    map[string]string `json:"labels,omitempty"`
+}
+
+type ResourceQuotaSummary struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Hard      map[string]string `json:"hard"`
+	Used      map[string]string `json:"used"`
+	Age       string            `json:"age"`
+}
+
+type LimitRangeItem struct {
+	Type           string `json:"type"`
+	Max            string `json:"max,omitempty"`
+	Min            string `json:"min,omitempty"`
+	Default        string `json:"default,omitempty"`
+	DefaultRequest string `json:"defaultRequest,omitempty"`
+}
+
+type LimitRangeSummary struct {
+	Namespace string           `json:"namespace"`
+	Name      string           `json:"name"`
+	Limits    []LimitRangeItem `json:"limits"`
+	Age       string           `json:"age"`
+}
+
+type IngressSummary struct {
+	Namespace string   `json:"namespace"`
+	Name      string   `json:"name"`
+	Class     string   `json:"class,omitempty"`
+	Hosts     []string `json:"hosts"`
+	Address   string   `json:"address,omitempty"`
+	TLS       bool     `json:"tls"`
+	Age       string   `json:"age"`
+}
+
 type BackupSnapshot struct {
 	Namespace           string `json:"namespace"`
 	Name                string `json:"name"`

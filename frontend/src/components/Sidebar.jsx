@@ -19,6 +19,8 @@ import {
     FolderTree,
     Sparkles,
     Rocket,
+    FileCog,
+    Gauge,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -34,13 +36,16 @@ const ITEMS = [
     { to: "/platform-intents", label: "Platform Intents", icon: Sparkles, key: "platform-intents" },
     { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },
     { to: "/services", label: "Services", icon: Waypoints, key: "services" },
+    { to: "/ingresses", label: "Ingresses", icon: Waypoints, key: "ingresses" },
     { to: "/namespaces", label: "Namespaces", icon: FolderTree, key: "namespaces" },
     { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone, key: "vms" },
     { to: "/storage", label: "Storage", icon: Database, key: "storage" },
     { to: "/atlas", label: "Atlas", icon: Cloudy, key: "atlas" },
     { to: "/logs", label: "Pod Logs", icon: ScrollText, key: "logs" },
     { to: "/events", label: "Events", icon: BellRing, key: "events" },
+    { to: "/configmaps", label: "ConfigMaps", icon: FileCog, key: "configmaps" },
     { to: "/secrets", label: "Secrets", icon: KeySquare, key: "secrets" },
+    { to: "/quotas", label: "Quotas & Limits", icon: Gauge, key: "quotas" },
     { to: "/backups", label: "Backups", icon: Archive, key: "backups" },
     { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts" },
     { to: "/ops", label: "Ops", icon: Layers, key: "ops" },

@@ -17,6 +17,9 @@ import Storage from "@/pages/Storage";
 import Atlas from "@/pages/Atlas";
 import Namespaces from "@/pages/Namespaces";
 import Services from "@/pages/Services";
+import Ingresses from "@/pages/Ingresses";
+import ConfigMaps from "@/pages/ConfigMaps";
+import Quotas from "@/pages/Quotas";
 import PlatformIntents from "@/pages/PlatformIntents";
 import WorkloadDetail from "@/pages/WorkloadDetail";
 import PodDetail from "@/pages/PodDetail";
@@ -68,6 +71,9 @@ export default function App() {
                                 <Route path="/platform-intents" element={<PlatformIntents />} />
                                 <Route path="/networking" element={<Networking />} />
                                 <Route path="/services" element={<Services />} />
+                                <Route path="/ingresses" element={<Ingresses />} />
+                                <Route path="/configmaps" element={<ConfigMaps />} />
+                                <Route path="/quotas" element={<Quotas />} />
                                 <Route path="/namespaces" element={<Namespaces />} />
                                 <Route path="/vms" element={<VirtualMachines />} />
                                 <Route path="/storage" element={<Storage />} />
