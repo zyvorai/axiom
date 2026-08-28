@@ -62,6 +62,17 @@ type Guard struct {
 	// Limiter throttles repeated failed logins per client IP. Optional — a
 	// fresh one is created automatically in Middleware when left nil.
 	Limiter *RateLimiter
+	// Audit records failed logins and rate-limit lockouts to the platform
+	// audit trail. Optional — nil means these events aren't audited (they
+	// still fully function, just without a security-review trail).
+	Audit AuditLogger
+}
+
+// AuditLogger records a security-relevant event. Implemented by an adapter
+// around platform.RecordAxiomAudit — kept as an interface here so this
+// package doesn't need to import platform.
+type AuditLogger interface {
+	Record(action, target, detail, user string)
 }
 
 func (g Guard) sessionSecret() string {
@@ -83,6 +94,9 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 		}
 		key := clientKey(r)
 		if !limiter.Allowed(key) {
+			if g.Audit != nil {
+				g.Audit.Record("auth.rate_limited", key, r.URL.Path, attemptedUsername(r))
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Retry-After", "60")
 			w.WriteHeader(http.StatusTooManyRequests)
@@ -92,6 +106,9 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 		id, ok := g.authorizeDetail(r)
 		if !ok {
 			limiter.RecordFailure(key)
+			if g.Audit != nil {
+				g.Audit.Record("auth.login_failed", key, r.URL.Path, attemptedUsername(r))
+			}
 			// Do not set WWW-Authenticate — that triggers the browser's native
 			// Basic-auth popup on top of Axiom's custom login form.
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
@@ -294,6 +311,16 @@ func parseBasic(v string) (string, string, bool) {
 	}
 	user, pass, ok := strings.Cut(string(raw), ":")
 	return user, pass, ok
+}
+
+// attemptedUsername extracts just the username from a request's credentials,
+// for audit logging — never the password, and never validated.
+func attemptedUsername(r *http.Request) string {
+	u, _, ok := credentialsFromRequest(r)
+	if !ok {
+		return ""
+	}
+	return u
 }
 
 // credentialsFromRequest reads Basic auth from the header or access_token query

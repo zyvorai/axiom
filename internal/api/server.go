@@ -214,8 +214,17 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		authenticator = users
 	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
-	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: password, Users: authenticator}.Middleware(mux)
+	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: password, Users: authenticator, Audit: axiomAuditLogger{}}.Middleware(mux)
 	return s.common(secured)
+}
+
+// axiomAuditLogger adapts platform.RecordAxiomAudit to auth.AuditLogger, so
+// the auth package can record login failures/lockouts without importing
+// platform directly.
+type axiomAuditLogger struct{}
+
+func (axiomAuditLogger) Record(action, target, detail, user string) {
+	platform.RecordAxiomAudit(action, target, detail, user)
 }
 
 func strPtrAPI(s string) *string { return &s }
@@ -232,10 +241,13 @@ func (s *Server) common(next http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Referrer-Policy", "no-referrer")
+		if s.requestSecure(r) {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
 		if s.allowOrigin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", s.allowOrigin)
 			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		}
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

@@ -136,3 +136,66 @@ func TestGuardRateLimitResetsOnSuccess(t *testing.T) {
 		}
 	}
 }
+
+type recordingAuditLogger struct {
+	events []auditEvent
+}
+
+type auditEvent struct {
+	action, target, detail, user string
+}
+
+func (r *recordingAuditLogger) Record(action, target, detail, user string) {
+	r.events = append(r.events, auditEvent{action, target, detail, user})
+}
+
+func TestGuardAuditsFailedLoginsAndLockouts(t *testing.T) {
+	audit := &recordingAuditLogger{}
+	g := Guard{Username: "demo", Password: "demo", Audit: audit}
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+
+	basicAuthRequest := func(user, pass string) *http.Request {
+		r := httptest.NewRequest("GET", "/api/v1/overview", nil)
+		r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(user+":"+pass)))
+		return r
+	}
+
+	for i := 0; i < rateLimitGraceFailures+1; i++ {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, basicAuthRequest("demo", "wrongpass"))
+	}
+	// One more request should now be rate-limited rather than re-checking credentials.
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, basicAuthRequest("demo", "demo"))
+	if w.Code != 429 {
+		t.Fatalf("expected 429, got %d", w.Code)
+	}
+
+	failedCount, lockedCount := 0, 0
+	for _, e := range audit.events {
+		switch e.action {
+		case "auth.login_failed":
+			failedCount++
+			if e.user != "demo" {
+				t.Errorf("expected audited username 'demo', got %q", e.user)
+			}
+		case "auth.rate_limited":
+			lockedCount++
+		}
+	}
+	if failedCount != rateLimitGraceFailures+1 {
+		t.Fatalf("expected %d login_failed audit events, got %d", rateLimitGraceFailures+1, failedCount)
+	}
+	if lockedCount != 1 {
+		t.Fatalf("expected 1 rate_limited audit event, got %d", lockedCount)
+	}
+
+	// A successful login must never be audited as a failure/lockout.
+	audit.events = nil
+	w = httptest.NewRecorder()
+	h2 := Guard{Username: "demo", Password: "demo", Audit: audit}.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+	h2.ServeHTTP(w, basicAuthRequest("demo", "demo"))
+	if len(audit.events) != 0 {
+		t.Fatalf("expected no audit events for a successful login, got %+v", audit.events)
+	}
+}
