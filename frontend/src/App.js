@@ -16,6 +16,7 @@ import Storage from "@/pages/Storage";
 import Atlas from "@/pages/Atlas";
 import Namespaces from "@/pages/Namespaces";
 import Services from "@/pages/Services";
+import PlatformIntents from "@/pages/PlatformIntents";
 import Logs from "@/pages/Logs";
 import Events from "@/pages/Events";
 import Secrets from "@/pages/Secrets";
@@ -58,6 +59,7 @@ export default function App() {
                                 <Route path="/nodes" element={<Nodes />} />
                                 <Route path="/workloads" element={<Workloads />} />
                                 <Route path="/pods" element={<Pods />} />
+                                <Route path="/platform-intents" element={<PlatformIntents />} />
                                 <Route path="/networking" element={<Networking />} />
                                 <Route path="/services" element={<Services />} />
                                 <Route path="/namespaces" element={<Namespaces />} />

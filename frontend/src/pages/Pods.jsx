@@ -19,15 +19,87 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+
+function ExecDialog({ pod, onOpenChange }) {
+    const containers = pod.containers && pod.containers.length ? pod.containers : [""];
+    const [container, setContainer] = useState(containers[0]);
+    const [command, setCommand] = useState("ls -la");
+    const [output, setOutput] = useState("");
+    const [busy, setBusy] = useState(false);
+
+    const run = async () => {
+        setBusy(true);
+        setOutput("");
+        try {
+            const { data } = await api.post(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/exec`, {
+                container,
+                command,
+            });
+            setOutput(data.output || "");
+        } catch (e) {
+            setOutput(e?.response?.data?.error || e.message);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Dialog open onOpenChange={onOpenChange}>
+            <DialogContent className="glass max-w-lg border-white/10">
+                <DialogHeader>
+                    <DialogTitle className="mono text-sm">Exec · {pod.name}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                    {containers.length > 1 && (
+                        <Select value={container} onValueChange={setContainer}>
+                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {containers.map((c) => (
+                                    <SelectItem key={c} value={c}>
+                                        {c}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                    <div className="flex gap-2">
+                        <Input
+                            value={command}
+                            onChange={(e) => setCommand(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && run()}
+                            className="mono border-white/10 bg-white/[0.03]"
+                            placeholder="ls -la"
+                        />
+                        <Button onClick={run} disabled={busy} className="shrink-0 rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            {busy ? "Running…" : "Run"}
+                        </Button>
+                    </div>
+                    <pre className="mono h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/40 p-3 text-[12px] text-foreground/90">
+                        {output || "Output will appear here."}
+                    </pre>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function Pods() {
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
     const [ns, setNs] = useState("all");
+    const [execTarget, setExecTarget] = useState(null);
 
     const load = () => api.get("/pods").then((r) => setData(r.data));
 
@@ -138,9 +210,14 @@ export default function Pods() {
                                     <TableCell className="mono text-xs">{p.ip}</TableCell>
                                     <TableCell className="mono text-xs">{p.age}</TableCell>
                                     <TableCell>
-                                        <Button size="sm" variant="ghost" onClick={() => evict(p)} className="text-muted-foreground hover:text-rose-400">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            <Button size="sm" variant="ghost" onClick={() => setExecTarget(p)} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
+                                                <Terminal className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button size="sm" variant="ghost" onClick={() => evict(p)} className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-400">
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -155,6 +232,8 @@ export default function Pods() {
                     </Table>
                 </div>
             </GlassCard>
+
+            {execTarget && <ExecDialog pod={execTarget} onOpenChange={(o) => !o && setExecTarget(null)} />}
         </div>
     );
 }

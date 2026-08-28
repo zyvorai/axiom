@@ -17,6 +17,7 @@ import {
     Cloudy,
     Waypoints,
     FolderTree,
+    Sparkles,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -28,6 +29,7 @@ const ITEMS = [
     { to: "/nodes", label: "Nodes", icon: Server, key: "nodes" },
     { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads" },
     { to: "/pods", label: "Pods", icon: Component, key: "pods" },
+    { to: "/platform-intents", label: "Platform Intents", icon: Sparkles, key: "platform-intents" },
     { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },
     { to: "/services", label: "Services", icon: Waypoints, key: "services" },
     { to: "/namespaces", label: "Namespaces", icon: FolderTree, key: "namespaces" },
