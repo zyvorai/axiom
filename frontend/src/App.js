@@ -14,6 +14,8 @@ import Networking from "@/pages/Networking";
 import VirtualMachines from "@/pages/VirtualMachines";
 import Storage from "@/pages/Storage";
 import Atlas from "@/pages/Atlas";
+import Namespaces from "@/pages/Namespaces";
+import Services from "@/pages/Services";
 import Logs from "@/pages/Logs";
 import Events from "@/pages/Events";
 import Secrets from "@/pages/Secrets";
@@ -57,6 +59,8 @@ export default function App() {
                                 <Route path="/workloads" element={<Workloads />} />
                                 <Route path="/pods" element={<Pods />} />
                                 <Route path="/networking" element={<Networking />} />
+                                <Route path="/services" element={<Services />} />
+                                <Route path="/namespaces" element={<Namespaces />} />
                                 <Route path="/vms" element={<VirtualMachines />} />
                                 <Route path="/storage" element={<Storage />} />
                                 <Route path="/atlas" element={<Atlas />} />

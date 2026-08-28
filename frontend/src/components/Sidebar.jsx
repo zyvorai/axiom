@@ -15,6 +15,8 @@ import {
     Layers,
     SlidersHorizontal,
     Cloudy,
+    Waypoints,
+    FolderTree,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -27,6 +29,8 @@ const ITEMS = [
     { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads" },
     { to: "/pods", label: "Pods", icon: Component, key: "pods" },
     { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },
+    { to: "/services", label: "Services", icon: Waypoints, key: "services" },
+    { to: "/namespaces", label: "Namespaces", icon: FolderTree, key: "namespaces" },
     { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone, key: "vms" },
     { to: "/storage", label: "Storage", icon: Database, key: "storage" },
     { to: "/atlas", label: "Atlas", icon: Cloudy, key: "atlas" },

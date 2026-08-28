@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, PlugZap, Save } from "lucide-react";
+import { ShieldCheck, PlugZap, Save, Database, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 function Field({ label, ...props }) {
@@ -125,6 +125,66 @@ export default function Settings() {
         }
     };
 
+    const savePostgres = async () => {
+        setBusy("postgres-save");
+        try {
+            const { data: v } = await api.put("/integrations", {
+                postgresHost: form.postgresHost,
+                postgresPort: Number(form.postgresPort) || 5432,
+                postgresDatabase: form.postgresDatabase,
+                postgresUser: form.postgresUser,
+                postgresSslMode: form.postgresSslMode || "disable",
+                ...(form.postgresPassword ? { postgresPassword: form.postgresPassword } : {}),
+            });
+            setData(v);
+            setForm({ ...v, postgresPassword: "" });
+            toast.success("Postgres settings saved");
+        } catch (e) {
+            toast.error("Save failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const testPostgres = async () => {
+        setBusy("postgres-test");
+        try {
+            const { data: r } = await api.post("/integrations/postgres/test");
+            r.ok ? toast.success("Postgres reachable", { description: `${r.latencyMs}ms` }) : toast.error("Postgres test failed", { description: r.error || r.hint });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const saveProbe = async () => {
+        setBusy("probe-save");
+        try {
+            const { data: v } = await api.put("/integrations", {
+                probePodNamespace: form.probePodNamespace,
+                probePodName: form.probePodName,
+                probePodContainer: form.probePodContainer,
+                probeUrl: form.probeUrl,
+            });
+            setData(v);
+            setForm(v);
+            toast.success("Probe settings saved");
+        } catch (e) {
+            toast.error("Save failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const testProbe = async () => {
+        setBusy("probe-test");
+        try {
+            const { data: r } = await api.post("/integrations/probe/test");
+            r.ok ? toast.success("Probe reachable", { description: `${r.latencyMs}ms` }) : toast.error("Probe test failed", { description: r.error || r.hint });
+        } finally {
+            setBusy("");
+        }
+    };
+
     if (!data || !form) {
         return (
             <div className="space-y-4">
@@ -168,10 +228,46 @@ export default function Settings() {
                 <Field label="Console URL" value={form.atlasConsoleUrl || ""} onChange={(e) => set({ atlasConsoleUrl: e.target.value })} />
             </IntegrationCard>
 
+            <IntegrationCard
+                title="Postgres"
+                icon={Database}
+                configured={data.postgresConfigured}
+                onSave={savePostgres}
+                onTest={testPostgres}
+                saving={busy === "postgres-save"}
+                testing={busy === "postgres-test"}
+            >
+                <Field label="Host" value={form.postgresHost || ""} onChange={(e) => set({ postgresHost: e.target.value })} placeholder="postgres.internal" />
+                <Field label="Port" type="number" value={form.postgresPort || ""} onChange={(e) => set({ postgresPort: e.target.value })} placeholder="5432" />
+                <Field label="Database" value={form.postgresDatabase || ""} onChange={(e) => set({ postgresDatabase: e.target.value })} />
+                <Field label="User" value={form.postgresUser || ""} onChange={(e) => set({ postgresUser: e.target.value })} />
+                <Field
+                    label={data.postgresPasswordSet ? "Password (set — leave blank to keep)" : "Password"}
+                    type="password"
+                    value={form.postgresPassword || ""}
+                    onChange={(e) => set({ postgresPassword: e.target.value })}
+                />
+                <Field label="SSL mode" value={form.postgresSslMode || "disable"} onChange={(e) => set({ postgresSslMode: e.target.value })} placeholder="disable" />
+            </IntegrationCard>
+
+            <IntegrationCard
+                title="Probe"
+                icon={Activity}
+                configured={data.probeConfigured}
+                onSave={saveProbe}
+                onTest={testProbe}
+                saving={busy === "probe-save"}
+                testing={busy === "probe-test"}
+            >
+                <Field label="Pod namespace" value={form.probePodNamespace || ""} onChange={(e) => set({ probePodNamespace: e.target.value })} placeholder="default" />
+                <Field label="Pod name" value={form.probePodName || ""} onChange={(e) => set({ probePodName: e.target.value })} />
+                <Field label="Container" value={form.probePodContainer || ""} onChange={(e) => set({ probePodContainer: e.target.value })} />
+                <Field label="Probe URL" value={form.probeUrl || ""} onChange={(e) => set({ probeUrl: e.target.value })} placeholder="http://localhost:8080/healthz" />
+            </IntegrationCard>
+
             <GlassCard className="p-5 text-sm text-muted-foreground">
-                Postgres and probe integrations, and API-key sign-in, are configured via environment variables
-                (<span className="mono text-foreground">AXIOM_*</span>) on the Axiom process. See the platform
-                documentation for the full list.
+                API-key sign-in is configured via the <span className="mono text-foreground">AXIOM_API_KEY</span>{" "}
+                environment variable on the Axiom process.
             </GlassCard>
         </div>
     );
