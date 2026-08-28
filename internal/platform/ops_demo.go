@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -571,4 +572,168 @@ func (d *DemoProvider) DeleteCronJob(ctx context.Context, ns, name string) error
 	}
 	delete(demoCronJobs, key)
 	return nil
+}
+
+var (
+	demoHPAsMu sync.Mutex
+	demoHPAs   = map[string]HPASummary{
+		"default/payments-api": {Namespace: "default", Name: "payments-api", TargetKind: "Deployment", TargetName: "payments-api", MinReplicas: 3, MaxReplicas: 12, CurrentReplicas: 6, TargetCPUPercent: 70, CurrentCPUPercent: 54, Age: "20d"},
+		"commerce/checkout":    {Namespace: "commerce", Name: "checkout", TargetKind: "Deployment", TargetName: "checkout", MinReplicas: 2, MaxReplicas: 8, CurrentReplicas: 3, TargetCPUPercent: 75, CurrentCPUPercent: 41, Age: "11d"},
+	}
+)
+
+func (d *DemoProvider) ListHPAs(ctx context.Context, ns string) ([]HPASummary, error) {
+	demoHPAsMu.Lock()
+	defer demoHPAsMu.Unlock()
+	out := make([]HPASummary, 0, len(demoHPAs))
+	for _, h := range demoHPAs {
+		if ns != "" && ns != "all" && h.Namespace != ns {
+			continue
+		}
+		out = append(out, h)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (d *DemoProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPASummary, error) {
+	if req.Namespace == "" || req.Name == "" || req.TargetKind == "" || req.TargetName == "" {
+		return HPASummary{}, fmt.Errorf("namespace, name, targetKind, and targetName are required")
+	}
+	minReplicas := req.MinReplicas
+	if minReplicas < 1 {
+		minReplicas = 1
+	}
+	maxReplicas := req.MaxReplicas
+	if maxReplicas < minReplicas {
+		maxReplicas = minReplicas
+	}
+	targetCPU := req.TargetCPUPercent
+	if targetCPU <= 0 {
+		targetCPU = 80
+	}
+	h := HPASummary{
+		Namespace: req.Namespace, Name: req.Name,
+		TargetKind: req.TargetKind, TargetName: req.TargetName,
+		MinReplicas: minReplicas, MaxReplicas: maxReplicas, CurrentReplicas: minReplicas,
+		TargetCPUPercent: targetCPU, CurrentCPUPercent: 0, Age: "now",
+	}
+	demoHPAsMu.Lock()
+	demoHPAs[req.Namespace+"/"+req.Name] = h
+	demoHPAsMu.Unlock()
+	return h, nil
+}
+
+func (d *DemoProvider) DeleteHPA(ctx context.Context, ns, name string) error {
+	demoHPAsMu.Lock()
+	defer demoHPAsMu.Unlock()
+	key := ns + "/" + name
+	if _, ok := demoHPAs[key]; !ok {
+		return fmt.Errorf("hpa %s/%s not found", ns, name)
+	}
+	delete(demoHPAs, key)
+	return nil
+}
+
+func (d *DemoProvider) ListPodDisruptionBudgets(ctx context.Context, ns string) ([]PDBSummary, error) {
+	all := []PDBSummary{
+		{Namespace: "commerce", Name: "checkout-pdb", MinAvailable: "1", CurrentHealthy: 3, DesiredHealthy: 1, ExpectedPods: 3, Age: "18d"},
+		{Namespace: "payments", Name: "payments-api-pdb", MaxUnavailable: "1", CurrentHealthy: 6, DesiredHealthy: 5, ExpectedPods: 6, Age: "30d"},
+	}
+	out := make([]PDBSummary, 0, len(all))
+	for _, p := range all {
+		if ns == "" || ns == "all" || p.Namespace == ns {
+			out = append(out, p)
+		}
+	}
+	return out, nil
+}
+
+var (
+	demoNetPolMu sync.Mutex
+	demoNetPols  = map[string]NetworkPolicySummary{
+		"payments/deny-all-ingress": {Namespace: "payments", Name: "deny-all-ingress", PodSelector: "(all pods)", PolicyTypes: []string{"Ingress"}, Age: "40d"},
+		"commerce/allow-checkout":   {Namespace: "commerce", Name: "allow-checkout", PodSelector: "app=checkout", PolicyTypes: []string{"Ingress", "Egress"}, Age: "18d"},
+	}
+)
+
+func (d *DemoProvider) ListNetworkPolicies(ctx context.Context, ns string) ([]NetworkPolicySummary, error) {
+	demoNetPolMu.Lock()
+	defer demoNetPolMu.Unlock()
+	out := make([]NetworkPolicySummary, 0, len(demoNetPols))
+	for _, p := range demoNetPols {
+		if ns != "" && ns != "all" && p.Namespace != ns {
+			continue
+		}
+		out = append(out, p)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (d *DemoProvider) DeleteNetworkPolicy(ctx context.Context, ns, name string) error {
+	demoNetPolMu.Lock()
+	defer demoNetPolMu.Unlock()
+	key := ns + "/" + name
+	if _, ok := demoNetPols[key]; !ok {
+		return fmt.Errorf("networkpolicy %s/%s not found", ns, name)
+	}
+	delete(demoNetPols, key)
+	return nil
+}
+
+func (d *DemoProvider) ApplyManifest(ctx context.Context, manifest string) (ApplyResult, error) {
+	return ApplyResult{Valid: false, Message: "apply is not available in demo mode — requires a real cluster (build with -tags kubernetes)"}, nil
+}
+
+func (d *DemoProvider) GetPodMetrics(ctx context.Context, ns, name string) (PodMetricSeries, error) {
+	points := make([]PodMetricPoint, 0, 8)
+	now := time.Now().UTC()
+	for i := 7; i >= 0; i-- {
+		points = append(points, PodMetricPoint{
+			At:     now.Add(-time.Duration(i) * time.Minute).Format("15:04:05"),
+			CPU:    120 + int64(i*7%40),
+			Memory: 180_000_000 + int64(i*3_500_000%60_000_000),
+		})
+	}
+	return PodMetricSeries{
+		Namespace: ns, Name: name, CPUMillicores: 150, MemoryBytes: 210_000_000,
+		Containers: []ContainerMetric{{Name: "app", CPUMillicores: 150, MemoryBytes: 210_000_000}},
+		Points:     points, Source: "demo",
+	}, nil
+}
+
+func (d *DemoProvider) ListCRDs(ctx context.Context) ([]CRDSummary, error) {
+	return []CRDSummary{
+		{Group: "monitoring.coreos.com", Version: "v1", Kind: "PrometheusRule", Plural: "prometheusrules", Scope: "Namespaced", Age: "60d"},
+		{Group: "snapshot.storage.k8s.io", Version: "v1", Kind: "VolumeSnapshot", Plural: "volumesnapshots", Scope: "Namespaced", Age: "60d"},
+		{Group: "argoproj.io", Version: "v1alpha1", Kind: "Application", Plural: "applications", Scope: "Namespaced", Age: "60d"},
+		{Group: "kubevirt.io", Version: "v1", Kind: "VirtualMachine", Plural: "virtualmachines", Scope: "Namespaced", Age: "60d"},
+	}, nil
+}
+
+func (d *DemoProvider) ListCRDInstances(ctx context.Context, group, version, plural, ns string) ([]map[string]any, error) {
+	return []map[string]any{
+		{"name": "demo-instance-1", "namespace": "default", "age": "5d"},
+		{"name": "demo-instance-2", "namespace": "default", "age": "12d"},
+	}, nil
+}
+
+func (d *DemoProvider) GetCRDInstance(ctx context.Context, group, version, plural, ns, name string) (map[string]any, error) {
+	return map[string]any{
+		"apiVersion": group + "/" + version,
+		"kind":       plural,
+		"metadata":   map[string]any{"name": name, "namespace": ns},
+		"spec":       map[string]any{"note": "demo mode — synthetic instance"},
+	}, nil
 }

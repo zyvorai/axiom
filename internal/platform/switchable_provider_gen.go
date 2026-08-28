@@ -6,91 +6,300 @@ import (
 	"io"
 )
 
-func (sp *SwitchableProvider) Overview(a0 context.Context) (Overview, error) { return sp.current().Overview(a0) }
-func (sp *SwitchableProvider) ListWorkloads(a0 context.Context, a1 string) ([]Workload, error) { return sp.current().ListWorkloads(a0, a1) }
-func (sp *SwitchableProvider) Launch(a0 context.Context, a1 LaunchRequest) (Workload, error) { return sp.current().Launch(a0, a1) }
-func (sp *SwitchableProvider) Scale(a0 context.Context, a1 string, a2 string, a3 string, a4 int32) error { return sp.current().Scale(a0, a1, a2, a3, a4) }
-func (sp *SwitchableProvider) Start(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().Start(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) Stop(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().Stop(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) Restart(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().Restart(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) DeleteWorkload(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().DeleteWorkload(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) SealWorkload(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().SealWorkload(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) UnsealWorkload(a0 context.Context, a1 string, a2 string, a3 string) error { return sp.current().UnsealWorkload(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) ListPods(a0 context.Context, a1 string) ([]Pod, error) { return sp.current().ListPods(a0, a1) }
-func (sp *SwitchableProvider) DeletePod(a0 context.Context, a1 string, a2 string) error { return sp.current().DeletePod(a0, a1, a2) }
-func (sp *SwitchableProvider) EvictPod(a0 context.Context, a1 string, a2 string) error { return sp.current().EvictPod(a0, a1, a2) }
-func (sp *SwitchableProvider) ListNodes(a0 context.Context) ([]Node, error) { return sp.current().ListNodes(a0) }
-func (sp *SwitchableProvider) ListVirtualMachines(a0 context.Context, a1 string) ([]VirtualMachine, error) { return sp.current().ListVirtualMachines(a0, a1) }
-func (sp *SwitchableProvider) StartVirtualMachine(a0 context.Context, a1 string, a2 string) error { return sp.current().StartVirtualMachine(a0, a1, a2) }
-func (sp *SwitchableProvider) StopVirtualMachine(a0 context.Context, a1 string, a2 string) error { return sp.current().StopVirtualMachine(a0, a1, a2) }
-func (sp *SwitchableProvider) ListVolumes(a0 context.Context, a1 string) ([]Volume, error) { return sp.current().ListVolumes(a0, a1) }
-func (sp *SwitchableProvider) Utilization(a0 context.Context) (UtilizationSeries, error) { return sp.current().Utilization(a0) }
-func (sp *SwitchableProvider) Cordon(a0 context.Context, a1 string, a2 bool) error { return sp.current().Cordon(a0, a1, a2) }
-func (sp *SwitchableProvider) Drain(a0 context.Context, a1 string) error { return sp.current().Drain(a0, a1) }
-func (sp *SwitchableProvider) ListEvents(a0 context.Context, a1 string) ([]Event, error) { return sp.current().ListEvents(a0, a1) }
-func (sp *SwitchableProvider) PodLogs(a0 context.Context, a1 string, a2 string, a3 string, a4 bool, a5 int64, a6 bool) (io.ReadCloser, error) { return sp.current().PodLogs(a0, a1, a2, a3, a4, a5, a6) }
-func (sp *SwitchableProvider) ExecCommand(a0 context.Context, a1 string, a2 string, a3 string, a4 []string) (string, error) { return sp.current().ExecCommand(a0, a1, a2, a3, a4) }
-func (sp *SwitchableProvider) ListNamespaces(a0 context.Context) ([]Namespace, error) { return sp.current().ListNamespaces(a0) }
-func (sp *SwitchableProvider) CreateNamespace(a0 context.Context, a1 string) (Namespace, error) { return sp.current().CreateNamespace(a0, a1) }
-func (sp *SwitchableProvider) DeleteNamespace(a0 context.Context, a1 string) error { return sp.current().DeleteNamespace(a0, a1) }
-func (sp *SwitchableProvider) ListServices(a0 context.Context, a1 string) ([]Service, error) { return sp.current().ListServices(a0, a1) }
-func (sp *SwitchableProvider) NetworkMap(a0 context.Context, a1 string) (NetworkMap, error) { return sp.current().NetworkMap(a0, a1) }
-func (sp *SwitchableProvider) PodProxyTarget(a0 context.Context, a1 string, a2 string, a3 int32) (string, error) { return sp.current().PodProxyTarget(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) GetNode(a0 context.Context, a1 string) (Node, error) { return sp.current().GetNode(a0, a1) }
-func (sp *SwitchableProvider) GetRolloutStatus(a0 context.Context, a1 string, a2 string, a3 string) (RolloutStatus, error) { return sp.current().GetRolloutStatus(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) RolloutAction(a0 context.Context, a1 string, a2 string, a3 string, a4 string) error { return sp.current().RolloutAction(a0, a1, a2, a3, a4) }
-func (sp *SwitchableProvider) GetResource(a0 context.Context, a1 string, a2 string, a3 string) (ResourceDetail, error) { return sp.current().GetResource(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) WorkloadNetworkGuard(a0 context.Context, a1 string, a2 string, a3 string) (NetworkGuardSummary, error) { return sp.current().WorkloadNetworkGuard(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) ListSecrets(a0 context.Context, a1 string) ([]SecretSummary, error) { return sp.current().ListSecrets(a0, a1) }
-func (sp *SwitchableProvider) GetSecret(a0 context.Context, a1 string, a2 string, a3 bool) (SecretDetail, error) { return sp.current().GetSecret(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) CreateSecret(a0 context.Context, a1 CreateSecretRequest) (SecretDetail, error) { return sp.current().CreateSecret(a0, a1) }
-func (sp *SwitchableProvider) DeleteSecret(a0 context.Context, a1 string, a2 string) error { return sp.current().DeleteSecret(a0, a1, a2) }
-func (sp *SwitchableProvider) ListBackups(a0 context.Context, a1 string) ([]BackupSnapshot, error) { return sp.current().ListBackups(a0, a1) }
-func (sp *SwitchableProvider) CreateBackup(a0 context.Context, a1 CreateBackupRequest) (BackupSnapshot, error) { return sp.current().CreateBackup(a0, a1) }
-func (sp *SwitchableProvider) RestoreBackup(a0 context.Context, a1 RestoreBackupRequest) (Volume, error) { return sp.current().RestoreBackup(a0, a1) }
-func (sp *SwitchableProvider) ListHelmReleases(a0 context.Context, a1 string) ([]HelmRelease, error) { return sp.current().ListHelmReleases(a0, a1) }
-func (sp *SwitchableProvider) HelmUninstall(a0 context.Context, a1 string, a2 string) (HelmActionResult, error) { return sp.current().HelmUninstall(a0, a1, a2) }
-func (sp *SwitchableProvider) HelmRollback(a0 context.Context, a1 string, a2 string, a3 int) (HelmActionResult, error) { return sp.current().HelmRollback(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) ListHelmHistory(a0 context.Context, a1 string, a2 string) ([]HelmRelease, error) { return sp.current().ListHelmHistory(a0, a1, a2) }
-func (sp *SwitchableProvider) ListExternalSecrets(a0 context.Context, a1 string) ([]ExternalSecretSummary, error) { return sp.current().ListExternalSecrets(a0, a1) }
-func (sp *SwitchableProvider) ListVMSnapshots(a0 context.Context, a1 string) ([]VMSnapshot, error) { return sp.current().ListVMSnapshots(a0, a1) }
-func (sp *SwitchableProvider) CreateVMSnapshot(a0 context.Context, a1 CreateVMSnapshotRequest) (VMSnapshot, error) { return sp.current().CreateVMSnapshot(a0, a1) }
-func (sp *SwitchableProvider) LiveMigrateVM(a0 context.Context, a1 string, a2 string) (HelmActionResult, error) { return sp.current().LiveMigrateVM(a0, a1, a2) }
-func (sp *SwitchableProvider) ListVMClones(a0 context.Context, a1 string) ([]VMClone, error) { return sp.current().ListVMClones(a0, a1) }
-func (sp *SwitchableProvider) CreateVMClone(a0 context.Context, a1 CreateVMCloneRequest) (VMClone, error) { return sp.current().CreateVMClone(a0, a1) }
-func (sp *SwitchableProvider) ListVMExports(a0 context.Context, a1 string) ([]VMExport, error) { return sp.current().ListVMExports(a0, a1) }
-func (sp *SwitchableProvider) CreateVMExport(a0 context.Context, a1 CreateVMExportRequest) (VMExport, error) { return sp.current().CreateVMExport(a0, a1) }
-func (sp *SwitchableProvider) ListVMRestores(a0 context.Context, a1 string) ([]VMRestore, error) { return sp.current().ListVMRestores(a0, a1) }
-func (sp *SwitchableProvider) CreateVMRestore(a0 context.Context, a1 CreateVMRestoreRequest) (VMRestore, error) { return sp.current().CreateVMRestore(a0, a1) }
-func (sp *SwitchableProvider) ListVeleroBackups(a0 context.Context, a1 string) ([]VeleroBackup, error) { return sp.current().ListVeleroBackups(a0, a1) }
-func (sp *SwitchableProvider) ListVeleroSchedules(a0 context.Context, a1 string) ([]VeleroSchedule, error) { return sp.current().ListVeleroSchedules(a0, a1) }
-func (sp *SwitchableProvider) ListGitOps(a0 context.Context) ([]GitOpsItem, error) { return sp.current().ListGitOps(a0) }
-func (sp *SwitchableProvider) ListAlerts(a0 context.Context, a1 string) (AlertsResponse, error) { return sp.current().ListAlerts(a0, a1) }
-func (sp *SwitchableProvider) ListRBAC(a0 context.Context, a1 string) (RBACSummary, error) { return sp.current().ListRBAC(a0, a1) }
-func (sp *SwitchableProvider) EstimateCost(a0 context.Context) (CostEstimate, error) { return sp.current().EstimateCost(a0) }
-func (sp *SwitchableProvider) ValidateManifest(a0 context.Context, a1 string) (ValidateResult, error) { return sp.current().ValidateManifest(a0, a1) }
-func (sp *SwitchableProvider) VMConsole(a0 context.Context, a1 string, a2 string) (VMConsoleInfo, error) { return sp.current().VMConsole(a0, a1, a2) }
-func (sp *SwitchableProvider) ListAgentRuns(a0 context.Context, a1 string) ([]AgentRun, error) { return sp.current().ListAgentRuns(a0, a1) }
-func (sp *SwitchableProvider) GetAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) { return sp.current().GetAgentRun(a0, a1, a2) }
-func (sp *SwitchableProvider) CreateAgentRun(a0 context.Context, a1 CreateAgentRunRequest) (AgentRun, error) { return sp.current().CreateAgentRun(a0, a1) }
-func (sp *SwitchableProvider) ApproveAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) { return sp.current().ApproveAgentRun(a0, a1, a2) }
-func (sp *SwitchableProvider) DenyAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) { return sp.current().DenyAgentRun(a0, a1, a2) }
-func (sp *SwitchableProvider) ListPlatformIntents(a0 context.Context, a1 string) ([]PlatformIntent, error) { return sp.current().ListPlatformIntents(a0, a1) }
-func (sp *SwitchableProvider) GetHavenIdentity(a0 context.Context, a1 string) (HavenIdentitySummary, error) { return sp.current().GetHavenIdentity(a0, a1) }
-func (sp *SwitchableProvider) ListIdentityPlanes(a0 context.Context, a1 string) ([]IdentityPlane, error) { return sp.current().ListIdentityPlanes(a0, a1) }
-func (sp *SwitchableProvider) ListHavenKeycloaks(a0 context.Context, a1 string) ([]HavenKeycloak, error) { return sp.current().ListHavenKeycloaks(a0, a1) }
-func (sp *SwitchableProvider) ListHavenDatabases(a0 context.Context, a1 string) ([]HavenDatabase, error) { return sp.current().ListHavenDatabases(a0, a1) }
-func (sp *SwitchableProvider) GetHavenAdminBootstrap(a0 context.Context, a1 string, a2 string) (HavenAdminBootstrap, error) { return sp.current().GetHavenAdminBootstrap(a0, a1, a2) }
-func (sp *SwitchableProvider) ListConfigMaps(a0 context.Context, a1 string) ([]ConfigMapSummary, error) { return sp.current().ListConfigMaps(a0, a1) }
-func (sp *SwitchableProvider) GetConfigMap(a0 context.Context, a1 string, a2 string) (ConfigMapDetail, error) { return sp.current().GetConfigMap(a0, a1, a2) }
-func (sp *SwitchableProvider) CreateConfigMap(a0 context.Context, a1 CreateConfigMapRequest) (ConfigMapDetail, error) { return sp.current().CreateConfigMap(a0, a1) }
-func (sp *SwitchableProvider) DeleteConfigMap(a0 context.Context, a1 string, a2 string) error { return sp.current().DeleteConfigMap(a0, a1, a2) }
-func (sp *SwitchableProvider) ListResourceQuotas(a0 context.Context, a1 string) ([]ResourceQuotaSummary, error) { return sp.current().ListResourceQuotas(a0, a1) }
-func (sp *SwitchableProvider) ListLimitRanges(a0 context.Context, a1 string) ([]LimitRangeSummary, error) { return sp.current().ListLimitRanges(a0, a1) }
-func (sp *SwitchableProvider) ListIngresses(a0 context.Context, a1 string) ([]IngressSummary, error) { return sp.current().ListIngresses(a0, a1) }
-func (sp *SwitchableProvider) ListJobs(a0 context.Context, a1 string) ([]JobSummary, error) { return sp.current().ListJobs(a0, a1) }
-func (sp *SwitchableProvider) DeleteJob(a0 context.Context, a1 string, a2 string) error { return sp.current().DeleteJob(a0, a1, a2) }
-func (sp *SwitchableProvider) ListCronJobs(a0 context.Context, a1 string) ([]CronJobSummary, error) { return sp.current().ListCronJobs(a0, a1) }
-func (sp *SwitchableProvider) TriggerCronJob(a0 context.Context, a1 string, a2 string) (JobSummary, error) { return sp.current().TriggerCronJob(a0, a1, a2) }
-func (sp *SwitchableProvider) SetCronJobSuspend(a0 context.Context, a1 string, a2 string, a3 bool) error { return sp.current().SetCronJobSuspend(a0, a1, a2, a3) }
-func (sp *SwitchableProvider) DeleteCronJob(a0 context.Context, a1 string, a2 string) error { return sp.current().DeleteCronJob(a0, a1, a2) }
+func (sp *SwitchableProvider) Overview(a0 context.Context) (Overview, error) {
+	return sp.current().Overview(a0)
+}
+func (sp *SwitchableProvider) ListWorkloads(a0 context.Context, a1 string) ([]Workload, error) {
+	return sp.current().ListWorkloads(a0, a1)
+}
+func (sp *SwitchableProvider) Launch(a0 context.Context, a1 LaunchRequest) (Workload, error) {
+	return sp.current().Launch(a0, a1)
+}
+func (sp *SwitchableProvider) Scale(a0 context.Context, a1 string, a2 string, a3 string, a4 int32) error {
+	return sp.current().Scale(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) Start(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().Start(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) Stop(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().Stop(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) Restart(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().Restart(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) DeleteWorkload(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().DeleteWorkload(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) SealWorkload(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().SealWorkload(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) UnsealWorkload(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current().UnsealWorkload(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) ListPods(a0 context.Context, a1 string) ([]Pod, error) {
+	return sp.current().ListPods(a0, a1)
+}
+func (sp *SwitchableProvider) DeletePod(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeletePod(a0, a1, a2)
+}
+func (sp *SwitchableProvider) EvictPod(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().EvictPod(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListNodes(a0 context.Context) ([]Node, error) {
+	return sp.current().ListNodes(a0)
+}
+func (sp *SwitchableProvider) ListVirtualMachines(a0 context.Context, a1 string) ([]VirtualMachine, error) {
+	return sp.current().ListVirtualMachines(a0, a1)
+}
+func (sp *SwitchableProvider) StartVirtualMachine(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().StartVirtualMachine(a0, a1, a2)
+}
+func (sp *SwitchableProvider) StopVirtualMachine(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().StopVirtualMachine(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListVolumes(a0 context.Context, a1 string) ([]Volume, error) {
+	return sp.current().ListVolumes(a0, a1)
+}
+func (sp *SwitchableProvider) Utilization(a0 context.Context) (UtilizationSeries, error) {
+	return sp.current().Utilization(a0)
+}
+func (sp *SwitchableProvider) Cordon(a0 context.Context, a1 string, a2 bool) error {
+	return sp.current().Cordon(a0, a1, a2)
+}
+func (sp *SwitchableProvider) Drain(a0 context.Context, a1 string) error {
+	return sp.current().Drain(a0, a1)
+}
+func (sp *SwitchableProvider) ListEvents(a0 context.Context, a1 string) ([]Event, error) {
+	return sp.current().ListEvents(a0, a1)
+}
+func (sp *SwitchableProvider) PodLogs(a0 context.Context, a1 string, a2 string, a3 string, a4 bool, a5 int64, a6 bool) (io.ReadCloser, error) {
+	return sp.current().PodLogs(a0, a1, a2, a3, a4, a5, a6)
+}
+func (sp *SwitchableProvider) ExecCommand(a0 context.Context, a1 string, a2 string, a3 string, a4 []string) (string, error) {
+	return sp.current().ExecCommand(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) ListNamespaces(a0 context.Context) ([]Namespace, error) {
+	return sp.current().ListNamespaces(a0)
+}
+func (sp *SwitchableProvider) CreateNamespace(a0 context.Context, a1 string) (Namespace, error) {
+	return sp.current().CreateNamespace(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteNamespace(a0 context.Context, a1 string) error {
+	return sp.current().DeleteNamespace(a0, a1)
+}
+func (sp *SwitchableProvider) ListServices(a0 context.Context, a1 string) ([]Service, error) {
+	return sp.current().ListServices(a0, a1)
+}
+func (sp *SwitchableProvider) NetworkMap(a0 context.Context, a1 string) (NetworkMap, error) {
+	return sp.current().NetworkMap(a0, a1)
+}
+func (sp *SwitchableProvider) PodProxyTarget(a0 context.Context, a1 string, a2 string, a3 int32) (string, error) {
+	return sp.current().PodProxyTarget(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) GetNode(a0 context.Context, a1 string) (Node, error) {
+	return sp.current().GetNode(a0, a1)
+}
+func (sp *SwitchableProvider) GetRolloutStatus(a0 context.Context, a1 string, a2 string, a3 string) (RolloutStatus, error) {
+	return sp.current().GetRolloutStatus(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) RolloutAction(a0 context.Context, a1 string, a2 string, a3 string, a4 string) error {
+	return sp.current().RolloutAction(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) GetResource(a0 context.Context, a1 string, a2 string, a3 string) (ResourceDetail, error) {
+	return sp.current().GetResource(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) WorkloadNetworkGuard(a0 context.Context, a1 string, a2 string, a3 string) (NetworkGuardSummary, error) {
+	return sp.current().WorkloadNetworkGuard(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) ListSecrets(a0 context.Context, a1 string) ([]SecretSummary, error) {
+	return sp.current().ListSecrets(a0, a1)
+}
+func (sp *SwitchableProvider) GetSecret(a0 context.Context, a1 string, a2 string, a3 bool) (SecretDetail, error) {
+	return sp.current().GetSecret(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) CreateSecret(a0 context.Context, a1 CreateSecretRequest) (SecretDetail, error) {
+	return sp.current().CreateSecret(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteSecret(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteSecret(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListBackups(a0 context.Context, a1 string) ([]BackupSnapshot, error) {
+	return sp.current().ListBackups(a0, a1)
+}
+func (sp *SwitchableProvider) CreateBackup(a0 context.Context, a1 CreateBackupRequest) (BackupSnapshot, error) {
+	return sp.current().CreateBackup(a0, a1)
+}
+func (sp *SwitchableProvider) RestoreBackup(a0 context.Context, a1 RestoreBackupRequest) (Volume, error) {
+	return sp.current().RestoreBackup(a0, a1)
+}
+func (sp *SwitchableProvider) ListHelmReleases(a0 context.Context, a1 string) ([]HelmRelease, error) {
+	return sp.current().ListHelmReleases(a0, a1)
+}
+func (sp *SwitchableProvider) HelmUninstall(a0 context.Context, a1 string, a2 string) (HelmActionResult, error) {
+	return sp.current().HelmUninstall(a0, a1, a2)
+}
+func (sp *SwitchableProvider) HelmRollback(a0 context.Context, a1 string, a2 string, a3 int) (HelmActionResult, error) {
+	return sp.current().HelmRollback(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) ListHelmHistory(a0 context.Context, a1 string, a2 string) ([]HelmRelease, error) {
+	return sp.current().ListHelmHistory(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListExternalSecrets(a0 context.Context, a1 string) ([]ExternalSecretSummary, error) {
+	return sp.current().ListExternalSecrets(a0, a1)
+}
+func (sp *SwitchableProvider) ListVMSnapshots(a0 context.Context, a1 string) ([]VMSnapshot, error) {
+	return sp.current().ListVMSnapshots(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVMSnapshot(a0 context.Context, a1 CreateVMSnapshotRequest) (VMSnapshot, error) {
+	return sp.current().CreateVMSnapshot(a0, a1)
+}
+func (sp *SwitchableProvider) LiveMigrateVM(a0 context.Context, a1 string, a2 string) (HelmActionResult, error) {
+	return sp.current().LiveMigrateVM(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListVMClones(a0 context.Context, a1 string) ([]VMClone, error) {
+	return sp.current().ListVMClones(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVMClone(a0 context.Context, a1 CreateVMCloneRequest) (VMClone, error) {
+	return sp.current().CreateVMClone(a0, a1)
+}
+func (sp *SwitchableProvider) ListVMExports(a0 context.Context, a1 string) ([]VMExport, error) {
+	return sp.current().ListVMExports(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVMExport(a0 context.Context, a1 CreateVMExportRequest) (VMExport, error) {
+	return sp.current().CreateVMExport(a0, a1)
+}
+func (sp *SwitchableProvider) ListVMRestores(a0 context.Context, a1 string) ([]VMRestore, error) {
+	return sp.current().ListVMRestores(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVMRestore(a0 context.Context, a1 CreateVMRestoreRequest) (VMRestore, error) {
+	return sp.current().CreateVMRestore(a0, a1)
+}
+func (sp *SwitchableProvider) ListVeleroBackups(a0 context.Context, a1 string) ([]VeleroBackup, error) {
+	return sp.current().ListVeleroBackups(a0, a1)
+}
+func (sp *SwitchableProvider) ListVeleroSchedules(a0 context.Context, a1 string) ([]VeleroSchedule, error) {
+	return sp.current().ListVeleroSchedules(a0, a1)
+}
+func (sp *SwitchableProvider) ListGitOps(a0 context.Context) ([]GitOpsItem, error) {
+	return sp.current().ListGitOps(a0)
+}
+func (sp *SwitchableProvider) ListAlerts(a0 context.Context, a1 string) (AlertsResponse, error) {
+	return sp.current().ListAlerts(a0, a1)
+}
+func (sp *SwitchableProvider) ListRBAC(a0 context.Context, a1 string) (RBACSummary, error) {
+	return sp.current().ListRBAC(a0, a1)
+}
+func (sp *SwitchableProvider) EstimateCost(a0 context.Context) (CostEstimate, error) {
+	return sp.current().EstimateCost(a0)
+}
+func (sp *SwitchableProvider) ValidateManifest(a0 context.Context, a1 string) (ValidateResult, error) {
+	return sp.current().ValidateManifest(a0, a1)
+}
+func (sp *SwitchableProvider) VMConsole(a0 context.Context, a1 string, a2 string) (VMConsoleInfo, error) {
+	return sp.current().VMConsole(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListAgentRuns(a0 context.Context, a1 string) ([]AgentRun, error) {
+	return sp.current().ListAgentRuns(a0, a1)
+}
+func (sp *SwitchableProvider) GetAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) {
+	return sp.current().GetAgentRun(a0, a1, a2)
+}
+func (sp *SwitchableProvider) CreateAgentRun(a0 context.Context, a1 CreateAgentRunRequest) (AgentRun, error) {
+	return sp.current().CreateAgentRun(a0, a1)
+}
+func (sp *SwitchableProvider) ApproveAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) {
+	return sp.current().ApproveAgentRun(a0, a1, a2)
+}
+func (sp *SwitchableProvider) DenyAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) {
+	return sp.current().DenyAgentRun(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListPlatformIntents(a0 context.Context, a1 string) ([]PlatformIntent, error) {
+	return sp.current().ListPlatformIntents(a0, a1)
+}
+func (sp *SwitchableProvider) GetHavenIdentity(a0 context.Context, a1 string) (HavenIdentitySummary, error) {
+	return sp.current().GetHavenIdentity(a0, a1)
+}
+func (sp *SwitchableProvider) ListIdentityPlanes(a0 context.Context, a1 string) ([]IdentityPlane, error) {
+	return sp.current().ListIdentityPlanes(a0, a1)
+}
+func (sp *SwitchableProvider) ListHavenKeycloaks(a0 context.Context, a1 string) ([]HavenKeycloak, error) {
+	return sp.current().ListHavenKeycloaks(a0, a1)
+}
+func (sp *SwitchableProvider) ListHavenDatabases(a0 context.Context, a1 string) ([]HavenDatabase, error) {
+	return sp.current().ListHavenDatabases(a0, a1)
+}
+func (sp *SwitchableProvider) GetHavenAdminBootstrap(a0 context.Context, a1 string, a2 string) (HavenAdminBootstrap, error) {
+	return sp.current().GetHavenAdminBootstrap(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListConfigMaps(a0 context.Context, a1 string) ([]ConfigMapSummary, error) {
+	return sp.current().ListConfigMaps(a0, a1)
+}
+func (sp *SwitchableProvider) GetConfigMap(a0 context.Context, a1 string, a2 string) (ConfigMapDetail, error) {
+	return sp.current().GetConfigMap(a0, a1, a2)
+}
+func (sp *SwitchableProvider) CreateConfigMap(a0 context.Context, a1 CreateConfigMapRequest) (ConfigMapDetail, error) {
+	return sp.current().CreateConfigMap(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteConfigMap(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteConfigMap(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListResourceQuotas(a0 context.Context, a1 string) ([]ResourceQuotaSummary, error) {
+	return sp.current().ListResourceQuotas(a0, a1)
+}
+func (sp *SwitchableProvider) ListLimitRanges(a0 context.Context, a1 string) ([]LimitRangeSummary, error) {
+	return sp.current().ListLimitRanges(a0, a1)
+}
+func (sp *SwitchableProvider) ListIngresses(a0 context.Context, a1 string) ([]IngressSummary, error) {
+	return sp.current().ListIngresses(a0, a1)
+}
+func (sp *SwitchableProvider) ListJobs(a0 context.Context, a1 string) ([]JobSummary, error) {
+	return sp.current().ListJobs(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteJob(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteJob(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListCronJobs(a0 context.Context, a1 string) ([]CronJobSummary, error) {
+	return sp.current().ListCronJobs(a0, a1)
+}
+func (sp *SwitchableProvider) TriggerCronJob(a0 context.Context, a1 string, a2 string) (JobSummary, error) {
+	return sp.current().TriggerCronJob(a0, a1, a2)
+}
+func (sp *SwitchableProvider) SetCronJobSuspend(a0 context.Context, a1 string, a2 string, a3 bool) error {
+	return sp.current().SetCronJobSuspend(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) DeleteCronJob(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteCronJob(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListHPAs(a0 context.Context, a1 string) ([]HPASummary, error) {
+	return sp.current().ListHPAs(a0, a1)
+}
+func (sp *SwitchableProvider) CreateHPA(a0 context.Context, a1 CreateHPARequest) (HPASummary, error) {
+	return sp.current().CreateHPA(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteHPA(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteHPA(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListPodDisruptionBudgets(a0 context.Context, a1 string) ([]PDBSummary, error) {
+	return sp.current().ListPodDisruptionBudgets(a0, a1)
+}
+func (sp *SwitchableProvider) ListNetworkPolicies(a0 context.Context, a1 string) ([]NetworkPolicySummary, error) {
+	return sp.current().ListNetworkPolicies(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteNetworkPolicy(a0 context.Context, a1 string, a2 string) error {
+	return sp.current().DeleteNetworkPolicy(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ApplyManifest(a0 context.Context, a1 string) (ApplyResult, error) {
+	return sp.current().ApplyManifest(a0, a1)
+}
+func (sp *SwitchableProvider) GetPodMetrics(a0 context.Context, a1 string, a2 string) (PodMetricSeries, error) {
+	return sp.current().GetPodMetrics(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListCRDs(a0 context.Context) ([]CRDSummary, error) {
+	return sp.current().ListCRDs(a0)
+}
+func (sp *SwitchableProvider) ListCRDInstances(a0 context.Context, a1 string, a2 string, a3 string, a4 string) ([]map[string]any, error) {
+	return sp.current().ListCRDInstances(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) GetCRDInstance(a0 context.Context, a1 string, a2 string, a3 string, a4 string, a5 string) (map[string]any, error) {
+	return sp.current().GetCRDInstance(a0, a1, a2, a3, a4, a5)
+}

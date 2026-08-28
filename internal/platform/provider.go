@@ -99,4 +99,21 @@ type Provider interface {
 	TriggerCronJob(context.Context, string, string) (JobSummary, error)
 	SetCronJobSuspend(context.Context, string, string, bool) error
 	DeleteCronJob(context.Context, string, string) error
+
+	ListHPAs(context.Context, string) ([]HPASummary, error)
+	CreateHPA(context.Context, CreateHPARequest) (HPASummary, error)
+	DeleteHPA(context.Context, string, string) error
+
+	ListPodDisruptionBudgets(context.Context, string) ([]PDBSummary, error)
+
+	ListNetworkPolicies(context.Context, string) ([]NetworkPolicySummary, error)
+	DeleteNetworkPolicy(context.Context, string, string) error
+
+	ApplyManifest(context.Context, string) (ApplyResult, error)
+
+	GetPodMetrics(context.Context, string, string) (PodMetricSeries, error)
+
+	ListCRDs(context.Context) ([]CRDSummary, error)
+	ListCRDInstances(context.Context, string, string, string, string) ([]map[string]any, error)
+	GetCRDInstance(context.Context, string, string, string, string, string) (map[string]any, error)
 }

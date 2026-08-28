@@ -13,8 +13,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -23,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/restmapper"
 	"sigs.k8s.io/yaml"
@@ -1034,4 +1037,420 @@ func (k *KubernetesProvider) SetCronJobSuspend(ctx context.Context, ns, name str
 func (k *KubernetesProvider) DeleteCronJob(ctx context.Context, ns, name string) error {
 	prop := metav1.DeletePropagationForeground
 	return k.client.BatchV1().CronJobs(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
+}
+
+// --- HPA ---
+
+func (k *KubernetesProvider) ListHPAs(ctx context.Context, ns string) ([]HPASummary, error) {
+	list, err := k.client.AutoscalingV2().HorizontalPodAutoscalers(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]HPASummary, 0, len(list.Items))
+	for _, h := range list.Items {
+		minReplicas := int32(1)
+		if h.Spec.MinReplicas != nil {
+			minReplicas = *h.Spec.MinReplicas
+		}
+		var targetCPU, currentCPU int32
+		for _, m := range h.Spec.Metrics {
+			if m.Type == autoscalingv2.ResourceMetricSourceType && m.Resource != nil && m.Resource.Name == corev1.ResourceCPU && m.Resource.Target.AverageUtilization != nil {
+				targetCPU = *m.Resource.Target.AverageUtilization
+			}
+		}
+		for _, m := range h.Status.CurrentMetrics {
+			if m.Type == autoscalingv2.ResourceMetricSourceType && m.Resource != nil && m.Resource.Name == corev1.ResourceCPU && m.Resource.Current.AverageUtilization != nil {
+				currentCPU = *m.Resource.Current.AverageUtilization
+			}
+		}
+		out = append(out, HPASummary{
+			Namespace: h.Namespace, Name: h.Name,
+			TargetKind: h.Spec.ScaleTargetRef.Kind, TargetName: h.Spec.ScaleTargetRef.Name,
+			MinReplicas: minReplicas, MaxReplicas: h.Spec.MaxReplicas,
+			CurrentReplicas:   h.Status.CurrentReplicas,
+			TargetCPUPercent:  targetCPU,
+			CurrentCPUPercent: currentCPU,
+			Age:               age(h.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPASummary, error) {
+	if req.Namespace == "" || req.Name == "" || req.TargetKind == "" || req.TargetName == "" {
+		return HPASummary{}, fmt.Errorf("namespace, name, targetKind, and targetName are required")
+	}
+	minReplicas := req.MinReplicas
+	if minReplicas < 1 {
+		minReplicas = 1
+	}
+	maxReplicas := req.MaxReplicas
+	if maxReplicas < minReplicas {
+		maxReplicas = minReplicas
+	}
+	targetCPU := req.TargetCPUPercent
+	if targetCPU <= 0 {
+		targetCPU = 80
+	}
+	hpa := &autoscalingv2.HorizontalPodAutoscaler{
+		ObjectMeta: metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace},
+		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
+				Kind: req.TargetKind, Name: req.TargetName, APIVersion: "apps/v1",
+			},
+			MinReplicas: &minReplicas,
+			MaxReplicas: maxReplicas,
+			Metrics: []autoscalingv2.MetricSpec{{
+				Type: autoscalingv2.ResourceMetricSourceType,
+				Resource: &autoscalingv2.ResourceMetricSource{
+					Name:   corev1.ResourceCPU,
+					Target: autoscalingv2.MetricTarget{Type: autoscalingv2.UtilizationMetricType, AverageUtilization: &targetCPU},
+				},
+			}},
+		},
+	}
+	created, err := k.client.AutoscalingV2().HorizontalPodAutoscalers(req.Namespace).Create(ctx, hpa, metav1.CreateOptions{})
+	if err != nil {
+		return HPASummary{}, err
+	}
+	return HPASummary{
+		Namespace: created.Namespace, Name: created.Name,
+		TargetKind: req.TargetKind, TargetName: req.TargetName,
+		MinReplicas: minReplicas, MaxReplicas: maxReplicas, TargetCPUPercent: targetCPU,
+		Age: age(created.CreationTimestamp.Time),
+	}, nil
+}
+
+func (k *KubernetesProvider) DeleteHPA(ctx context.Context, ns, name string) error {
+	return k.client.AutoscalingV2().HorizontalPodAutoscalers(ns).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// --- PodDisruptionBudgets ---
+
+func (k *KubernetesProvider) ListPodDisruptionBudgets(ctx context.Context, ns string) ([]PDBSummary, error) {
+	list, err := k.client.PolicyV1().PodDisruptionBudgets(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PDBSummary, 0, len(list.Items))
+	for _, p := range list.Items {
+		minAvail, maxUnavail := "", ""
+		if p.Spec.MinAvailable != nil {
+			minAvail = p.Spec.MinAvailable.String()
+		}
+		if p.Spec.MaxUnavailable != nil {
+			maxUnavail = p.Spec.MaxUnavailable.String()
+		}
+		out = append(out, PDBSummary{
+			Namespace: p.Namespace, Name: p.Name,
+			MinAvailable: minAvail, MaxUnavailable: maxUnavail,
+			CurrentHealthy: p.Status.CurrentHealthy, DesiredHealthy: p.Status.DesiredHealthy,
+			ExpectedPods: p.Status.ExpectedPods,
+			Age:          age(p.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+// --- NetworkPolicies ---
+
+func (k *KubernetesProvider) ListNetworkPolicies(ctx context.Context, ns string) ([]NetworkPolicySummary, error) {
+	list, err := k.client.NetworkingV1().NetworkPolicies(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]NetworkPolicySummary, 0, len(list.Items))
+	for _, np := range list.Items {
+		types := make([]string, 0, len(np.Spec.PolicyTypes))
+		for _, t := range np.Spec.PolicyTypes {
+			types = append(types, string(t))
+		}
+		selStr := "(all pods)"
+		if len(np.Spec.PodSelector.MatchLabels) > 0 {
+			parts := make([]string, 0, len(np.Spec.PodSelector.MatchLabels))
+			for key, val := range np.Spec.PodSelector.MatchLabels {
+				parts = append(parts, key+"="+val)
+			}
+			sort.Strings(parts)
+			selStr = strings.Join(parts, ",")
+		}
+		out = append(out, NetworkPolicySummary{
+			Namespace: np.Namespace, Name: np.Name,
+			PodSelector: selStr, PolicyTypes: types,
+			Age: age(np.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
+}
+
+func (k *KubernetesProvider) DeleteNetworkPolicy(ctx context.Context, ns, name string) error {
+	return k.client.NetworkingV1().NetworkPolicies(ns).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// --- Generic apply ---
+
+// ApplyManifest mirrors ValidateManifest's parse/discover logic, but performs
+// a real server-side-apply Patch instead of a dry-run Create.
+func (k *KubernetesProvider) ApplyManifest(ctx context.Context, manifest string) (ApplyResult, error) {
+	manifest = strings.TrimSpace(manifest)
+	if manifest == "" {
+		return ApplyResult{Valid: false, Errors: []string{"empty manifest"}}, nil
+	}
+	var obj unstructured.Unstructured
+	if err := json.Unmarshal([]byte(manifest), &obj.Object); err != nil {
+		if err := yaml.Unmarshal([]byte(manifest), &obj.Object); err != nil {
+			return ApplyResult{Valid: false, Errors: []string{err.Error()}}, nil
+		}
+	}
+	gvk := obj.GroupVersionKind()
+	if gvk.Kind == "" || gvk.Version == "" {
+		return ApplyResult{Valid: false, Errors: []string{"kind and apiVersion are required"}}, nil
+	}
+	name := obj.GetName()
+	ns := obj.GetNamespace()
+	if name == "" {
+		return ApplyResult{Valid: false, Kind: gvk.Kind, APIVersion: gvk.GroupVersion().String(), Errors: []string{"metadata.name is required"}}, nil
+	}
+	if k.dynamic == nil || k.client == nil {
+		return ApplyResult{Valid: false, Errors: []string{"dynamic client unavailable"}}, nil
+	}
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(k.client.Discovery()))
+	mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return ApplyResult{
+			Valid: false, Kind: gvk.Kind, APIVersion: gvk.GroupVersion().String(),
+			Namespace: ns, Name: name, Errors: []string{err.Error()},
+		}, nil
+	}
+	raw, err := json.Marshal(obj.Object)
+	if err != nil {
+		return ApplyResult{Valid: false, Errors: []string{err.Error()}}, nil
+	}
+	force := true
+	patchOpts := metav1.PatchOptions{FieldManager: "zyvor-axiom", Force: &force}
+	var applyErr error
+	if mapping.Scope.Name() == "namespace" {
+		if ns == "" {
+			ns = "default"
+		}
+		_, applyErr = k.dynamic.Resource(mapping.Resource).Namespace(ns).Patch(ctx, name, types.ApplyPatchType, raw, patchOpts)
+	} else {
+		_, applyErr = k.dynamic.Resource(mapping.Resource).Patch(ctx, name, types.ApplyPatchType, raw, patchOpts)
+	}
+	if applyErr != nil {
+		return ApplyResult{
+			Valid: false, Kind: gvk.Kind, APIVersion: gvk.GroupVersion().String(),
+			Namespace: ns, Name: name, Message: "apply failed", Errors: []string{applyErr.Error()},
+		}, nil
+	}
+	return ApplyResult{
+		Valid: true, Kind: gvk.Kind, APIVersion: gvk.GroupVersion().String(),
+		Namespace: ns, Name: name, Message: "applied",
+	}, nil
+}
+
+// --- Per-pod metrics (live rolling window, not historical Prometheus data) ---
+
+type podMetricSample struct {
+	at  time.Time
+	cpu int64
+	mem int64
+}
+
+var (
+	podMetricsMu   sync.Mutex
+	podMetricsHist = map[string][]podMetricSample{}
+)
+
+func recordPodMetric(key string, cpu, mem int64) {
+	podMetricsMu.Lock()
+	defer podMetricsMu.Unlock()
+	now := time.Now().UTC()
+	hist := podMetricsHist[key]
+	if len(hist) > 0 && now.Sub(hist[len(hist)-1].at) < 20*time.Second {
+		hist[len(hist)-1] = podMetricSample{at: now, cpu: cpu, mem: mem}
+	} else {
+		hist = append(hist, podMetricSample{at: now, cpu: cpu, mem: mem})
+		if len(hist) > 48 {
+			hist = hist[len(hist)-48:]
+		}
+	}
+	podMetricsHist[key] = hist
+	if len(podMetricsHist) > 500 {
+		cutoff := now.Add(-30 * time.Minute)
+		for k, h := range podMetricsHist {
+			if len(h) == 0 || h[len(h)-1].at.Before(cutoff) {
+				delete(podMetricsHist, k)
+			}
+		}
+	}
+}
+
+func podMetricPoints(key string) []PodMetricPoint {
+	podMetricsMu.Lock()
+	hist := append([]podMetricSample(nil), podMetricsHist[key]...)
+	podMetricsMu.Unlock()
+	out := make([]PodMetricPoint, 0, len(hist))
+	for _, s := range hist {
+		out = append(out, PodMetricPoint{At: s.at.Format("15:04:05"), CPU: s.cpu, Memory: s.mem})
+	}
+	return out
+}
+
+type podMetricsAPIResponse struct {
+	Containers []struct {
+		Name  string `json:"name"`
+		Usage struct {
+			CPU    string `json:"cpu"`
+			Memory string `json:"memory"`
+		} `json:"usage"`
+	} `json:"containers"`
+}
+
+func (k *KubernetesProvider) GetPodMetrics(ctx context.Context, ns, name string) (PodMetricSeries, error) {
+	data, err := k.client.CoreV1().RESTClient().Get().
+		AbsPath(fmt.Sprintf("/apis/metrics.k8s.io/v1beta1/namespaces/%s/pods/%s", ns, name)).
+		Do(ctx).Raw()
+	if err != nil {
+		return PodMetricSeries{}, err
+	}
+	var resp podMetricsAPIResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return PodMetricSeries{}, err
+	}
+	var totalCPU, totalMem int64
+	containers := make([]ContainerMetric, 0, len(resp.Containers))
+	for _, c := range resp.Containers {
+		cpu := parseCPUMillis(c.Usage.CPU)
+		mem := parseMemoryBytes(c.Usage.Memory)
+		containers = append(containers, ContainerMetric{Name: c.Name, CPUMillicores: cpu, MemoryBytes: mem})
+		totalCPU += cpu
+		totalMem += mem
+	}
+	key := ns + "/" + name
+	recordPodMetric(key, totalCPU, totalMem)
+	return PodMetricSeries{
+		Namespace: ns, Name: name, CPUMillicores: totalCPU, MemoryBytes: totalMem,
+		Containers: containers, Points: podMetricPoints(key), Source: "metrics-server",
+	}, nil
+}
+
+// --- Generic CRD browser ---
+
+var crdGVR = schema.GroupVersionResource{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}
+
+func (k *KubernetesProvider) ListCRDs(ctx context.Context) ([]CRDSummary, error) {
+	if k.dynamic == nil {
+		return nil, fmt.Errorf("dynamic client unavailable")
+	}
+	list, err := k.dynamic.Resource(crdGVR).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]CRDSummary, 0, len(list.Items))
+	for _, item := range list.Items {
+		group, _, _ := unstructured.NestedString(item.Object, "spec", "group")
+		kind, _, _ := unstructured.NestedString(item.Object, "spec", "names", "kind")
+		plural, _, _ := unstructured.NestedString(item.Object, "spec", "names", "plural")
+		scope, _, _ := unstructured.NestedString(item.Object, "spec", "scope")
+		versions, _, _ := unstructured.NestedSlice(item.Object, "spec", "versions")
+		version := ""
+		for _, v := range versions {
+			vm, ok := v.(map[string]any)
+			if !ok {
+				continue
+			}
+			served, _ := vm["served"].(bool)
+			vname, _ := vm["name"].(string)
+			if served && vname != "" {
+				version = vname
+				break
+			}
+		}
+		if version == "" && len(versions) > 0 {
+			if vm, ok := versions[0].(map[string]any); ok {
+				version, _ = vm["name"].(string)
+			}
+		}
+		out = append(out, CRDSummary{Group: group, Version: version, Kind: kind, Plural: plural, Scope: scope, Age: age(item.GetCreationTimestamp().Time)})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Group == out[j].Group {
+			return out[i].Kind < out[j].Kind
+		}
+		return out[i].Group < out[j].Group
+	})
+	return out, nil
+}
+
+// ListCRDInstances lists instances of an arbitrary CRD. ns == "" means
+// cluster-scoped (or "all namespaces" for a namespaced CRD).
+func (k *KubernetesProvider) ListCRDInstances(ctx context.Context, group, version, plural, ns string) ([]map[string]any, error) {
+	if k.dynamic == nil {
+		return nil, fmt.Errorf("dynamic client unavailable")
+	}
+	gvr := schema.GroupVersionResource{Group: group, Version: version, Resource: plural}
+	var list *unstructured.UnstructuredList
+	var err error
+	if ns != "" {
+		list, err = k.dynamic.Resource(gvr).Namespace(ns).List(ctx, metav1.ListOptions{})
+	} else {
+		list, err = k.dynamic.Resource(gvr).List(ctx, metav1.ListOptions{})
+	}
+	if err != nil {
+		return nil, err
+	}
+	out := make([]map[string]any, 0, len(list.Items))
+	for _, item := range list.Items {
+		row := map[string]any{
+			"name": item.GetName(),
+			"age":  age(item.GetCreationTimestamp().Time),
+		}
+		if item.GetNamespace() != "" {
+			row["namespace"] = item.GetNamespace()
+		}
+		if labels := item.GetLabels(); len(labels) > 0 {
+			row["labels"] = labels
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+// GetCRDInstance returns the raw object for a single CRD instance. ns == ""
+// means cluster-scoped.
+func (k *KubernetesProvider) GetCRDInstance(ctx context.Context, group, version, plural, ns, name string) (map[string]any, error) {
+	if k.dynamic == nil {
+		return nil, fmt.Errorf("dynamic client unavailable")
+	}
+	gvr := schema.GroupVersionResource{Group: group, Version: version, Resource: plural}
+	var obj *unstructured.Unstructured
+	var err error
+	if ns != "" {
+		obj, err = k.dynamic.Resource(gvr).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
+	} else {
+		obj, err = k.dynamic.Resource(gvr).Get(ctx, name, metav1.GetOptions{})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return obj.Object, nil
 }

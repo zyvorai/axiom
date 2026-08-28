@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
-import StatusBadge from "@/components/StatusBadge";
+import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,64 +23,6 @@ import {
 } from "@/components/ui/dialog";
 import { Database, Server, HardDrive, Package, ExternalLink, Plus, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-
-const HIDDEN_KEYS = new Set(["id", "cluster_id", "pool_id", "backend_native_id", "connection_ref", "secret_ref"]);
-
-function pretty(key) {
-    return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function formatValue(v) {
-    if (v === null || v === undefined) return "—";
-    if (typeof v === "boolean") return v ? "yes" : "no";
-    if (typeof v === "object") return JSON.stringify(v);
-    return String(v);
-}
-
-const STATUS_KEYS = ["state", "status", "health"];
-
-function AutoTable({ title, icon: Icon, items, emptyHint }) {
-    const rows = Array.isArray(items) ? items : null;
-    return (
-        <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
-                </div>
-                <span className="text-xs text-muted-foreground">{rows ? rows.length : 0}</span>
-            </div>
-            <div className="max-h-[420px] overflow-auto scrollbar-thin">
-                {(!rows || rows.length === 0) && (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>
-                )}
-                {rows &&
-                    rows.map((row, i) => {
-                        const nameKey = ["name", "bucket", "intent", "id"].find((k) => row[k] !== undefined);
-                        const name = nameKey ? row[nameKey] : `#${i}`;
-                        const statusKey = STATUS_KEYS.find((k) => row[k] !== undefined);
-                        const fields = Object.entries(row).filter(
-                            ([k]) => !HIDDEN_KEYS.has(k) && k !== nameKey && k !== statusKey
-                        );
-                        return (
-                            <div
-                                key={row.id ?? i}
-                                className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
-                            >
-                                <div className="mono min-w-[160px] flex-1 truncate text-sm">{String(name)}</div>
-                                {fields.slice(0, 5).map(([k, v]) => (
-                                    <div key={k} className="text-xs text-muted-foreground">
-                                        <span className="opacity-70">{pretty(k)}:</span>{" "}
-                                        <span className="mono text-foreground">{formatValue(v)}</span>
-                                    </div>
-                                ))}
-                                {statusKey && <StatusBadge status={String(row[statusKey])} />}
-                            </div>
-                        );
-                    })}
-            </div>
-        </GlassCard>
-    );
-}
 
 const POLICIES = ["production", "database", "development", "shared", "ai"];
 

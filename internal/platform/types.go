@@ -3,25 +3,25 @@ package platform
 import "time"
 
 type Overview struct {
-	Cluster              string              `json:"cluster"`
-	Health               string              `json:"health"`
-	Workloads            int                 `json:"workloads"`
-	Pods                 int                 `json:"pods"`
-	RunningPods          int                 `json:"runningPods"`
-	Nodes                int                 `json:"nodes"`
-	ReadyNodes           int                 `json:"readyNodes"`
-	VMs                  int                 `json:"vms"`
-	ReadyVMs             int                 `json:"readyVms"`
-	CPUPercent           float64             `json:"cpuPercent"`
-	MemoryPercent        float64             `json:"memoryPercent"`
-	StorageUsedBytes     int64               `json:"storageUsedBytes"`
-	StorageCapacityBytes int64               `json:"storageCapacityBytes"`
-	StorageUsedTB        float64             `json:"storageUsedTb"`
-	StorageCapacityTB    float64             `json:"storageCapacityTb"`
-	Region               string              `json:"region"`
-	Regions              []Region            `json:"regions,omitempty"`
-	Utilization          []UtilizationPoint  `json:"utilization,omitempty"`
-	Warnings             int                 `json:"warnings"`
+	Cluster              string             `json:"cluster"`
+	Health               string             `json:"health"`
+	Workloads            int                `json:"workloads"`
+	Pods                 int                `json:"pods"`
+	RunningPods          int                `json:"runningPods"`
+	Nodes                int                `json:"nodes"`
+	ReadyNodes           int                `json:"readyNodes"`
+	VMs                  int                `json:"vms"`
+	ReadyVMs             int                `json:"readyVms"`
+	CPUPercent           float64            `json:"cpuPercent"`
+	MemoryPercent        float64            `json:"memoryPercent"`
+	StorageUsedBytes     int64              `json:"storageUsedBytes"`
+	StorageCapacityBytes int64              `json:"storageCapacityBytes"`
+	StorageUsedTB        float64            `json:"storageUsedTb"`
+	StorageCapacityTB    float64            `json:"storageCapacityTb"`
+	Region               string             `json:"region"`
+	Regions              []Region           `json:"regions,omitempty"`
+	Utilization          []UtilizationPoint `json:"utilization,omitempty"`
+	Warnings             int                `json:"warnings"`
 }
 
 type Region struct {
@@ -37,12 +37,12 @@ type UtilizationPoint struct {
 }
 
 type UtilizationSeries struct {
-	CPUPercent    float64             `json:"cpuPercent"`
-	MemoryPercent float64             `json:"memoryPercent"`
-	PeakCPU       float64             `json:"peakCpu"`
-	PeakMemory    float64             `json:"peakMemory"`
-	Points        []UtilizationPoint  `json:"points"`
-	Source        string              `json:"source"`
+	CPUPercent    float64            `json:"cpuPercent"`
+	MemoryPercent float64            `json:"memoryPercent"`
+	PeakCPU       float64            `json:"peakCpu"`
+	PeakMemory    float64            `json:"peakMemory"`
+	Points        []UtilizationPoint `json:"points"`
+	Source        string             `json:"source"`
 }
 
 type VirtualMachine struct {
@@ -517,12 +517,12 @@ type VeleroBackup struct {
 }
 
 type VeleroSchedule struct {
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
-	Schedule  string `json:"schedule"`
-	Paused    bool   `json:"paused"`
+	Namespace  string `json:"namespace"`
+	Name       string `json:"name"`
+	Schedule   string `json:"schedule"`
+	Paused     bool   `json:"paused"`
 	LastBackup string `json:"lastBackup,omitempty"`
-	Age       string `json:"age"`
+	Age        string `json:"age"`
 }
 
 type AlertmanagerSummary struct {
@@ -594,10 +594,10 @@ type NamespaceCost struct {
 }
 
 type CostEstimate struct {
-	TotalMonthlyUSD  float64         `json:"totalMonthlyUsd"`
-	CPURatePerCore   float64         `json:"cpuRatePerCore"`
-	MemoryRatePerGi  float64         `json:"memoryRatePerGi"`
-	Namespaces       []NamespaceCost `json:"namespaces"`
+	TotalMonthlyUSD float64         `json:"totalMonthlyUsd"`
+	CPURatePerCore  float64         `json:"cpuRatePerCore"`
+	MemoryRatePerGi float64         `json:"memoryRatePerGi"`
+	Namespaces      []NamespaceCost `json:"namespaces"`
 }
 
 type ValidateResult struct {
@@ -636,4 +636,87 @@ type CronJobSummary struct {
 	Active       int    `json:"active"`
 	LastSchedule string `json:"lastSchedule,omitempty"`
 	Age          string `json:"age"`
+}
+
+type HPASummary struct {
+	Namespace         string `json:"namespace"`
+	Name              string `json:"name"`
+	TargetKind        string `json:"targetKind"`
+	TargetName        string `json:"targetName"`
+	MinReplicas       int32  `json:"minReplicas"`
+	MaxReplicas       int32  `json:"maxReplicas"`
+	CurrentReplicas   int32  `json:"currentReplicas"`
+	TargetCPUPercent  int32  `json:"targetCpuPercent,omitempty"`
+	CurrentCPUPercent int32  `json:"currentCpuPercent,omitempty"`
+	Age               string `json:"age"`
+}
+
+type CreateHPARequest struct {
+	Namespace        string `json:"namespace"`
+	Name             string `json:"name"`
+	TargetKind       string `json:"targetKind"`
+	TargetName       string `json:"targetName"`
+	MinReplicas      int32  `json:"minReplicas"`
+	MaxReplicas      int32  `json:"maxReplicas"`
+	TargetCPUPercent int32  `json:"targetCpuPercent"`
+}
+
+type PDBSummary struct {
+	Namespace      string `json:"namespace"`
+	Name           string `json:"name"`
+	MinAvailable   string `json:"minAvailable,omitempty"`
+	MaxUnavailable string `json:"maxUnavailable,omitempty"`
+	CurrentHealthy int32  `json:"currentHealthy"`
+	DesiredHealthy int32  `json:"desiredHealthy"`
+	ExpectedPods   int32  `json:"expectedPods"`
+	Age            string `json:"age"`
+}
+
+type NetworkPolicySummary struct {
+	Namespace   string   `json:"namespace"`
+	Name        string   `json:"name"`
+	PodSelector string   `json:"podSelector"`
+	PolicyTypes []string `json:"policyTypes"`
+	Age         string   `json:"age"`
+}
+
+type ApplyResult struct {
+	Valid      bool     `json:"valid"`
+	Kind       string   `json:"kind,omitempty"`
+	APIVersion string   `json:"apiVersion,omitempty"`
+	Namespace  string   `json:"namespace,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	Message    string   `json:"message,omitempty"`
+	Errors     []string `json:"errors,omitempty"`
+}
+
+type PodMetricPoint struct {
+	At     string `json:"at"`
+	CPU    int64  `json:"cpuMillicores"`
+	Memory int64  `json:"memoryBytes"`
+}
+
+type PodMetricSeries struct {
+	Namespace     string            `json:"namespace"`
+	Name          string            `json:"name"`
+	CPUMillicores int64             `json:"cpuMillicores"`
+	MemoryBytes   int64             `json:"memoryBytes"`
+	Containers    []ContainerMetric `json:"containers"`
+	Points        []PodMetricPoint  `json:"points"`
+	Source        string            `json:"source"`
+}
+
+type ContainerMetric struct {
+	Name          string `json:"name"`
+	CPUMillicores int64  `json:"cpuMillicores"`
+	MemoryBytes   int64  `json:"memoryBytes"`
+}
+
+type CRDSummary struct {
+	Group   string `json:"group"`
+	Version string `json:"version"`
+	Kind    string `json:"kind"`
+	Plural  string `json:"plural"`
+	Scope   string `json:"scope"`
+	Age     string `json:"age"`
 }
