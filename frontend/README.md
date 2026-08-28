@@ -1,70 +1,47 @@
-# Getting Started with Create React App
+# Axiom frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React 19 + [CRACO](https://craco.js.org/) (Create React App, un-ejected) + Tailwind CSS + [shadcn/ui](https://ui.shadcn.com/) (Radix primitives). This is the embedded web UI for [Zyvor Axiom](../README.md) — see the root README and [`docs/DESIGN-SYSTEM.md`](../docs/DESIGN-SYSTEM.md) for the page list and design tokens.
 
-## Available Scripts
+## Develop against a running backend
 
-In the project directory, you can run:
+```bash
+# from the repo root
+make demo &                 # Go backend on :5090 (AXIOM_MODE=demo, demo/demo)
 
-### `npm start`
+# in this directory
+npm install --legacy-peer-deps
+npm start                   # dev server on :3000, proxies /api to :5090 (see "proxy" in package.json)
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+`--legacy-peer-deps` is needed because a couple of transitive peer-dependency ranges are stricter than what's actually compatible here (this mirrors what `scripts/sync-ui.sh` runs).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Build
 
-### `npm test`
+```bash
+npm run build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Output goes to `build/`. This repo doesn't consume it directly from here — `scripts/sync-ui.sh` (invoked by `make ui` / `make build` / the Dockerfile) runs this build and copies `build/` into `../internal/ui/dist/`, which the Go binary embeds. Never edit `internal/ui/dist/` directly; it's a generated, gitignored artifact.
 
-### `npm run build`
+## Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```text
+src/
+  App.js              route table
+  pages/*.jsx           one file per route
+  components/           shared shell (Sidebar, TopBar, AppShell), PodTerminal.jsx (xterm.js)
+  components/ui/        shadcn/ui primitives (button, dialog, table, tabs, ...)
+  lib/
+    api.js               axios instance, log streaming, withAccessToken() for WS/plain-link auth
+    auth.js               AuthProvider (local Basic-auth + OIDC/SAML)
+    cluster.js             cosmetic region/cluster-switcher state
+    theme.js                dark/light toggle
+  index.css              design tokens + "Liquid Glass" utility classes
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Real backend, not mocks
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Every page calls the real Go API under `/api/v1/*` (see [`docs/API.md`](../docs/API.md)) — there is no mock data layer. Two backend capabilities are conditional:
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- The **interactive Pod terminal** (`PodTerminal.jsx`) and the Pod **YAML/Details tab**'s rich per-container spec only work against the `kubernetes`-tagged Go build (a real cluster). Check `GET /api/v1/realtime/capabilities`'s `interactiveExec` before assuming the WebSocket terminal is available — `make demo` (the stdlib-only build) doesn't register that route at all, and the frontend falls back to a one-shot exec panel.
+- The **Atlas** and **PacketWolf** pages/panels degrade to an honest "not connected" state when `AXIOM_ATLAS_URL` / `AXIOM_PACKETWOLF_URL` aren't configured, rather than showing fake data.

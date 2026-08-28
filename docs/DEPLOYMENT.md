@@ -95,6 +95,14 @@ Fast redeploy (skip image rebuild):
 ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick
 ```
 
+Also deploy [Atlas](../../atlas) (the separate storage control-plane service) to the same host and wire it into Axiom automatically — mints an admin token from Atlas's freshly-created `atlas-gateway-auth` secret and `PUT`s it into Axiom's own `/api/v1/integrations`, the same call Settings → Integrations makes:
+
+```bash
+./scripts/deploy-remote.sh 80.79.5.173 zyvorai --with-atlas
+```
+
+Requires a sibling `../atlas` checkout with its own `scripts/deploy-remote.sh` (override the path with `ATLAS_REPO=/path/to/atlas`, and its NodePort with `ATLAS_NODE_PORT` if not `30510`). If the wiring step fails (e.g. Axiom's own health check didn't pass yet), it prints the Atlas URL so you can finish it by hand in Settings → Integrations.
+
 Check last target and health:
 
 ```bash
@@ -142,6 +150,13 @@ ssh zyvorai@80.79.5.173 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/
 ```
 
 If the NodePort is blocked, open TCP `30590` (or your `AXIOM_NODE_PORT`) on the host firewall (the deploy script attempts this automatically).
+
+If deploy fails with `nodePort ... already allocated to another Service`, another Service on that cluster already holds the port (shared lab hosts often have unrelated workloads squatting on NodePorts). Find it and redeploy on a free one:
+
+```bash
+ssh zyvorai@80.79.5.173 'kubectl get svc -A -o wide | grep 30590'
+AXIOM_NODE_PORT=30592 ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick
+```
 
 Uninstall:
 

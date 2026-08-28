@@ -42,7 +42,7 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 | GET | `/api/v1/workloads/{namespace}/{kind}/{name}/rollout` | Rollout status and revision history |
 | POST | `/api/v1/workloads/{namespace}/{kind}/{name}/rollout/{action}` | Rollout action (pause/resume/restart) |
 | GET | `/api/v1/workloads/{namespace}/{kind}/{name}/network/guard` | PacketWolf / isolation summary |
-| GET | `/api/v1/resources/{namespace}/{kind}/{name}` | Raw resource detail (YAML-oriented) |
+| GET | `/api/v1/resources/{namespace}/{kind}/{name}` | Raw resource detail (YAML-oriented). `kind` ∈ `deployment\|statefulset\|daemonset\|pod` (case-insensitive) |
 
 ### Launch request
 
@@ -68,11 +68,12 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/pods?namespace=...` | List Pods |
-| GET | `/api/v1/pods/{namespace}/{name}/logs?container=&tail=200&follow=false&previous=false` | Read or stream logs |
-| POST | `/api/v1/pods/{namespace}/{name}/exec` | Run command in container |
+| GET | `/api/v1/pods/{namespace}/{name}/logs?container=&tail=200&follow=false&previous=false` | Read or stream logs (chunked `text/plain`, not SSE) |
+| POST | `/api/v1/pods/{namespace}/{name}/exec` | Run a single command in a container, return captured output |
+| GET | `/api/v1/pods/{namespace}/{name}/terminal?container=&shell=` | **kubernetes build only.** Upgrades to a WebSocket carrying a real interactive PTY (`TTY:true`). Client sends raw keystrokes (text or binary frames) plus a `__resize__:WIDTHxHEIGHT` control message; server streams raw output as binary frames. Gate on `GET /api/v1/realtime/capabilities`'s `interactiveExec` before use. |
 | DELETE | `/api/v1/pods/{namespace}/{name}` | Terminate Pod |
 | POST | `/api/v1/pods/{namespace}/{name}/evict` | Policy-aware eviction |
-| GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod |
+| GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod (reverse-proxies into the pod's container port) |
 
 Exec accepts a shell string or argv array:
 
@@ -83,6 +84,8 @@ Exec accepts a shell string or argv array:
 ```json
 {"container":"app","command":["/bin/sh","-lc","env | sort"]}
 ```
+
+`/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header — for local Basic-auth sessions, append `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra.
 
 ## Nodes
 
