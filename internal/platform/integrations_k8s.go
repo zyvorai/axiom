@@ -40,7 +40,7 @@ func OpenIntegrationStore(mode string, provider Provider) IntegrationStore {
 	if strings.ToLower(mode) != "kubernetes" {
 		return NewMemoryIntegrationStore()
 	}
-	k, ok := provider.(*KubernetesProvider)
+	k, ok := CurrentKubernetesProvider(provider)
 	if !ok || k == nil || k.client == nil {
 		return NewMemoryIntegrationStore()
 	}

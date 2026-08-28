@@ -39,16 +39,8 @@ func OpenUserStore(mode string, provider Provider) UserStore {
 	if strings.ToLower(mode) != "kubernetes" {
 		return NewMemoryUserStore()
 	}
-	var k *KubernetesProvider
-	switch p := provider.(type) {
-	case *SwitchableProvider:
-		if kp, ok := p.current().(*KubernetesProvider); ok {
-			k = kp
-		}
-	case *KubernetesProvider:
-		k = p
-	}
-	if k == nil || k.client == nil {
+	k, ok := CurrentKubernetesProvider(provider)
+	if !ok || k == nil || k.client == nil {
 		return NewMemoryUserStore()
 	}
 	return NewK8sUserStore(k.client, "")

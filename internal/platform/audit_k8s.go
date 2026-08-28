@@ -39,16 +39,8 @@ func OpenAuditStore(mode string, provider Provider) AuditStore {
 	if strings.ToLower(mode) != "kubernetes" {
 		return nil
 	}
-	var k *KubernetesProvider
-	switch p := provider.(type) {
-	case *SwitchableProvider:
-		if kp, ok := p.current().(*KubernetesProvider); ok {
-			k = kp
-		}
-	case *KubernetesProvider:
-		k = p
-	}
-	if k == nil || k.client == nil {
+	k, ok := CurrentKubernetesProvider(provider)
+	if !ok || k == nil || k.client == nil {
 		return nil
 	}
 	return NewK8sAuditStore(k.client, "")
