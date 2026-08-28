@@ -62,18 +62,35 @@ SSO-first login UI (Google / GitHub / Okta labels) wired to real providers via `
 | Google | OIDC |
 | GitHub | OIDC |
 | Okta | SAML |
+| Active Directory | LDAP (reveals username/password form with domain hint) |
 
 - When SSO is **not** configured, `GET /api/v1/auth/providers` returns `lab.operator_login: true` and the **demo / demo** username/password form is shown by default (no hidden easter egg)
-- SSO buttons are hidden until OIDC/SAML/LDAP is enabled
-- Enabled providers redirect to `login_url` after 900ms pending animation
+- SSO buttons (Google/GitHub/Okta) appear only when OIDC or SAML is enabled; LDAP gets its own button when `AXIOM_LDAP_ENABLED=true`
+- Enabled OIDC/SAML providers redirect to `login_url` after 900ms pending animation
 - With SSO on, use “Sign in with username & password” for operator break-glass access
 
 ## Shell
 
 - Fixed ambient backdrop (grid + orbs)
 - Glass sidebar: brand, cluster switcher, nav, theme pill toggle
-- Glass topbar: breadcrumbs, ⌘K search, Connect kubeconfig, user menu
+- Glass topbar: breadcrumbs, ⌘K search, Connect kubeconfig (shows local dev instructions), user menu
 - Cluster switcher adapts single-cluster `/api/v1/overview` + `/api/v1/regions` data
+
+## Workload drawer actions
+
+| Action | API |
+|--------|-----|
+| Isolate | `POST .../seal` |
+| Remove isolation | `POST .../unseal` |
+| Rollout pause/resume | `POST .../rollout/{action}` |
+
+## Helm ops
+
+Rollback opens a revision picker fed by `GET /api/v1/helm/releases/{ns}/{name}/history`, then `POST .../rollback` with `{ "revision": N }`.
+
+## PacketWolf (Networking page)
+
+Status chip from `GET /api/v1/packetwolf/status`. When connected, **View flows** loads `GET /api/v1/packetwolf/proxy/api/v1/flows?limit=25`.
 
 ## Run workload
 

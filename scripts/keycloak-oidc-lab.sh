@@ -7,8 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST="${1:-}"
 USER="${2:-zyvorai}"
-AXIOM_PUBLIC_URL="${AXIOM_PUBLIC_URL:-https://212.8.248.187:30590}"
-KC_PUBLIC_URL="${KC_PUBLIC_URL:-http://auth.212.8.248.187.nip.io:30591}"
+AXIOM_PUBLIC_URL="${AXIOM_PUBLIC_URL:-https://${HOST:-127.0.0.1}:${AXIOM_NODE_PORT:-30590}}"
+KC_PUBLIC_URL="${KC_PUBLIC_URL:-http://auth.${HOST:-127.0.0.1}.nip.io:${AXIOM_NODE_PORT:-30591}}"
 REALM="${KC_REALM:-platform}"
 CLIENT_ID="${OIDC_CLIENT_ID:-axiom}"
 

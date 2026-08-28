@@ -36,32 +36,17 @@ Production Kubernetes support is kept behind the `kubernetes` build tag and uses
 
 ### API surface
 
-```text
-GET    /api/v1/health
-GET    /api/v1/session
-GET    /api/v1/overview
+See [`docs/API.md`](docs/API.md) for the full reference (~80 routes). Core groups:
 
-GET    /api/v1/workloads
-POST   /api/v1/workloads
-POST   /api/v1/workloads/{namespace}/{kind}/{name}/scale
-POST   /api/v1/workloads/{namespace}/{kind}/{name}/start
-POST   /api/v1/workloads/{namespace}/{kind}/{name}/stop
-POST   /api/v1/workloads/{namespace}/{kind}/{name}/restart
-DELETE /api/v1/workloads/{namespace}/{kind}/{name}
-
-GET    /api/v1/pods
-GET    /api/v1/pods/{namespace}/{name}/logs
-POST   /api/v1/pods/{namespace}/{name}/exec
-DELETE /api/v1/pods/{namespace}/{name}
-POST   /api/v1/pods/{namespace}/{name}/evict
-
-GET    /api/v1/nodes
-POST   /api/v1/nodes/{name}/cordon
-POST   /api/v1/nodes/{name}/uncordon
-POST   /api/v1/nodes/{name}/drain
-
-GET    /api/v1/events
-```
+- **Cluster:** health, session, overview, regions, utilization, events
+- **Workloads:** CRUD, scale, stop/start, restart, seal/unseal, rollout, Still previews
+- **Pods:** list, logs, exec, evict, window proxy
+- **Nodes:** list, cordon, uncordon, drain
+- **Network:** namespaces, services, topology, PacketWolf status/proxy
+- **VMs:** KubeVirt lifecycle, snapshots, clones, exports, restores
+- **Ops:** Helm, GitOps, secrets, backups, Velero, alerts, audit, RBAC, cost
+- **Platform:** Atlas, Haven identity, agent runs, integrations, intent placement
+- **Auth:** providers, OIDC/SAML login, logout
 
 ## Run the tested local demo
 
@@ -95,7 +80,6 @@ Run using in-cluster credentials:
 ```bash
 AXIOM_MODE=kubernetes \
 AXIOM_USERNAME=demo \
-AXIOM_PASSWORD=demo \
 AXIOM_PASSWORD='replace-me' \
 AXIOM_ADDR=:5090 \
 ./bin/zyvor-axiom-kubernetes
@@ -130,7 +114,12 @@ Axiom treats workload lifecycle semantically rather than pretending a Pod is a V
 
 ## Security
 
-This reference build uses HTTP Basic authentication to make the demo self-contained. For enterprise deployment, place it behind TLS and an identity-aware proxy or replace `internal/auth` with OIDC/SAML integration. Grant the ServiceAccount only the RBAC verbs in `deploy/k8s/rbac.yaml` and narrow namespaces further where possible.
+Lab deploys use HTTP Basic auth (`AXIOM_USERNAME` / `AXIOM_PASSWORD`, default `demo` / `demo`) over HTTPS with a self-signed certificate. Production deployments should:
+
+- Replace the lab cert with a CA-issued TLS certificate
+- Enable OIDC/SAML via Settings → Integrations or environment variables
+- Place Axiom behind an identity-aware proxy when using LDAP (`AXIOM_LDAP_ENABLED`)
+- Grant the ServiceAccount only the RBAC verbs in `deploy/k8s/rbac.yaml` and narrow namespaces further where possible
 
 
 ## Detailed documentation

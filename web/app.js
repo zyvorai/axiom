@@ -89,6 +89,8 @@ const state = {
   resourceDetail: null,
   networkGuard: null,
   packetwolfStatus: null,
+  packetwolfFlows: null,
+  packetwolfFlowsLoading: false,
   nodeDrawerTab: 'overview',
   loginShowPassword: false,
   authProviders: null,
@@ -160,10 +162,9 @@ const state = {
   secretDetail: null,
   rbacTab: 'bindings',
   vmConsole: null,
+  helmRollback: null,
   validateResult: null,
 };
-
-let logPanelAbort = null;
 let logPollTimer = null;
 let terminalSocket = null;
 let sseAbort = null;
@@ -189,6 +190,11 @@ function ssoConfigured(providers) {
   return !!(providers.oidc?.enabled || providers.saml?.enabled || providers.ldap?.enabled);
 }
 
+function oidcOrSamlConfigured(providers) {
+  if (!providers) return false;
+  return !!(providers.oidc?.enabled || providers.saml?.enabled);
+}
+
 function isLocalDevHost() {
   const h = location.hostname;
   return h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
@@ -211,6 +217,12 @@ function demoCredentialHint() {
   const user = defaultLoginUsername();
   if (user === 'demo' || user === 'demo@zyvor.dev') return 'demo / demo';
   return `${user} / (your AXIOM_PASSWORD)`;
+}
+
+function workloadIsSealed(workload) {
+  if (!workload) return false;
+  if (workload.status === 'Sealed') return true;
+  return workloadPods(workload).some(p => p.sealed || p.status === 'Sealed');
 }
 
 function zyvorMark(size = 'lg') {
@@ -987,6 +999,22 @@ async function login(user, pass) {
   }
 }
 
+async function loadPacketwolfFlows() {
+  if (state.packetwolfFlowsLoading) return;
+  state.packetwolfFlowsLoading = true;
+  render();
+  try {
+    const data = await api('/api/v1/packetwolf/proxy/api/v1/flows?limit=25');
+    state.packetwolfFlows = data;
+  } catch (error) {
+    state.packetwolfFlows = null;
+    toast(error.message || 'Failed to load PacketWolf flows', 'error');
+  } finally {
+    state.packetwolfFlowsLoading = false;
+    render();
+  }
+}
+
 async function refreshAll(showLoading = true) {
   state.loading = showLoading;
   if (showLoading) render();
@@ -1136,17 +1164,23 @@ function wireTheme() {
 function loginView() {
   const savedUser = defaultLoginUsername();
   const showDemo = resolveLoginShowDemo();
-  const ssoOn = ssoConfigured(state.authProviders);
-  const localOn = state.authProviders?.local?.enabled !== false;
-  const subtitle = ssoOn
+  const providers = state.authProviders;
+  const ssoOn = oidcOrSamlConfigured(providers);
+  const ldapOn = !!providers?.ldap?.enabled;
+  const ldapDomain = providers?.ldap?.domain;
+  const localOn = providers?.local?.enabled !== false;
+  const subtitle = ssoConfigured(providers)
     ? 'Single sign-on enforced by your Zyvor organization.'
     : 'Lab environment — sign in with operator credentials to explore the console.';
   const demoForm = `<form class="login-form" id="login-form" style="margin-top:20px">
     <label>Username<span class="login-field-icon">${icon('user', 16)}</span><input name="user" type="text" value="${enc(savedUser)}" autocomplete="username" required /></label>
     <label>Password<span class="login-field-icon">${icon('lock', 16)}</span><input name="pass" type="password" value="demo" autocomplete="current-password" required /></label>
-    <p class="login-demo-hint muted">Default credentials: <span class="mono">${enc(demoCredentialHint())}</span></p>
+    ${state.loginShowLdap && ldapDomain ? `<p class="login-demo-hint muted">Active Directory domain: <span class="mono">${enc(ldapDomain)}</span></p>` : ''}
+    ${!state.loginShowLdap ? `<p class="login-demo-hint muted">Default credentials: <span class="mono">${enc(demoCredentialHint())}</span></p>` : ''}
+    ${ldapOn && state.loginShowLdap ? `<p class="login-demo-hint muted">${enc(providers?.ldap?.note || 'Use your directory credentials.')}</p>` : ''}
     <button class="primary-button" type="submit" id="login-submit">Enter console ${icon('arrow')}</button>
   </form>`;
+  const ldapBtn = ldapOn ? `<button type="button" class="sso-btn fade-up" id="login-ldap" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left;width:100%;margin-top:${ssoOn ? '12px' : '32px'}"><span>${lucideSvg('building-2', 18)}</span><b>Continue with Active Directory</b>${ldapDomain ? `<small class="muted" style="margin-left:auto">${enc(ldapDomain)}</small>` : ''}</button>` : '';
   return `<main class="login-shell" style="display:flex;align-items:center;background:var(--bg)">
     <style>@media (max-width:800px){.login-shell .login-hero{display:none!important}.login-shell>div:nth-child(2){display:block!important;padding:64px 24px!important}.login-shell .login-mobile-brand{display:flex!important;align-items:center;gap:10px;margin-bottom:28px}}</style>
     <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div class="grid-bg" style="position:absolute;inset:0;opacity:.4"></div><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div><div class="aurora aurora-c"></div></div>
@@ -1165,7 +1199,8 @@ function loginView() {
         <div class="login-mobile-brand" style="display:none">${zyvorMark('sm')}<b>zyvor · Axiom</b></div>
         <div class="eyebrow" style="color:#ff7550">AXIOM CONSOLE</div><h2 style="margin:8px 0;font-size:26px">Sign in to continue</h2><p class="muted">${subtitle}</p>
         ${ssoOn ? `<div style="margin-top:32px;display:grid;gap:12px">${SSO_PROVIDERS.map((provider, i) => `<button type="button" class="sso-btn fade-up" data-sso-id="${provider.id}" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left"><span>${state.loginPending === provider.id ? '◌' : ssoIcon(provider.id)}</span><b>${state.loginPending === provider.id ? 'Authenticating…' : provider.label}</b><small class="muted" style="margin-left:auto">SSO</small></button>`).join('')}</div>` : ''}
-        ${showDemo ? demoForm : (localOn ? `<button type="button" class="sso-btn" id="login-demo-reveal" style="width:100%;margin-top:${ssoOn ? '20px' : '32px'};padding:14px 16px;border-radius:16px">Sign in with username &amp; password</button>` : '')}
+        ${ldapBtn}
+        ${showDemo ? demoForm : (localOn ? `<button type="button" class="sso-btn" id="login-demo-reveal" style="width:100%;margin-top:${ssoOn || ldapOn ? '20px' : '32px'};padding:14px 16px;border-radius:16px">Sign in with username &amp; password</button>` : '')}
         <div class="glass-inset" style="margin-top:28px;padding:10px 12px;border-radius:12px;font-size:12px;display:flex;align-items:center;gap:8px">${icon('lock', 14)} Sessions are scoped per device and expire automatically.</div>
       </section>
     </div>
@@ -1189,7 +1224,9 @@ function wireLogin() {
     };
   });
   const revealDemo = () => { state.loginShowDemo = true; render(); };
+  const revealLdap = () => { state.loginShowDemo = true; state.loginShowLdap = true; render(); };
   $('#login-demo-reveal')?.addEventListener('click', revealDemo);
+  $('#login-ldap')?.addEventListener('click', revealLdap);
   $$('[data-login-mark]').forEach(mark => mark.addEventListener('click', e => { if (e.shiftKey) revealDemo(); }));
   $('#login-form')?.addEventListener('submit', event => {
     event.preventDefault();
@@ -1232,6 +1269,7 @@ function shellView() {
     ${state.vmWizard ? vmWizardModal() : ''}
     ${state.vmConsole ? vmConsoleModal() : ''}
     ${state.palette ? paletteView() : ''}
+    ${state.helmRollback ? helmRollbackModal() : ''}
     ${state.confirm ? confirmModal() : ''}
     ${state.still ? stillRingModal() : ''}
   </div>`;
@@ -2423,9 +2461,11 @@ function networkView() {
   const nsOptions = [['all', 'All namespaces'], ...state.namespaces.map(n => [n.name, n.name])];
   const tab = state.networkTab;
   const pw = state.packetwolfStatus;
-  const pwChip = pw ? `<div class="pw-chip ${pw.reachable ? 'ok' : pw.configured ? 'warn' : ''}">PacketWolf: ${enc(pw.reachable ? 'Connected' : pw.configured ? 'Unreachable' : 'Not configured')}</div>` : '';
+  const pwChip = pw ? `<div class="pw-chip-row"><div class="pw-chip ${pw.reachable ? 'ok' : pw.configured ? 'warn' : ''}">PacketWolf: ${enc(pw.reachable ? 'Connected' : pw.configured ? 'Unreachable' : 'Not configured')}${pw.flowsCount ? ` · ${pw.flowsCount} flows` : ''}${pw.policyHint ? ` · ${enc(pw.policyHint)}` : ''}${pw.message && !pw.reachable ? ` · ${enc(pw.message)}` : ''}</div>${pw.reachable ? `<button type="button" class="ghost mini-btn" id="pw-load-flows">${state.packetwolfFlowsLoading ? 'Loading…' : 'View flows'}</button>` : ''}</div>` : '';
+  const pwFlows = state.packetwolfFlows ? packetwolfFlowsPanel() : '';
   return `${pageHead('Networks', 'Namespaces, services, open ports, and pod traffic paths.', '<button class="primary-button" id="create-namespace">＋ Namespace</button>')}
     ${pwChip}
+    ${pwFlows}
     <div class="toolbar">
       <select class="search-input" id="network-ns" style="max-width:220px">${nsOptions.map(([v, l]) => `<option value="${enc(v)}" ${state.networkNs === v ? 'selected' : ''}>${enc(l)}</option>`).join('')}</select>
       <div class="segment">${[
@@ -2453,6 +2493,24 @@ function servicesPanel() {
 function filterNetworkServices() {
   if (state.networkNs === 'all') return state.services;
   return state.services.filter(s => s.namespace === state.networkNs);
+}
+
+function packetwolfFlowsPanel() {
+  const flows = state.packetwolfFlows;
+  if (!flows) return '';
+  const items = Array.isArray(flows) ? flows : (flows.items || flows.flows || []);
+  if (!Array.isArray(items) || !items.length) {
+    return `<div class="panel glass" style="margin-bottom:16px"><div class="panel-title">PacketWolf flows</div><pre class="mono muted" style="margin:0;white-space:pre-wrap">${enc(typeof flows === 'string' ? flows : JSON.stringify(flows, null, 2))}</pre></div>`;
+  }
+  const rows = items.slice(0, 25).map(f => {
+    const src = f.source || f.src || f.from || '—';
+    const dst = f.destination || f.dst || f.to || '—';
+    const proto = f.protocol || f.proto || '—';
+    const verdict = f.verdict || f.action || f.disposition || '—';
+    return `<tr><td class="mono">${enc(String(src))}</td><td class="mono">${enc(String(dst))}</td><td>${enc(String(proto))}</td><td>${enc(String(verdict))}</td></tr>`;
+  }).join('');
+  return `<div class="panel glass" style="margin-bottom:16px"><div class="panel-title">PacketWolf flows <small class="muted">(latest ${Math.min(items.length, 25)})</small></div>
+    <div class="table-wrap"><table><thead><tr><th>Source</th><th>Destination</th><th>Proto</th><th>Verdict</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function networkMapPanel() {
@@ -2605,7 +2663,7 @@ function workloadDrawer(workload) {
       <div class="actions">
         ${workload.desired === 0 ? '<button class="primary" data-action="start">▶ Scale up</button>' : '<button class="secondary" data-still="hush">Scale to 0</button>'}
         <button class="ghost" data-action="restart">↻ Restart</button>
-        <button class="ghost" data-still="seal">⛨ Isolate</button>
+        ${workloadIsSealed(workload) ? '<button class="ghost" data-action="unseal">Remove isolation</button>' : '<button class="ghost" data-still="seal">⛨ Isolate</button>'}
         <button class="danger" data-still="end">Delete</button>
       </div>
       <div class="scale-row"><label>Replicas</label><div class="scale-controls"><button class="ghost" id="scale-down">−</button><input id="scale-input" type="number" min="0" value="${draft}" /><button class="ghost" id="scale-up">+</button><button class="secondary" id="scale-apply">Apply</button></div></div>
@@ -2763,6 +2821,17 @@ function stillActionDesc() {
     seal: 'Apply deny-all NetworkPolicy except control plane traffic.',
     end: 'Delete the workload. Affected pods, ports, and volumes are listed below.',
   };
+}
+
+function helmRollbackModal() {
+  const h = state.helmRollback;
+  if (!h) return '';
+  const options = (h.revisions || []).map(r => `<option value="${enc(String(r.revision))}">rev ${enc(String(r.revision))} · ${enc(r.chart || '—')} · ${enc(r.status || '—')} · ${enc(r.age || '')}</option>`).join('');
+  return `<div class="overlay" id="helm-rollback-overlay"></div><section class="modal confirm-modal">
+    <div class="modal-head"><h3>Rollback Helm release</h3><p class="object-sub">${enc(h.namespace)}/${enc(h.name)}</p></div>
+    <div class="modal-body"><label>Target revision<select id="helm-rollback-rev" class="search-input" style="width:100%;margin-top:8px">${options}</select></label></div>
+    <div class="modal-foot"><button class="secondary" id="helm-rollback-cancel">Cancel</button><button class="primary" id="helm-rollback-go">Rollback</button></div>
+  </section>`;
 }
 
 function confirmModal() {
@@ -2976,7 +3045,7 @@ function wireShell() {
     render();
   });
   $('#theme-toggle-glass')?.addEventListener('click', () => setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'));
-  $('#connect-kubeconfig')?.addEventListener('click', () => toast('Use your organization kubeconfig to connect this cluster.'));
+  $('#connect-kubeconfig')?.addEventListener('click', () => toast('Axiom uses in-cluster credentials when deployed on k3s. Local dev: KUBECONFIG=~/.kube/config AXIOM_MODE=kubernetes ./bin/zyvor-axiom-kubernetes'));
   $('#logs-pod-select')?.addEventListener('change', e => {
     state.logsPodIndex = Number(e.target.value) || 0;
     cleanupPanels();
@@ -3249,6 +3318,7 @@ function wireShell() {
       await mutate(`/api/v1/namespaces/${encodeURIComponent(name)}`, { method: 'DELETE' }, `Namespace ${name} deleted`);
     }});
   });
+  $('#pw-load-flows')?.addEventListener('click', () => loadPacketwolfFlows());
 
   $$('[data-mobile-nav]').forEach(btn => btn.onclick = () => {
     const id = btn.dataset.mobileNav;
@@ -3321,6 +3391,7 @@ function wireShell() {
   if (state.vmConsole) wireVmConsoleModal();
   if (state.palette) wirePalette();
   if (state.confirm) wireConfirm();
+  if (state.helmRollback) wireHelmRollback();
   if (state.still) wireStill();
 }
 
@@ -3589,27 +3660,22 @@ function wireOpsPages() {
       },
     });
   });
-  $$('[data-helm-rollback]').forEach(btn => btn.onclick = (e) => {
+  $$('[data-helm-rollback]').forEach(btn => btn.onclick = async (e) => {
     e.stopPropagation();
     const ns = btn.dataset.helmNs;
     const name = btn.dataset.helmName;
-    const revision = Number(btn.dataset.helmRev) || 0;
-    requestConfirm({
-      title: 'Rollback Helm release',
-      name: revision ? `${ns}/${name} → rev ${revision}` : `${ns}/${name}`,
-      confirmLabel: 'Rollback',
-      onConfirm: async () => {
-        const res = await api(`/api/v1/helm/releases/${encodeURIComponent(ns)}/${encodeURIComponent(name)}/rollback`, {
-          method: 'POST',
-          body: JSON.stringify({ revision }),
-        });
-        trackJob({ kind: 'helm', label: `Rollback ${name}`, namespace: ns, name, jobName: res.jobName, phase: 'Pending' });
-        toast(res.message || `Rollback started for ${name}`);
-        state.opsLoaded.helm = false;
-        await ensureOpsPage('helm', true);
-        render();
-      },
-    });
+    try {
+      const history = await api(`/api/v1/helm/releases/${encodeURIComponent(ns)}/${encodeURIComponent(name)}/history`);
+      const revisions = (Array.isArray(history) ? history : []).filter(r => r.revision);
+      if (!revisions.length) {
+        toast('No rollback revisions available', 'error');
+        return;
+      }
+      state.helmRollback = { namespace: ns, name, revisions };
+      render();
+    } catch (error) {
+      toast(error.message || 'Failed to load Helm history', 'error');
+    }
   });
   $$('[data-refresh-vmsnaps]').forEach(btn => btn.onclick = () => loadVMExtras().then(() => render()));
 }
@@ -3725,6 +3791,32 @@ function requestConfirm({ title, name, confirmLabel, onConfirm }) {
   render();
 }
 
+function wireHelmRollback() {
+  const close = () => { state.helmRollback = null; render(); };
+  $('#helm-rollback-cancel')?.addEventListener('click', close);
+  $('#helm-rollback-overlay')?.addEventListener('click', close);
+  $('#helm-rollback-go')?.addEventListener('click', async () => {
+    const h = state.helmRollback;
+    if (!h) return;
+    const revision = Number($('#helm-rollback-rev')?.value) || 0;
+    state.helmRollback = null;
+    try {
+      const res = await api(`/api/v1/helm/releases/${encodeURIComponent(h.namespace)}/${encodeURIComponent(h.name)}/rollback`, {
+        method: 'POST',
+        body: JSON.stringify({ revision }),
+      });
+      trackJob({ kind: 'helm', label: `Rollback ${h.name}`, namespace: h.namespace, name: h.name, jobName: res.jobName, phase: 'Pending' });
+      toast(res.message || `Rollback started for ${h.name}`);
+      state.opsLoaded.helm = false;
+      await ensureOpsPage('helm', true);
+      render();
+    } catch (error) {
+      toast(error.message || 'Rollback failed', 'error');
+      render();
+    }
+  });
+}
+
 function wireConfirm() {
   const input = $('#confirm-input');
   const go = $('#confirm-go');
@@ -3748,7 +3840,11 @@ async function workloadAction(action, body) {
 
 async function doAction(action) {
   try {
-    if (['start', 'stop', 'restart'].includes(action)) return workloadAction(action);
+    if (['start', 'stop', 'restart', 'scale'].includes(action)) return workloadAction(action);
+    if (action === 'unseal') {
+      const w = state.selected;
+      return mutate(`/api/v1/workloads/${encodeURIComponent(w.namespace)}/${encodeURIComponent(w.kind)}/${encodeURIComponent(w.name)}/unseal`, { method: 'POST' }, 'Isolation removed');
+    }
     if (action === 'delete-workload') {
       const w = state.selected;
       return requestConfirm({ title: 'Delete workload', name: w.name, confirmLabel: 'Delete', onConfirm: async () => {
@@ -4313,6 +4409,7 @@ window.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     if (state.still) { state.still = null; render(); }
     else if (state.confirm) { state.confirm = null; render(); }
+    else if (state.helmRollback) { state.helmRollback = null; render(); }
     else if (state.palette) { state.palette = false; render(); }
     else if (state.launch) { state.launch = false; state.placeStep = 1; render(); }
     else if (state.selected) closeDrawer();

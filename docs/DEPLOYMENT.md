@@ -58,6 +58,8 @@ For a lab NodePort (self-signed HTTPS):
 https://<node-ip>:30590
 ```
 
+If port `30590` is already allocated (e.g. by another NodePort service), override with `AXIOM_NODE_PORT=30591` when deploying.
+
 Accept the browser certificate warning once. Probe with:
 
 ```bash
@@ -107,7 +109,7 @@ make deploy-remote H=80.79.5.173 U=zyvorai
 
 ### Prerequisites (remote host)
 
-- SSH access (key-based recommended): `ssh zyvorai@80.79.5.173`
+- SSH access (key-based recommended): `ssh zyvorai@<host>` — some lab hosts use a different user (e.g. `sus@80.79.5.173`); pass it as the second argument
 - k3s with `kubectl` configured for the deploy user (`~/.kube/config`)
 - `podman` or `docker` for image builds
 - `openssl` for self-signed cert generation
@@ -139,7 +141,7 @@ ssh zyvorai@80.79.5.173 kubectl -n axiom-system logs -l app=zyvor-axiom --tail=5
 ssh zyvorai@80.79.5.173 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
 ```
 
-If the NodePort is blocked, open TCP `30590` on the host firewall (the deploy script attempts this automatically).
+If the NodePort is blocked, open TCP `30590` (or your `AXIOM_NODE_PORT`) on the host firewall (the deploy script attempts this automatically).
 
 Uninstall:
 

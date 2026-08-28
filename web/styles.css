@@ -1143,8 +1143,9 @@ tr[data-workload-id]:hover, tr[data-pod-id]:hover, tr[data-node-id]:hover { back
 .rollout-section .rollout-stats { font-size: 12px; color: var(--muted); margin: 6px 0 10px; }
 .rollout-history { margin-top: 10px; display: grid; gap: 6px; }
 .rollout-rev { font-size: 11px; color: var(--muted); }
+.pw-chip-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; }
 .pw-chip {
-  display: inline-flex; margin: 0 0 16px; padding: 8px 12px; border-radius: 99px;
+  display: inline-flex; margin: 0; padding: 8px 12px; border-radius: 99px;
   font-size: 12px; border: 1px solid var(--line); color: var(--muted);
 }
 .pw-chip.ok { border-color: #286149; color: var(--green); }

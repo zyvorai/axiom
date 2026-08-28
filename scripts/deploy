@@ -52,7 +52,7 @@ case "$cmd" in
     if axiom_load_deploy_last "$REPO_DIR"; then
       axiom_ui_banner "Deploy status" "${USER:-?}@${HOST:-?}"
       axiom_ui_kv "Host" "${HOST:-?}"
-      axiom_ui_kv "User" "${USER:-root}"
+      axiom_ui_kv "User" "${USER:-zyvorai}"
       axiom_ui_kv "Updated" "${UPDATED:-?}"
       axiom_ui_kv "Mode" "${MODE:-?}"
       axiom_ui_kv "Image tag" "${IMAGE_TAG:-?}"
