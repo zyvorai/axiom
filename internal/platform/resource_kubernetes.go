@@ -44,15 +44,35 @@ func (k *KubernetesProvider) GetResource(ctx context.Context, ns, kind, name str
 		detail.Annotations = obj.Annotations
 		detail.Manifest = objectToMap(obj)
 		detail.ContainerPorts = containerPortsFromPodTemplate(&obj.Spec.Template)
+	case "pod":
+		obj, err := k.client.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			return detail, err
+		}
+		detail.Labels = obj.Labels
+		detail.Annotations = obj.Annotations
+		detail.Manifest = objectToMap(obj)
+		for _, c := range obj.Spec.Containers {
+			for _, p := range c.Ports {
+				detail.ContainerPorts = append(detail.ContainerPorts, map[string]any{
+					"container": c.Name,
+					"port":      p.ContainerPort,
+					"protocol":  string(p.Protocol),
+					"name":      p.Name,
+				})
+			}
+		}
 	default:
 		return detail, fmt.Errorf("unsupported kind: %s", kind)
 	}
 
-	pods, err := k.ListPods(ctx, ns)
-	if err == nil {
-		for _, p := range pods {
-			if strings.HasPrefix(p.Name, name+"-") || strings.Contains(p.Name, name) {
-				detail.Pods = append(detail.Pods, p)
+	if strings.ToLower(kind) != "pod" {
+		pods, err := k.ListPods(ctx, ns)
+		if err == nil {
+			for _, p := range pods {
+				if strings.HasPrefix(p.Name, name+"-") || strings.Contains(p.Name, name) {
+					detail.Pods = append(detail.Pods, p)
+				}
 			}
 		}
 	}

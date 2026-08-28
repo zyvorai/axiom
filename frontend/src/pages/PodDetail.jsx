@@ -15,8 +15,24 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Cpu, MemoryStick, ExternalLink, Trash2, Terminal, ScrollText, BellRing, Tag, Box } from "lucide-react";
+import {
+    ArrowLeft,
+    Cpu,
+    MemoryStick,
+    ExternalLink,
+    Trash2,
+    Terminal,
+    ScrollText,
+    BellRing,
+    Tag,
+    Box,
+    FileJson,
+    HardDrive,
+    ShieldCheck,
+    UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
+import PodTerminal from "@/components/PodTerminal";
 
 function ExecPanel({ namespace, name, containers }) {
     const [container, setContainer] = useState(containers[0] || "");
@@ -71,23 +87,103 @@ function ExecPanel({ namespace, name, containers }) {
     );
 }
 
+function probeSummary(p) {
+    if (!p) return null;
+    if (p.httpGet) return `HTTP GET ${p.httpGet.path || "/"}:${p.httpGet.port}`;
+    if (p.tcpSocket) return `TCP :${p.tcpSocket.port}`;
+    if (p.exec) return `exec ${(p.exec.command || []).join(" ")}`;
+    return "configured";
+}
+
+function ContainerSpecCard({ c }) {
+    const resources = c.resources || {};
+    return (
+        <GlassCard className="p-4">
+            <div className="flex items-center justify-between">
+                <div className="mono text-sm">{c.name}</div>
+                <div className="mono truncate text-[11px] text-muted-foreground">{c.image}</div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+                <div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">CPU req/lim</div>
+                    <div className="mono mt-0.5">
+                        {resources.requests?.cpu || "—"} / {resources.limits?.cpu || "—"}
+                    </div>
+                </div>
+                <div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Mem req/lim</div>
+                    <div className="mono mt-0.5">
+                        {resources.requests?.memory || "—"} / {resources.limits?.memory || "—"}
+                    </div>
+                </div>
+                <div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Liveness</div>
+                    <div className="mono mt-0.5 truncate">{probeSummary(c.livenessProbe) || "—"}</div>
+                </div>
+                <div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Readiness</div>
+                    <div className="mono mt-0.5 truncate">{probeSummary(c.readinessProbe) || "—"}</div>
+                </div>
+            </div>
+            {(c.env || []).length > 0 && (
+                <div className="mt-3 border-t border-white/5 pt-3">
+                    <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Environment</div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {c.env.map((e, i) => (
+                            <Badge key={i} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                {e.name}={e.value ?? (e.valueFrom ? "<from ref>" : "")}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {(c.volumeMounts || []).length > 0 && (
+                <div className="mt-3 border-t border-white/5 pt-3">
+                    <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Mounts</div>
+                    <div className="space-y-1">
+                        {c.volumeMounts.map((m, i) => (
+                            <div key={i} className="mono text-[11px] text-muted-foreground">
+                                {m.name} → {m.mountPath}
+                                {m.readOnly ? " (ro)" : ""}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </GlassCard>
+    );
+}
+
 export default function PodDetail() {
     const { namespace, name } = useParams();
     const navigate = useNavigate();
     const [pods, setPods] = useState(null);
     const [events, setEvents] = useState(null);
+    const [capabilities, setCapabilities] = useState(null);
+    const [detail, setDetail] = useState(null);
 
     useEffect(() => {
         let alive = true;
         api.get("/pods", { params: { namespace } }).then((r) => alive && setPods(r.data));
         api.get("/events", { params: { namespace } }).then((r) => alive && setEvents(r.data));
+        api
+            .get("/realtime/capabilities")
+            .then((r) => alive && setCapabilities(r.data))
+            .catch(() => alive && setCapabilities({ interactiveExec: false }));
+        api
+            .get(`/resources/${namespace}/pod/${encodeURIComponent(name)}`)
+            .then((r) => alive && setDetail(r.data))
+            .catch(() => alive && setDetail(false));
         return () => {
             alive = false;
         };
-    }, [namespace]);
+    }, [namespace, name]);
 
     const pod = useMemo(() => (pods || []).find((p) => p.name === name), [pods, name]);
     const podEvents = useMemo(() => (events || []).filter((e) => e.object === `Pod/${name}`), [events, name]);
+    const spec = detail && detail.manifest ? detail.manifest.spec : null;
+    const status = detail && detail.manifest ? detail.manifest.status : null;
+    const owner = (detail?.manifest?.metadata?.ownerReferences || [])[0];
 
     const evict = async () => {
         try {
@@ -132,6 +228,14 @@ export default function PodDetail() {
                         <span className="mono">{pod.ip}</span>
                         <span>·</span>
                         <span>{pod.age}</span>
+                        {owner && (
+                            <>
+                                <span>·</span>
+                                <span>
+                                    owner: <span className="mono">{owner.kind}/{owner.name}</span>
+                                </span>
+                            </>
+                        )}
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -170,12 +274,15 @@ export default function PodDetail() {
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList className="bg-white/[0.03] p-1">
+                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
-                        <Box className="h-3.5 w-3.5" /> Containers
+                        <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>
                     <TabsTrigger value="terminal" className="gap-1.5">
                         <Terminal className="h-3.5 w-3.5" /> Terminal
+                    </TabsTrigger>
+                    <TabsTrigger value="yaml" className="gap-1.5">
+                        <FileJson className="h-3.5 w-3.5" /> YAML
                     </TabsTrigger>
                     <TabsTrigger value="events" className="gap-1.5">
                         <BellRing className="h-3.5 w-3.5" /> Events ({podEvents.length})
@@ -186,21 +293,117 @@ export default function PodDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
-                    <GlassCard className="p-0 overflow-hidden">
-                        <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Containers</div>
-                        {(pod.containerInfo || pod.containers || []).map((c, i) => {
-                            const info = typeof c === "string" ? { name: c } : c;
-                            return (
-                                <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
-                                    <div className="mono text-sm">
-                                        {info.name}
-                                        {info.init && <Badge variant="outline" className="ml-2 border-white/10 bg-white/[0.03] text-[10px]">init</Badge>}
+                    {spec ? (
+                        <>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <GlassCard className="p-4">
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+                                        <UserCog className="h-3 w-3" /> Service account
                                     </div>
-                                    {info.state && <StatusBadge status={info.ready ? "Running" : info.state} />}
+                                    <div className="mono mt-1 text-sm">{spec.serviceAccountName || "default"}</div>
+                                </GlassCard>
+                                <GlassCard className="p-4">
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+                                        <ShieldCheck className="h-3 w-3" /> Restart policy
+                                    </div>
+                                    <div className="mono mt-1 text-sm">{spec.restartPolicy || "Always"}</div>
+                                </GlassCard>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="text-sm font-medium">Containers</div>
+                                {(spec.containers || []).map((c) => (
+                                    <ContainerSpecCard key={c.name} c={c} />
+                                ))}
+                            </div>
+
+                            {(spec.initContainers || []).length > 0 && (
+                                <div className="space-y-3">
+                                    <div className="text-sm font-medium">Init containers</div>
+                                    {spec.initContainers.map((c) => (
+                                        <ContainerSpecCard key={c.name} c={c} />
+                                    ))}
                                 </div>
-                            );
-                        })}
-                    </GlassCard>
+                            )}
+
+                            {(spec.volumes || []).length > 0 && (
+                                <GlassCard className="p-0 overflow-hidden">
+                                    <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
+                                        <HardDrive className="h-4 w-4 text-[#b49bd8]" /> Volumes
+                                    </div>
+                                    {spec.volumes.map((v, i) => {
+                                        const kind = Object.keys(v).find((k) => k !== "name") || "—";
+                                        return (
+                                            <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                                                <span className="mono">{v.name}</span>
+                                                <span className="text-muted-foreground">{kind}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </GlassCard>
+                            )}
+
+                            {(status?.conditions || []).length > 0 && (
+                                <GlassCard className="p-0 overflow-hidden">
+                                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Conditions</div>
+                                    {status.conditions.map((c, i) => (
+                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                                            <span>{c.type}</span>
+                                            <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
+                                        </div>
+                                    ))}
+                                </GlassCard>
+                            )}
+
+                            {Object.keys(spec.nodeSelector || {}).length > 0 && (
+                                <GlassCard className="p-4">
+                                    <div className="mb-2 text-sm font-medium">Node selector</div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {Object.entries(spec.nodeSelector).map(([k, v]) => (
+                                            <Badge key={k} variant="outline" className="mono text-[11px] border-white/10 bg-white/[0.03]">
+                                                {k}={v}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </GlassCard>
+                            )}
+
+                            {(spec.tolerations || []).length > 0 && (
+                                <GlassCard className="p-4">
+                                    <div className="mb-2 text-sm font-medium">Tolerations</div>
+                                    <div className="space-y-1 text-xs">
+                                        {spec.tolerations.map((t, i) => (
+                                            <div key={i} className="mono text-muted-foreground">
+                                                {t.key || "*"}
+                                                {t.operator ? ` ${t.operator}` : ""}
+                                                {t.value ? ` ${t.value}` : ""} · {t.effect || "any"}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </GlassCard>
+                            )}
+                        </>
+                    ) : detail === null ? (
+                        <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                    ) : (
+                        <div className="space-y-4">
+                            <GlassCard className="p-0 overflow-hidden">
+                                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Containers</div>
+                                {(pod.containerInfo || pod.containers || []).map((c, i) => {
+                                    const info = typeof c === "string" ? { name: c } : c;
+                                    return (
+                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
+                                            <div className="mono text-sm">
+                                                {info.name}
+                                                {info.init && <Badge variant="outline" className="ml-2 border-white/10 bg-white/[0.03] text-[10px]">init</Badge>}
+                                            </div>
+                                            {info.state && <StatusBadge status={info.ready ? "Running" : info.state} />}
+                                        </div>
+                                    );
+                                })}
+                            </GlassCard>
+                        </div>
+                    )}
 
                     {(pod.ports || []).length > 0 && (
                         <GlassCard className="p-0 overflow-hidden">
@@ -225,7 +428,30 @@ export default function PodDetail() {
                 </TabsContent>
 
                 <TabsContent value="terminal" className="mt-4">
-                    <ExecPanel namespace={pod.namespace} name={pod.name} containers={containers} />
+                    {capabilities?.interactiveExec ? (
+                        <PodTerminal namespace={pod.namespace} name={pod.name} containers={containers} />
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                                Interactive terminal requires a live Kubernetes connection. Running a one-shot command instead.
+                            </div>
+                            <ExecPanel namespace={pod.namespace} name={pod.name} containers={containers} />
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="yaml" className="mt-4">
+                    <GlassCard className="p-0 overflow-hidden">
+                        {detail && detail.manifest ? (
+                            <pre className="mono max-h-[65vh] overflow-auto whitespace-pre-wrap p-4 text-[12px] text-foreground/90">
+                                {JSON.stringify(detail.manifest, null, 2)}
+                            </pre>
+                        ) : (
+                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                                {detail === false ? "Manifest unavailable in this mode." : "Loading…"}
+                            </div>
+                        )}
+                    </GlassCard>
                 </TabsContent>
 
                 <TabsContent value="events" className="mt-4">
