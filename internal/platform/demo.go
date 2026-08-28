@@ -264,6 +264,32 @@ func (d *DemoProvider) DeletePod(ctx context.Context, ns, name string) error {
 func (d *DemoProvider) EvictPod(ctx context.Context, ns, name string) error {
 	return d.DeletePod(ctx, ns, name)
 }
+func (d *DemoProvider) DiagnosePod(ctx context.Context, ns, name string) (PodDiagnosis, error) {
+	pods, err := d.ListPods(ctx, ns)
+	if err != nil {
+		return PodDiagnosis{}, err
+	}
+	for _, p := range pods {
+		if p.Name != name {
+			continue
+		}
+		diag := PodDiagnosis{Namespace: ns, Name: name, Phase: p.Status}
+		switch p.Status {
+		case "CrashLoopBackOff":
+			diag.Scheduled = true
+			diag.Diagnosis = "Container is crash-looping — check pod logs for the startup error."
+			diag.Events = []string{"BackOff: Back-off restarting failed container"}
+		case "Sealed":
+			diag.Scheduled = true
+			diag.Diagnosis = "Pod is running but network-isolated by an Axiom seal (deny-all NetworkPolicy)."
+		default:
+			diag.Scheduled = true
+			diag.Diagnosis = "Pod is scheduled and running normally."
+		}
+		return diag, nil
+	}
+	return PodDiagnosis{}, errors.New("pod not found")
+}
 func (d *DemoProvider) ListNodes(ctx context.Context) ([]Node, error) {
 	return []Node{
 		{Name: "axiom-01", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.11", Pods: 18, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},

@@ -518,6 +518,72 @@ func (k *KubernetesProvider) EvictPod(ctx context.Context, ns, name string) erro
 	return k.client.PolicyV1().Evictions(ns).Evict(ctx, &policyv1.Eviction{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}, DeleteOptions: &metav1.DeleteOptions{}})
 }
 
+// DiagnosePod aggregates the pod's PodScheduled condition, matching
+// FailedScheduling/warning events, and container waiting reasons into a
+// single plain-English diagnosis — the "why is this pod not running"
+// answer real operators reach for, without a new k8s API dependency
+// beyond what ListPods/ListEvents already use.
+func (k *KubernetesProvider) DiagnosePod(ctx context.Context, ns, name string) (PodDiagnosis, error) {
+	pod, err := k.client.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return PodDiagnosis{}, err
+	}
+	diag := PodDiagnosis{Namespace: ns, Name: name, Phase: string(pod.Status.Phase)}
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodScheduled {
+			diag.Scheduled = c.Status == corev1.ConditionTrue
+			diag.Reason = c.Reason
+			diag.Message = c.Message
+			break
+		}
+	}
+	events, err := k.client.CoreV1().Events(ns).List(ctx, metav1.ListOptions{
+		FieldSelector: fields.AndSelectors(
+			fields.OneTermEqualSelector("involvedObject.name", name),
+			fields.OneTermEqualSelector("involvedObject.kind", "Pod"),
+		).String(),
+	})
+	var evStrs []string
+	if err == nil {
+		for _, e := range events.Items {
+			if e.Type == corev1.EventTypeWarning {
+				evStrs = append(evStrs, fmt.Sprintf("%s: %s", e.Reason, e.Message))
+			}
+		}
+	}
+	diag.Events = evStrs
+
+	switch {
+	case !diag.Scheduled:
+		switch {
+		case diag.Message != "":
+			diag.Diagnosis = diag.Message
+		case len(evStrs) > 0:
+			diag.Diagnosis = evStrs[0]
+		default:
+			diag.Diagnosis = "Pod has not been scheduled to a node yet."
+		}
+	case pod.Status.Phase == corev1.PodRunning || pod.Status.Phase == corev1.PodSucceeded:
+		diag.Diagnosis = "Pod is scheduled and running normally."
+	default:
+		var waiting []string
+		for _, cs := range pod.Status.ContainerStatuses {
+			if cs.State.Waiting != nil {
+				waiting = append(waiting, fmt.Sprintf("%s: %s (%s)", cs.Name, cs.State.Waiting.Reason, cs.State.Waiting.Message))
+			}
+		}
+		switch {
+		case len(waiting) > 0:
+			diag.Diagnosis = strings.Join(waiting, "; ")
+		case len(evStrs) > 0:
+			diag.Diagnosis = evStrs[0]
+		default:
+			diag.Diagnosis = fmt.Sprintf("Pod is scheduled to %s and starting.", pod.Spec.NodeName)
+		}
+	}
+	return diag, nil
+}
+
 func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 	nodes, err := k.client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {

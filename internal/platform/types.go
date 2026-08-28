@@ -735,6 +735,17 @@ type CRDSummary struct {
 	Age     string `json:"age"`
 }
 
+type PodDiagnosis struct {
+	Namespace string   `json:"namespace"`
+	Name      string   `json:"name"`
+	Phase     string   `json:"phase"`
+	Scheduled bool     `json:"scheduled"`
+	Reason    string   `json:"reason,omitempty"`
+	Message   string   `json:"message,omitempty"`
+	Events    []string `json:"events,omitempty"`
+	Diagnosis string   `json:"diagnosis"`
+}
+
 type GatewaySummary struct {
 	Kind      string   `json:"kind"`
 	Namespace string   `json:"namespace,omitempty"`

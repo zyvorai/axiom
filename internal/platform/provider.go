@@ -129,4 +129,6 @@ type Provider interface {
 	ListGateways(context.Context, string) ([]GatewaySummary, error)
 
 	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
+
+	DiagnosePod(context.Context, string, string) (PodDiagnosis, error)
 }

@@ -327,3 +327,6 @@ func (sp *SwitchableProvider) ListGateways(a0 context.Context, a1 string) ([]Gat
 func (sp *SwitchableProvider) CreateVeleroSchedule(a0 context.Context, a1 CreateVeleroScheduleRequest) (VeleroSchedule, error) {
 	return sp.current().CreateVeleroSchedule(a0, a1)
 }
+func (sp *SwitchableProvider) DiagnosePod(a0 context.Context, a1 string, a2 string) (PodDiagnosis, error) {
+	return sp.current().DiagnosePod(a0, a1, a2)
+}

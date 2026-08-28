@@ -33,6 +33,7 @@ import {
     UserCog,
     Save,
     Activity,
+    AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
@@ -235,6 +236,18 @@ export default function PodDetail() {
     const [detail, setDetail] = useState(null);
     const [manifestText, setManifestText] = useState("");
     const [saving, setSaving] = useState(false);
+    const [diagnosis, setDiagnosis] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        api
+            .get(`/pods/${namespace}/${encodeURIComponent(name)}/diagnosis`)
+            .then((r) => alive && setDiagnosis(r.data))
+            .catch(() => alive && setDiagnosis(null));
+        return () => {
+            alive = false;
+        };
+    }, [namespace, name]);
 
     useEffect(() => {
         let alive = true;
@@ -343,6 +356,25 @@ export default function PodDetail() {
                     </Button>
                 </div>
             </div>
+
+            {diagnosis && !diagnosis.scheduled && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <div className="min-w-0">
+                        <div className="text-sm font-medium text-amber-300">Not scheduled</div>
+                        <div className="mt-0.5 text-sm text-amber-100/90">{diagnosis.diagnosis}</div>
+                    </div>
+                </div>
+            )}
+            {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
+                <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                        <div className="text-sm font-medium">{diagnosis.phase}</div>
+                        <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <GlassCard className="p-4">

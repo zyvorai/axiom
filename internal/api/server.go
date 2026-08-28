@@ -97,6 +97,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/pods", s.pods)
 	mux.HandleFunc("DELETE /api/v1/pods/{namespace}/{name}", s.deletePod)
 	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/evict", s.evictPod)
+	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/diagnosis", s.diagnosePod)
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/logs", s.logs)
 	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/exec", s.execCommand)
 	mux.HandleFunc("GET /api/v1/nodes", s.nodes)
@@ -393,6 +394,10 @@ func (s *Server) evictPod(w http.ResponseWriter, r *http.Request) {
 		EmitStateChanged("pod", "evict")
 	}
 	respondAction(w, err)
+}
+func (s *Server) diagnosePod(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.DiagnosePod(r.Context(), r.PathValue("namespace"), r.PathValue("name"))
+	respond(w, v, err)
 }
 func (s *Server) nodes(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListNodes(r.Context())
