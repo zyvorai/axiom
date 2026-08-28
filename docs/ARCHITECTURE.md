@@ -61,6 +61,8 @@ Registration differs by mode (`internal/platform/factory_demo.go`, `factory_kube
 
 `GET /api/v1/clusters` / `POST /api/v1/clusters/{name}/activate` (`internal/api/clusters.go`) are the only two places that type-assert `s.provider.(*platform.SwitchableProvider)` — everything else stays cluster-agnostic.
 
+`platform.CurrentKubernetesProvider(p)` (`internal/platform/kubernetes_lookup.go`, kubernetes-tagged) is the one place anything needs the concrete `*KubernetesProvider` behind the active cluster — used by the k8s-backed Users/Audit/Integrations stores and the interactive terminal handler. **Anything that type-asserts `Provider` directly to `*KubernetesProvider` instead of going through this helper will silently break the moment there's more than one cluster registered** — this happened once already (see the 2026-08-28 TEST-RESULTS.md entry: it broke the interactive terminal and all Integrations persistence in production) and was fixed by routing every such call site through the shared helper instead of leaving near-duplicate type switches to drift.
+
 ## Realtime layer
 
 `GET /api/v1/realtime/capabilities` advertises `interactiveExec` (real WebSocket PTY availability, kubernetes-build-only) and `logFollow`. `GET /api/v1/pods/{namespace}/{name}/terminal` (kubernetes build only) upgrades to a WebSocket and pipes a real PTY (`remotecommand.NewSPDYExecutor` with `TTY:true`) — the client sends raw keystrokes plus a `__resize__:WIDTHxHEIGHT` control message, and receives raw terminal output as binary WebSocket frames. The frontend's `PodTerminal.jsx` component (xterm.js) implements this protocol.
@@ -79,9 +81,16 @@ Settings persist integration config in-memory (demo) or via the cluster config h
 
 ## Users and RBAC
 
-`internal/platform/users.go` defines `User`/`UserStore`/`UserHub`; passwords are bcrypt-hashed (`golang.org/x/crypto/bcrypt`), never stored or returned in cleartext. `UserHub` keeps an in-memory cache loaded from the store at startup so every request authenticates without a store round-trip. Persistence mirrors the Integrations pattern: `MemoryUserStore` in demo, `K8sUserStore` in production (a single JSON blob under `zyvor-axiom-users` Secret's `users.json` key, in the same namespace as everything else Axiom owns).
+`internal/platform/users.go` defines `User`/`UserStore`/`UserHub`; passwords are bcrypt-hashed (`golang.org/x/crypto/bcrypt`), never stored or returned in cleartext. `UserHub` keeps an in-memory cache loaded from the store at startup so every request authenticates without a store round-trip. Persistence mirrors the Integrations pattern: `MemoryUserStore` in demo, `K8sUserStore` in production (a single JSON blob under `zyvor-axiom-users` Secret's `users.json` key, in the same namespace as everything else Axiom owns). `UserHub.UpdateRole`/`ResetPassword`/`UpdateNamespaces` let an existing account be edited in place rather than requiring delete-and-recreate.
 
-`UserHub` implements `auth.UserAuthenticator` (`Authenticate(username, password) (role string, ok bool)`), which `internal/auth.Guard` consults after the single env-configured account fails to match. `Guard.Middleware` resolves a full `Identity{User, Role}` for every request — from the session cookie (OIDC), the API key, the env account, or a local `UserHub` account — and rejects any `viewer`-role identity attempting a mutating HTTP verb (`POST`/`PUT`/`PATCH`/`DELETE`) with `403`, before the request reaches routing. This is the only enforcement point; no individual handler checks role.
+`UserHub` implements `auth.UserAuthenticator` (`Authenticate(username, password) (role string, namespaces []string, ok bool)`), which `internal/auth.Guard` consults after the single env-configured account fails to match. `Guard.Middleware` resolves a full `Identity{User, Role, Namespaces}` for every request — from the session cookie (OIDC), the API key, the env account, or a local `UserHub` account — and:
+
+1. Rejects any `viewer`-role identity attempting a mutating HTTP verb (`POST`/`PUT`/`PATCH`/`DELETE`) with `403`, before the request reaches routing.
+2. For an identity with a non-empty `Namespaces` (only ever set on local viewer accounts — `platform.normalizeNamespaces` forces it to `nil` for any admin), checks the request's namespace against the allowed set via `namespaceOfRequest` — reading `?namespace=` when present, or the path segment following a fixed allowlist of namespaced-resource prefixes (`namespacedResourcePrefixes`) otherwise. A request that resolves to no namespace or `all` is treated as cross-namespace and blocked, since that's the exact leak this exists to prevent.
+
+Both checks are the only enforcement points; no individual handler checks role or namespace. OIDC sessions get a role from `internal/api/oidc.go`'s `resolveOIDCRole`, which reads the ID token's groups claim (`AXIOM_OIDC_GROUPS_CLAIM`, default `groups`) and maps it against `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` — unset (the default), every OIDC session stays admin, unchanged from before this existed. OIDC sessions never carry a namespace restriction in this pass; that's local-viewer-only.
+
+The audit trail (`internal/platform/audit.go`) persists the same way: an optional `AuditStore` (`SetAuditStore`, called once at startup) backs the existing in-memory ring, so `RecordAxiomAudit`/`ListAxiomAudit` call sites never changed — in kubernetes mode a `zyvor-axiom-audit` ConfigMap holds the last 200 entries and survives restarts; demo mode stays purely in-memory.
 
 ## Alert notifications
 
@@ -107,7 +116,7 @@ Axiom does not expose a misleading VM-like "power" abstraction for Kubernetes Po
 
 ### Demo
 
-The default build has zero third-party Go dependencies.
+The default build has no Kubernetes/client-go dependency — it stays runnable in restricted/offline environments. It does pull in a handful of small, non-Kubernetes third-party packages used by both builds (`golang.org/x/crypto/bcrypt` for local user passwords, `jackc/pgx` for the Postgres integration test probe, `gorilla/websocket`).
 
 ```bash
 go build ./cmd/zyvor-axiom
@@ -122,6 +131,8 @@ go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom
 ```
 
 The provider first tries in-cluster configuration, then `KUBECONFIG`, then `$HOME/.kube/config`.
+
+`.github/workflows/ci.yml` builds and vets/tests both profiles on every push/PR.
 
 ## UI source layout
 

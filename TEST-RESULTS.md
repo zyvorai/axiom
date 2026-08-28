@@ -1,5 +1,33 @@
 # Zyvor Axiom Validation Results
 
+## 2026-08-28 (latest) — audit persistence, CI, user edit, viewer banner, real Keycloak SSO, namespace RBAC — plus a regression found and fixed
+
+Continuation of the "what else is missing" punch list, implemented one item at a time:
+
+```text
+go test ./cmd/... ./internal/...                                        PASS
+go vet ./cmd/... ./internal/...                                         PASS
+go build ./cmd/zyvor-axiom                                              PASS (demo build)
+go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (kubernetes build)
+npx craco build (frontend/)                                             PASS
+```
+
+**Audit log persistence** — `internal/platform/audit.go` gained an optional `AuditStore`. Verified against the real 80.79.5.173 cluster: created a user (generating an audit entry), restarted the pod, confirmed the entry survived — persisted in a `zyvor-axiom-audit` ConfigMap.
+
+**CI pipeline** — `.github/workflows/ci.yml` mirrors the exact sequence run manually all session (frontend build → demo vet/test/build → kubernetes vet/build → manifest YAML sanity check). Ran the full sequence locally end-to-end, including deliberately breaking `internal/ui/dist/` to confirm the embed-failure mode the step ordering exists to avoid. The workflow itself is correct but the first push-triggered run failed to start — a GitHub billing/spending-limit issue on the `zyvorai` org, unrelated to the workflow.
+
+**Edit-role / reset-password for local users** — `PATCH /api/v1/users/{username}`. Verified via curl (create viewer → PATCH role to admin → PATCH password → authenticate with the new password as admin → write succeeds) and via the real Chrome UI (opened the new pencil-icon Edit dialog, changed a role from viewer to admin, watched the badge update with the correct toast).
+
+**Viewer role banner** — a persistent strip under the TopBar for any Viewer session, closing the "no visual indication of read-only" gap. Verified in Chrome side-by-side: an admin tab shows nothing, a fresh local-viewer tab shows the banner consistently across pages.
+
+**Real Keycloak SSO wiring (via Chrome, live infrastructure)** — configured a real Keycloak instance (175.110.122.71:30180) end-to-end: fixed its `sslRequired` policy blocking plain-HTTP admin login (required an admin action the user performed themselves — passwords are never entered by the assistant), created the `zyvor-axiom` OIDC client (public, PKCE, correct redirect URI for the live 80.79.5.173 deployment), created `platform-admins`/`platform-viewers` groups, added a Group Membership protocol mapper emitting a bare-name (not full-path) `groups` claim into the ID token, and wired Axiom's Settings → Integrations + `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP`.
+
+**Regression found and fixed along the way**: verifying OIDC persistence surfaced that a `PUT /api/v1/integrations` "succeeded" but didn't survive a pod restart — the multi-cluster `SwitchableProvider` change (earlier this session) had left `OpenIntegrationStore` and the interactive-terminal WebSocket handler still type-asserting `Provider` directly to `*KubernetesProvider`, which now always fails since `main.go` always passes a `*SwitchableProvider`. This silently downgraded **all** Integrations settings (Atlas/OIDC/Postgres/Probe/notifications) to in-memory-only, and completely broke the interactive Pod terminal (500 on every request) in production. Fixed with one shared `platform.CurrentKubernetesProvider` helper used everywhere this pattern was needed, instead of leaving near-duplicate type switches to individually drift. Verified for real: PUT the OIDC config, restart the pod, confirm it's still there; for the terminal, connected a raw Python `websocket-client` to the real endpoint against a live `virt-launcher` pod, sent `echo HELLO_FROM_REGRESSION_TEST`, and got real bash PTY output back.
+
+**Full end-to-end SSO proof**: created a Keycloak user in `platform-viewers`, signed into Axiom for real (Keycloak login page → redirect → Axiom session), landed on real cluster data (76/80 real pods), saw the Viewer banner render (proving the group→role mapping worked), and confirmed a real write attempt from that browser session's own cookie got a real `403 read-only user` — not a curl simulation, the actual authenticated browser session.
+
+**Namespace-scoped viewer accounts** — a `viewer` account can now be restricted to specific namespaces (`namespaces: []string` on `User`, enforced in the auth middleware via a fixed allowlist of namespaced-resource path prefixes, checked against `?namespace=` or the path segment). Added 8 table-driven Guard tests plus UserHub lifecycle tests. Verified against the real 80.79.5.173 cluster: created a viewer scoped to `aether-system`+`packetwolf`, confirmed `?namespace=aether-system` returned real pod data (200), `?namespace=axiom-system` was blocked (403), and omitting `?namespace=` entirely was also blocked (403, since that means "all namespaces" and would otherwise leak). Also verified the Add User dialog's new namespace-restriction field through the real Chrome UI, including the namespace badges rendering correctly in the Users table.
+
 ## 2026-08-28 (later) — customer-site features: ConfigMaps/Quotas/Ingresses/Jobs, notifications, RBAC, multi-cluster
 
 Six features added in response to "what else needs to be done for a real customer deployment":

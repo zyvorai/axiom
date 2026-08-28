@@ -29,7 +29,7 @@ Output goes to `build/`. This repo doesn't consume it directly from here — `sc
 src/
   App.js              route table
   pages/*.jsx           one file per route
-  components/           shared shell (Sidebar, TopBar, AppShell), PodTerminal.jsx (xterm.js)
+  components/           shared shell (Sidebar, TopBar, AppShell, ViewerBanner), PodTerminal.jsx (xterm.js)
   components/ui/        shadcn/ui primitives (button, dialog, table, tabs, ...)
   lib/
     api.js               axios instance, log streaming, withAccessToken() for WS/plain-link auth

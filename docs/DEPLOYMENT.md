@@ -54,6 +54,8 @@ For least privilege, replace the ClusterRole with namespace-scoped Roles where y
 
 Optionally set `AXIOM_CLUSTER_NAME` on the Deployment to label the single connected cluster shown in the sidebar switcher and Settings → Clusters (defaults to `in-cluster` — see [ARCHITECTURE.md](ARCHITECTURE.md#multi-cluster-switchableprovider)).
 
+To map OIDC group membership to Axiom roles, also set `AXIOM_OIDC_ADMIN_GROUP` and/or `AXIOM_OIDC_VIEWER_GROUP` (and `AXIOM_OIDC_GROUPS_CLAIM` if your IdP doesn't use the claim name `groups`) — leave both unset and every OIDC login stays admin, unchanged from the default.
+
 ## 5. Expose the UI
 
 For a lab NodePort (self-signed HTTPS):
@@ -172,11 +174,11 @@ Uninstall:
 
 - Real TLS certificate (replace self-signed lab cert)
 - OIDC/SAML or identity-aware proxy instead of reference Basic Auth
-- Local `viewer`-role accounts (Settings → Users) for anyone who doesn't need write access, instead of sharing the admin credential
-- namespace-scoped RBAC where possible
+- Local `viewer`-role accounts (Settings → Users) for anyone who doesn't need write access, instead of sharing the admin credential — restrict them to specific namespaces when a team should only see their own workloads
+- namespace-scoped RBAC where possible, both at the Kubernetes ServiceAccount level (`deploy/k8s/rbac.yaml`) and at Axiom's own viewer-account level (Settings → Users)
 - network policy protecting the Axiom namespace
 - external secret management
-- audit log forwarding
+- forward the audit log (`GET /api/v1/audit`, persisted in `zyvor-axiom-audit`) to your real log/SIEM pipeline — Axiom keeps only the most recent 200 entries
 - immutable image tags/digests
 - PodSecurity admission profile
 - resource quotas and LimitRanges (viewable live on Axiom's own Quotas & Limits page)

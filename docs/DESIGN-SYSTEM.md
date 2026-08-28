@@ -76,6 +76,7 @@ The login screen (`frontend/src/pages/Login.jsx`) shows three SSO-styled buttons
 - `GET /api/v1/auth/providers` drives everything: `oidc.enabled`/`saml.enabled` show/hide the SSO buttons and a SAML link; `lab.operator_login: true` + `lab.hint` shows a "fill demo / demo" one-click helper under the local form
 - Clicking an SSO button when OIDC isn't configured shows a toast pointing at Settings instead of doing nothing
 - `AXIOM_LDAP_ENABLED`/`AXIOM_LDAP_DOMAIN`/`AXIOM_LDAP_URL` are surfaced in `GET /api/v1/auth/providers`'s `ldap` block, but there is no actual LDAP bind/authentication implementation behind them yet (`internal/auth` only implements Basic, OIDC and SAML-cookie checks) — a known gap, not a login option today
+- An OIDC login's role (admin vs. viewer) is resolved server-side from the ID token's group claim when `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` are configured — the frontend has no visibility into this beyond the `role` it gets back from `GET /api/v1/session`, same as a local account
 
 ## Shell
 
@@ -125,7 +126,9 @@ Status chip from `GET /api/v1/packetwolf/status`. When connected, the flows pane
 
 ## Users page
 
-`frontend/src/pages/Users.jsx` — a table (username, role badge, created-at, delete) plus an "Add user" dialog (username, password, a shadcn `Select` for admin/viewer). Backed by `GET/POST/DELETE /api/v1/users`. There is no edit-role flow today — change a role by deleting and re-creating the account.
+`frontend/src/pages/Users.jsx` — a table (username, role badge, namespace badges or "All namespaces", created-at, edit + delete) plus "Add user" and "Edit user" dialogs (username — create only, password, a shadcn `Select` for admin/viewer, and a comma-separated namespace-restriction field shown only when role is viewer). Backed by `GET/POST/PATCH/DELETE /api/v1/users`; `PATCH` accepts role/password/namespaces independently so an existing account can be edited in place. A viewer-restricted account shows its allowed namespaces as badges in the table; an unrestricted viewer shows "All namespaces".
+
+`frontend/src/components/ViewerBanner.jsx` renders a small persistent strip under the TopBar (`AppShell.jsx`) whenever the signed-in account's role is Viewer — sourced from `useAuth()`'s `isViewer`, itself derived from `GET /api/v1/session`'s `role` field. It's the only role-aware UI chrome; individual pages don't hide or disable buttons based on role, relying on the backend's 403 instead.
 
 ## Notifications (Settings)
 

@@ -39,7 +39,7 @@ Multi-cluster switching is real, not cosmetic: the sidebar cluster switcher is b
 
 ## Backend
 
-The core project uses only the Go standard library so the demo build is reproducible in restricted environments.
+The demo build has no Kubernetes/client-go dependency, so it stays reproducible in restricted environments — it does pull in a few small non-Kubernetes packages shared with the production build (`golang.org/x/crypto/bcrypt`, `jackc/pgx`, `gorilla/websocket`).
 
 Production Kubernetes support is kept behind the `kubernetes` build tag and uses:
 
@@ -157,10 +157,14 @@ A browser can't attach an `Authorization` header to a plain link or WebSocket, w
 
 ### Users and roles
 
-Beyond the single env-configured operator account (always `admin`) and any OIDC/SAML login (also always `admin` today — SSO doesn't carry a granular role yet), Settings → Users manages local accounts with bcrypt-hashed passwords, persisted in a `zyvor-axiom-users` Secret in production (in-memory in demo). Each account is `admin` or `viewer`:
+Beyond the single env-configured operator account (always `admin`), Settings → Users manages local accounts with bcrypt-hashed passwords, persisted in a `zyvor-axiom-users` Secret in production (in-memory in demo). Each account is `admin` or `viewer`, with create/edit-role/reset-password/delete all available from the Users page:
 
-- `viewer` accounts can read every page and every `GET` endpoint
+- `viewer` accounts can read every page and every `GET` endpoint; the UI shows a persistent banner so a viewer always knows they're read-only, not just after a failed click
 - Any mutating request (`POST`/`PUT`/`PATCH`/`DELETE`) from a `viewer` is rejected with `403` at the auth middleware (`internal/auth/basic.go`), before it reaches any handler — enforcement is centralized, not per-page
+- A `viewer` can optionally be restricted to specific namespaces (blank = every namespace, the default). Restricted namespace access is checked in the same middleware, before dispatch — via the `?namespace=` query param on list endpoints or the path segment on single-resource GETs (e.g. `/api/v1/secrets/{namespace}/{name}`). Omitting the namespace, or passing `all`, is treated as a cross-namespace request and blocked. Only `viewer` accounts can be namespace-restricted — promoting one to `admin` clears the restriction, since an admin needs cross-namespace write access anyway.
+- OIDC logins can carry a role too: set `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` (and optionally `AXIOM_OIDC_GROUPS_CLAIM`, default `groups`) to map the ID token's group membership claim to a role. Leave both unset (the default) and every OIDC session stays `admin`, unchanged from before. SAML has no real session-issuing code in this project (`AXIOM_SAML_LOGIN_URL` is just a redirect to an external IdP), so it has no role mapping.
+
+The audit log (`GET /api/v1/audit`) persists across restarts in production — a `zyvor-axiom-audit` ConfigMap holds the last 200 entries — rather than the pure in-memory ring it used to be.
 
 ### Multi-cluster
 
@@ -177,6 +181,10 @@ Axiom's Atlas page (and `/api/v1/atlas*`) talks to [Atlas](../atlas), Zyvor's se
 ## Alert notifications
 
 Settings → Notifications configures a Slack incoming-webhook URL and/or a generic alert-webhook URL, each with a one-shot "Test" button (`POST /api/v1/integrations/slack/test`, `.../webhook/test`). When "Forward Warning events automatically" is on, a background dispatcher (`platform.RunAlertDispatcher`) polls `ListAlerts` every 60s and pushes new cluster Warning events to whichever channels are configured — this is genuine outbound delivery (a real Slack message / a real HTTP POST), not a UI-only toggle.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push/PR to `main`: builds the frontend (required before any Go step, since `internal/ui/embed.go`'s `//go:embed dist/*` needs `internal/ui/dist/` populated), then `go vet`/`go test`/`go build` for both the demo and `-tags kubernetes` builds, then sanity-checks `deploy/k8s/*.yaml` parses as valid YAML.
 
 ## Detailed documentation
 

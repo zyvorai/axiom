@@ -241,11 +241,18 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/users` | List local accounts (username, role, createdAt — never the password hash) |
-| POST | `/api/v1/users` | Create a local account: `{"username","password","role":"admin"\|"viewer"}` (password ≥ 8 chars) |
+| GET | `/api/v1/users` | List local accounts (username, role, namespaces, createdAt — never the password hash) |
+| POST | `/api/v1/users` | Create a local account: `{"username","password","role":"admin"\|"viewer","namespaces":[...]}` (password ≥ 8 chars; `namespaces` is ignored unless `role` is `viewer`) |
+| PATCH | `/api/v1/users/{username}` | Update role, password, and/or namespaces independently: `{"role":"viewer","password":"...","namespaces":["team-a"]}` — include only the fields to change |
 | DELETE | `/api/v1/users/{username}` | Delete a local account |
 
-Local accounts are independent of the single env-configured operator account (`AXIOM_USERNAME`/`AXIOM_PASSWORD`, always admin) and of OIDC/SAML logins (also always admin today). A `viewer` account authenticates and can call every `GET` endpoint, but any mutating request returns `403 {"error":"read-only user: this account cannot perform write actions"}`.
+Local accounts are independent of the single env-configured operator account (`AXIOM_USERNAME`/`AXIOM_PASSWORD`, always admin). A `viewer` account authenticates and can call every `GET` endpoint, but any mutating request returns `403 {"error":"read-only user: this account cannot perform write actions"}`.
+
+OIDC logins get a role too when `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` are configured (mapped from the ID token's `groups` claim, or whatever `AXIOM_OIDC_GROUPS_CLAIM` names) — unset (the default), every OIDC session is admin. SAML has no session-issuing code in this project, so it carries no role.
+
+### Namespace-restricted viewers
+
+A `viewer` account's `namespaces` field restricts it to reading only the listed namespaces. Enforcement happens in the auth middleware, before any handler runs, against a fixed allowlist of namespaced-resource paths (workloads, pods, secrets, configmaps, resourcequotas, limitranges, ingresses, jobs, cronjobs, events, network, volumes, backups, external-secrets, vm-snapshots/clones/exports/restores, vms, alerts, agent-runs, platform-intents, resources, helm/releases, velero/backups, velero/schedules, haven/identity) — checked via the `?namespace=` query param on list endpoints, or the namespace path segment on single-resource GETs like `/api/v1/secrets/{namespace}/{name}`. Omitting the namespace, or passing `all`, is treated as a cross-namespace request and rejected with `403 {"error":"this account is restricted to specific namespaces"}`. Cluster-wide administrative surfaces (Nodes, Users, Clusters, Settings/Integrations, RBAC, Cost, Audit) are intentionally left unenforced — namespace-scoping is about workload visibility, not administrative access, which is already governed by the `admin`/`viewer` role.
 
 ## Intent placement
 
