@@ -1,18 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    LayoutDashboard,
-    Server,
-    Boxes,
-    Network,
-    MonitorSmartphone,
-    Database,
-    ScrollText,
-    BellRing,
-    SunMoon,
-    LogOut,
-    Layers,
-} from "lucide-react";
+import { SunMoon, LogOut, Layers, Box, Boxes as BoxesIcon, FolderTree } from "lucide-react";
 import {
     CommandDialog,
     CommandEmpty,
@@ -25,21 +13,16 @@ import {
 import { useCluster } from "@/lib/cluster";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { NAV_ITEMS } from "@/constants/navItems";
 import { PALETTE } from "@/constants/testIds";
-
-const PAGES = [
-    { to: "/overview", label: "Overview", icon: LayoutDashboard },
-    { to: "/nodes", label: "Nodes", icon: Server },
-    { to: "/workloads", label: "Workloads", icon: Boxes },
-    { to: "/networking", label: "Networking · Cilium", icon: Network },
-    { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone },
-    { to: "/storage", label: "Storage", icon: Database },
-    { to: "/logs", label: "Pod Logs", icon: ScrollText },
-    { to: "/events", label: "Events", icon: BellRing },
-];
 
 export default function CommandPalette() {
     const [open, setOpen] = useState(false);
+    const [pods, setPods] = useState([]);
+    const [workloads, setWorkloads] = useState([]);
+    const [namespaces, setNamespaces] = useState([]);
+    const [loadedResources, setLoadedResources] = useState(false);
     const navigate = useNavigate();
     const { clusters, activate } = useCluster();
     const { theme, setTheme } = useTheme();
@@ -61,6 +44,20 @@ export default function CommandPalette() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!open || loadedResources) return;
+        setLoadedResources(true);
+        Promise.all([
+            api.get("/pods").catch(() => ({ data: [] })),
+            api.get("/workloads").catch(() => ({ data: [] })),
+            api.get("/namespaces").catch(() => ({ data: [] })),
+        ]).then(([p, w, n]) => {
+            setPods(p.data || []);
+            setWorkloads(w.data || []);
+            setNamespaces(n.data || []);
+        });
+    }, [open, loadedResources]);
+
     const run = (fn) => {
         setOpen(false);
         fn();
@@ -68,13 +65,14 @@ export default function CommandPalette() {
 
     return (
         <CommandDialog open={open} onOpenChange={setOpen} data-testid={PALETTE.dialog}>
-            <CommandInput data-testid={PALETTE.input} placeholder="Jump to a page, cluster, or action…" />
+            <CommandInput data-testid={PALETTE.input} placeholder="Jump to a page, pod, workload, namespace, cluster, or action…" />
             <CommandList className="scrollbar-thin">
                 <CommandEmpty>Nothing found.</CommandEmpty>
                 <CommandGroup heading="Navigate">
-                    {PAGES.map(({ to, label, icon: Icon }) => (
+                    {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
                         <CommandItem
                             key={to}
+                            value={label}
                             data-testid={PALETTE.item(to.slice(1))}
                             onSelect={() => run(() => navigate(to))}
                         >
@@ -83,11 +81,67 @@ export default function CommandPalette() {
                         </CommandItem>
                     ))}
                 </CommandGroup>
+                {pods.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="Pods">
+                            {pods.map((p) => (
+                                <CommandItem
+                                    key={`${p.namespace}/${p.name}`}
+                                    value={`pod ${p.name} ${p.namespace}`}
+                                    onSelect={() => run(() => navigate(`/pods/${p.namespace}/${encodeURIComponent(p.name)}`))}
+                                >
+                                    <Box className="mr-2 h-4 w-4 text-[#93c88f]" />
+                                    {p.name}
+                                    <span className="ml-auto text-xs text-muted-foreground">{p.namespace}</span>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
+                )}
+                {workloads.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="Workloads">
+                            {workloads.map((w) => (
+                                <CommandItem
+                                    key={`${w.namespace}/${w.kind}/${w.name}`}
+                                    value={`workload ${w.name} ${w.namespace} ${w.kind}`}
+                                    onSelect={() => run(() => navigate(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`))}
+                                >
+                                    <BoxesIcon className="mr-2 h-4 w-4 text-[#e0c996]" />
+                                    {w.name}
+                                    <span className="ml-auto text-xs text-muted-foreground">
+                                        {w.namespace} · {w.kind}
+                                    </span>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
+                )}
+                {namespaces.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="Namespaces">
+                            {namespaces.map((n) => (
+                                <CommandItem
+                                    key={n.name}
+                                    value={`namespace ${n.name}`}
+                                    onSelect={() => run(() => navigate("/namespaces"))}
+                                >
+                                    <FolderTree className="mr-2 h-4 w-4 text-[#6ab6f0]" />
+                                    {n.name}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
+                )}
                 <CommandSeparator />
                 <CommandGroup heading="Switch cluster">
                     {clusters.map((c) => (
                         <CommandItem
                             key={c.name}
+                            value={`cluster ${c.label || c.name}`}
                             data-testid={PALETTE.item(`cluster-${c.name}`)}
                             onSelect={() => run(() => activate(c.name))}
                         >
@@ -100,6 +154,7 @@ export default function CommandPalette() {
                 <CommandSeparator />
                 <CommandGroup heading="Actions">
                     <CommandItem
+                        value="toggle theme"
                         data-testid={PALETTE.item("theme")}
                         onSelect={() => run(() => setTheme(theme === "dark" ? "light" : "dark"))}
                     >
@@ -107,6 +162,7 @@ export default function CommandPalette() {
                         Toggle {theme === "dark" ? "light" : "dark"} mode
                     </CommandItem>
                     <CommandItem
+                        value="sign out"
                         data-testid={PALETTE.item("signout")}
                         onSelect={() =>
                             run(() => {

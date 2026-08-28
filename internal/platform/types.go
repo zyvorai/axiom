@@ -720,3 +720,32 @@ type CRDSummary struct {
 	Scope   string `json:"scope"`
 	Age     string `json:"age"`
 }
+
+type StorageClassSummary struct {
+	Name              string `json:"name"`
+	Provisioner       string `json:"provisioner"`
+	ReclaimPolicy     string `json:"reclaimPolicy"`
+	VolumeBindingMode string `json:"volumeBindingMode"`
+	IsDefault         bool   `json:"isDefault"`
+	Age               string `json:"age"`
+}
+
+type PersistentVolumeSummary struct {
+	Name          string `json:"name"`
+	Capacity      string `json:"capacity"`
+	AccessModes   string `json:"accessModes"`
+	ReclaimPolicy string `json:"reclaimPolicy"`
+	Status        string `json:"status"`
+	Claim         string `json:"claim,omitempty"`
+	StorageClass  string `json:"storageClass,omitempty"`
+	Age           string `json:"age"`
+}
+
+type AdmissionWebhookSummary struct {
+	ConfigName    string   `json:"configName"`
+	WebhookName   string   `json:"webhookName"`
+	Type          string   `json:"type"`
+	Rules         []string `json:"rules"`
+	FailurePolicy string   `json:"failurePolicy"`
+	Age           string   `json:"age"`
+}

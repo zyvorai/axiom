@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -1453,4 +1454,59 @@ func (k *KubernetesProvider) GetCRDInstance(ctx context.Context, group, version,
 		return nil, err
 	}
 	return obj.Object, nil
+}
+
+func admissionWebhookRules(rules []admissionregistrationv1.RuleWithOperations) []string {
+	out := make([]string, 0, len(rules))
+	for _, r := range rules {
+		groups := strings.Join(r.APIGroups, ",")
+		if groups == "" {
+			groups = "*"
+		}
+		versions := strings.Join(r.APIVersions, ",")
+		resources := strings.Join(r.Resources, ",")
+		out = append(out, fmt.Sprintf("%s/%s/%s", groups, versions, resources))
+	}
+	return out
+}
+
+func admissionFailurePolicy(p *admissionregistrationv1.FailurePolicyType) string {
+	if p == nil {
+		return "Fail"
+	}
+	return string(*p)
+}
+
+// ListAdmissionWebhooks lists every ValidatingWebhookConfiguration and
+// MutatingWebhookConfiguration, flattened to one row per webhook entry
+// (a single configuration can register multiple webhooks).
+func (k *KubernetesProvider) ListAdmissionWebhooks(ctx context.Context) ([]AdmissionWebhookSummary, error) {
+	out := []AdmissionWebhookSummary{}
+	validating, err := k.client.AdmissionregistrationV1().ValidatingWebhookConfigurations().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	for _, cfg := range validating.Items {
+		age := age(cfg.CreationTimestamp.Time)
+		for _, wh := range cfg.Webhooks {
+			out = append(out, AdmissionWebhookSummary{
+				ConfigName: cfg.Name, WebhookName: wh.Name, Type: "Validating",
+				Rules: admissionWebhookRules(wh.Rules), FailurePolicy: admissionFailurePolicy(wh.FailurePolicy), Age: age,
+			})
+		}
+	}
+	mutating, err := k.client.AdmissionregistrationV1().MutatingWebhookConfigurations().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	for _, cfg := range mutating.Items {
+		age := age(cfg.CreationTimestamp.Time)
+		for _, wh := range cfg.Webhooks {
+			out = append(out, AdmissionWebhookSummary{
+				ConfigName: cfg.Name, WebhookName: wh.Name, Type: "Mutating",
+				Rules: admissionWebhookRules(wh.Rules), FailurePolicy: admissionFailurePolicy(wh.FailurePolicy), Age: age,
+			})
+		}
+	}
+	return out, nil
 }

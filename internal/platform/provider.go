@@ -116,4 +116,9 @@ type Provider interface {
 	ListCRDs(context.Context) ([]CRDSummary, error)
 	ListCRDInstances(context.Context, string, string, string, string) ([]map[string]any, error)
 	GetCRDInstance(context.Context, string, string, string, string, string) (map[string]any, error)
+
+	ListAdmissionWebhooks(context.Context) ([]AdmissionWebhookSummary, error)
+
+	ListStorageClasses(context.Context) ([]StorageClassSummary, error)
+	ListPersistentVolumes(context.Context) ([]PersistentVolumeSummary, error)
 }

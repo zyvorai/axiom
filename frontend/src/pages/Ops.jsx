@@ -6,7 +6,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X } from "lucide-react";
+import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ const TABS = [
     { key: "identity", label: "Identity", icon: Fingerprint },
     { key: "audit", label: "Audit", icon: ScrollText },
     { key: "rbac", label: "Access", icon: ShieldCheck },
+    { key: "webhooks", label: "Webhooks", icon: Webhook },
     { key: "cost", label: "Cost", icon: DollarSign },
 ];
 
@@ -307,6 +308,42 @@ function RbacTab() {
     );
 }
 
+function WebhooksTab() {
+    const webhooks = useEndpoint("/admission-webhooks");
+    if (!webhooks) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    const groups = [
+        ["Validating", webhooks.filter((w) => w.type === "Validating")],
+        ["Mutating", webhooks.filter((w) => w.type === "Mutating")],
+    ];
+    return (
+        <div className="grid gap-4 lg:grid-cols-2">
+            {groups.map(([title, items]) => (
+                <GlassCard key={title} className="p-0 overflow-hidden">
+                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">{title} webhooks</div>
+                    <Rows
+                        items={items}
+                        empty="None found."
+                        render={(w, i) => (
+                            <div key={i} className="border-b border-white/5 px-4 py-2.5 last:border-none hover:bg-white/[0.03]">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="mono truncate text-sm">{w.webhookName}</div>
+                                    <span className={`text-[11px] ${w.failurePolicy === "Fail" ? "text-amber-400" : "text-muted-foreground"}`}>
+                                        {w.failurePolicy}
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-muted-foreground">{w.configName}</div>
+                                {(w.rules || []).length > 0 && (
+                                    <div className="mono mt-1 truncate text-[11px] text-muted-foreground">{w.rules.join(", ")}</div>
+                                )}
+                            </div>
+                        )}
+                    />
+                </GlassCard>
+            ))}
+        </div>
+    );
+}
+
 function CostTab() {
     const cost = useEndpoint("/cost");
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
@@ -352,6 +389,7 @@ const PANELS = {
     identity: IdentityTab,
     audit: AuditTab,
     rbac: RbacTab,
+    webhooks: WebhooksTab,
     cost: CostTab,
 };
 

@@ -51,6 +51,22 @@ func (d *DemoProvider) ListVolumes(ctx context.Context, ns string) ([]Volume, er
 	return out, nil
 }
 
+func (d *DemoProvider) ListStorageClasses(ctx context.Context) ([]StorageClassSummary, error) {
+	return []StorageClassSummary{
+		{Name: "zyvor-rbd-prod", Provisioner: "rbd.csi.ceph.com", ReclaimPolicy: "Delete", VolumeBindingMode: "Immediate", IsDefault: true, Age: "60d"},
+		{Name: "zyvor-cephfs-shared", Provisioner: "cephfs.csi.ceph.com", ReclaimPolicy: "Retain", VolumeBindingMode: "Immediate", Age: "60d"},
+		{Name: "local-path", Provisioner: "rancher.io/local-path", ReclaimPolicy: "Delete", VolumeBindingMode: "WaitForFirstConsumer", Age: "60d"},
+	}, nil
+}
+
+func (d *DemoProvider) ListPersistentVolumes(ctx context.Context) ([]PersistentVolumeSummary, error) {
+	return []PersistentVolumeSummary{
+		{Name: "pvc-edge-1", Capacity: "100Gi", AccessModes: "ReadWriteOnce", ReclaimPolicy: "Delete", Status: "Bound", Claim: "default/edge-api-data", StorageClass: "zyvor-rbd-prod", Age: "12d"},
+		{Name: "pvc-obs-1", Capacity: "50Gi", AccessModes: "ReadWriteOnce", ReclaimPolicy: "Delete", Status: "Bound", Claim: "platform/obs-wal", StorageClass: "zyvor-rbd-prod", Age: "4d"},
+		{Name: "pvc-pg-1", Capacity: "200Gi", AccessModes: "ReadWriteMany", ReclaimPolicy: "Retain", Status: "Bound", Claim: "data/postgres-data", StorageClass: "zyvor-cephfs-shared", Age: "28d"},
+	}, nil
+}
+
 func (d *DemoProvider) Utilization(ctx context.Context) (UtilizationSeries, error) {
 	cpu, mem := 42.8, 61.2
 	now := time.Now()

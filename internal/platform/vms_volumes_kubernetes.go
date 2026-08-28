@@ -203,6 +203,68 @@ func (k *KubernetesProvider) ListVolumes(ctx context.Context, ns string) ([]Volu
 	return out, nil
 }
 
+func (k *KubernetesProvider) ListStorageClasses(ctx context.Context) ([]StorageClassSummary, error) {
+	list, err := k.client.StorageV1().StorageClasses().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]StorageClassSummary, 0, len(list.Items))
+	for _, sc := range list.Items {
+		reclaim := ""
+		if sc.ReclaimPolicy != nil {
+			reclaim = string(*sc.ReclaimPolicy)
+		}
+		binding := ""
+		if sc.VolumeBindingMode != nil {
+			binding = string(*sc.VolumeBindingMode)
+		}
+		out = append(out, StorageClassSummary{
+			Name:              sc.Name,
+			Provisioner:       sc.Provisioner,
+			ReclaimPolicy:     reclaim,
+			VolumeBindingMode: binding,
+			IsDefault:         sc.Annotations["storageclass.kubernetes.io/is-default-class"] == "true",
+			Age:               age(sc.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
+}
+
+func (k *KubernetesProvider) ListPersistentVolumes(ctx context.Context) ([]PersistentVolumeSummary, error) {
+	list, err := k.client.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PersistentVolumeSummary, 0, len(list.Items))
+	for _, pv := range list.Items {
+		cap := "—"
+		if q, ok := pv.Spec.Capacity[corev1.ResourceStorage]; ok {
+			cap = q.String()
+		}
+		modes := make([]string, 0, len(pv.Spec.AccessModes))
+		for _, m := range pv.Spec.AccessModes {
+			modes = append(modes, string(m))
+		}
+		claim := ""
+		if pv.Spec.ClaimRef != nil {
+			claim = pv.Spec.ClaimRef.Namespace + "/" + pv.Spec.ClaimRef.Name
+		}
+		out = append(out, PersistentVolumeSummary{
+			Name:          pv.Name,
+			Capacity:      cap,
+			AccessModes:   strings.Join(modes, ","),
+			ReclaimPolicy: string(pv.Spec.PersistentVolumeReclaimPolicy),
+			Status:        string(pv.Status.Phase),
+			Claim:         claim,
+			StorageClass:  pv.Spec.StorageClassName,
+			Age:           age(pv.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
+}
+
 func (k *KubernetesProvider) Utilization(ctx context.Context) (UtilizationSeries, error) {
 	cpu, mem, err := k.readNodeMetrics(ctx)
 	source := "metrics-server"

@@ -737,3 +737,10 @@ func (d *DemoProvider) GetCRDInstance(ctx context.Context, group, version, plura
 		"spec":       map[string]any{"note": "demo mode — synthetic instance"},
 	}, nil
 }
+
+func (d *DemoProvider) ListAdmissionWebhooks(ctx context.Context) ([]AdmissionWebhookSummary, error) {
+	return []AdmissionWebhookSummary{
+		{ConfigName: "cert-manager-webhook", WebhookName: "webhook.cert-manager.io", Type: "Validating", Rules: []string{"cert-manager.io/v1/certificaterequests"}, FailurePolicy: "Fail", Age: "60d"},
+		{ConfigName: "kubevirt-node-labeller", WebhookName: "virt-launcher.kubevirt.io", Type: "Mutating", Rules: []string{"kubevirt.io/v1/virtualmachineinstances"}, FailurePolicy: "Ignore", Age: "60d"},
+	}, nil
+}

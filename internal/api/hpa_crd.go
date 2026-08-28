@@ -110,3 +110,22 @@ func (s *Server) getCRDInstance(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.GetCRDInstance(r.Context(), group, version, plural, r.URL.Query().Get("namespace"), name)
 	respond(w, v, err)
 }
+
+// --- Admission webhooks ---
+
+func (s *Server) listAdmissionWebhooks(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListAdmissionWebhooks(r.Context())
+	respond(w, v, err)
+}
+
+// --- StorageClasses and PersistentVolumes ---
+
+func (s *Server) listStorageClasses(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListStorageClasses(r.Context())
+	respond(w, v, err)
+}
+
+func (s *Server) listPersistentVolumes(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListPersistentVolumes(r.Context())
+	respond(w, v, err)
+}

@@ -2,17 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
+import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Database, HardDrive } from "lucide-react";
+import { Database, HardDrive, Layers } from "lucide-react";
 import { STORAGE } from "@/constants/testIds";
 
 export default function Storage() {
     const [volumes, setVolumes] = useState(null);
+    const [storageClasses, setStorageClasses] = useState(null);
+    const [persistentVolumes, setPersistentVolumes] = useState(null);
 
     useEffect(() => {
         let alive = true;
         const load = () => api.get("/volumes").then((r) => alive && setVolumes(r.data));
         load();
+        api.get("/storageclasses").then((r) => alive && setStorageClasses(r.data || [])).catch(() => alive && setStorageClasses([]));
+        api.get("/persistentvolumes").then((r) => alive && setPersistentVolumes(r.data || [])).catch(() => alive && setPersistentVolumes([]));
         const t = setInterval(load, 10000);
         return () => {
             alive = false;
@@ -96,6 +101,21 @@ export default function Storage() {
                     ))}
                 </div>
             </GlassCard>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+                <AutoTable
+                    title="StorageClasses"
+                    icon={Layers}
+                    items={storageClasses}
+                    emptyHint={storageClasses === null ? "Loading…" : "No StorageClasses found."}
+                />
+                <AutoTable
+                    title="PersistentVolumes"
+                    icon={HardDrive}
+                    items={persistentVolumes}
+                    emptyHint={persistentVolumes === null ? "Loading…" : "No PersistentVolumes found."}
+                />
+            </div>
         </div>
     );
 }
