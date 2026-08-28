@@ -112,6 +112,19 @@ func (s *K8sUserStore) Create(ctx context.Context, u User) error {
 	return s.save(ctx, m, sec)
 }
 
+func (s *K8sUserStore) Update(ctx context.Context, u User) error {
+	m, sec, err := s.load(ctx)
+	if err != nil {
+		return err
+	}
+	key := strings.ToLower(u.Username)
+	if _, exists := m[key]; !exists {
+		return fmt.Errorf("user %q not found", u.Username)
+	}
+	m[key] = u
+	return s.save(ctx, m, sec)
+}
+
 func (s *K8sUserStore) Delete(ctx context.Context, username string) error {
 	m, sec, err := s.load(ctx)
 	if err != nil {

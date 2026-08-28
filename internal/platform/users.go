@@ -64,6 +64,7 @@ func CheckPassword(hash, password string) bool {
 type UserStore interface {
 	List(ctx context.Context) ([]User, error)
 	Create(ctx context.Context, u User) error
+	Update(ctx context.Context, u User) error
 	Delete(ctx context.Context, username string) error
 }
 
@@ -92,6 +93,17 @@ func (m *MemoryUserStore) Create(ctx context.Context, u User) error {
 	key := strings.ToLower(u.Username)
 	if _, exists := m.users[key]; exists {
 		return fmt.Errorf("user %q already exists", u.Username)
+	}
+	m.users[key] = u
+	return nil
+}
+
+func (m *MemoryUserStore) Update(ctx context.Context, u User) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	key := strings.ToLower(u.Username)
+	if _, exists := m.users[key]; !exists {
+		return fmt.Errorf("user %q not found", u.Username)
 	}
 	m.users[key] = u
 	return nil
@@ -181,6 +193,51 @@ func (h *UserHub) Create(ctx context.Context, username, password, role string) (
 	}
 	h.mu.Lock()
 	h.cache[strings.ToLower(username)] = u
+	h.mu.Unlock()
+	return u.View(), nil
+}
+
+// UpdateRole changes an existing local account's role.
+func (h *UserHub) UpdateRole(ctx context.Context, username, role string) (UserView, error) {
+	key := strings.ToLower(strings.TrimSpace(username))
+	h.mu.RLock()
+	u, ok := h.cache[key]
+	h.mu.RUnlock()
+	if !ok {
+		return UserView{}, fmt.Errorf("user %q not found", username)
+	}
+	u.Role = NormalizeRole(role)
+	if err := h.store.Update(ctx, u); err != nil {
+		return UserView{}, err
+	}
+	h.mu.Lock()
+	h.cache[key] = u
+	h.mu.Unlock()
+	return u.View(), nil
+}
+
+// ResetPassword sets a new password for an existing local account.
+func (h *UserHub) ResetPassword(ctx context.Context, username, password string) (UserView, error) {
+	if len(password) < 8 {
+		return UserView{}, fmt.Errorf("password must be at least 8 characters")
+	}
+	key := strings.ToLower(strings.TrimSpace(username))
+	h.mu.RLock()
+	u, ok := h.cache[key]
+	h.mu.RUnlock()
+	if !ok {
+		return UserView{}, fmt.Errorf("user %q not found", username)
+	}
+	hash, err := HashPassword(password)
+	if err != nil {
+		return UserView{}, err
+	}
+	u.PasswordHash = hash
+	if err := h.store.Update(ctx, u); err != nil {
+		return UserView{}, err
+	}
+	h.mu.Lock()
+	h.cache[key] = u
 	h.mu.Unlock()
 	return u.View(), nil
 }

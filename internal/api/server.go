@@ -195,6 +195,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/integrations/webhook/test", s.testAlertWebhook)
 	mux.HandleFunc("GET /api/v1/users", s.listUsers)
 	mux.HandleFunc("POST /api/v1/users", s.createUser)
+	mux.HandleFunc("PATCH /api/v1/users/{username}", s.updateUser)
 	mux.HandleFunc("DELETE /api/v1/users/{username}", s.deleteUser)
 
 	RegisterSSE(mux)

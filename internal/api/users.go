@@ -37,6 +37,45 @@ func (s *Server) createUser(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, v)
 }
 
+func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
+	if s.users == nil {
+		fail(w, http.StatusServiceUnavailable, errSSO("user management is not available on this deployment"))
+		return
+	}
+	username := r.PathValue("username")
+	var req struct {
+		Role     *string `json:"role"`
+		Password *string `json:"password"`
+	}
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	if req.Role == nil && req.Password == nil {
+		fail(w, http.StatusBadRequest, errSSO("nothing to update: provide role and/or password"))
+		return
+	}
+	var v platform.UserView
+	var err error
+	if req.Role != nil {
+		v, err = s.users.UpdateRole(r.Context(), username, *req.Role)
+		if err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+		platform.RecordAxiomAudit("user.role_change", username, v.Role, s.auditUser(r))
+	}
+	if req.Password != nil {
+		v, err = s.users.ResetPassword(r.Context(), username, *req.Password)
+		if err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+		platform.RecordAxiomAudit("user.password_reset", username, "", s.auditUser(r))
+	}
+	writeJSON(w, http.StatusOK, v)
+}
+
 func (s *Server) deleteUser(w http.ResponseWriter, r *http.Request) {
 	if s.users == nil {
 		fail(w, http.StatusServiceUnavailable, errSSO("user management is not available on this deployment"))

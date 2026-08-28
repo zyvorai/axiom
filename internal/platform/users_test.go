@@ -46,6 +46,44 @@ func TestUserHubCreateAuthenticateDelete(t *testing.T) {
 	}
 }
 
+func TestUserHubUpdateRoleAndResetPassword(t *testing.T) {
+	hub := NewUserHub(NewMemoryUserStore())
+	ctx := context.Background()
+
+	if _, err := hub.Create(ctx, "alice", "originalpass", "viewer"); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	if _, err := hub.UpdateRole(ctx, "nobody", "admin"); err == nil {
+		t.Fatal("expected error updating role of unknown user")
+	}
+
+	v, err := hub.UpdateRole(ctx, "alice", "admin")
+	if err != nil {
+		t.Fatalf("update role: %v", err)
+	}
+	if v.Role != RoleAdmin {
+		t.Fatalf("expected role %q after update, got %q", RoleAdmin, v.Role)
+	}
+	if role, ok := hub.Authenticate("alice", "originalpass"); !ok || role != RoleAdmin {
+		t.Fatalf("expected alice to authenticate as admin after role change, got role=%q ok=%v", role, ok)
+	}
+
+	if _, err := hub.ResetPassword(ctx, "alice", "short"); err == nil {
+		t.Fatal("expected error for too-short new password")
+	}
+
+	if _, err := hub.ResetPassword(ctx, "alice", "brandnewpassword"); err != nil {
+		t.Fatalf("reset password: %v", err)
+	}
+	if _, ok := hub.Authenticate("alice", "originalpass"); ok {
+		t.Fatal("expected old password to stop working after reset")
+	}
+	if role, ok := hub.Authenticate("alice", "brandnewpassword"); !ok || role != RoleAdmin {
+		t.Fatalf("expected new password to authenticate as admin, got role=%q ok=%v", role, ok)
+	}
+}
+
 func TestNormalizeRole(t *testing.T) {
 	cases := map[string]string{
 		"viewer": RoleViewer,
