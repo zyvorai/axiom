@@ -41,7 +41,7 @@ const PAGES = [
 export default function CommandPalette() {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
-    const { clusters, setActiveId } = useCluster();
+    const { clusters, activate } = useCluster();
     const { theme, setTheme } = useTheme();
     const { signOut } = useAuth();
 
@@ -87,13 +87,13 @@ export default function CommandPalette() {
                 <CommandGroup heading="Switch cluster">
                     {clusters.map((c) => (
                         <CommandItem
-                            key={c.id}
-                            data-testid={PALETTE.item(`cluster-${c.id}`)}
-                            onSelect={() => run(() => setActiveId(c.id))}
+                            key={c.name}
+                            data-testid={PALETTE.item(`cluster-${c.name}`)}
+                            onSelect={() => run(() => activate(c.name))}
                         >
                             <Layers className="mr-2 h-4 w-4 text-[#7ab6dd]" />
-                            {c.name}
-                            <span className="ml-auto text-xs text-muted-foreground">{c.provider}</span>
+                            {c.label || c.name}
+                            <span className="ml-auto text-xs text-muted-foreground">{c.current ? "current" : ""}</span>
                         </CommandItem>
                     ))}
                 </CommandGroup>

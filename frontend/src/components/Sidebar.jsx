@@ -22,6 +22,7 @@ import {
     FileCog,
     Gauge,
     CalendarClock,
+    Users as UsersIcon,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -51,6 +52,7 @@ const ITEMS = [
     { to: "/backups", label: "Backups", icon: Archive, key: "backups" },
     { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts" },
     { to: "/ops", label: "Ops", icon: Layers, key: "ops" },
+    { to: "/users", label: "Users", icon: UsersIcon, key: "users" },
     { to: "/settings", label: "Settings", icon: SlidersHorizontal, key: "settings" },
 ];
 

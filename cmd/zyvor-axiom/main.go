@@ -19,7 +19,7 @@ import (
 
 func main() {
 	cfg := config.FromEnv()
-	provider, err := platform.NewProvider(cfg.Mode, cfg.Kubeconfig)
+	provider, err := platform.NewProvider(cfg.Mode, cfg.Kubeconfig, cfg.ClusterName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,8 +42,17 @@ func main() {
 	dispatchCtx, stopDispatch := context.WithCancel(context.Background())
 	defer stopDispatch()
 	go platform.RunAlertDispatcher(dispatchCtx, provider, hub)
+
+	users := platform.NewUserHub(platform.OpenUserStore(cfg.Mode, provider))
+	if err := users.Load(context.Background()); err != nil {
+		log.Printf("users load: %v", err)
+	}
+	if n := users.Count(); n > 0 {
+		log.Printf("local user accounts loaded: %d", n)
+	}
+
 	mux := http.NewServeMux()
-	mux.Handle("/api/", api.NewWithHub(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, api.AuthOptions{
+	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:      cfg.APIKey,
 		OIDCLogin:   firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
 		OIDCIssuer:  firstNonEmpty(cur.OIDCIssuer, cfg.OIDCIssuer),

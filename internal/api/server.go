@@ -35,6 +35,7 @@ type Server struct {
 	allowOrigin string
 	auth        AuthOptions
 	hub         *platform.IntegrationHub
+	users       *platform.UserHub
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -53,6 +54,10 @@ func NewWithAtlas(provider platform.Provider, mode, username, password, allowOri
 }
 
 func NewWithHub(provider platform.Provider, mode, username, password, allowOrigin string, hub *platform.IntegrationHub, authOpts ...AuthOptions) http.Handler {
+	return NewWithUsers(provider, mode, username, password, allowOrigin, hub, nil, authOpts...)
+}
+
+func NewWithUsers(provider platform.Provider, mode, username, password, allowOrigin string, hub *platform.IntegrationHub, users *platform.UserHub, authOpts ...AuthOptions) http.Handler {
 	var opts AuthOptions
 	if len(authOpts) > 0 {
 		opts = authOpts[0]
@@ -69,7 +74,7 @@ func NewWithHub(provider platform.Provider, mode, username, password, allowOrigi
 			opts.OIDCClient = cur.OIDCClientID
 		}
 	}
-	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub}
+	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/session", s.session)
@@ -132,6 +137,8 @@ func NewWithHub(provider platform.Provider, mode, username, password, allowOrigi
 	mux.HandleFunc("GET /api/v1/resourcequotas", s.listResourceQuotas)
 	mux.HandleFunc("GET /api/v1/limitranges", s.listLimitRanges)
 	mux.HandleFunc("GET /api/v1/ingresses", s.listIngresses)
+	mux.HandleFunc("GET /api/v1/clusters", s.listClusters)
+	mux.HandleFunc("POST /api/v1/clusters/{name}/activate", s.activateCluster)
 	mux.HandleFunc("GET /api/v1/jobs", s.listJobs)
 	mux.HandleFunc("DELETE /api/v1/jobs/{namespace}/{name}", s.deleteJob)
 	mux.HandleFunc("GET /api/v1/cronjobs", s.listCronJobs)
@@ -186,12 +193,19 @@ func NewWithHub(provider platform.Provider, mode, username, password, allowOrigi
 	mux.HandleFunc("POST /api/v1/integrations/probe/test", s.testProbe)
 	mux.HandleFunc("POST /api/v1/integrations/slack/test", s.testSlackNotify)
 	mux.HandleFunc("POST /api/v1/integrations/webhook/test", s.testAlertWebhook)
+	mux.HandleFunc("GET /api/v1/users", s.listUsers)
+	mux.HandleFunc("POST /api/v1/users", s.createUser)
+	mux.HandleFunc("DELETE /api/v1/users/{username}", s.deleteUser)
 
 	RegisterSSE(mux)
 	RegisterRealtime(mux, provider)
 
+	var authenticator auth.UserAuthenticator
+	if users != nil {
+		authenticator = users
+	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
-	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: password}.Middleware(mux)
+	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: password, Users: authenticator}.Middleware(mux)
 	return s.common(secured)
 }
 
@@ -233,16 +247,29 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		cluster = "zyvor-demo"
 	}
 	user := s.username
+	role := "admin"
 	authMethod := "local"
 	if sess, ok := auth.SessionFromRequest(s.sessionSecret(), r); ok {
 		user = sess.User
 		authMethod = "oidc"
+		if sess.Role != "" {
+			role = sess.Role
+		}
+	} else if id, ok := auth.IdentityFromContext(r.Context()); ok {
+		user = id.User
+		if id.Role != "" {
+			role = id.Role
+		}
 	} else if u, _, ok := r.BasicAuth(); ok && u != "" {
 		user = u
 	}
+	roleLabel := "Platform Admin"
+	if role == "viewer" {
+		roleLabel = "Viewer"
+	}
 	regions := platform.DefaultRegions(cluster)
 	writeJSON(w, http.StatusOK, map[string]any{
-		"user": user, "role": "Platform Admin", "mode": s.mode, "auth": authMethod,
+		"user": user, "role": roleLabel, "mode": s.mode, "auth": authMethod,
 		"cluster": cluster, "region": platform.ActiveRegion(regions), "regions": regions,
 	})
 }

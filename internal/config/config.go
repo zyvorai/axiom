@@ -24,6 +24,7 @@ type Config struct {
 	LDAPURL     string
 	AtlasURL    string
 	AtlasToken  string
+	ClusterName string
 }
 
 func FromEnv() Config {
@@ -46,6 +47,7 @@ func FromEnv() Config {
 		LDAPURL:     strings.TrimSpace(os.Getenv("AXIOM_LDAP_URL")),
 		AtlasURL:    strings.TrimSpace(os.Getenv("AXIOM_ATLAS_URL")),
 		AtlasToken:  strings.TrimSpace(os.Getenv("AXIOM_ATLAS_TOKEN")),
+		ClusterName: strings.TrimSpace(os.Getenv("AXIOM_CLUSTER_NAME")),
 	}
 }
 

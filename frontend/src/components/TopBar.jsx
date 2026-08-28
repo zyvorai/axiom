@@ -13,7 +13,7 @@ export default function TopBar() {
             <div className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
                 <span className="text-foreground/70">Clusters</span>
                 <span className="opacity-40">/</span>
-                <span className="text-foreground/90">{active?.name ?? "—"}</span>
+                <span className="text-foreground/90">{active?.label || active?.name || "—"}</span>
             </div>
 
             <button

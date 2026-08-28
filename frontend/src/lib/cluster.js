@@ -4,34 +4,32 @@ import { useAuth } from "@/lib/auth";
 
 const ClusterContext = createContext({
     clusters: [],
-    activeId: null,
-    setActiveId: () => {},
     active: null,
+    activate: () => {},
     loading: true,
     error: null,
-    session: null,
     refresh: () => {},
 });
 
-// Axiom connects to a single Kubernetes cluster per instance. The "regions"
-// returned on the session are a cosmetic multi-region breakdown of that one
-// cluster (see internal/platform.DefaultRegions on the backend) — switching
-// the active entry here does not change which cluster API calls hit.
+// Backed by GET /api/v1/clusters and POST /api/v1/clusters/{name}/activate.
+// A single-cluster deployment (the common case — one kubeconfig / in-cluster
+// ServiceAccount) still returns exactly one real entry here; this is not a
+// cosmetic multi-region breakdown of one cluster.
 export function ClusterProvider({ children }) {
     const { user } = useAuth();
-    const [session, setSession] = useState(null);
-    const [activeId, setActiveIdState] = useState(() => localStorage.getItem("axiom.activeRegion") || null);
+    const [clusters, setClusters] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activating, setActivating] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const { data } = await api.get("/session");
-            setSession(data);
+            const { data } = await api.get("/clusters");
+            setClusters(data || []);
             setError(null);
         } catch (e) {
-            setError(e.message || "Failed to load session");
+            setError(e.message || "Failed to load clusters");
         } finally {
             setLoading(false);
         }
@@ -41,33 +39,21 @@ export function ClusterProvider({ children }) {
         if (user) load();
     }, [user, load]);
 
-    const regions = session?.regions || [];
-    const clusters = regions.map((r) => ({
-        id: r.id,
-        name: r.label,
-        status: "Healthy",
-        provider: session?.cluster || "Kubernetes",
-        region: r.id,
-    }));
+    const active = clusters.find((c) => c.current) || clusters[0] || null;
 
-    useEffect(() => {
-        if (!clusters.length) return;
-        const still = clusters.find((c) => c.id === activeId);
-        if (still) return;
-        const def = regions.find((r) => r.active) || regions[0];
-        if (def) setActiveIdState(def.id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session]);
-
-    const setActiveId = (id) => {
-        setActiveIdState(id);
-        localStorage.setItem("axiom.activeRegion", id);
+    const activate = async (name) => {
+        if (activating || !name || name === active?.name) return;
+        setActivating(true);
+        try {
+            await api.post(`/clusters/${encodeURIComponent(name)}/activate`);
+            window.location.reload();
+        } finally {
+            setActivating(false);
+        }
     };
 
-    const active = clusters.find((c) => c.id === activeId) || clusters[0] || null;
-
     return (
-        <ClusterContext.Provider value={{ clusters, activeId, setActiveId, active, loading, error, session, refresh: load }}>
+        <ClusterContext.Provider value={{ clusters, active, activate, loading, error, refresh: load }}>
             {children}
         </ClusterContext.Provider>
     );

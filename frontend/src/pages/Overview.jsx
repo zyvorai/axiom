@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import { useCluster } from "@/lib/cluster";
 import GlassCard from "@/components/GlassCard";
 import MetricRing from "@/components/MetricRing";
 import StatusBadge from "@/components/StatusBadge";
@@ -102,7 +101,6 @@ function relTime(iso) {
 }
 
 export default function Overview() {
-    const { active } = useCluster();
     const [data, setData] = useState(null);
     const [alerts, setAlerts] = useState([]);
     const [activity, setActivity] = useState([]);
@@ -152,7 +150,7 @@ export default function Overview() {
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
                         <div className="text-[11px] uppercase tracking-[0.18em] text-[#ff7550]/90">
-                            zyvor · Axiom · {active?.provider} · {data.region}
+                            zyvor · Axiom · Kubernetes · {data.region}
                         </div>
                         <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{data.cluster}</h1>
                         <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
@@ -228,7 +226,7 @@ export default function Overview() {
                             ["Status", data.health],
                             ["Region", data.region],
                             ["Storage used", `${data.storageUsedTb} / ${data.storageCapacityTb} TB`],
-                            ["Mode", active?.provider || "—"],
+                            ["Mode", "Kubernetes"],
                         ].map(([k, v]) => (
                             <div key={k} className="flex items-center justify-between">
                                 <span className="text-muted-foreground">{k}</span>

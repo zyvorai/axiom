@@ -50,3 +50,82 @@ func TestBasicMiddleware(t *testing.T) {
 		t.Fatalf("demo@zyvor.dev should authenticate when user is demo, got %d", w.Code)
 	}
 }
+
+type fakeUserAuthenticator struct {
+	users map[string]struct {
+		password string
+		role     string
+	}
+}
+
+func (f *fakeUserAuthenticator) Authenticate(username, password string) (string, bool) {
+	u, ok := f.users[username]
+	if !ok || u.password != password {
+		return "", false
+	}
+	return u.role, true
+}
+
+func TestGuardMultiUserAndReadOnly(t *testing.T) {
+	users := &fakeUserAuthenticator{users: map[string]struct {
+		password string
+		role     string
+	}{
+		"alice": {password: "viewerpass", role: "viewer"},
+		"bob":   {password: "adminpass", role: "admin"},
+	}}
+	g := Guard{Username: "demo", Password: "demo", Users: users}
+	var gotIdentity Identity
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotIdentity, _ = IdentityFromContext(r.Context())
+		w.WriteHeader(204)
+	}))
+
+	// Viewer can read (GET).
+	r := httptest.NewRequest("GET", "/api/v1/overview", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("alice:viewerpass")))
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 204 {
+		t.Fatalf("viewer GET: expected 204 got %d", w.Code)
+	}
+	if gotIdentity.User != "alice" || gotIdentity.Role != "viewer" {
+		t.Fatalf("expected identity alice/viewer, got %+v", gotIdentity)
+	}
+
+	// Viewer is blocked from POST.
+	r = httptest.NewRequest("POST", "/api/v1/namespaces", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("alice:viewerpass")))
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 403 {
+		t.Fatalf("viewer POST: expected 403 got %d", w.Code)
+	}
+
+	// Admin (from UserStore, not the env account) can POST.
+	r = httptest.NewRequest("POST", "/api/v1/namespaces", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("bob:adminpass")))
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 204 {
+		t.Fatalf("admin POST: expected 204 got %d", w.Code)
+	}
+
+	// Wrong password is rejected.
+	r = httptest.NewRequest("GET", "/api/v1/overview", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("alice:wrong")))
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 401 {
+		t.Fatalf("wrong password: expected 401 got %d", w.Code)
+	}
+
+	// The env-configured operator account is always treated as admin.
+	r = httptest.NewRequest("POST", "/api/v1/namespaces", nil)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("demo:demo")))
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 204 {
+		t.Fatalf("env admin POST: expected 204 got %d", w.Code)
+	}
+}

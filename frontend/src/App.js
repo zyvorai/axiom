@@ -31,6 +31,7 @@ import Backups from "@/pages/Backups";
 import Alerts from "@/pages/Alerts";
 import Ops from "@/pages/Ops";
 import Settings from "@/pages/Settings";
+import Users from "@/pages/Users";
 
 function Protected({ children }) {
     const { user, ready } = useAuth();
@@ -88,6 +89,7 @@ export default function App() {
                                 <Route path="/ops" element={<Ops />} />
                                 <Route path="/ops/:tab" element={<Ops />} />
                                 <Route path="/settings" element={<Settings />} />
+                                <Route path="/users" element={<Users />} />
                                 <Route path="*" element={<Navigate to="/overview" replace />} />
                             </Route>
                         </Routes>

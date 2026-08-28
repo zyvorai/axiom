@@ -1,11 +1,36 @@
 package auth
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/base64"
 	"net/http"
 	"strings"
 )
+
+// UserAuthenticator checks local multi-user credentials beyond the single
+// env-configured operator account. Implemented by platform.UserHub.
+type UserAuthenticator interface {
+	Authenticate(username, password string) (role string, ok bool)
+}
+
+// Identity is the resolved caller of an authorized request, attached to the
+// request context so handlers and audit logging can read who acted and
+// with what role without re-parsing credentials.
+type Identity struct {
+	User string
+	Role string
+}
+
+type ctxKey string
+
+const identityCtxKey ctxKey = "axiom-identity"
+
+// IdentityFromContext returns the authenticated caller for this request, if any.
+func IdentityFromContext(ctx context.Context) (Identity, bool) {
+	v, ok := ctx.Value(identityCtxKey).(Identity)
+	return v, ok
+}
 
 type Guard struct {
 	Username string
@@ -13,6 +38,9 @@ type Guard struct {
 	APIKey   string
 	// SessionSecret signs OIDC session cookies. Defaults to Password when empty.
 	SessionSecret string
+	// Users resolves local multi-user accounts created under Settings → Users.
+	// Optional — nil means only the single env-configured account exists.
+	Users UserAuthenticator
 }
 
 func (g Guard) sessionSecret() string {
@@ -28,14 +56,30 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if g.authorize(r) {
-			next.ServeHTTP(w, r)
+		id, ok := g.authorizeDetail(r)
+		if !ok {
+			// Do not set WWW-Authenticate — that triggers the browser's native
+			// Basic-auth popup on top of Axiom's custom login form.
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		// Do not set WWW-Authenticate — that triggers the browser's native
-		// Basic-auth popup on top of Axiom's custom login form.
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		if id.Role == "viewer" && isMutatingMethod(r.Method) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(`{"error":"read-only user: this account cannot perform write actions"}`))
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), identityCtxKey, id)))
 	})
+}
+
+func isMutatingMethod(m string) bool {
+	switch m {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
 }
 
 func isPublicPath(r *http.Request) bool {
@@ -56,30 +100,49 @@ func isPublicPath(r *http.Request) bool {
 }
 
 func (g Guard) authorize(r *http.Request) bool {
-	if _, ok := SessionFromRequest(g.sessionSecret(), r); ok {
-		return true
+	_, ok := g.authorizeDetail(r)
+	return ok
+}
+
+func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
+	if sess, ok := SessionFromRequest(g.sessionSecret(), r); ok {
+		role := sess.Role
+		if role == "" {
+			role = "admin"
+		}
+		return Identity{User: sess.User, Role: role}, true
 	}
 	if g.APIKey != "" {
 		if bearer := bearerToken(r.Header.Get("Authorization")); bearer != "" {
 			if subtle.ConstantTimeCompare([]byte(bearer), []byte(g.APIKey)) == 1 {
-				return true
+				return Identity{User: "apikey", Role: "admin"}, true
 			}
 		}
 		if key := strings.TrimSpace(r.URL.Query().Get("api_key")); key != "" {
 			if subtle.ConstantTimeCompare([]byte(key), []byte(g.APIKey)) == 1 {
-				return true
+				return Identity{User: "apikey", Role: "admin"}, true
 			}
 		}
 	}
 	u, p, ok := credentialsFromRequest(r)
 	if !ok {
-		return false
+		return Identity{}, false
 	}
 	if g.APIKey != "" && (u == "apikey" || u == "__apikey__") {
-		return subtle.ConstantTimeCompare([]byte(p), []byte(g.APIKey)) == 1
+		if subtle.ConstantTimeCompare([]byte(p), []byte(g.APIKey)) == 1 {
+			return Identity{User: "apikey", Role: "admin"}, true
+		}
+		return Identity{}, false
 	}
-	return userMatches(g.Username, u) &&
-		subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1
+	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
+		return Identity{User: g.Username, Role: "admin"}, true
+	}
+	if g.Users != nil {
+		if role, ok := g.Users.Authenticate(u, p); ok {
+			return Identity{User: u, Role: role}, true
+		}
+	}
+	return Identity{}, false
 }
 
 // userMatches accepts the configured username, and when that is "demo"

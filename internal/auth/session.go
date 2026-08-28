@@ -24,6 +24,7 @@ type Session struct {
 	User   string `json:"u"`
 	Email  string `json:"e,omitempty"`
 	Issuer string `json:"iss,omitempty"`
+	Role   string `json:"r,omitempty"`
 	Exp    int64  `json:"exp"`
 }
 
