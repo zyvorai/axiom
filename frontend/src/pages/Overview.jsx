@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useCluster } from "@/lib/cluster";
 import GlassCard from "@/components/GlassCard";
@@ -13,9 +14,48 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { AlertTriangle, Activity, Boxes, Server, MonitorSmartphone, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Activity, Boxes, Server, MonitorSmartphone, ShieldCheck, Rocket, ArrowRight } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { OVERVIEW } from "@/constants/testIds";
+
+function SetupBanner() {
+    const [needsSetup, setNeedsSetup] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        Promise.all([api.get("/auth/providers").catch(() => ({ data: {} })), api.get("/session").catch(() => ({ data: {} }))]).then(
+            ([providers, session]) => {
+                if (!alive) return;
+                const ssoConfigured = !!(providers.data?.oidc?.enabled || providers.data?.saml?.enabled);
+                const usingDemoDefaults = session.data?.mode === "demo";
+                setNeedsSetup(!ssoConfigured || usingDemoDefaults);
+            }
+        );
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    if (!needsSetup) return null;
+
+    return (
+        <Link
+            to="/getting-started"
+            className="flex items-center gap-3 rounded-2xl border border-[#ff7550]/25 bg-[#ff7550]/[0.06] px-4 py-3 transition-colors hover:bg-[#ff7550]/[0.1]"
+        >
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff7550]/15 text-[#ff7550]">
+                <Rocket className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium">This instance still has setup steps to finish</div>
+                <div className="text-xs text-muted-foreground">SSO, storage and networking integrations aren't fully wired up yet.</div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1 text-xs font-medium text-[#ff7550]">
+                View checklist <ArrowRight className="h-3 w-3" />
+            </div>
+        </Link>
+    );
+}
 
 function Sparkline({ data, color = "#0A84FF" }) {
     const rows = (data || []).map((v, i) => ({ i, v }));
@@ -106,6 +146,7 @@ export default function Overview() {
 
     return (
         <div data-testid={OVERVIEW.root} className="space-y-4">
+            <SetupBanner />
             {/* Hero */}
             <GlassCard className="p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">

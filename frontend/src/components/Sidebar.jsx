@@ -18,6 +18,7 @@ import {
     Waypoints,
     FolderTree,
     Sparkles,
+    Rocket,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -25,6 +26,7 @@ import { NAV } from "@/constants/testIds";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
+    { to: "/getting-started", label: "Getting Started", icon: Rocket, key: "getting-started" },
     { to: "/overview", label: "Overview", icon: LayoutDashboard, key: "overview" },
     { to: "/nodes", label: "Nodes", icon: Server, key: "nodes" },
     { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads" },

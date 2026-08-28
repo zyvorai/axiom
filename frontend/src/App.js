@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import AppShell from "@/components/AppShell";
 import Login from "@/pages/Login";
 import Overview from "@/pages/Overview";
+import Onboarding from "@/pages/Onboarding";
 import Nodes from "@/pages/Nodes";
 import Workloads from "@/pages/Workloads";
 import Pods from "@/pages/Pods";
@@ -56,6 +57,7 @@ export default function App() {
                             >
                                 <Route path="/" element={<Navigate to="/overview" replace />} />
                                 <Route path="/overview" element={<Overview />} />
+                                <Route path="/getting-started" element={<Onboarding />} />
                                 <Route path="/nodes" element={<Nodes />} />
                                 <Route path="/workloads" element={<Workloads />} />
                                 <Route path="/pods" element={<Pods />} />
