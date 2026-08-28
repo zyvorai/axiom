@@ -719,13 +719,38 @@ func (k *KubernetesProvider) DeleteRoleBinding(ctx context.Context, ns, name str
 	return k.client.RbacV1().RoleBindings(ns).Delete(ctx, name, metav1.DeleteOptions{})
 }
 
+// workloadOwnerForPod returns the display kind/name a pod's cost should roll
+// up to. ReplicaSet owners have their pod-template-hash suffix stripped
+// (Deployments always name their managed ReplicaSets "<name>-<hash>"), so
+// pods group by "checkout" rather than the ReplicaSet's generated
+// "checkout-7f7fc496b4".
+func workloadOwnerForPod(p *corev1.Pod) (kind, name string) {
+	for _, o := range p.OwnerReferences {
+		if o.Controller == nil || !*o.Controller {
+			continue
+		}
+		if o.Kind == "ReplicaSet" {
+			if idx := strings.LastIndex(o.Name, "-"); idx > 0 {
+				return "Deployment", o.Name[:idx]
+			}
+		}
+		return o.Kind, o.Name
+	}
+	return "Pod", p.Name
+}
+
 func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {
 	pods, err := k.client.CoreV1().Pods(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return CostEstimate{}, err
 	}
 	type acc struct{ cpu, mem float64 }
+	type workloadAcc struct {
+		acc
+		namespace, kind string
+	}
 	byNS := map[string]*acc{}
+	byWorkload := map[string]*workloadAcc{}
 	for _, p := range pods.Items {
 		if p.Status.Phase == corev1.PodSucceeded || p.Status.Phase == corev1.PodFailed {
 			continue
@@ -735,12 +760,23 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 			a = &acc{}
 			byNS[p.Namespace] = a
 		}
+		kind, name := workloadOwnerForPod(&p)
+		wKey := p.Namespace + "/" + name
+		w := byWorkload[wKey]
+		if w == nil {
+			w = &workloadAcc{namespace: p.Namespace, kind: kind}
+			byWorkload[wKey] = w
+		}
 		for _, c := range p.Spec.Containers {
 			if q, ok := c.Resources.Requests[corev1.ResourceCPU]; ok {
-				a.cpu += float64(q.MilliValue()) / 1000.0
+				cpu := float64(q.MilliValue()) / 1000.0
+				a.cpu += cpu
+				w.cpu += cpu
 			}
 			if q, ok := c.Resources.Requests[corev1.ResourceMemory]; ok {
-				a.mem += float64(q.Value()) / (1024 * 1024 * 1024)
+				mem := float64(q.Value()) / (1024 * 1024 * 1024)
+				a.mem += mem
+				w.mem += mem
 			}
 		}
 	}
@@ -759,11 +795,26 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 			Namespace: ns, CPUCores: round1(a.cpu), MemoryGi: round1(a.mem), MonthlyUSD: round1(usd),
 		})
 	}
+	wKeys := make([]string, 0, len(byWorkload))
+	for k := range byWorkload {
+		wKeys = append(wKeys, k)
+	}
+	sort.Strings(wKeys)
+	workloadCosts := make([]WorkloadCost, 0, len(wKeys))
+	for _, wKey := range wKeys {
+		w := byWorkload[wKey]
+		usd := w.cpu*costCPURatePerCore + w.mem*costMemoryRatePerGi
+		workloadCosts = append(workloadCosts, WorkloadCost{
+			Namespace: w.namespace, Workload: strings.TrimPrefix(wKey, w.namespace+"/"), Kind: w.kind,
+			CPUCores: round1(w.cpu), MemoryGi: round1(w.mem), MonthlyUSD: round1(usd),
+		})
+	}
 	return CostEstimate{
 		TotalMonthlyUSD: round1(total),
 		CPURatePerCore:  costCPURatePerCore,
 		MemoryRatePerGi: costMemoryRatePerGi,
 		Namespaces:      nsCosts,
+		Workloads:       workloadCosts,
 	}, nil
 }
 

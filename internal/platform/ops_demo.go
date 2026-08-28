@@ -321,9 +321,15 @@ func (d *DemoProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {
 	for _, n := range nsCosts {
 		total += n.MonthlyUSD
 	}
+	workloadCosts := []WorkloadCost{
+		{Namespace: "payments", Workload: "payments-api", Kind: "Deployment", CPUCores: 6.0, MemoryGi: 12.0, MonthlyUSD: 6*cpuRate + 12*memRate},
+		{Namespace: "commerce", Workload: "checkout", Kind: "Deployment", CPUCores: 3.0, MemoryGi: 6.0, MonthlyUSD: 3*cpuRate + 6*memRate},
+		{Namespace: "data", Workload: "redis", Kind: "StatefulSet", CPUCores: 4.5, MemoryGi: 16.0, MonthlyUSD: 4.5*cpuRate + 16*memRate},
+		{Namespace: "observability", Workload: "otel-collector", Kind: "Deployment", CPUCores: 2.0, MemoryGi: 8.0, MonthlyUSD: 2*cpuRate + 8*memRate},
+	}
 	return CostEstimate{
 		TotalMonthlyUSD: round1(total), CPURatePerCore: cpuRate, MemoryRatePerGi: memRate,
-		Namespaces: nsCosts,
+		Namespaces: nsCosts, Workloads: workloadCosts,
 	}, nil
 }
 

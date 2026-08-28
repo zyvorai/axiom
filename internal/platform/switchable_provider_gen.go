@@ -309,6 +309,9 @@ func (sp *SwitchableProvider) ListAdmissionWebhooks(a0 context.Context) ([]Admis
 func (sp *SwitchableProvider) ListStorageClasses(a0 context.Context) ([]StorageClassSummary, error) {
 	return sp.current().ListStorageClasses(a0)
 }
+func (sp *SwitchableProvider) ListPriorityClasses(a0 context.Context) ([]PriorityClassSummary, error) {
+	return sp.current().ListPriorityClasses(a0)
+}
 func (sp *SwitchableProvider) ListPersistentVolumes(a0 context.Context) ([]PersistentVolumeSummary, error) {
 	return sp.current().ListPersistentVolumes(a0)
 }

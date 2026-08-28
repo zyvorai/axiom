@@ -59,6 +59,15 @@ func (d *DemoProvider) ListStorageClasses(ctx context.Context) ([]StorageClassSu
 	}, nil
 }
 
+func (d *DemoProvider) ListPriorityClasses(ctx context.Context) ([]PriorityClassSummary, error) {
+	return []PriorityClassSummary{
+		{Name: "system-cluster-critical", Value: 2000000000, GlobalDefault: false, Description: "Used for system critical pods that must run in the cluster, but can be moved to another node if necessary.", Age: "60d"},
+		{Name: "system-node-critical", Value: 2000001000, GlobalDefault: false, Description: "Used for system critical pods that must not be moved from their current node.", Age: "60d"},
+		{Name: "high-priority", Value: 1000000, GlobalDefault: false, Description: "Payments and checkout workloads.", Age: "20d"},
+		{Name: "default-priority", Value: 0, GlobalDefault: true, Description: "Default priority for everything else.", Age: "60d"},
+	}, nil
+}
+
 func (d *DemoProvider) ListPersistentVolumes(ctx context.Context) ([]PersistentVolumeSummary, error) {
 	return []PersistentVolumeSummary{
 		{Name: "pvc-edge-1", Capacity: "100Gi", AccessModes: "ReadWriteOnce", ReclaimPolicy: "Delete", Status: "Bound", Claim: "default/edge-api-data", StorageClass: "zyvor-rbd-prod", Age: "12d"},

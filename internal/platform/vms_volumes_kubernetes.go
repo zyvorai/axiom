@@ -231,6 +231,25 @@ func (k *KubernetesProvider) ListStorageClasses(ctx context.Context) ([]StorageC
 	return out, nil
 }
 
+func (k *KubernetesProvider) ListPriorityClasses(ctx context.Context) ([]PriorityClassSummary, error) {
+	list, err := k.client.SchedulingV1().PriorityClasses().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PriorityClassSummary, 0, len(list.Items))
+	for _, pc := range list.Items {
+		out = append(out, PriorityClassSummary{
+			Name:          pc.Name,
+			Value:         pc.Value,
+			GlobalDefault: pc.GlobalDefault,
+			Description:   pc.Description,
+			Age:           age(pc.CreationTimestamp.Time),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Value > out[j].Value })
+	return out, nil
+}
+
 func (k *KubernetesProvider) ListPersistentVolumes(ctx context.Context) ([]PersistentVolumeSummary, error) {
 	list, err := k.client.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
 	if err != nil {

@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Gauge, Ruler, ShieldHalf } from "lucide-react";
+import { Gauge, Ruler, ShieldHalf, ArrowUpDown } from "lucide-react";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
@@ -47,6 +47,7 @@ export default function Quotas() {
     const [quotas, setQuotas] = useState(null);
     const [limitRanges, setLimitRanges] = useState(null);
     const [pdbs, setPdbs] = useState(null);
+    const [priorityClasses, setPriorityClasses] = useState(null);
 
     useEffect(() => {
         let alive = true;
@@ -54,11 +55,13 @@ export default function Quotas() {
             api.get("/resourcequotas").catch(() => ({ data: [] })),
             api.get("/limitranges").catch(() => ({ data: [] })),
             api.get("/poddisruptionbudgets").catch(() => ({ data: [] })),
-        ]).then(([q, l, p]) => {
+            api.get("/priorityclasses").catch(() => ({ data: [] })),
+        ]).then(([q, l, p, pc]) => {
             if (!alive) return;
             setQuotas(q.data);
             setLimitRanges(l.data);
             setPdbs(p.data);
+            setPriorityClasses(pc.data);
         });
         return () => {
             alive = false;
@@ -79,7 +82,7 @@ export default function Quotas() {
             <div className="flex items-end justify-between">
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">Quotas &amp; Limits</h1>
-                    <p className="text-sm text-muted-foreground">ResourceQuotas and LimitRanges enforced per namespace.</p>
+                    <p className="text-sm text-muted-foreground">ResourceQuotas, LimitRanges, PodDisruptionBudgets, and PriorityClasses.</p>
                 </div>
             </div>
 
@@ -135,6 +138,32 @@ export default function Quotas() {
                     { key: "healthy", span: "col-span-2", render: (r) => <span className="mono">{r.currentHealthy}/{r.desiredHealthy}</span> },
                     { key: "expected", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.expectedPods} pods</span> },
                     { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
+                ]}
+            />
+
+            <Section
+                title="Priority classes"
+                icon={ArrowUpDown}
+                rows={priorityClasses || []}
+                empty="No PriorityClasses configured."
+                columns={[
+                    {
+                        key: "name",
+                        span: "col-span-4",
+                        render: (r) => (
+                            <>
+                                <div className="mono truncate text-foreground">
+                                    {r.name}
+                                    {r.globalDefault && (
+                                        <Badge className="ml-2 text-[10px] bg-white/10 text-foreground border-none">default</Badge>
+                                    )}
+                                </div>
+                                {r.description && <div className="text-[11px] text-muted-foreground">{r.description}</div>}
+                            </>
+                        ),
+                    },
+                    { key: "value", span: "col-span-6", render: (r) => <span className="mono text-muted-foreground">value: {r.value}</span> },
+                    { key: "age", span: "col-span-2", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
                 ]}
             />
         </div>

@@ -120,6 +120,7 @@ type Provider interface {
 	ListAdmissionWebhooks(context.Context) ([]AdmissionWebhookSummary, error)
 
 	ListStorageClasses(context.Context) ([]StorageClassSummary, error)
+	ListPriorityClasses(context.Context) ([]PriorityClassSummary, error)
 	ListPersistentVolumes(context.Context) ([]PersistentVolumeSummary, error)
 
 	GetNodeMetrics(context.Context, string) (NodeMetricSeries, error)

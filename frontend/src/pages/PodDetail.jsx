@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api, withAccessToken } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
@@ -34,6 +34,8 @@ import {
     Save,
     Activity,
     AlertTriangle,
+    Plus,
+    X,
 } from "lucide-react";
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
@@ -224,6 +226,61 @@ function MetricsPanel({ namespace, name }) {
                 </GlassCard>
             )}
         </div>
+    );
+}
+
+function TerminalSessions({ namespace, name, containers }) {
+    const [sessions, setSessions] = useState([{ id: 1 }]);
+    const [active, setActive] = useState("1");
+    const nextId = useRef(2);
+
+    const addSession = () => {
+        const id = nextId.current++;
+        setSessions((s) => [...s, { id }]);
+        setActive(String(id));
+    };
+
+    const closeSession = (id) => {
+        setSessions((s) => {
+            const next = s.filter((sess) => sess.id !== id);
+            if (String(active) === String(id) && next.length > 0) {
+                setActive(String(next[next.length - 1].id));
+            }
+            return next;
+        });
+    };
+
+    return (
+        <Tabs value={active} onValueChange={setActive}>
+            <div className="flex items-center gap-1">
+                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
+                    {sessions.map((s) => (
+                        <TabsTrigger key={s.id} value={String(s.id)} className="gap-1.5">
+                            Shell {s.id}
+                            {sessions.length > 1 && (
+                                <span
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        closeSession(s.id);
+                                    }}
+                                    className="ml-1 rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-white/10"
+                                >
+                                    <X className="h-3 w-3" />
+                                </span>
+                            )}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+                <Button size="sm" variant="ghost" onClick={addSession} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" title="New shell">
+                    <Plus className="h-3.5 w-3.5" />
+                </Button>
+            </div>
+            {sessions.map((s) => (
+                <TabsContent key={s.id} value={String(s.id)} className="mt-3">
+                    <PodTerminal namespace={namespace} name={name} containers={containers} />
+                </TabsContent>
+            ))}
+        </Tabs>
     );
 }
 
@@ -558,7 +615,7 @@ export default function PodDetail() {
 
                 <TabsContent value="terminal" className="mt-4">
                     {capabilities?.interactiveExec ? (
-                        <PodTerminal namespace={pod.namespace} name={pod.name} containers={containers} />
+                        <TerminalSessions namespace={pod.namespace} name={pod.name} containers={containers} />
                     ) : (
                         <div className="space-y-3">
                             <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">

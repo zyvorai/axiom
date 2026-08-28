@@ -607,11 +607,21 @@ type NamespaceCost struct {
 	MonthlyUSD float64 `json:"monthlyUsd"`
 }
 
+type WorkloadCost struct {
+	Namespace  string  `json:"namespace"`
+	Workload   string  `json:"workload"`
+	Kind       string  `json:"kind"`
+	CPUCores   float64 `json:"cpuCores"`
+	MemoryGi   float64 `json:"memoryGi"`
+	MonthlyUSD float64 `json:"monthlyUsd"`
+}
+
 type CostEstimate struct {
 	TotalMonthlyUSD float64         `json:"totalMonthlyUsd"`
 	CPURatePerCore  float64         `json:"cpuRatePerCore"`
 	MemoryRatePerGi float64         `json:"memoryRatePerGi"`
 	Namespaces      []NamespaceCost `json:"namespaces"`
+	Workloads       []WorkloadCost  `json:"workloads"`
 }
 
 type ValidateResult struct {
@@ -802,6 +812,14 @@ type NodeMetricSeries struct {
 	MemoryBytes   int64             `json:"memoryBytes"`
 	Points        []NodeMetricPoint `json:"points"`
 	Source        string            `json:"source"`
+}
+
+type PriorityClassSummary struct {
+	Name          string `json:"name"`
+	Value         int32  `json:"value"`
+	GlobalDefault bool   `json:"globalDefault"`
+	Description   string `json:"description,omitempty"`
+	Age           string `json:"age"`
 }
 
 type StorageClassSummary struct {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
@@ -6,7 +6,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus } from "lucide-react";
+import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -366,24 +366,74 @@ function IdentityTab() {
     );
 }
 
+function downloadBlob(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function auditToCSV(entries) {
+    const header = ["time", "action", "target", "detail", "user"];
+    const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = entries.map((e) => header.map((k) => escape(e[k])).join(","));
+    return [header.join(","), ...rows].join("\n");
+}
+
 function AuditTab() {
     const entries = useEndpoint("/audit");
+    const [q, setQ] = useState("");
+
+    const filtered = useMemo(() => {
+        if (!entries) return entries;
+        if (!q.trim()) return entries;
+        const needle = q.toLowerCase();
+        return entries.filter((e) =>
+            [e.action, e.target, e.detail, e.user].some((f) => (f || "").toLowerCase().includes(needle))
+        );
+    }, [entries, q]);
+
+    const exportCSV = () => {
+        downloadBlob(`axiom-audit-${new Date().toISOString().slice(0, 10)}.csv`, auditToCSV(filtered || []), "text/csv");
+    };
+
     return (
-        <GlassCard className="p-0 overflow-hidden">
-            <Rows
-                items={entries}
-                empty="No audit entries recorded yet."
-                render={(e, i) => (
-                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
-                        <div className="col-span-2 mono text-xs text-sky-300">{e.action}</div>
-                        <div className="col-span-5 mono truncate text-xs text-foreground/90">{e.target}</div>
-                        <div className="col-span-3 truncate text-xs text-muted-foreground">{e.detail}</div>
-                        <div className="col-span-1 text-xs text-muted-foreground">{e.user}</div>
-                        <div className="col-span-1 text-right text-xs text-muted-foreground">{relTime(e.time)}</div>
-                    </div>
-                )}
-            />
-        </GlassCard>
+        <div className="space-y-3">
+            <div className="flex items-center gap-2">
+                <div className="relative flex-1 min-w-[220px]">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Search action, target, detail, or user"
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                        className="border-white/10 bg-white/[0.03] pl-9"
+                    />
+                </div>
+                <Button size="sm" variant="outline" onClick={exportCSV} disabled={!filtered || filtered.length === 0} className="rounded-xl border-white/10 bg-white/[0.03]">
+                    <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
+                </Button>
+            </div>
+            <GlassCard className="p-0 overflow-hidden">
+                <Rows
+                    items={filtered}
+                    empty={q ? "No audit entries match." : "No audit entries recorded yet."}
+                    render={(e, i) => (
+                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                            <div className="col-span-2 mono text-xs text-sky-300">{e.action}</div>
+                            <div className="col-span-5 mono truncate text-xs text-foreground/90">{e.target}</div>
+                            <div className="col-span-3 truncate text-xs text-muted-foreground">{e.detail}</div>
+                            <div className="col-span-1 text-xs text-muted-foreground">{e.user}</div>
+                            <div className="col-span-1 text-right text-xs text-muted-foreground">{relTime(e.time)}</div>
+                        </div>
+                    )}
+                />
+            </GlassCard>
+        </div>
     );
 }
 
@@ -653,6 +703,24 @@ function CostTab() {
                             <div className="col-span-3 text-xs text-muted-foreground">{n.cpuCores} cores</div>
                             <div className="col-span-3 text-xs text-muted-foreground">{n.memoryGi} GiB</div>
                             <div className="col-span-2 text-right mono text-sm">${n.monthlyUsd}</div>
+                        </div>
+                    )}
+                />
+            </GlassCard>
+            <GlassCard className="p-0 overflow-hidden">
+                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">By workload</div>
+                <Rows
+                    items={cost.workloads}
+                    empty="No workload cost data."
+                    render={(w) => (
+                        <div key={`${w.namespace}/${w.workload}`} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                            <div className="col-span-4 min-w-0">
+                                <div className="mono truncate text-sm">{w.workload}</div>
+                                <div className="text-[11px] text-muted-foreground">{w.namespace} · {w.kind}</div>
+                            </div>
+                            <div className="col-span-3 text-xs text-muted-foreground">{w.cpuCores} cores</div>
+                            <div className="col-span-3 text-xs text-muted-foreground">{w.memoryGi} GiB</div>
+                            <div className="col-span-2 text-right mono text-sm">${w.monthlyUsd}</div>
                         </div>
                     )}
                 />

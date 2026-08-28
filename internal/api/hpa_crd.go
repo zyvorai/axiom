@@ -125,6 +125,11 @@ func (s *Server) listStorageClasses(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) listPriorityClasses(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListPriorityClasses(r.Context())
+	respond(w, v, err)
+}
+
 func (s *Server) listPersistentVolumes(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListPersistentVolumes(r.Context())
 	respond(w, v, err)
