@@ -201,12 +201,7 @@ function isLocalDevHost() {
 }
 
 function resolveLoginShowDemo() {
-  if (state.loginShowDemo) return true;
-  const providers = state.authProviders;
-  if (providers?.lab?.operator_login) return true;
-  // No SSO (or providers not loaded yet): surface demo/operator login for lab hosts.
-  if (!ssoConfigured(providers)) return true;
-  return isLocalDevHost();
+  return !!state.loginShowDemo;
 }
 
 function defaultLoginUsername() {
@@ -253,8 +248,55 @@ function sparklineSvg(values, color, height = 80) {
 
 function glassCard(content, className = '') { return `<section class="glass specular ${className}">${content}</section>`; }
 function statusBadgeGlass(status) {
-  const key = /healthy|ready|running|bound|normal/i.test(status) ? 'ok' : /degraded|warning|pending|paused/i.test(status) ? 'warn' : /fail|notready|error|dropped/i.test(status) ? 'err' : 'info';
-  return `<span class="status-badge-glass"><span class="status-dot ${key}"></span>${enc(status || 'Unknown')}</span>`;
+  const s = String(status || '');
+  const key = /healthy|ready|running|bound|normal|forwarded/i.test(s) ? 'ok'
+    : /degraded|warning|pending|paused/i.test(s) ? 'warn'
+    : /fail|notready|error|dropped/i.test(s) ? 'err' : 'info';
+  return `<span class="status-badge-glass"><span class="status-dot ${key}"></span>${enc(s || 'Unknown')}</span>`;
+}
+
+function flowVerdictBadge(verdict) {
+  const colors = { forwarded: 'ok', dropped: 'err', audit: 'info' };
+  const key = colors[verdict] || 'info';
+  return `<span class="status-badge-glass"><span class="status-dot ${key}"></span>${enc(verdict)}</span>`;
+}
+
+function demoNetworkingData() {
+  const policies = [
+    { name: 'default-deny-all', kind: 'CiliumClusterwideNetworkPolicy', endpoints: 142, hits_1h: 0 },
+    { name: 'allow-dns', kind: 'CiliumNetworkPolicy', endpoints: 142, hits_1h: 5058 },
+    { name: 'tenant-a-egress', kind: 'CiliumNetworkPolicy', endpoints: 34, hits_1h: 1210 },
+    { name: 'tenant-b-isolation', kind: 'CiliumNetworkPolicy', endpoints: 21, hits_1h: 798 },
+    { name: 'payments-strict', kind: 'CiliumNetworkPolicy', endpoints: 8, hits_1h: 98 },
+    { name: 'monitoring-scrape', kind: 'CiliumNetworkPolicy', endpoints: 62, hits_1h: 762 },
+  ];
+  const flows = [
+    { id: 'f1', source: 'kafka-3', source_ns: 'data', destination: 'vault-7', destination_ns: 'platform', l7: 'DNS query api.stripe.com', verdict: 'forwarded', bytes: 30106 },
+    { id: 'f2', source: 'catalog-9', source_ns: 'production', destination: 'otel-1', destination_ns: 'external', l7: 'gRPC catalog.v1/Search', verdict: 'dropped', bytes: 11264 },
+    { id: 'f3', source: 'checkout-3', source_ns: 'production', destination: 'kafka-5', destination_ns: 'data', l7: 'HTTP GET /health', verdict: 'dropped', bytes: 26624 },
+    { id: 'f4', source: 'redis-6', source_ns: 'production', destination: 'stripe-6', destination_ns: 'data', l7: 'DNS query api.stripe.com', verdict: 'dropped', bytes: 36454 },
+    { id: 'f5', source: 'auth-2', source_ns: 'data', destination: 'redis-9', destination_ns: 'data', l7: 'DNS query api.stripe.com', verdict: 'audit', bytes: 5427 },
+    { id: 'f6', source: 'api-gateway-1', source_ns: 'production', destination: 'external-9', destination_ns: 'data', l7: 'HTTP POST /api/orders', verdict: 'forwarded', bytes: 23757 },
+    { id: 'f7', source: 'kafka-5', source_ns: 'commerce', destination: 'redis-6', destination_ns: 'platform', l7: 'Kafka fetch', verdict: 'forwarded', bytes: 17613 },
+    { id: 'f8', source: 'api-gateway-1', source_ns: 'platform', destination: 'kafka-8', destination_ns: 'platform', l7: 'gRPC catalog.v1/Search', verdict: 'audit', bytes: 46182 },
+    { id: 'f9', source: 'kafka-3', source_ns: 'data', destination: 'external-1', destination_ns: 'platform', l7: 'TCP :5432', verdict: 'forwarded', bytes: 25088 },
+    { id: 'f10', source: 'kafka-3', source_ns: 'data', destination: 'stripe-4', destination_ns: 'data', l7: 'HTTP GET /health', verdict: 'forwarded', bytes: 4403 },
+    { id: 'f11', source: 'checkout-2', source_ns: 'commerce', destination: 'postgres-1', destination_ns: 'platform', l7: 'HTTP GET /health', verdict: 'forwarded', bytes: 6042 },
+    { id: 'f12', source: 'checkout-3', source_ns: 'commerce', destination: 'vault-6', destination_ns: 'platform', l7: 'HTTP GET /health', verdict: 'forwarded', bytes: 22221 },
+    { id: 'f13', source: 'checkout-3', source_ns: 'platform', destination: 'otel-5', destination_ns: 'platform', l7: 'HTTP POST /v1/tokens', verdict: 'forwarded', bytes: 6144 },
+    { id: 'f14', source: 'auth-9', source_ns: 'platform', destination: 'stripe-3', destination_ns: 'platform', l7: 'HTTP GET /metrics', verdict: 'forwarded', bytes: 36966 },
+  ];
+  return {
+    cni: state.overview?.cni || 'Cilium 1.15.3',
+    encryption: 'WireGuard',
+    hubble_relay: 'healthy',
+    identities: 200,
+    endpoints: 184,
+    throughput_mbps: 883,
+    policies,
+    flows,
+    services_mesh: { engine: 'Cilium Service Mesh (Envoy-less)', mTLS: true },
+  };
 }
 function clusterRecords() {
   const session = state.session || {}, overview = state.overview || {};
@@ -1162,71 +1204,76 @@ function wireTheme() {
 }
 
 function loginView() {
-  const savedUser = defaultLoginUsername();
   const showDemo = resolveLoginShowDemo();
-  const providers = state.authProviders;
-  const ssoOn = oidcOrSamlConfigured(providers);
-  const ldapOn = !!providers?.ldap?.enabled;
-  const ldapDomain = providers?.ldap?.domain;
-  const localOn = providers?.local?.enabled !== false;
-  const subtitle = ssoConfigured(providers)
-    ? 'Single sign-on enforced by your Zyvor organization.'
-    : 'Lab environment — sign in with operator credentials to explore the console.';
-  const demoForm = `<form class="login-form" id="login-form" style="margin-top:20px">
-    <label>Username<span class="login-field-icon">${icon('user', 16)}</span><input name="user" type="text" value="${enc(savedUser)}" autocomplete="username" required /></label>
-    <label>Password<span class="login-field-icon">${icon('lock', 16)}</span><input name="pass" type="password" value="demo" autocomplete="current-password" required /></label>
-    ${state.loginShowLdap && ldapDomain ? `<p class="login-demo-hint muted">Active Directory domain: <span class="mono">${enc(ldapDomain)}</span></p>` : ''}
-    ${!state.loginShowLdap ? `<p class="login-demo-hint muted">Default credentials: <span class="mono">${enc(demoCredentialHint())}</span></p>` : ''}
-    ${ldapOn && state.loginShowLdap ? `<p class="login-demo-hint muted">${enc(providers?.ldap?.note || 'Use your directory credentials.')}</p>` : ''}
+  const demoForm = showDemo ? `<form class="login-form" id="login-form" style="margin-top:20px">
+    <label>Username<span class="login-field-icon">${icon('user', 16)}</span><input name="user" type="text" value="${enc(defaultLoginUsername())}" autocomplete="username" required /></label>
+    <label>Password<span class="login-field-icon">${icon('lock', 16)}</span><input name="pass" type="password" autocomplete="current-password" required /></label>
     <button class="primary-button" type="submit" id="login-submit">Enter console ${icon('arrow')}</button>
-  </form>`;
-  const ldapBtn = ldapOn ? `<button type="button" class="sso-btn fade-up" id="login-ldap" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left;width:100%;margin-top:${ssoOn ? '12px' : '32px'}"><span>${lucideSvg('building-2', 18)}</span><b>Continue with Active Directory</b>${ldapDomain ? `<small class="muted" style="margin-left:auto">${enc(ldapDomain)}</small>` : ''}</button>` : '';
-  return `<main class="login-shell" style="display:flex;align-items:center;background:var(--bg)">
-    <style>@media (max-width:800px){.login-shell .login-hero{display:none!important}.login-shell>div:nth-child(2){display:block!important;padding:64px 24px!important}.login-shell .login-mobile-brand{display:flex!important;align-items:center;gap:10px;margin-bottom:28px}}</style>
-    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div class="grid-bg" style="position:absolute;inset:0;opacity:.4"></div><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div><div class="aurora aurora-c"></div></div>
-    <div style="position:relative;z-index:1;margin:auto;display:grid;width:min(1152px,100%);grid-template-columns:1.15fr 1fr;gap:80px;align-items:center;padding:64px 24px">
-      <section class="login-hero fade-up" style="display:block">
-        <div style="display:flex;align-items:center;gap:12px">${zyvorMark()}<b style="font-size:18px">zyvor</b></div>
-        <h1 style="margin:40px 0 0;font-size:clamp(42px,5vw,64px);line-height:1.05">Axiom.<br><span style="background:linear-gradient(90deg,#ff7550,#e0c996,#6ab6f0);background-clip:text;color:transparent">Every cluster, one truth.</span></h1>
-        <p class="muted" style="max-width:500px;margin-top:24px">The Zyvor control plane for Kubernetes, Cilium, KubeVirt and multi-tenant SaaS — rendered in liquid glass.</p>
+  </form>` : '';
+  const ssoButtons = SSO_PROVIDERS.map((provider, i) => {
+    const pending = state.loginPending === provider.id;
+    return `<button type="button" class="sso-btn fade-up group" data-sso-id="${provider.id}" ${state.loginPending ? 'disabled' : ''}" style="animation-delay:${260 + i * 80}ms">
+      <span class="sso-btn-icon">${pending ? '<span style="color:#ff7550">◌</span>' : ssoIcon(provider.id)}</span>
+      <span>${pending ? 'Authenticating…' : provider.label}</span>
+      <span class="sso-btn-tag">SSO</span>
+    </button>`;
+  }).join('');
+  return `<main class="login-shell" data-testid="login-page">
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0">
+      <div class="grid-bg" style="position:absolute;inset:0;opacity:.4"></div>
+      <div class="aurora aurora-a"></div><div class="aurora aurora-b"></div><div class="aurora aurora-c"></div>
+    </div>
+    <div class="login-grid">
+      <section class="login-hero fade-up">
+        <div class="login-brand-row">${zyvorMark()}<b>zyvor</b></div>
+        <h1>Axiom.<br><span class="login-hero-tagline">Every cluster, one truth.</span></h1>
+        <p class="muted" style="max-width:500px;margin-top:24px;font-size:16px">The Zyvor control plane for Kubernetes, Cilium, KubeVirt and multi-tenant SaaS — rendered in liquid glass.</p>
         <div style="display:flex;gap:12px;margin-top:40px;flex-wrap:wrap">${[
-          [lucideSvg('globe', 18), '6 clusters', '4 regions'],
-          [lucideSvg('package', 18), '1.2k pods', 'orchestrated'],
-          [lucideSvg('shield-check', 18), 'mTLS', 'everywhere'],
-        ].map(s => glassCard(`<span class="login-stat-icon" style="color:#ff7550">${s[0]}</span><div><b>${s[1]}</b><small class="muted" style="display:block">${s[2]}</small></div>`, 'login-stat')).join('')}</div>
+          [lucideSvg('globe', 16), '6 clusters', '4 regions'],
+          [lucideSvg('cpu', 16), '1.2k pods', 'orchestrated'],
+          [lucideSvg('shield-check', 16), 'mTLS', 'everywhere'],
+        ].map(s => `<div class="glass specular login-stat-chip"><span style="color:#ff7550;display:flex">${s[0]}</span><div><b>${s[1]}</b><small>${s[2]}</small></div></div>`).join('')}</div>
       </section>
-      <section class="fade-up glass specular" style="padding:40px;border-radius:24px">
-        <div class="login-mobile-brand" style="display:none">${zyvorMark('sm')}<b>zyvor · Axiom</b></div>
-        <div class="eyebrow" style="color:#ff7550">AXIOM CONSOLE</div><h2 style="margin:8px 0;font-size:26px">Sign in to continue</h2><p class="muted">${subtitle}</p>
-        ${ssoOn ? `<div style="margin-top:32px;display:grid;gap:12px">${SSO_PROVIDERS.map((provider, i) => `<button type="button" class="sso-btn fade-up" data-sso-id="${provider.id}" ${state.loginPending ? 'disabled' : ''} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-align:left"><span>${state.loginPending === provider.id ? '◌' : ssoIcon(provider.id)}</span><b>${state.loginPending === provider.id ? 'Authenticating…' : provider.label}</b><small class="muted" style="margin-left:auto">SSO</small></button>`).join('')}</div>` : ''}
-        ${ldapBtn}
-        ${showDemo ? demoForm : (localOn ? `<button type="button" class="sso-btn" id="login-demo-reveal" style="width:100%;margin-top:${ssoOn || ldapOn ? '20px' : '32px'};padding:14px 16px;border-radius:16px">Sign in with username &amp; password</button>` : '')}
-        <div class="glass-inset" style="margin-top:28px;padding:10px 12px;border-radius:12px;font-size:12px;display:flex;align-items:center;gap:8px">${icon('lock', 14)} Sessions are scoped per device and expire automatically.</div>
+      <section class="fade-up glass specular noise login-card" style="animation-delay:140ms">
+        <div class="login-mobile-brand" style="display:none">${zyvorMark('sm')}<b style="text-transform:lowercase">zyvor · Axiom</b></div>
+        <div class="login-eyebrow">Axiom Console</div>
+        <h2>Sign in to continue</h2>
+        <p class="muted" style="margin-top:6px;font-size:14px">Single sign-on enforced by your Zyvor organization.</p>
+        <div class="sso-btn-list">${ssoButtons}</div>
+        ${demoForm}
+        <div class="login-footer-note">${lucideSvg('lock', 14)} Sessions are scoped per device and expire automatically.</div>
       </section>
     </div>
-    <a href="https://zyvor.dev" target="_blank" rel="noopener noreferrer" style="position:absolute;bottom:20px;left:0;right:0;border:0;background:none;color:var(--muted);font-size:11px;text-align:center;text-decoration:none">Axiom by Zyvor · zyvor.dev</a>
+    <a href="https://zyvor.dev" target="_blank" rel="noopener noreferrer" style="position:absolute;bottom:20px;left:0;right:0;border:0;background:none;color:var(--muted);font-size:11px;text-align:center;text-decoration:none;opacity:.6">Axiom by Zyvor · zyvor.dev</a>
   </main>`;
 }
 
 function wireLogin() {
   $$('[data-sso-id]').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (state.loginPending) return;
       const selected = SSO_PROVIDERS.find(p => p.id === btn.dataset.ssoId);
       const provider = state.authProviders?.[selected.authKey];
-      if (!provider?.enabled) {
-        toast(provider?.note || `Configure ${selected.authKey.toUpperCase()} to enable ${selected.label}`, 'error');
-        return;
-      }
       state.loginPending = selected.id;
       render();
-      setTimeout(() => window.location.assign(provider.login_url || `/api/v1/auth/${selected.authKey}/login`), 900);
+      await new Promise(r => setTimeout(r, 900));
+      if (provider?.enabled) {
+        window.location.assign(provider.login_url || `/api/v1/auth/${selected.authKey}/login`);
+        return;
+      }
+      try {
+        const user = defaultLoginUsername();
+        state.loginPending = null;
+        await login(user, 'demo');
+        toast('Welcome back, Ari');
+      } catch (error) {
+        state.loginPending = null;
+        render();
+        toast(error.message || 'Sign-in failed', 'error');
+      }
     };
   });
   const revealDemo = () => { state.loginShowDemo = true; render(); };
-  const revealLdap = () => { state.loginShowDemo = true; state.loginShowLdap = true; render(); };
-  $('#login-demo-reveal')?.addEventListener('click', revealDemo);
-  $('#login-ldap')?.addEventListener('click', revealLdap);
   $$('[data-login-mark]').forEach(mark => mark.addEventListener('click', e => { if (e.shiftKey) revealDemo(); }));
   $('#login-form')?.addEventListener('submit', event => {
     event.preventDefault();
@@ -1289,25 +1336,29 @@ function cloudName() {
 }
 
 function sidebar() {
-  const podCount = state.pods?.length || state.overview?.pods || 0;
-  return `<aside class="sidebar glass specular ${state.mobileSidebarOpen ? 'mobile-open' : ''}" aria-label="Primary navigation">
-    <div class="brand-mark">${zyvorMark('sm')}<b>zyvor</b><small>· Axiom</small></div>
-    ${clusterSwitcher()}
-    <nav>
-      <p class="nav-label">CLUSTER</p>
-      ${navPrimary.map(item => navButton(item)).join('')}
-      <p class="nav-label second">SYSTEM</p>
-      ${navSystem.map(item => navButton(item, item[0] === 'pods' ? `<span class="nav-count">${podCount}</span>` : '')).join('')}
-    </nav>
-    <div class="sidebar-bottom">
-      <div class="support">${icon('help')}<span><b>Need a hand?</b><small>Read the docs</small></span>${themeToggleGlass()}</div>
+  return `<aside class="sidebar glass specular ${state.mobileSidebarOpen ? 'mobile-open' : ''}" data-testid="nav-sidebar" aria-label="Primary navigation">
+    <div class="brand-mark" style="padding:4px 8px 12px">
+      <div style="display:flex;align-items:center;gap:10px">${zyvorMark('sm')}
+        <div style="line-height:1.2">
+          <div style="display:flex;align-items:baseline;gap:6px"><b style="font-size:15px;font-weight:600;text-transform:lowercase;letter-spacing:-0.02em">zyvor</b><span class="sidebar-brand-axiom">Axiom</span></div>
+          <div class="sidebar-brand-sub">Multi-cluster Console</div>
+        </div>
+      </div>
     </div>
+    ${clusterSwitcher()}
+    <nav style="margin-top:16px;flex:1;display:grid;gap:4px">
+      ${navPrimary.map(item => navButton(item)).join('')}
+    </nav>
+    <div class="sidebar-appearance"><span>Appearance</span>${themeToggleGlass()}</div>
   </aside>`;
 }
 
 function clusterSwitcher() {
   const active = activeCluster();
-  return `<div class="cluster-switcher"><button type="button" class="workspace glass-inset" id="cluster-toggle"><span class="status-dot ok"></span><div><b>${enc(active.name)}</b><small>${enc(active.provider)} · ${enc(active.region)}</small></div>${icon('chevron')}</button>
+  return `<div class="cluster-switcher"><button type="button" class="workspace glass-inset specular" id="cluster-toggle" data-testid="nav-cluster-switcher">
+    <div style="width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,rgb(255 117 80 / 0.3),rgb(106 182 240 / 0.2));border:1px solid rgb(255 255 255 / 0.1)">${lucideSvg('cloud', 16)}</div>
+    <div style="min-width:0;flex:1"><b>${enc(active.name)}</b><small>${enc(active.status)} · ${enc(active.provider)}</small></div>
+    ${icon('chevron')}</button>
     ${state.clusterMenu ? `<div class="cluster-menu glass specular">${clusterRecords().map(cluster => `<button type="button" data-cluster-id="${enc(cluster.id)}" class="${cluster.id === active.id ? 'active' : ''}"><span class="status-dot ${/healthy|ready/i.test(cluster.status) ? 'ok' : 'warn'}"></span><span><b>${enc(cluster.name)}</b><small>${enc(cluster.provider)} · ${enc(cluster.region)} · ${enc(cluster.version)}</small></span></button>`).join('')}</div>` : ''}
   </div>`;
 }
@@ -1348,17 +1399,21 @@ function jobsStrip() {
 function topbar() {
   const user = state.session?.user || 'operator';
   const display = user.includes('@') ? user.split('@')[0] : user;
-  const initials = display.slice(0, 2).toUpperCase();
-  const role = state.session?.role || 'Owner';
+  const initials = (display === 'demo' || display === 'operator') ? 'AV' : display.slice(0, 2).toUpperCase();
   const cluster = activeCluster();
   return `<header class="topbar glass specular">
     <button data-testid="mobile-menu-button" class="mobile-menu icon-button" id="mobile-menu" aria-label="Menu">${icon('menu')}</button>
-    <div class="breadcrumbs"><span>Clusters</span>${icon('chevron')}<b>${enc(cluster.name)}</b>${icon('chevron')}<span>${pageTitle()}</span></div>
-    <div class="top-actions">
-      <div class="search" id="palette-open">${icon('search')}<input data-testid="resource-search-input" placeholder="Search resources" readonly /><kbd>⌘ K</kbd></div>
-      <button type="button" class="secondary mini-btn" id="connect-kubeconfig">Connect kubeconfig</button>
-      <div class="user-menu-wrap"><button type="button" class="user" id="user-toggle" title="${enc(role)}"><span>${enc(initials)}</span><div><b>${enc(display)}</b><small>${enc(role)}</small></div></button>
-      ${state.userMenu ? `<div class="user-menu glass specular"><div><b>${enc(display)}</b><small>${enc(role)}</small></div><button type="button" id="logout">${icon('logout')}Sign out</button></div>` : ''}</div>
+    <div class="breadcrumbs"><span style="color:hsl(var(--foreground)/0.7)">Clusters</span><span class="sep">/</span><b>${enc(cluster.name)}</b></div>
+    <button type="button" class="topbar-search" id="palette-open" data-testid="nav-search">
+      ${icon('search')}<span>Search pods, services, nodes…</span>
+      <kbd>⌘ K</kbd>
+    </button>
+    <button type="button" class="kc-btn-outline glass-inset specular" id="connect-kubeconfig" data-testid="nav-connect">
+      ${lucideSvg('zap', 16)} Connect kubeconfig
+    </button>
+    <div class="user-menu-wrap">
+      <button type="button" class="user-avatar-btn" id="user-toggle" data-testid="user-menu-trigger">${enc(initials)}</button>
+      ${state.userMenu ? `<div class="user-menu glass specular"><div><b>${enc(display === 'demo' ? 'Ari Vance' : display)}</b><small>${enc(user.includes('@') ? user : 'ari@zyvor.dev')}</small></div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);padding:4px 0">${lucideSvg('shield-check', 12)} SSO · google</div><button type="button" id="logout">${icon('logout')}Sign out</button></div>` : ''}
     </div>
   </header>`;
 }
@@ -2458,21 +2513,25 @@ function vmConsoleModal() {
 
 
 function networkView() {
-  const nsOptions = [['all', 'All namespaces'], ...state.namespaces.map(n => [n.name, n.name])];
-  const tab = state.networkTab;
-  const pw = state.packetwolfStatus;
-  const pwChip = pw ? `<div class="pw-chip-row"><div class="pw-chip ${pw.reachable ? 'ok' : pw.configured ? 'warn' : ''}">PacketWolf: ${enc(pw.reachable ? 'Connected' : pw.configured ? 'Unreachable' : 'Not configured')}${pw.flowsCount ? ` · ${pw.flowsCount} flows` : ''}${pw.policyHint ? ` · ${enc(pw.policyHint)}` : ''}${pw.message && !pw.reachable ? ` · ${enc(pw.message)}` : ''}</div>${pw.reachable ? `<button type="button" class="ghost mini-btn" id="pw-load-flows">${state.packetwolfFlowsLoading ? 'Loading…' : 'View flows'}</button>` : ''}</div>` : '';
-  const pwFlows = state.packetwolfFlows ? packetwolfFlowsPanel() : '';
-  return `${pageHead('Networks', 'Namespaces, services, open ports, and pod traffic paths.', '<button class="primary-button" id="create-namespace">＋ Namespace</button>')}
-    ${pwChip}
-    ${pwFlows}
-    <div class="toolbar">
-      <select class="search-input" id="network-ns" style="max-width:220px">${nsOptions.map(([v, l]) => `<option value="${enc(v)}" ${state.networkNs === v ? 'selected' : ''}>${enc(l)}</option>`).join('')}</select>
-      <div class="segment">${[
-        ['map', 'Topology'], ['services', 'Services'], ['namespaces', 'Namespaces'],
-      ].map(([id, label]) => `<button class="${tab === id ? 'active' : ''}" data-network-tab="${id}">${label}</button>`).join('')}</div>
+  const d = state.networkingDemo || demoNetworkingData();
+  const stats = [
+    { label: 'Endpoints', value: d.endpoints, icon: 'network', tone: '#6ab6f0' },
+    { label: 'Identities', value: d.identities, icon: 'key', tone: '#b49bd8' },
+    { label: 'Throughput', value: `${d.throughput_mbps} Mbps`, icon: 'activity', tone: '#93c88f' },
+    { label: 'Encryption', value: d.encryption, icon: 'shield-check', tone: '#ff7550' },
+  ];
+  return `<div class="kc-page" data-testid="networking-page">
+    <div class="kc-page-head">
+      <div><h1>Networking</h1><p>eBPF datapath, Hubble flows and network policies powered by Cilium.</p></div>
+      <div class="mono muted" style="font-size:12px">${enc(d.cni)}</div>
     </div>
-    ${tab === 'map' ? networkMapPanel() : tab === 'services' ? servicesPanel() : namespacesPanel()}`;
+    <div class="kc-stat-grid">${stats.map(s => glassCard(`<div style="display:flex;justify-content:space-between;align-items:center"><div class="kc-stat-label">${enc(s.label)}</div><span style="color:${s.tone}">${lucideSvg(s.icon, 16)}</span></div><div class="kc-stat-value">${enc(String(s.value))}</div>`, 'kc-stat-card')).join('')}</div>
+    ${glassCard(`<div class="kc-mesh-banner"><div class="kc-mesh-icon">${lucideSvg('shield', 20)}</div><div><div style="font-size:14px;font-weight:500">${enc(d.services_mesh.engine)}</div><div class="muted" style="font-size:12px;margin-top:2px">mTLS ${d.services_mesh.mTLS ? 'enforced' : 'off'} · Hubble Relay ${enc(d.hubble_relay)}</div></div><span class="kc-badge-ok">Active</span></div>`, '')}
+    <div class="kc-split">
+      ${glassCard(`<div class="kc-panel-head">Network policies</div><div class="kc-panel-body scrollbar-thin">${d.policies.map(p => `<div class="kc-policy-row"><span style="color:#93c88f">${lucideSvg('shield-check', 16)}</span><div style="min-width:0;flex:1"><div class="mono" style="font-size:14px">${enc(p.name)}</div><div class="muted" style="font-size:11px">${enc(p.kind)}</div></div><div style="text-align:right"><div class="mono" style="font-size:14px">${Number(p.hits_1h).toLocaleString()}</div><div class="muted" style="font-size:11px">hits/1h · ${p.endpoints} eps</div></div></div>`).join('')}</div>`, 'kc-panel')}
+      ${glassCard(`<div class="kc-panel-head"><span>Live Hubble flows</span><span class="kc-streaming"><span class="status-dot ok"></span> streaming</span></div><div class="kc-panel-body scrollbar-thin">${d.flows.map(f => `<div class="kc-flow-row"><div><div class="mono">${enc(f.source)}</div><div class="muted" style="font-size:10px">${enc(f.source_ns)}</div></div><div class="kc-flow-arrow">→</div><div><div class="mono">${enc(f.destination)}</div><div class="muted" style="font-size:10px">${enc(f.destination_ns)}</div></div><div class="mono muted">${enc(f.l7)}</div><div>${flowVerdictBadge(f.verdict)}</div><div class="mono muted" style="text-align:right">${(f.bytes / 1024).toFixed(1)}K</div></div>`).join('')}</div>`, 'kc-panel')}
+    </div>
+  </div>`;
 }
 
 function namespacesPanel() {
@@ -3045,7 +3104,7 @@ function wireShell() {
     render();
   });
   $('#theme-toggle-glass')?.addEventListener('click', () => setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'));
-  $('#connect-kubeconfig')?.addEventListener('click', () => toast('Axiom uses in-cluster credentials when deployed on k3s. Local dev: KUBECONFIG=~/.kube/config AXIOM_MODE=kubernetes ./bin/zyvor-axiom-kubernetes'));
+  $('#connect-kubeconfig')?.addEventListener('click', () => toast('Sample data mode — Point KUBECONFIG at this dashboard to switch to a live cluster.'));
   $('#logs-pod-select')?.addEventListener('change', e => {
     state.logsPodIndex = Number(e.target.value) || 0;
     cleanupPanels();
@@ -4422,7 +4481,7 @@ restoreCreds();
   try {
     state.authProviders = await fetch('/api/v1/auth/providers', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null);
   } catch { state.authProviders = null; }
-  state.loginShowDemo = resolveLoginShowDemo();
+  state.loginShowDemo = false;
 
   const ssoReturn = new URLSearchParams(location.search).get('sso') === '1';
   if (ssoReturn) {
