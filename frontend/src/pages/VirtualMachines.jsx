@@ -1,164 +1,338 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from "@/components/ui/dialog";
-import { MonitorPlay, Cpu, MemoryStick, X } from "lucide-react";
+import { Cpu, MemoryStick, X, Play, Square, ArrowRightLeft, Terminal, Copy, Check, Camera, Copy as CopyIcon, Upload, RotateCcw, Plus } from "lucide-react";
 import { VMS } from "@/constants/testIds";
+import { toast } from "sonner";
 
-/** noVNC-style animated console emulator. Draws a Linux boot / tty on canvas. */
-function VncCanvas({ vm }) {
-    const canvasRef = useRef(null);
-    const rafRef = useRef();
+function ConsolePanel({ vm }) {
+    const [info, setInfo] = useState(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        const cv = canvasRef.current;
-        if (!cv) return;
-        const ctx = cv.getContext("2d");
-        const dpr = window.devicePixelRatio || 1;
-        const resize = () => {
-            const rect = cv.getBoundingClientRect();
-            cv.width = rect.width * dpr;
-            cv.height = rect.height * dpr;
-            ctx.scale(dpr, dpr);
+        let alive = true;
+        api
+            .get(`/vms/${vm.namespace}/${encodeURIComponent(vm.name)}/console`)
+            .then((r) => alive && setInfo(r.data))
+            .catch(() => alive && setInfo(false));
+        return () => {
+            alive = false;
         };
-        resize();
-
-        const linesWin = [
-            "Starting Windows Server 2022...",
-            "[  OK  ] Loaded kernel modules",
-            "[  OK  ] Mounted C:\\ (NTFS)",
-            "[  OK  ] Reached target Network",
-            "[  OK  ] Started Task Scheduler",
-            "PS C:\\Users\\Administrator>  Get-Service | Where Status -eq 'Running' | Select -First 5",
-            "Status   Name               DisplayName",
-            "------   ----               -----------",
-            "Running  BITS                Background Intelligent Transfer",
-            "Running  Dnscache            DNS Client",
-            "Running  EventLog            Windows Event Log",
-            "Running  LanmanServer        Server",
-            "PS C:\\Users\\Administrator>  _",
-        ];
-        const linesLinux = [
-            "[  OK  ] Started KubeVirt virt-launcher",
-            "[  OK  ] Reached target Multi-User System",
-            "Ubuntu 22.04.4 LTS  ttyS0",
-            "",
-            `${vm.name} login: root`,
-            "Password: ****",
-            "Welcome to Ubuntu 22.04.4 LTS (GNU/Linux 6.5.0-1023 x86_64)",
-            "",
-            " * Documentation:  https://help.ubuntu.com",
-            " * Management:     https://landscape.canonical.com",
-            "",
-            "  System information as of " + new Date().toUTCString(),
-            "",
-            "  System load:  0.42               Users logged in:       1",
-            "  Usage of /:   " + (Math.random() * 40 + 20).toFixed(1) + "% of 40.00GB",
-            "  Memory usage: " + Math.round(Math.random() * 30 + 40) + "%",
-            "  Swap usage:   0%",
-            "",
-            "Last login: " + new Date().toString().slice(0, 24),
-            `root@${vm.name}:~# systemctl status kubelet`,
-            "● kubelet.service - kubernetes Kubelet",
-            "     Loaded: loaded (/etc/systemd/system/kubelet.service; enabled)",
-            "     Active: active (running) since " + new Date().toDateString(),
-            "   Main PID: 1834 (kubelet)",
-            `root@${vm.name}:~# _`,
-        ];
-        const linesOpn = [
-            "OPNsense 24.1 boot sequence",
-            "[  OK  ] Interfaces wan0, lan0 up",
-            "[  OK  ] pf.ko loaded",
-            "[  OK  ] Firewall rules applied: 342",
-            "[  OK  ] IPsec tunnel eu-west-1 established",
-            "[  OK  ] DHCPv6 leases: 128",
-            `opnsense# ipfw show | wc -l  →  342`,
-            `opnsense# _`,
-        ];
-        const os = (vm.os || "").toLowerCase();
-        const lines = os.startsWith("windows") ? linesWin : os.startsWith("opnsense") ? linesOpn : linesLinux;
-
-        let shown = 0;
-        let charIdx = 0;
-        let blink = 0;
-        let last = 0;
-
-        const draw = (t) => {
-            const rect = cv.getBoundingClientRect();
-            ctx.fillStyle = "#050506";
-            ctx.fillRect(0, 0, rect.width, rect.height);
-            // scanlines
-            ctx.fillStyle = "rgba(255,255,255,0.02)";
-            for (let y = 0; y < rect.height; y += 3) ctx.fillRect(0, y, rect.width, 1);
-
-            ctx.font = "13px 'SF Mono', Menlo, monospace";
-            ctx.fillStyle = "#7FE7A6";
-            let y = 20;
-            for (let i = 0; i < shown && i < lines.length; i++) {
-                const full = lines[i];
-                const text = i === shown - 1 ? full.slice(0, charIdx) : full;
-                if (text.startsWith("[  OK  ]")) ctx.fillStyle = "#7FE7A6";
-                else if (text.toLowerCase().includes("error") || text.toLowerCase().includes("fail")) ctx.fillStyle = "#FF6B6B";
-                else if (text.startsWith("PS ") || text.startsWith("opnsense#") || text.startsWith("root@")) ctx.fillStyle = "#8AB4FF";
-                else ctx.fillStyle = "#D6D6D6";
-                ctx.fillText(text, 16, y);
-                y += 18;
-            }
-            // cursor blink
-            if (shown >= lines.length && Math.floor(blink) % 2 === 0) {
-                const lastLine = lines[lines.length - 1];
-                const width = ctx.measureText(lastLine.replace(/_$/, "")).width;
-                ctx.fillStyle = "#8AB4FF";
-                ctx.fillRect(16 + width, y - 30, 8, 14);
-            }
-
-            if (t - last > 22) {
-                charIdx += 2;
-                last = t;
-            }
-            if (shown < lines.length && charIdx >= lines[shown].length) {
-                shown++;
-                charIdx = 0;
-            }
-            blink += 0.05;
-            rafRef.current = requestAnimationFrame(draw);
-        };
-
-        rafRef.current = requestAnimationFrame(draw);
-        return () => cancelAnimationFrame(rafRef.current);
     }, [vm]);
 
+    if (info === null) return <Skeleton className="h-40 rounded-xl bg-white/[0.04]" />;
+    if (info === false) return <div className="rounded-xl border border-white/10 p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
+
+    const copy = () => {
+        navigator.clipboard?.writeText(info.virtctl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
     return (
-        <canvas
-            ref={canvasRef}
-            data-testid={VMS.consoleCanvas}
-            className="h-[70vh] w-full rounded-xl border border-white/10 bg-black"
-        />
+        <div className="space-y-4 rounded-xl border border-white/10 bg-black/30 p-6">
+            <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06]">
+                    <Terminal className="h-4 w-4 text-[#6ab6f0]" />
+                </div>
+                <div>
+                    <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
+                    <div className="text-xs text-muted-foreground">Axiom doesn't embed a browser VNC client — open the console with virtctl.</div>
+                </div>
+            </div>
+            <div>
+                <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
+                <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                    <code className="mono flex-1 truncate text-xs text-[#93c88f]">{info.virtctl}</code>
+                    <button onClick={copy} className="text-muted-foreground hover:text-foreground">
+                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                </div>
+            </div>
+            <div>
+                <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
+                <code className="mono block truncate text-[11px] text-muted-foreground">{info.vncPath}</code>
+            </div>
+        </div>
+    );
+}
+
+function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, emptyHint }) {
+    const [items, setItems] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({});
+    const [busy, setBusy] = useState(false);
+
+    const load = () => api.get(endpoint).then((r) => setItems(r.data));
+
+    useEffect(() => {
+        let alive = true;
+        api.get(endpoint).then((r) => alive && setItems(r.data));
+        return () => {
+            alive = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [endpoint]);
+
+    const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+    const submit = async () => {
+        setBusy(true);
+        try {
+            await api.post(endpoint, form);
+            toast.success("Requested");
+            setOpen(false);
+            setForm({});
+            load();
+        } catch (e) {
+            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <GlassCard className="p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
+                </div>
+                <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Plus className="mr-1 h-3.5 w-3.5" /> New
+                </Button>
+            </div>
+            <div className="max-h-[360px] overflow-auto scrollbar-thin">
+                {!items && <Skeleton className="m-4 h-24 rounded-xl bg-white/[0.04]" />}
+                {items && items.length === 0 && (
+                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>
+                )}
+                {items &&
+                    items.map((it, i) => (
+                        <div
+                            key={i}
+                            className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                        >
+                            {columns.map((c) => (
+                                <div key={c.key} className={c.span || "col-span-3"}>
+                                    {c.render ? c.render(it) : <span className="mono text-xs text-muted-foreground">{String(it[c.key] ?? "—")}</span>}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+            </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="glass max-w-md border-white/10">
+                    <DialogHeader>
+                        <DialogTitle>New {title.replace(/s$/, "")}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        {formFields.map((f) => (
+                            <div key={f.key} className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">{f.label}</Label>
+                                <Input
+                                    value={form[f.key] || ""}
+                                    onChange={(e) => set({ [f.key]: e.target.value })}
+                                    placeholder={f.placeholder}
+                                    className="border-white/10 bg-white/[0.03]"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={submit} disabled={busy} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            {busy ? "Creating…" : "Create"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </GlassCard>
+    );
+}
+
+function VmProtection() {
+    return (
+        <Tabs defaultValue="snapshots">
+            <TabsList className="bg-white/[0.03] p-1">
+                <TabsTrigger value="snapshots" className="gap-1.5">
+                    <Camera className="h-3.5 w-3.5" /> Snapshots
+                </TabsTrigger>
+                <TabsTrigger value="clones" className="gap-1.5">
+                    <CopyIcon className="h-3.5 w-3.5" /> Clones
+                </TabsTrigger>
+                <TabsTrigger value="exports" className="gap-1.5">
+                    <Upload className="h-3.5 w-3.5" /> Exports
+                </TabsTrigger>
+                <TabsTrigger value="restores" className="gap-1.5">
+                    <RotateCcw className="h-3.5 w-3.5" /> Restores
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="snapshots" className="mt-3">
+                <ProtectionSection
+                    title="Snapshots"
+                    icon={Camera}
+                    endpoint="/vm-snapshots"
+                    emptyHint="No VM snapshots yet."
+                    columns={[
+                        {
+                            key: "name",
+                            span: "col-span-6",
+                            render: (r) => (
+                                <>
+                                    <div className="mono truncate text-sm">{r.name}</div>
+                                    <div className="text-[11px] text-muted-foreground">
+                                        {r.namespace} · {r.vm}
+                                    </div>
+                                </>
+                            ),
+                        },
+                        { key: "status", span: "col-span-4", render: (r) => <StatusBadge status={r.ready ? "Ready" : r.status} /> },
+                        { key: "age", span: "col-span-2", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
+                    ]}
+                    formFields={[
+                        { key: "namespace", label: "Namespace", placeholder: "default" },
+                        { key: "name", label: "Name", placeholder: "snap-1" },
+                        { key: "vm", label: "VM name", placeholder: "edge-api-vm" },
+                    ]}
+                />
+            </TabsContent>
+            <TabsContent value="clones" className="mt-3">
+                <ProtectionSection
+                    title="Clones"
+                    icon={CopyIcon}
+                    endpoint="/vm-clones"
+                    emptyHint="No VM clones yet."
+                    columns={[
+                        {
+                            key: "name",
+                            span: "col-span-5",
+                            render: (r) => (
+                                <>
+                                    <div className="mono truncate text-sm">{r.name}</div>
+                                    <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
+                                </>
+                            ),
+                        },
+                        { key: "source", span: "col-span-3", render: (r) => <span className="mono text-xs text-muted-foreground">{r.source}</span> },
+                        { key: "target", span: "col-span-2", render: (r) => <span className="mono text-xs text-muted-foreground">{r.target}</span> },
+                        { key: "phase", span: "col-span-1", render: (r) => <StatusBadge status={r.phase} /> },
+                        { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
+                    ]}
+                    formFields={[
+                        { key: "namespace", label: "Namespace", placeholder: "default" },
+                        { key: "name", label: "Name", placeholder: "clone-1" },
+                        { key: "sourceVM", label: "Source VM", placeholder: "edge-api-vm" },
+                        { key: "targetVM", label: "Target VM name", placeholder: "edge-api-vm-clone" },
+                    ]}
+                />
+            </TabsContent>
+            <TabsContent value="exports" className="mt-3">
+                <ProtectionSection
+                    title="Exports"
+                    icon={Upload}
+                    endpoint="/vm-exports"
+                    emptyHint="No VM exports yet."
+                    columns={[
+                        {
+                            key: "name",
+                            span: "col-span-6",
+                            render: (r) => (
+                                <>
+                                    <div className="mono truncate text-sm">{r.name}</div>
+                                    <div className="text-[11px] text-muted-foreground">
+                                        {r.namespace} · {r.source}
+                                    </div>
+                                </>
+                            ),
+                        },
+                        { key: "phase", span: "col-span-4", render: (r) => <StatusBadge status={r.phase} /> },
+                        { key: "age", span: "col-span-2", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
+                    ]}
+                    formFields={[
+                        { key: "namespace", label: "Namespace", placeholder: "default" },
+                        { key: "name", label: "Name", placeholder: "export-1" },
+                        { key: "vm", label: "VM name", placeholder: "edge-api-vm" },
+                    ]}
+                />
+            </TabsContent>
+            <TabsContent value="restores" className="mt-3">
+                <ProtectionSection
+                    title="Restores"
+                    icon={RotateCcw}
+                    endpoint="/vm-restores"
+                    emptyHint="No VM restores yet."
+                    columns={[
+                        {
+                            key: "name",
+                            span: "col-span-5",
+                            render: (r) => (
+                                <>
+                                    <div className="mono truncate text-sm">{r.name}</div>
+                                    <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
+                                </>
+                            ),
+                        },
+                        { key: "snapshot", span: "col-span-3", render: (r) => <span className="mono text-xs text-muted-foreground">{r.snapshot}</span> },
+                        { key: "target", span: "col-span-2", render: (r) => <span className="mono text-xs text-muted-foreground">{r.target}</span> },
+                        { key: "phase", span: "col-span-1", render: (r) => <StatusBadge status={r.phase} /> },
+                        { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
+                    ]}
+                    formFields={[
+                        { key: "namespace", label: "Namespace", placeholder: "default" },
+                        { key: "name", label: "Name", placeholder: "restore-1" },
+                        { key: "snapshot", label: "Snapshot name", placeholder: "snap-1" },
+                        { key: "targetVM", label: "Target VM name", placeholder: "edge-api-vm-restored" },
+                    ]}
+                />
+            </TabsContent>
+        </Tabs>
     );
 }
 
 export default function VirtualMachines() {
     const [vms, setVms] = useState(null);
     const [openVm, setOpenVm] = useState(null);
+    const [busy, setBusy] = useState("");
+
+    const load = () => api.get("/vms").then((r) => setVms(r.data));
 
     useEffect(() => {
         let alive = true;
-        const load = () => api.get("/vms").then((r) => alive && setVms(r.data));
-        load();
-        const t = setInterval(load, 10000);
+        const tick = () => api.get("/vms").then((r) => alive && setVms(r.data));
+        tick();
+        const t = setInterval(tick, 10000);
         return () => {
             alive = false;
             clearInterval(t);
         };
     }, []);
+
+    const act = async (vm, action, path) => {
+        const key = `${vm.namespace}/${vm.name}:${action}`;
+        setBusy(key);
+        try {
+            await api.post(`/vms/${vm.namespace}/${encodeURIComponent(vm.name)}/${path}`);
+            toast.success(`${vm.name}: ${action} requested`);
+            await load();
+        } catch (e) {
+            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
 
     if (!vms) {
         return (
@@ -176,73 +350,101 @@ export default function VirtualMachines() {
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">Virtual Machines</h1>
                     <p className="text-sm text-muted-foreground">
-                        KubeVirt-managed VMs with live-migration and noVNC console access.
+                        KubeVirt-managed VMs — start, stop, live-migrate and console access.
                     </p>
                 </div>
                 <div className="text-xs text-muted-foreground">{vms.length} VMs</div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {vms.map((vm) => (
-                    <GlassCard key={`${vm.namespace}/${vm.name}`} data-testid={VMS.card(vm.name)} className="p-5">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                                <div className="mono truncate text-sm">{vm.name}</div>
-                                <div className="mt-1 text-xs text-muted-foreground">{vm.os}</div>
-                            </div>
-                            <StatusBadge status={vm.status} />
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <Cpu className="h-3 w-3" /> vCPU
+                {vms.map((vm) => {
+                    const running = vm.running || vm.status === "Running";
+                    return (
+                        <GlassCard key={`${vm.namespace}/${vm.name}`} data-testid={VMS.card(vm.name)} className="p-5">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="mono truncate text-sm">{vm.name}</div>
+                                    <div className="mt-1 text-xs text-muted-foreground">{vm.os}</div>
                                 </div>
-                                <div className="mono mt-1 text-sm">{vm.cpu}</div>
+                                <StatusBadge status={vm.status} />
                             </div>
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <MemoryStick className="h-3 w-3" /> RAM
+
+                            <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                                <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                                        <Cpu className="h-3 w-3" /> vCPU
+                                    </div>
+                                    <div className="mono mt-1 text-sm">{vm.cpu}</div>
                                 </div>
-                                <div className="mono mt-1 text-sm">{vm.memory}</div>
+                                <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                                        <MemoryStick className="h-3 w-3" /> RAM
+                                    </div>
+                                    <div className="mono mt-1 text-sm">{vm.memory}</div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="mono">{vm.node}</span>
-                            <span className="ml-auto">{vm.age}</span>
-                        </div>
+                            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                <span className="mono">{vm.node}</span>
+                                <span className="ml-auto">{vm.age}</span>
+                            </div>
 
-                        <div className="mt-4">
-                            <Button
-                                data-testid={VMS.consoleBtn(vm.name)}
-                                onClick={() => setOpenVm(vm)}
-                                className="w-full rounded-xl bg-gradient-to-r from-[#ff7550] via-[#f26b3a] to-[#6ab6f0] text-white shadow-lg shadow-[#f26b3a]/25 hover:brightness-110"
-                            >
-                                <MonitorPlay className="mr-2 h-4 w-4" />
-                                Open console (noVNC)
-                            </Button>
-                        </div>
-                    </GlassCard>
-                ))}
+                            <div className="mt-4 grid grid-cols-3 gap-2">
+                                {running ? (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={busy === `${vm.namespace}/${vm.name}:stop`}
+                                        onClick={() => act(vm, "stop", "stop")}
+                                        className="rounded-xl border-white/10 bg-white/[0.03]"
+                                    >
+                                        <Square className="mr-1 h-3.5 w-3.5" /> Stop
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={busy === `${vm.namespace}/${vm.name}:start`}
+                                        onClick={() => act(vm, "start", "start")}
+                                        className="rounded-xl border-white/10 bg-white/[0.03]"
+                                    >
+                                        <Play className="mr-1 h-3.5 w-3.5" /> Start
+                                    </Button>
+                                )}
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!running || busy === `${vm.namespace}/${vm.name}:migrate`}
+                                    onClick={() => act(vm, "migrate", "migrate")}
+                                    className="rounded-xl border-white/10 bg-white/[0.03]"
+                                >
+                                    <ArrowRightLeft className="mr-1 h-3.5 w-3.5" /> Migrate
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={() => setOpenVm(vm)}
+                                    className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white"
+                                >
+                                    <Terminal className="mr-1 h-3.5 w-3.5" /> Console
+                                </Button>
+                            </div>
+                        </GlassCard>
+                    );
+                })}
             </div>
+
+            <VmProtection />
 
             <Dialog open={!!openVm} onOpenChange={(o) => !o && setOpenVm(null)}>
                 <DialogContent
                     data-testid={VMS.consoleModal}
-                    className="glass max-w-5xl border-white/10 bg-black/70 p-4 backdrop-blur-2xl"
+                    className="glass max-w-lg border-white/10 bg-black/70 p-4 backdrop-blur-2xl"
                 >
                     <DialogHeader className="flex-row items-center justify-between">
                         <div>
                             <DialogTitle className="mono text-sm">
                                 {openVm?.name} <span className="text-muted-foreground">· {openVm?.os}</span>
                             </DialogTitle>
-                            <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                                <span className="flex items-center gap-1.5">
-                                    <span className="status-dot ok animate-pulse" /> VNC connected
-                                </span>
-                                <span>{openVm?.node}</span>
-                            </div>
                         </div>
                         <button
                             data-testid={VMS.consoleClose}
@@ -252,7 +454,7 @@ export default function VirtualMachines() {
                             <X className="h-4 w-4" />
                         </button>
                     </DialogHeader>
-                    {openVm && <VncCanvas vm={openVm} />}
+                    {openVm && <ConsolePanel vm={openVm} />}
                 </DialogContent>
             </Dialog>
         </div>

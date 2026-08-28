@@ -6,7 +6,10 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign } from "lucide-react";
+import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const TABS = [
     { key: "helm", label: "Helm", icon: Anchor },
@@ -46,25 +49,77 @@ function Rows({ items, empty, render }) {
     return <div className="max-h-[520px] overflow-auto scrollbar-thin">{items.map(render)}</div>;
 }
 
+function HelmRow({ r, onChanged }) {
+    const [revision, setRevision] = useState("");
+    const [busy, setBusy] = useState("");
+
+    const uninstall = async () => {
+        setBusy("uninstall");
+        try {
+            await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/uninstall`);
+            toast.success(`${r.name} uninstalled`);
+            onChanged();
+        } catch (e) {
+            toast.error("Uninstall failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const rollback = async () => {
+        setBusy("rollback");
+        try {
+            await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/rollback`, {
+                revision: revision ? Number(revision) : 0,
+            });
+            toast.success(`${r.name} rolled back`);
+            onChanged();
+        } catch (e) {
+            toast.error("Rollback failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    return (
+        <div className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+            <div className="col-span-3 min-w-0">
+                <div className="mono truncate text-sm">{r.name}</div>
+                <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
+            </div>
+            <div className="col-span-3 mono truncate text-xs text-muted-foreground">{r.chart}</div>
+            <div className="col-span-1 text-xs text-muted-foreground">rev {r.revision}</div>
+            <div className="col-span-1">
+                <StatusBadge status={r.status === "deployed" ? "Healthy" : r.status} />
+            </div>
+            <div className="col-span-1 text-right text-xs text-muted-foreground">{r.age}</div>
+            <div className="col-span-3 flex items-center justify-end gap-1.5">
+                <Input
+                    value={revision}
+                    onChange={(e) => setRevision(e.target.value)}
+                    placeholder="rev"
+                    className="h-7 w-14 border-white/10 bg-white/[0.03] px-2 text-xs"
+                />
+                <Button size="sm" variant="outline" disabled={!!busy} onClick={rollback} className="h-7 rounded-lg border-white/10 bg-white/[0.03] px-2">
+                    <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="sm" variant="outline" disabled={!!busy} onClick={uninstall} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 px-2 text-rose-300 hover:bg-rose-500/20">
+                    <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 function HelmTab() {
-    const releases = useEndpoint("/helm/releases");
+    const [reload, setReload] = useState(0);
+    const releases = useEndpoint("/helm/releases", [reload]);
     return (
         <GlassCard className="p-0 overflow-hidden">
             <Rows
                 items={releases}
                 empty="No Helm releases."
-                render={(r) => (
-                    <div key={`${r.namespace}/${r.name}`} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
-                        <div className="col-span-4 min-w-0">
-                            <div className="mono truncate text-sm">{r.name}</div>
-                            <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
-                        </div>
-                        <div className="col-span-4 mono truncate text-xs text-muted-foreground">{r.chart}</div>
-                        <div className="col-span-2 text-xs text-muted-foreground">rev {r.revision}</div>
-                        <div className="col-span-1"><StatusBadge status={r.status === "deployed" ? "Healthy" : r.status} /></div>
-                        <div className="col-span-1 text-right text-xs text-muted-foreground">{r.age}</div>
-                    </div>
-                )}
+                render={(r) => <HelmRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
             />
         </GlassCard>
     );
@@ -93,38 +148,69 @@ function GitOpsTab() {
     );
 }
 
+function AgentRunRow({ r, onChanged }) {
+    const [busy, setBusy] = useState("");
+    const pending = r.approval === "Pending";
+
+    const decide = async (action) => {
+        setBusy(action);
+        try {
+            await api.post(`/agent-runs/${r.namespace}/${encodeURIComponent(r.name)}/${action}`);
+            toast.success(`${r.name}: ${action}d`);
+            onChanged();
+        } catch (e) {
+            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    return (
+        <div className="border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <div className="mono truncate text-sm">{r.name}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{r.goal}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge status={r.phase === "Proposed" ? "Pending" : r.phase} />
+                    {pending && (
+                        <>
+                            <Button size="sm" disabled={!!busy} onClick={() => decide("approve")} className="h-7 rounded-lg bg-emerald-500/15 px-2 text-emerald-300 hover:bg-emerald-500/25">
+                                <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="sm" disabled={!!busy} onClick={() => decide("deny")} className="h-7 rounded-lg bg-rose-500/15 px-2 text-rose-300 hover:bg-rose-500/25">
+                                <X className="h-3.5 w-3.5" />
+                            </Button>
+                        </>
+                    )}
+                </div>
+            </div>
+            {r.plan?.summary && (
+                <div className="mt-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                    {r.plan.summary}
+                </div>
+            )}
+            <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+                <span>autonomy: {r.autonomy}</span>
+                <span>·</span>
+                <span>risk: {r.risk}</span>
+                <span>·</span>
+                <span>approval: {r.approval}</span>
+            </div>
+        </div>
+    );
+}
+
 function AgentsTab() {
-    const runs = useEndpoint("/agent-runs");
+    const [reload, setReload] = useState(0);
+    const runs = useEndpoint("/agent-runs", [reload]);
     return (
         <GlassCard className="p-0 overflow-hidden">
             <Rows
                 items={runs}
                 empty="No agent runs."
-                render={(r) => (
-                    <div key={`${r.namespace}/${r.name}`} className="border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                                <div className="mono truncate text-sm">{r.name}</div>
-                                <div className="mt-0.5 text-xs text-muted-foreground">{r.goal}</div>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                                <StatusBadge status={r.phase === "Proposed" ? "Pending" : r.phase} />
-                            </div>
-                        </div>
-                        {r.plan?.summary && (
-                            <div className="mt-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
-                                {r.plan.summary}
-                            </div>
-                        )}
-                        <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-                            <span>autonomy: {r.autonomy}</span>
-                            <span>·</span>
-                            <span>risk: {r.risk}</span>
-                            <span>·</span>
-                            <span>approval: {r.approval}</span>
-                        </div>
-                    </div>
-                )}
+                render={(r) => <AgentRunRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
             />
         </GlassCard>
     );
