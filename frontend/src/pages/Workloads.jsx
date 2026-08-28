@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import ApplyManifestDialog from "@/components/ApplyManifestDialog";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select,
     SelectContent,
@@ -257,6 +259,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
     const [intentPreview, setIntentPreview] = useState(null);
     const [manifest, setManifest] = useState("");
     const [validation, setValidation] = useState(null);
+    const [applyOpen, setApplyOpen] = useState(false);
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -405,17 +408,32 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                                 {validation.valid ? `Valid ${validation.kind || "manifest"}` : (validation.errors || [validation.message]).join(", ")}
                             </div>
                         )}
-                        <p className="text-[11px] text-muted-foreground">
-                            Validates syntax and schema only — Axiom doesn't apply raw manifests; use Form or Intent to launch.
-                        </p>
-                        <DialogFooter>
+                        <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={validate} disabled={busy || !manifest} className="rounded-xl border-white/10 bg-white/[0.03]">
                                 Validate
+                            </Button>
+                            <Button
+                                onClick={() => setApplyOpen(true)}
+                                disabled={!validation?.valid}
+                                className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white"
+                            >
+                                Apply
                             </Button>
                         </DialogFooter>
                     </TabsContent>
                 </Tabs>
             </DialogContent>
+            <ApplyManifestDialog
+                open={applyOpen}
+                onOpenChange={setApplyOpen}
+                title="Apply workload manifest"
+                initialManifest={manifest}
+                onApplied={() => {
+                    setApplyOpen(false);
+                    onOpenChange(false);
+                    onLaunched();
+                }}
+            />
         </Dialog>
     );
 }
@@ -428,6 +446,8 @@ export default function Workloads() {
     const [scaleTarget, setScaleTarget] = useState(null);
     const [rolloutTarget, setRolloutTarget] = useState(null);
     const [launchOpen, setLaunchOpen] = useState(false);
+    const [selected, setSelected] = useState(new Set());
+    const [bulkBusy, setBulkBusy] = useState(false);
 
     const load = () => api.get("/workloads").then((r) => setData(r.data));
 
@@ -457,6 +477,38 @@ export default function Workloads() {
         return { namespaces, kinds, rows };
     }, [data, q, ns, kind]);
 
+    const key = (w) => `${w.namespace}/${w.kind}/${w.name}`;
+    const toggle = (w, checked) => {
+        setSelected((s) => {
+            const next = new Set(s);
+            if (checked) next.add(key(w));
+            else next.delete(key(w));
+            return next;
+        });
+    };
+    const toggleAll = (checked) => setSelected(checked ? new Set(rows.map(key)) : new Set());
+
+    const bulkAction = async (action) => {
+        const targets = rows.filter((w) => selected.has(key(w)));
+        setBulkBusy(true);
+        try {
+            const results = await Promise.allSettled(
+                targets.map((w) =>
+                    action === "delete"
+                        ? api.delete(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`)
+                        : api.post(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/${action}`)
+                )
+            );
+            const failed = results.filter((r) => r.status === "rejected").length;
+            if (failed) toast.error(`${failed} of ${targets.length} ${action}s failed`);
+            else toast.success(`${action === "delete" ? "Deleted" : "Restarted"} ${targets.length} workload${targets.length === 1 ? "" : "s"}`);
+            setSelected(new Set());
+            load();
+        } finally {
+            setBulkBusy(false);
+        }
+    };
+
     if (!data) {
         return (
             <div className="space-y-4">
@@ -475,9 +527,22 @@ export default function Workloads() {
                         Deployments, StatefulSets, DaemonSets, Pods and CronJobs.
                     </p>
                 </div>
-                <Button size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
-                </Button>
+                <div className="flex items-center gap-2">
+                    {selected.size > 0 && (
+                        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                            <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                                <RotateCw className="mr-1 h-3 w-3" /> Restart
+                            </Button>
+                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                                <Trash2 className="mr-1 h-3 w-3" /> Delete
+                            </Button>
+                        </div>
+                    )}
+                    <Button size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
+                    </Button>
+                </div>
             </div>
 
             <GlassCard className="p-3">
@@ -525,6 +590,12 @@ export default function Workloads() {
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
                             <TableRow className="border-white/5 hover:bg-transparent">
+                                <TableHead className="w-10">
+                                    <Checkbox
+                                        checked={rows.length > 0 && selected.size === rows.length}
+                                        onCheckedChange={toggleAll}
+                                    />
+                                </TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Kind</TableHead>
@@ -542,6 +613,9 @@ export default function Workloads() {
                                     key={`${w.namespace}/${w.name}`}
                                     className="border-white/5 hover:bg-white/[0.03]"
                                 >
+                                    <TableCell>
+                                        <Checkbox checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
+                                    </TableCell>
                                     <TableCell>
                                         <Link to={`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`} className="font-medium hover:underline">
                                             {w.name}
@@ -569,7 +643,7 @@ export default function Workloads() {
                             ))}
                             {rows.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                                    <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                                         No workloads match the current filters.
                                     </TableCell>
                                 </TableRow>

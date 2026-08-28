@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Gauge, Ruler } from "lucide-react";
+import { Gauge, Ruler, ShieldHalf } from "lucide-react";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
@@ -46,16 +46,19 @@ function ResourceMap({ map }) {
 export default function Quotas() {
     const [quotas, setQuotas] = useState(null);
     const [limitRanges, setLimitRanges] = useState(null);
+    const [pdbs, setPdbs] = useState(null);
 
     useEffect(() => {
         let alive = true;
         Promise.all([
             api.get("/resourcequotas").catch(() => ({ data: [] })),
             api.get("/limitranges").catch(() => ({ data: [] })),
-        ]).then(([q, l]) => {
+            api.get("/poddisruptionbudgets").catch(() => ({ data: [] })),
+        ]).then(([q, l, p]) => {
             if (!alive) return;
             setQuotas(q.data);
             setLimitRanges(l.data);
+            setPdbs(p.data);
         });
         return () => {
             alive = false;
@@ -117,6 +120,21 @@ export default function Quotas() {
                             </div>
                         ),
                     },
+                ]}
+            />
+
+            <Section
+                title="Pod disruption budgets"
+                icon={ShieldHalf}
+                rows={pdbs || []}
+                empty="No PodDisruptionBudgets configured."
+                columns={[
+                    { key: "name", span: "col-span-3", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                    { key: "minAvailable", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.minAvailable || "—"}</span> },
+                    { key: "maxUnavailable", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.maxUnavailable || "—"}</span> },
+                    { key: "healthy", span: "col-span-2", render: (r) => <span className="mono">{r.currentHealthy}/{r.desiredHealthy}</span> },
+                    { key: "expected", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.expectedPods} pods</span> },
+                    { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
                 ]}
             />
         </div>

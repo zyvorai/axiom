@@ -23,6 +23,8 @@ import {
     Gauge,
     CalendarClock,
     Users as UsersIcon,
+    TrendingUp,
+    Layers3,
 } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -49,6 +51,8 @@ const ITEMS = [
     { to: "/configmaps", label: "ConfigMaps", icon: FileCog, key: "configmaps" },
     { to: "/secrets", label: "Secrets", icon: KeySquare, key: "secrets" },
     { to: "/quotas", label: "Quotas & Limits", icon: Gauge, key: "quotas" },
+    { to: "/autoscaling", label: "Autoscaling", icon: TrendingUp, key: "autoscaling" },
+    { to: "/custom-resources", label: "Custom Resources", icon: Layers3, key: "custom-resources" },
     { to: "/backups", label: "Backups", icon: Archive, key: "backups" },
     { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts" },
     { to: "/ops", label: "Ops", icon: Layers, key: "ops" },

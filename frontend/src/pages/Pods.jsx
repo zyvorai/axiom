@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Search, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -101,6 +102,8 @@ export default function Pods() {
     const [q, setQ] = useState("");
     const [ns, setNs] = useState("all");
     const [execTarget, setExecTarget] = useState(null);
+    const [selected, setSelected] = useState(new Set());
+    const [bulkBusy, setBulkBusy] = useState(false);
 
     const load = () => api.get("/pods").then((r) => setData(r.data));
 
@@ -136,6 +139,34 @@ export default function Pods() {
         }
     };
 
+    const key = (p) => `${p.namespace}/${p.name}`;
+    const toggle = (p, checked) => {
+        setSelected((s) => {
+            const next = new Set(s);
+            if (checked) next.add(key(p));
+            else next.delete(key(p));
+            return next;
+        });
+    };
+    const toggleAll = (checked) => setSelected(checked ? new Set(rows.map(key)) : new Set());
+
+    const bulkEvict = async () => {
+        const targets = rows.filter((p) => selected.has(key(p)));
+        setBulkBusy(true);
+        try {
+            const results = await Promise.allSettled(
+                targets.map((p) => api.post(`/pods/${p.namespace}/${encodeURIComponent(p.name)}/evict`))
+            );
+            const failed = results.filter((r) => r.status === "rejected").length;
+            if (failed) toast.error(`${failed} of ${targets.length} evictions failed`);
+            else toast.success(`Evicted ${targets.length} pod${targets.length === 1 ? "" : "s"}`);
+            setSelected(new Set());
+            load();
+        } finally {
+            setBulkBusy(false);
+        }
+    };
+
     if (!data) {
         return (
             <div className="space-y-4">
@@ -152,6 +183,14 @@ export default function Pods() {
                     <h1 className="text-3xl font-semibold tracking-tight">Pods</h1>
                     <p className="text-sm text-muted-foreground">Every running pod across all namespaces.</p>
                 </div>
+                {selected.size > 0 && (
+                    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                        <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                        <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                            <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <GlassCard className="p-3">
@@ -186,6 +225,12 @@ export default function Pods() {
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
                             <TableRow className="border-white/5 hover:bg-transparent">
+                                <TableHead className="w-10">
+                                    <Checkbox
+                                        checked={rows.length > 0 && selected.size === rows.length}
+                                        onCheckedChange={toggleAll}
+                                    />
+                                </TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Node</TableHead>
@@ -200,6 +245,9 @@ export default function Pods() {
                         <TableBody>
                             {rows.map((p) => (
                                 <TableRow key={`${p.namespace}/${p.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                    <TableCell>
+                                        <Checkbox checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                         <Link to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`} className="hover:underline">
                                             {p.name}
@@ -228,7 +276,7 @@ export default function Pods() {
                             ))}
                             {rows.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                                    <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                                         No pods match the current filters.
                                     </TableCell>
                                 </TableRow>

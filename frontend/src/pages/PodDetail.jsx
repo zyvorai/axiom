@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
@@ -30,9 +31,12 @@ import {
     HardDrive,
     ShieldCheck,
     UserCog,
+    Save,
+    Activity,
 } from "lucide-react";
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
+import Sparkline from "@/components/Sparkline";
 
 function ExecPanel({ namespace, name, containers }) {
     const [container, setContainer] = useState(containers[0] || "");
@@ -154,6 +158,74 @@ function ContainerSpecCard({ c }) {
     );
 }
 
+function MetricsPanel({ namespace, name }) {
+    const [series, setSeries] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        const load = () =>
+            api
+                .get(`/pods/${namespace}/${encodeURIComponent(name)}/metrics`)
+                .then((r) => alive && setSeries(r.data))
+                .catch(() => alive && setSeries(false));
+        load();
+        const t = setInterval(load, 10000);
+        return () => {
+            alive = false;
+            clearInterval(t);
+        };
+    }, [namespace, name]);
+
+    if (series === null) return <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />;
+    if (series === false) {
+        return <GlassCard className="p-6 text-center text-sm text-muted-foreground">Metrics unavailable — requires metrics-server on the cluster.</GlassCard>;
+    }
+
+    const cpuPoints = (series.points || []).map((p) => p.cpuMillicores);
+    const memPoints = (series.points || []).map((p) => p.memoryBytes / (1024 * 1024));
+
+    return (
+        <div className="space-y-4">
+            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+                <GlassCard className="p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Cpu className="h-3.5 w-3.5 text-[#ff7550]" /> CPU
+                        </div>
+                        <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
+                    </div>
+                    <Sparkline data={cpuPoints} color="#ff7550" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
+                </GlassCard>
+                <GlassCard className="p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <MemoryStick className="h-3.5 w-3.5 text-[#93c88f]" /> Memory
+                        </div>
+                        <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
+                    </div>
+                    <Sparkline data={memPoints} color="#93c88f" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
+                </GlassCard>
+            </div>
+            {(series.containers || []).length > 0 && (
+                <GlassCard className="p-0 overflow-hidden">
+                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Per-container</div>
+                    {series.containers.map((c) => (
+                        <div key={c.name} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                            <span className="mono">{c.name}</span>
+                            <span className="mono text-muted-foreground">
+                                {c.cpuMillicores}m · {(c.memoryBytes / (1024 * 1024)).toFixed(0)} MiB
+                            </span>
+                        </div>
+                    ))}
+                </GlassCard>
+            )}
+        </div>
+    );
+}
+
 export default function PodDetail() {
     const { namespace, name } = useParams();
     const navigate = useNavigate();
@@ -161,6 +233,8 @@ export default function PodDetail() {
     const [events, setEvents] = useState(null);
     const [capabilities, setCapabilities] = useState(null);
     const [detail, setDetail] = useState(null);
+    const [manifestText, setManifestText] = useState("");
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         let alive = true;
@@ -172,12 +246,32 @@ export default function PodDetail() {
             .catch(() => alive && setCapabilities({ interactiveExec: false }));
         api
             .get(`/resources/${namespace}/pod/${encodeURIComponent(name)}`)
-            .then((r) => alive && setDetail(r.data))
+            .then((r) => {
+                if (!alive) return;
+                setDetail(r.data);
+                setManifestText(JSON.stringify(r.data.manifest, null, 2));
+            })
             .catch(() => alive && setDetail(false));
         return () => {
             alive = false;
         };
     }, [namespace, name]);
+
+    const saveManifest = async () => {
+        setSaving(true);
+        try {
+            const { data } = await api.post("/apply", { manifest: manifestText });
+            if (!data.valid) {
+                toast.error("Apply failed", { description: (data.errors || [data.message]).filter(Boolean).join(", ") });
+                return;
+            }
+            toast.success(`Applied ${data.kind || "Pod"}`);
+        } catch (e) {
+            toast.error("Apply failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const pod = useMemo(() => (pods || []).find((p) => p.name === name), [pods, name]);
     const podEvents = useMemo(() => (events || []).filter((e) => e.object === `Pod/${name}`), [events, name]);
@@ -283,6 +377,9 @@ export default function PodDetail() {
                     </TabsTrigger>
                     <TabsTrigger value="yaml" className="gap-1.5">
                         <FileJson className="h-3.5 w-3.5" /> YAML
+                    </TabsTrigger>
+                    <TabsTrigger value="metrics" className="gap-1.5">
+                        <Activity className="h-3.5 w-3.5" /> Metrics
                     </TabsTrigger>
                     <TabsTrigger value="events" className="gap-1.5">
                         <BellRing className="h-3.5 w-3.5" /> Events ({podEvents.length})
@@ -440,18 +537,32 @@ export default function PodDetail() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="yaml" className="mt-4">
+                <TabsContent value="yaml" className="mt-4 space-y-3">
                     <GlassCard className="p-0 overflow-hidden">
                         {detail && detail.manifest ? (
-                            <pre className="mono max-h-[65vh] overflow-auto whitespace-pre-wrap p-4 text-[12px] text-foreground/90">
-                                {JSON.stringify(detail.manifest, null, 2)}
-                            </pre>
+                            <Textarea
+                                value={manifestText}
+                                onChange={(e) => setManifestText(e.target.value)}
+                                className="mono max-h-[65vh] min-h-[65vh] resize-none whitespace-pre rounded-none border-none bg-transparent p-4 text-[12px] text-foreground/90 focus-visible:ring-0"
+                                spellCheck={false}
+                            />
                         ) : (
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                                 {detail === false ? "Manifest unavailable in this mode." : "Loading…"}
                             </div>
                         )}
                     </GlassCard>
+                    {detail && detail.manifest && (
+                        <div className="flex justify-end">
+                            <Button onClick={saveManifest} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                                <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+                            </Button>
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="metrics" className="mt-4">
+                    <MetricsPanel namespace={pod.namespace} name={pod.name} />
                 </TabsContent>
 
                 <TabsContent value="events" className="mt-4">

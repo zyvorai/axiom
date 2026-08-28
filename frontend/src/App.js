@@ -20,6 +20,8 @@ import Services from "@/pages/Services";
 import Ingresses from "@/pages/Ingresses";
 import ConfigMaps from "@/pages/ConfigMaps";
 import Quotas from "@/pages/Quotas";
+import HPA from "@/pages/HPA";
+import CustomResources from "@/pages/CustomResources";
 import PlatformIntents from "@/pages/PlatformIntents";
 import WorkloadDetail from "@/pages/WorkloadDetail";
 import PodDetail from "@/pages/PodDetail";
@@ -76,6 +78,8 @@ export default function App() {
                                 <Route path="/ingresses" element={<Ingresses />} />
                                 <Route path="/configmaps" element={<ConfigMaps />} />
                                 <Route path="/quotas" element={<Quotas />} />
+                                <Route path="/autoscaling" element={<HPA />} />
+                                <Route path="/custom-resources" element={<CustomResources />} />
                                 <Route path="/namespaces" element={<Namespaces />} />
                                 <Route path="/vms" element={<VirtualMachines />} />
                                 <Route path="/storage" element={<Storage />} />

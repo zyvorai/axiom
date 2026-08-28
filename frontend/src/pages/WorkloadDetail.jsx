@@ -5,25 +5,58 @@ import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing } from "lucide-react";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save } from "lucide-react";
+import { toast } from "sonner";
 
 export default function WorkloadDetail() {
     const { namespace, kind, name } = useParams();
     const navigate = useNavigate();
     const [detail, setDetail] = useState(null);
     const [error, setError] = useState(null);
+    const [manifestText, setManifestText] = useState("");
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         let alive = true;
         api
             .get(`/resources/${namespace}/${kind}/${encodeURIComponent(name)}`)
-            .then((r) => alive && setDetail(r.data))
+            .then((r) => {
+                if (!alive) return;
+                setDetail(r.data);
+                setManifestText(JSON.stringify(r.data.manifest, null, 2));
+            })
             .catch((e) => alive && setError(e?.response?.data?.error || e.message));
         return () => {
             alive = false;
         };
     }, [namespace, kind, name]);
+
+    const load = () => {
+        api.get(`/resources/${namespace}/${kind}/${encodeURIComponent(name)}`).then((r) => {
+            setDetail(r.data);
+            setManifestText(JSON.stringify(r.data.manifest, null, 2));
+        });
+    };
+
+    const saveManifest = async () => {
+        setSaving(true);
+        try {
+            const { data } = await api.post("/apply", { manifest: manifestText });
+            if (!data.valid) {
+                toast.error("Apply failed", { description: (data.errors || [data.message]).filter(Boolean).join(", ") });
+                return;
+            }
+            toast.success(`Applied ${data.kind || kind}`);
+            load();
+        } catch (e) {
+            toast.error("Apply failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setSaving(false);
+        }
+    };
 
     if (error) {
         return (
@@ -104,12 +137,20 @@ export default function WorkloadDetail() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="yaml" className="mt-4">
+                <TabsContent value="yaml" className="mt-4 space-y-3">
                     <GlassCard className="p-0 overflow-hidden">
-                        <pre className="mono max-h-[65vh] overflow-auto whitespace-pre-wrap p-4 text-[12px] text-foreground/90">
-                            {JSON.stringify(detail.manifest, null, 2)}
-                        </pre>
+                        <Textarea
+                            value={manifestText}
+                            onChange={(e) => setManifestText(e.target.value)}
+                            className="mono max-h-[65vh] min-h-[65vh] resize-none whitespace-pre rounded-none border-none bg-transparent p-4 text-[12px] text-foreground/90 focus-visible:ring-0"
+                            spellCheck={false}
+                        />
                     </GlassCard>
+                    <div className="flex justify-end">
+                        <Button onClick={saveManifest} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+                        </Button>
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="pods" className="mt-4">

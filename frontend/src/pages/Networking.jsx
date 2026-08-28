@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import ApplyManifestDialog from "@/components/ApplyManifestDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
     Table,
     TableBody,
@@ -10,8 +12,90 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Network, Boxes, ArrowRightLeft, Radar } from "lucide-react";
+import { Network, Boxes, ArrowRightLeft, Radar, ShieldHalf, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
+
+const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: example-policy
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+`;
+
+function NetworkPolicyPanel() {
+    const [policies, setPolicies] = useState(null);
+    const [createOpen, setCreateOpen] = useState(false);
+
+    const load = () => api.get("/networkpolicies").then((r) => setPolicies(r.data || []));
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/networkpolicies").then((r) => alive && setPolicies(r.data || []));
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    const remove = async (p) => {
+        try {
+            await api.delete(`/networkpolicies/${p.namespace}/${encodeURIComponent(p.name)}`);
+            toast.success(`Deleted ${p.name}`);
+            load();
+        } catch (e) {
+            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+        }
+    };
+
+    if (!policies) return <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />;
+
+    return (
+        <GlassCard className="p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                    <ShieldHalf className="h-4 w-4 text-[#ff7550]" /> NetworkPolicies
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                    <Plus className="mr-1 h-3 w-3" /> Create via YAML
+                </Button>
+            </div>
+            <div className="max-h-[360px] overflow-auto scrollbar-thin">
+                {policies.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No NetworkPolicies configured.</div>}
+                {policies.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div className="min-w-0 flex-1">
+                            <div className="mono truncate text-sm">{p.name}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                                {p.namespace} · {(p.policyTypes || []).join(", ") || "—"}
+                            </div>
+                        </div>
+                        <div className="mono max-w-[280px] truncate text-xs text-muted-foreground">{p.podSelector || "all pods"}</div>
+                        <Button size="sm" variant="ghost" onClick={() => remove(p)} className="ml-3 h-7 px-2 text-muted-foreground hover:text-rose-400">
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
+            <ApplyManifestDialog
+                open={createOpen}
+                onOpenChange={setCreateOpen}
+                title="Create NetworkPolicy"
+                initialManifest={NETPOL_TEMPLATE}
+                onApplied={() => {
+                    setCreateOpen(false);
+                    load();
+                }}
+            />
+        </GlassCard>
+    );
+}
 
 function flowItems(flows) {
     if (!flows) return null;
@@ -217,6 +301,7 @@ export default function Networking() {
             </div>
 
             <PacketWolfPanel />
+            <NetworkPolicyPanel />
         </div>
     );
 }
