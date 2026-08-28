@@ -44,14 +44,14 @@ Sidebar order (`frontend/src/components/Sidebar.jsx`):
 |----|-------|-------|
 | Getting Started | `/getting-started` | Live setup checklist |
 | Overview | `/overview` | Cluster hero, metric rings, sparklines, alerts, activity |
-| Nodes | `/nodes` | Cordon/uncordon/drain |
+| Nodes | `/nodes` | Cordon/uncordon/drain; each card links to `/nodes/:name` for metrics + taint management |
 | Workloads | `/workloads` | Full action menu + Run workload wizard + bulk restart/delete |
 | Jobs & CronJobs | `/jobs` | Run-now/suspend-resume/delete CronJobs, delete Jobs |
 | Pods | `/pods` | Exec + evict per row, bulk evict |
 | Platform Intents | `/platform-intents` | Read-only, populated by the Intent launch flow |
 | Networking · Cilium | `/networking` | Service graph + live PacketWolf panel |
 | Services | `/services` | |
-| Ingresses | `/ingresses` | Hosts, class, TLS, address — OpenShift-Route equivalent |
+| Ingresses | `/ingresses` | Hosts, class, TLS, address — OpenShift-Route equivalent, plus a Gateway API section |
 | Namespaces | `/namespaces` | Create/delete |
 | Virtual Machines | `/vms` | KubeVirt lifecycle + data-protection tabs |
 | Storage | `/storage` | PVCs grouped by StorageClass |
@@ -63,13 +63,13 @@ Sidebar order (`frontend/src/components/Sidebar.jsx`):
 | Quotas & Limits | `/quotas` | ResourceQuotas (hard/used) + LimitRanges + PodDisruptionBudgets, read-only |
 | Autoscaling | `/autoscaling` | HorizontalPodAutoscaler list/create/delete |
 | Custom Resources | `/custom-resources` | Generic browser for any installed CRD |
-| Backups | `/backups` | VolumeSnapshots + Velero, create/restore |
+| Backups | `/backups` | VolumeSnapshots + Velero, create/restore + Velero schedule create |
 | Alerts | `/alerts` | |
-| Ops | `/ops/:tab` | Tabbed: Helm/GitOps/Agents/Identity/Audit/Access/Cost |
+| Ops | `/ops/:tab` | Tabbed: Helm/GitOps/Agents/Identity/Audit/Access/Webhooks/Cost |
 | Users | `/users` | Local account CRUD, admin/viewer role badge |
 | Settings | `/settings` | OIDC/Atlas/Postgres/Probe/Notifications cards |
 
-Not in the sidebar but routable: `/workloads/:ns/:kind/:name` (workload detail), `/pods/:ns/:name` (pod detail).
+Not in the sidebar but routable: `/workloads/:ns/:kind/:name` (workload detail), `/pods/:ns/:name` (pod detail), `/nodes/:name` (node detail).
 
 ## Auth
 
@@ -86,6 +86,22 @@ The login screen (`frontend/src/pages/Login.jsx`) shows three SSO-styled buttons
 - Glass sidebar: brand, cluster switcher, nav (scrollable — 26 items), theme pill toggle
 - Glass topbar: breadcrumbs, ⌘K search, Connect kubeconfig (shows local dev instructions), user menu
 - Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive label instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
+
+## Command palette
+
+`frontend/src/components/CommandPalette.jsx` — ⌘K opens a `cmdk`-based dialog with a "Navigate" group listing all 26 top-level routes (from the shared `frontend/src/constants/navItems.js`, the same list `Sidebar.jsx` renders, so the two can't drift apart again), plus live-searched "Pods"/"Workloads"/"Namespaces" groups fetched once per palette session from the existing list endpoints (`/pods`, `/workloads`, `/namespaces`) and filtered by `cmdk`'s built-in fuzzy match as you type — not a static page list. Selecting a pod/workload jumps straight to its detail route; selecting a namespace jumps to the Namespaces page (there's no per-namespace detail route to link to more precisely).
+
+## Node detail
+
+`NodeDetail.jsx` (route `/nodes/:name`) — Details/Metrics/Taints tabs, plus the same Cordon/Drain buttons as the Nodes list:
+
+- Details: allocatable CPU/memory/pods, OS image, kernel, container runtime, conditions
+- Metrics: two `Sparkline`s (CPU/memory, shared component with Pod detail and Overview) from `GET /api/v1/nodes/{name}/metrics`, labeled as a live rolling window, not historical Prometheus data
+- Taints: current taints as badges with a delete button each, plus an "Add taint" form (key/value/effect, effect is a shadcn `Select` of `NoSchedule`/`PreferNoSchedule`/`NoExecute`)
+
+## Pod scheduling diagnosis
+
+`PodDetail.jsx` fetches `GET /api/v1/pods/{ns}/{name}/diagnosis` on load and renders an amber banner (not scheduled) or a neutral banner (scheduled but not yet `Running`/`Succeeded`) automatically above the stat cards — no tab to click, since this is the first thing an operator wants to see when a pod isn't healthy. Nothing renders when the pod is running normally.
 
 ## Workload actions
 
@@ -131,7 +147,23 @@ Three tabs, all real (`frontend/src/pages/Workloads.jsx`'s `LaunchWizard`):
 
 ## Helm ops
 
-Rollback opens a revision input inline in the Ops → Helm row, then `POST .../rollback` with `{ "revision": N }`. Uninstall is a single click per row.
+Rollback opens a revision input inline in the Ops → Helm row, then `POST .../rollback` with `{ "revision": N }`. Uninstall is a single click per row. An "Install chart" button opens a dialog (namespace, release name, repo URL, chart name, optional version and values YAML) backed by `POST /api/v1/helm/install`, with an inline note that the install runs under Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.
+
+## GitOps sync
+
+`GitOpsTab` adds a per-row Sync icon button (`RotateCcw`) next to each Application/Kustomization/HelmRelease, calling `POST /api/v1/gitops/{kind}/{namespace}/{name}/sync` and refreshing the list on success.
+
+## RBAC (Ops → Access)
+
+`RbacTab` shows four sections (Cluster roles, Cluster role bindings, Roles, Role bindings) in the same two-column grid as before, but only the namespaced Roles/RoleBindings sections get a "New role"/"New binding" button and a per-row delete icon — Cluster roles/bindings stay read-only, matching the backend's deliberate security boundary (see [ARCHITECTURE.md](ARCHITECTURE.md#rbac-write-boundary)). The create dialogs take rules/subjects as a small JSON textarea (pre-filled with a valid example) rather than a policy-rule form builder, mirroring the generic-apply textarea pattern used elsewhere.
+
+## Admission webhooks (Ops → Webhooks)
+
+A new read-only Ops tab: two `GlassCard` sections (Validating/Mutating), each row showing the webhook name, its owning configuration, matched rules, and failure policy (amber when `Fail`).
+
+## Storage page
+
+`Storage.jsx` gained two `AutoTable` sections below the existing PVC list — StorageClasses (provisioner, reclaim policy, binding mode, default flag) and PersistentVolumes (capacity, access modes, claim, storage class) — reusing the same `AutoTable` component as Atlas and the CRD browser, since the page's own header already claimed to cover both and previously only delivered PVCs.
 
 ## PacketWolf (Networking page)
 

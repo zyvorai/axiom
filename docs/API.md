@@ -168,10 +168,38 @@ Listing CRD *definitions* only requires the `apiextensions.k8s.io` RBAC grant Ax
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/nodes` | List nodes |
-| GET | `/api/v1/nodes/{name}` | Node detail |
+| GET | `/api/v1/nodes/{name}` | Node detail (includes `taints`) |
 | POST | `/api/v1/nodes/{name}/cordon` | Mark unschedulable |
 | POST | `/api/v1/nodes/{name}/uncordon` | Mark schedulable |
 | POST | `/api/v1/nodes/{name}/drain` | Cordon and evict eligible Pods |
+| GET | `/api/v1/nodes/{name}/metrics` | Live CPU/memory for the node plus a short in-memory rolling time series (not historical Prometheus data) — shares the per-pod metrics ring buffer, keyed `"node:<name>"` |
+| POST | `/api/v1/nodes/{name}/taints` | Add a taint: `{"key","value","effect"}` (`effect` one of `NoSchedule`\|`PreferNoSchedule`\|`NoExecute`) |
+| DELETE | `/api/v1/nodes/{name}/taints/{key}?effect=...` | Remove a taint matching `key` and `effect` |
+
+## Pod diagnostics
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/pods/{namespace}/{name}/diagnosis` | Aggregates the pod's `PodScheduled` condition, matching warning Events, and container waiting reasons into a `{"scheduled","phase","diagnosis",...}` plain-English answer to "why is this pod not running" |
+
+## Storage objects
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/storageclasses` | List StorageClasses (provisioner, reclaim policy, binding mode, default flag) |
+| GET | `/api/v1/persistentvolumes` | List cluster-scoped PersistentVolumes (capacity, access modes, claim ref, storage class) |
+
+## Gateway API
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects. Returns `[]` (not an error) when the Gateway API CRDs aren't installed |
+
+## Admission webhooks
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/admission-webhooks` | List every ValidatingWebhookConfiguration and MutatingWebhookConfiguration, flattened to one row per webhook entry (read-only) |
 
 ## Network and namespaces
 
@@ -228,6 +256,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | POST | `/api/v1/backups/restore` | Restore PVC from snapshot |
 | GET | `/api/v1/velero/backups?namespace=...` | Velero backups |
 | GET | `/api/v1/velero/schedules?namespace=...` | Velero schedules |
+| POST | `/api/v1/velero/schedules` | Create a schedule: `{"namespace","name","schedule","ttl"}` (`schedule` is a cron string, `ttl` is optional, e.g. `"720h0m0s"`) — builds the Velero `Schedule` object directly via the dynamic client, same as the other Velero/Flux/Argo access in this API |
 
 ## Helm, GitOps, ops
 
@@ -237,12 +266,20 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | GET | `/api/v1/helm/releases/{namespace}/{name}/history` | Release revision history |
 | POST | `/api/v1/helm/releases/{namespace}/{name}/rollback` | Rollback (`{"revision": N}`) |
 | POST | `/api/v1/helm/releases/{namespace}/{name}/uninstall` | Uninstall release |
+| POST | `/api/v1/helm/install` | Install a chart: `{"namespace","releaseName","repoUrl","chartName","chartVersion","values"}` (`chartVersion`/`values` optional, `values` is raw YAML). Runs `helm install --repo <repoUrl>` as a background Job under Axiom's own ServiceAccount — the chart can only create resources that ServiceAccount is itself allowed to create. No chart-repo browsing in this pass; supply the repo URL and chart name directly, the same as `helm install --repo` on the CLI |
 | GET | `/api/v1/gitops` | GitOps applications (Flux/Argo when present) |
+| POST | `/api/v1/gitops/{kind}/{namespace}/{name}/sync` | Force a re-sync. `kind` is one of `Application` (Argo — patches the top-level `operation.sync` field, the same mechanism `argocd app sync` uses) or `Kustomization`\|`HelmRelease` (Flux — bumps the `reconcile.fluxcd.io/requestedAt` annotation, the same convention `flux reconcile` uses) |
 | GET | `/api/v1/alerts?namespace=...` | Alertmanager / Prometheus alerts |
 | GET | `/api/v1/audit` | Axiom audit log |
 | GET | `/api/v1/rbac?namespace=...` | Roles and bindings |
+| POST | `/api/v1/rbac/roles` | Create a namespaced Role: `{"namespace","name","rules":[{"apiGroups","resources","verbs"}]}` |
+| DELETE | `/api/v1/rbac/roles/{namespace}/{name}` | Delete a Role |
+| POST | `/api/v1/rbac/rolebindings` | Create a namespaced RoleBinding: `{"namespace","name","roleName","subjects":[{"kind","name","namespace"}]}` |
+| DELETE | `/api/v1/rbac/rolebindings/{namespace}/{name}` | Delete a RoleBinding |
 | GET | `/api/v1/cost` | Cost / utilization estimates |
 | POST | `/api/v1/validate` | Dry-run manifest validation |
+
+RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRoleBinding` have no create/delete endpoint and stay read-only via `GET /api/v1/rbac`. See [Security](../README.md#security) for why.
 
 ## Agent runs and platform intents
 

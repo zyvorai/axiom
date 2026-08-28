@@ -12,26 +12,27 @@ Pages:
 
 - **Getting Started** — live setup checklist (SSO, Atlas, PacketWolf, Postgres, probe) driven by real `/api/v1/integrations` + `/api/v1/auth/providers` status
 - **Overview** — cluster hero, metric rings, utilization sparklines, alerts, activity
-- **Nodes** — capacity, kubelet status, cordon/uncordon/drain
+- **Nodes** — capacity, kubelet status, cordon/uncordon/drain; each node links to a detail page (live CPU/memory history, taint add/remove)
 - **Workloads** — Deployments/StatefulSets/DaemonSets/CronJobs, with a full action menu (start/stop/restart/scale/seal/unseal/delete), a rollout dialog (history + pause/resume/restart/undo), bulk multi-select restart/delete, and a "Run workload" wizard (Form / natural-language Intent / YAML validate-and-apply)
 - **Workload detail** (`/workloads/:ns/:kind/:name`) — labels/annotations, an editable raw-manifest YAML tab (Save applies via server-side apply, kubernetes build only), owned Pods, related events
 - **Pods** — list with per-row exec and evict, plus bulk multi-select evict
-- **Pod detail** (`/pods/:ns/:name`) — full container specs (resources, env, mounts, probes), volumes, tolerations, owner, conditions, an editable raw-manifest YAML tab (Save applies via server-side apply), live per-pod/per-container CPU & memory graphs (Metrics tab, rolling window from `metrics.k8s.io`), an **interactive PTY terminal** (real WebSocket shell — falls back to one-shot exec in demo mode), and per-port "Open" buttons that proxy straight into the pod's container port from the browser
+- **Pod detail** (`/pods/:ns/:name`) — full container specs (resources, env, mounts, probes), volumes, tolerations, owner, conditions, an editable raw-manifest YAML tab (Save applies via server-side apply), live per-pod/per-container CPU & memory graphs (Metrics tab, rolling window from `metrics.k8s.io`), an automatic scheduling-diagnosis banner ("why is this pod not running") whenever the pod isn't cleanly Running/Succeeded, an **interactive PTY terminal** (real WebSocket shell — falls back to one-shot exec in demo mode), and per-port "Open" buttons that proxy straight into the pod's container port from the browser
 - **Platform Intents** — workloads placed via the Intent launch flow
 - **Networking · Cilium** — service graph, a live PacketWolf (eBPF/Cilium flow) panel when `AXIOM_PACKETWOLF_URL` is configured, and full NetworkPolicy list/delete + "Create via YAML"
+- **Command palette (⌘K)** — jumps to any of the 26 top-level routes and live-searches real pods/workloads/namespaces by name, not just a static page list
 - **Services**, **Namespaces** (with create/delete)
 - **Virtual Machines** — KubeVirt lifecycle (start/stop/migrate), real console info (`virtctl vnc` command — Axiom has no embedded browser VNC client), and Snapshots/Clones/Exports/Restores tabs
-- **Storage** — PVCs grouped by StorageClass
+- **Storage** — PVCs grouped by StorageClass, plus StorageClasses and cluster-scoped PersistentVolumes as first-class objects
 - **Atlas** — live storage control-plane view (backends/pools/volumes/buckets/policies) when Atlas is connected, with a "Create volume" flow
 - **Pod Logs** — chunked-HTTP live tail with container selection, deep-linkable from Pod detail
 - **Jobs & CronJobs** — CronJob run-now/suspend-resume/delete, Job status/completions/duration, separate from the Workloads table
 - **ConfigMaps** — full CRUD alongside Secrets
 - **Quotas & Limits** — ResourceQuotas (hard/used), LimitRanges, and PodDisruptionBudgets per namespace, read-only
-- **Ingresses** — hosts, class, TLS, address — OpenShift-Route-equivalent view
+- **Ingresses** — hosts, class, TLS, address — OpenShift-Route-equivalent view, plus a Gateway API section (GatewayClass/Gateway/HTTPRoute) when that CRD group is installed
 - **Autoscaling** — HorizontalPodAutoscaler list/create/delete, targeting any existing workload with min/max replicas and a target CPU percent
 - **Custom Resources** — a generic browser for any installed CustomResourceDefinition: pick a CRD by group/version/kind, browse its instances, open one to view its raw manifest — works for CRDs Axiom has no dedicated integration for
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
-- **Ops hub** — tabbed Helm / GitOps / Agents / Identity / Audit / Access (RBAC) / Cost
+- **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost
 - **Users** — local accounts (admin/viewer roles) layered on top of the env-configured operator account and any SSO login
 - **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection, plus Slack/webhook alert notifications
 
@@ -54,8 +55,16 @@ Production Kubernetes support is kept behind the `kubernetes` build tag and uses
 - Kubernetes Events API
 - `autoscaling/v2` HorizontalPodAutoscalers, `policy/v1` PodDisruptionBudgets, `networking.k8s.io/v1` NetworkPolicies
 - Server-side apply (`types.ApplyPatchType`, `FieldManager: "zyvor-axiom"`) for generic manifest apply — reuses the same YAML/JSON parse and GVK→GVR discovery as manifest validation
-- `metrics.k8s.io` raw REST access for per-pod/per-container CPU & memory (same `AbsPath` pattern as node metrics)
+- `metrics.k8s.io` raw REST access for per-pod/per-container **and per-node** CPU & memory (same `AbsPath` pattern, sharing one in-memory ring buffer keyed by `"node:<name>"` vs. `"<namespace>/<name>"`)
 - Dynamic client + `apiextensions.k8s.io` CustomResourceDefinition listing for the generic CRD browser — works for any installed CRD, not just the ones Axiom has a dedicated integration for
+- Dynamic client for Gateway API (`gateway.networking.k8s.io` GatewayClass/Gateway/HTTPRoute) — tolerates the CRDs being absent, the same way GitOps tolerates no Argo/Flux install
+- `AdmissionregistrationV1` for read-only ValidatingWebhookConfiguration/MutatingWebhookConfiguration visibility
+- `StorageV1`/cluster-scoped `PersistentVolumes` for StorageClass and PV listing
+- Node taint add/remove (`Nodes().Update`, same get-mutate-Update shape as cordon/drain)
+- Pod scheduling diagnosis: aggregates the pod's `PodScheduled` condition, matching warning Events, and container waiting reasons into one plain-English "why is this pod not running" answer — no new API dependency, just a smarter read of data already fetched elsewhere
+- Namespaced RBAC `Role`/`RoleBinding` create/delete (deliberately **not** `ClusterRole`/`ClusterRoleBinding` — see Security below)
+- GitOps force-sync: patches Flux's `reconcile.fluxcd.io/requestedAt` annotation or Argo's top-level `operation.sync` field via a JSON merge patch — the same mechanism `flux reconcile`/`argocd app sync` use
+- Helm chart install: launches a `batchv1.Job` running `alpine/helm` with `helm install --repo <url>` (same Job-based mechanism as the existing uninstall/rollback), values YAML mounted from a ConfigMap — no shell interpolation of user input anywhere, so no command-injection surface regardless of the release/chart name or repo URL
 
 ### API surface
 
@@ -66,13 +75,16 @@ See [`docs/API.md`](docs/API.md) for the full reference (100+ routes). Core grou
 - **Jobs/CronJobs:** list, delete, trigger (run-now), suspend/resume
 - **Config:** ConfigMaps (CRUD), ResourceQuotas, LimitRanges, Ingresses, PodDisruptionBudgets
 - **Pods:** list, logs, one-shot exec, interactive terminal (WebSocket), evict, window proxy, per-pod metrics
-- **Nodes:** list, cordon, uncordon, drain
+- **Nodes:** list, detail, cordon, uncordon, drain, per-node metrics, taint add/remove
 - **Autoscaling:** HorizontalPodAutoscaler list/create/delete
-- **Network:** namespaces, services, topology, PacketWolf status/proxy, NetworkPolicy list/delete
+- **Network:** namespaces, services, topology, PacketWolf status/proxy, NetworkPolicy list/delete, Gateway API (GatewayClass/Gateway/HTTPRoute)
 - **Apply:** generic server-side apply for any manifest (kubernetes build only)
 - **Custom resources:** list installed CRDs, list/get instances of any CRD by group/version/plural
+- **Storage objects:** StorageClasses, cluster-scoped PersistentVolumes
+- **Admission:** ValidatingWebhookConfiguration/MutatingWebhookConfiguration visibility
+- **Diagnostics:** per-pod scheduling diagnosis ("why is this pod not running")
 - **VMs:** KubeVirt lifecycle, snapshots, clones, exports, restores
-- **Ops:** Helm, GitOps, secrets, backups, Velero, alerts, audit, RBAC, cost
+- **Ops:** Helm (list/install/rollback/uninstall), GitOps (list/sync), secrets, backups, Velero (list + schedule create), alerts, audit, RBAC (list + namespaced Role/RoleBinding create/delete), cost
 - **Platform:** Atlas, Haven identity, agent runs, integrations, intent placement
 - **Notifications:** Slack/webhook config + test, automatic Warning-event dispatch
 - **Users:** local account CRUD (admin/viewer)
@@ -160,6 +172,8 @@ Lab deploys use HTTP Basic auth (`AXIOM_USERNAME` / `AXIOM_PASSWORD`, default `d
 - Enable OIDC/SAML via Settings → Integrations or environment variables
 - Place Axiom behind an identity-aware proxy when using LDAP (`AXIOM_LDAP_ENABLED`)
 - Grant the ServiceAccount only the RBAC verbs in `deploy/k8s/rbac.yaml` and narrow namespaces further where possible — this is a deliberate per-group allowlist, not a wildcard, so the generic CRD browser can *list CRD definitions* for any installed CRD but can only *read instances* of the specific groups granted here; browsing an ungranted CRD's instances returns the real Kubernetes RBAC-forbidden error rather than a misleading empty list
+- Axiom's own RBAC UI (Ops → Access) can create/delete namespaced `Role`/`RoleBinding` objects but deliberately cannot touch `ClusterRole`/`ClusterRoleBinding` — a UI path to create cluster-scoped roles would be a materially bigger privilege-escalation surface than a namespace-scoped one, and every other write feature in this app is already namespace-scoped
+- The Helm "Install chart" feature runs `helm install` as a Job under Axiom's own ServiceAccount — a chart can only create resources that ServiceAccount is itself permitted to create, so it inherits whatever RBAC boundary is configured here rather than escalating beyond it
 - Prefer `viewer`-role local accounts (Settings → Users) for anyone who only needs read access, instead of sharing the single admin operator credential
 
 A browser can't attach an `Authorization` header to a plain link or WebSocket, which the pod-window proxy and interactive terminal both need for local Basic-auth sessions. Axiom accepts a `?access_token=<base64 user:pass>` query parameter for exactly this case (`internal/auth/basic.go`); OIDC/SAML sessions ride their cookie and need nothing extra.

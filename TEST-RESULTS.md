@@ -1,6 +1,42 @@
 # Zyvor Axiom Validation Results
 
-## 2026-08-28 (latest) — Tier-1 Kubernetes-console gap closure: HPA, generic apply, PDB, NetworkPolicy CRUD, bulk actions, per-pod metrics, CRD browser
+## 2026-08-29 (latest) — Second Kubernetes-console gap tier: command palette, admission webhooks, storage objects, node metrics/taints, Gateway API, Velero schedules, pod diagnosis, RBAC write, GitOps sync, Helm install
+
+A second "what else is missing" audit (fresh, grep-verified against the repo as it stood after the Tier-1 pass) found 11 more concrete gaps versus OpenShift Console/Lens/Rancher/k9s. Scoped to "must-have + high-value" (explicitly excluding a nice-to-have tier: PriorityClasses, audit-log filtering, per-workload cost breakdown, multi-tab terminal, plugin architecture). Implemented and verified one item at a time, easiest/lowest-risk first, committing and deploying after each:
+
+```text
+go test ./cmd/... ./internal/...                                        PASS
+go vet ./cmd/... ./internal/...                                         PASS
+go build ./cmd/zyvor-axiom                                              PASS (demo build)
+go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (kubernetes build)
+npx craco build (frontend/)                                             PASS
+```
+
+**Command palette real search** — expanded from a hardcoded 8-of-26 route list to the full sidebar (via a new shared `frontend/src/constants/navItems.js` so the two can't drift again) plus live pod/workload/namespace search using `cmdk`'s built-in fuzzy filter. Verified in Chrome: typed "checkout", got real live pods `checkout-01..06` in the `commerce` namespace, clicked through to the pod detail page.
+
+**Admission webhook visibility, StorageClasses/PersistentVolumes** — two new read-only Ops/Storage sections. Verified via Chrome (demo) and curl (real cluster — real KubeVirt CDI admission webhooks, real Ceph/local-path StorageClasses, real PVs).
+
+**Per-node metrics + taint management** — new `/nodes/:name` detail page (didn't exist before; `GET /api/v1/nodes/{name}` was already there but nothing consumed it). Verified the full taint add/verify/remove write path against the real cluster (80.79.5.173), cleaning up the test taint immediately.
+
+**Gateway API visibility** — added to the Ingresses page. Verified via curl against the real cluster: correctly returns `[]` since no Gateway API CRDs are installed there, rather than an error.
+
+**Velero schedule creation** — "New schedule" dialog on Backups. Verified end-to-end against the real cluster (which has a genuine Velero install): created a real Schedule via the API, confirmed it, then removed it with `kubectl delete` since this pass intentionally has no delete-schedule endpoint.
+
+**Pod scheduling diagnosis** — the single highest-value item in this batch: an automatic "why is this pod not running" banner on Pod detail, aggregating the `PodScheduled` condition, warning Events, and container waiting reasons. Verified in Chrome for both a healthy pod (no banner) and a real CrashLoopBackOff demo pod (banner with the correct diagnosis text), and via curl against the real cluster.
+
+**RBAC write support, deliberately scoped to namespaced Role/RoleBinding** — `ClusterRole`/`ClusterRoleBinding` stay read-only on purpose (see ARCHITECTURE.md). Verified the full create→list→delete round trip via the real Chrome UI against demo mode (demo's RBAC lists moved from a static list to a mutable map so this actually persists), and via curl against the real cluster — created a real Role/RoleBinding, confirmed both in the live list, deleted both.
+
+**GitOps sync trigger** — per-row Sync button for Argo Application (patches `operation.sync`) and Flux Kustomization/HelmRelease (bumps the `reconcile.fluxcd.io/requestedAt` annotation). Verified in Chrome against demo mode. The real cluster has neither Argo nor Flux installed, so `ListGitOps` correctly returns `[]` there and a sync attempt against a made-up target correctly surfaces the real Kubernetes "resource not found" error rather than pretending to succeed.
+
+**Helm chart install** — the largest lift, and the one that surfaced real bugs via live testing. Installed and fully uninstalled a minimal `podinfo` chart in a throwaway namespace on the real cluster:
+- First attempt failed: `helm install --wait` needs RBAC read on `apps/replicasets` to poll rollout status, which Axiom's ServiceAccount didn't have. Removed `--wait` from the install path (kept on uninstall/rollback, which already worked with it) since install is already framed to the caller as "started," not a synchronous result.
+- Second attempt still failed with the identical RBAC error — turned out `helm install` needs to read ReplicaSets to apply a Deployment's owned resources at all, not just to wait on them. Added a read-only `apps/replicasets` RBAC grant (natural complement to the existing `deployments` write grant) and confirmed success on a fresh retry: real Deployment/Service/Pod came up healthy, `GET /api/v1/helm/releases` correctly listed the new release, then `POST .../uninstall` (the pre-existing, already-proven endpoint) removed it cleanly. Namespace and Jobs deleted afterward; confirmed zero residue on the shared cluster.
+
+### Live remote deployment (real k3s cluster, 80.79.5.173)
+
+Ten deploys across this batch (one per item, plus a couple of `--quick` redeploys for bugfixes found mid-verification: the RBAC-forbidden-vs-empty CRD-browser UX gap from the previous pass's docs update, and the two Helm install RBAC fixes above). Every item re-verified against real cluster data or a real write-round-trip after each deploy, as summarized per item above.
+
+## 2026-08-28 — Tier-1 Kubernetes-console gap closure: HPA, generic apply, PDB, NetworkPolicy CRUD, bulk actions, per-pod metrics, CRD browser
 
 Seven features closing the remaining gaps against best-in-class Kubernetes consoles (OpenShift Console, Lens, Rancher), scoped from a fresh "what's missing" audit and implemented one at a time, backend-then-frontend, following the session's established Provider-interface + demo/kubernetes dual-implementation pattern:
 
