@@ -357,6 +357,41 @@ func (k *KubernetesProvider) ListVeleroSchedules(ctx context.Context, ns string)
 	return out, nil
 }
 
+func (k *KubernetesProvider) CreateVeleroSchedule(ctx context.Context, req CreateVeleroScheduleRequest) (VeleroSchedule, error) {
+	if k.dynamic == nil {
+		return VeleroSchedule{}, fmt.Errorf("dynamic client unavailable")
+	}
+	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Schedule) == "" {
+		return VeleroSchedule{}, fmt.Errorf("namespace, name, and schedule are required")
+	}
+	template := map[string]any{
+		"includedNamespaces": []any{"*"},
+	}
+	if req.TTL != "" {
+		template["ttl"] = req.TTL
+	}
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "velero.io/v1",
+		"kind":       "Schedule",
+		"metadata": map[string]any{
+			"name":      req.Name,
+			"namespace": req.Namespace,
+		},
+		"spec": map[string]any{
+			"schedule": req.Schedule,
+			"template": template,
+		},
+	}}
+	created, err := k.dynamic.Resource(veleroSchedGVR).Namespace(req.Namespace).Create(ctx, obj, metav1.CreateOptions{})
+	if err != nil {
+		return VeleroSchedule{}, err
+	}
+	return VeleroSchedule{
+		Namespace: created.GetNamespace(), Name: created.GetName(), Schedule: req.Schedule,
+		Age: age(created.GetCreationTimestamp().Time),
+	}, nil
+}
+
 func (k *KubernetesProvider) listAlertmanagers(ctx context.Context, ns string) []AlertmanagerSummary {
 	if k.dynamic == nil {
 		return []AlertmanagerSummary{}

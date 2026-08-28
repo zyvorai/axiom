@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -62,11 +63,34 @@ func (d *DemoProvider) ListVeleroBackups(ctx context.Context, ns string) ([]Vele
 	return filterNS(ns, all, func(b VeleroBackup) string { return b.Namespace }), nil
 }
 
-func (d *DemoProvider) ListVeleroSchedules(ctx context.Context, ns string) ([]VeleroSchedule, error) {
-	all := []VeleroSchedule{
-		{Namespace: "velero", Name: "forge-daily", Schedule: "0 2 * * *", LastBackup: time.Now().Add(-24 * time.Hour).Format(time.RFC3339), Age: "30d"},
+var (
+	demoVeleroSchedulesMu sync.Mutex
+	demoVeleroSchedules   = map[string]VeleroSchedule{
+		"velero/forge-daily": {Namespace: "velero", Name: "forge-daily", Schedule: "0 2 * * *", LastBackup: time.Now().Add(-24 * time.Hour).Format(time.RFC3339), Age: "30d"},
 	}
-	return filterNS(ns, all, func(s VeleroSchedule) string { return s.Namespace }), nil
+)
+
+func (d *DemoProvider) ListVeleroSchedules(ctx context.Context, ns string) ([]VeleroSchedule, error) {
+	demoVeleroSchedulesMu.Lock()
+	defer demoVeleroSchedulesMu.Unlock()
+	out := make([]VeleroSchedule, 0, len(demoVeleroSchedules))
+	for _, s := range demoVeleroSchedules {
+		if ns == "" || ns == "all" || s.Namespace == ns {
+			out = append(out, s)
+		}
+	}
+	return out, nil
+}
+
+func (d *DemoProvider) CreateVeleroSchedule(ctx context.Context, req CreateVeleroScheduleRequest) (VeleroSchedule, error) {
+	if req.Namespace == "" || req.Name == "" || req.Schedule == "" {
+		return VeleroSchedule{}, fmt.Errorf("namespace, name, and schedule are required")
+	}
+	sched := VeleroSchedule{Namespace: req.Namespace, Name: req.Name, Schedule: req.Schedule, Age: "now"}
+	demoVeleroSchedulesMu.Lock()
+	demoVeleroSchedules[req.Namespace+"/"+req.Name] = sched
+	demoVeleroSchedulesMu.Unlock()
+	return sched, nil
 }
 
 func filterNS[T any](ns string, all []T, nsOf func(T) string) []T {

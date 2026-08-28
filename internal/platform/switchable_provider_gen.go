@@ -324,3 +324,6 @@ func (sp *SwitchableProvider) RemoveTaint(a0 context.Context, a1 string, a2 stri
 func (sp *SwitchableProvider) ListGateways(a0 context.Context, a1 string) ([]GatewaySummary, error) {
 	return sp.current().ListGateways(a0, a1)
 }
+func (sp *SwitchableProvider) CreateVeleroSchedule(a0 context.Context, a1 CreateVeleroScheduleRequest) (VeleroSchedule, error) {
+	return sp.current().CreateVeleroSchedule(a0, a1)
+}

@@ -127,4 +127,6 @@ type Provider interface {
 	RemoveTaint(context.Context, string, string, string) error
 
 	ListGateways(context.Context, string) ([]GatewaySummary, error)
+
+	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
 }

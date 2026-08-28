@@ -190,6 +190,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/vm-restores", s.createVMRestore)
 	mux.HandleFunc("GET /api/v1/velero/backups", s.veleroBackups)
 	mux.HandleFunc("GET /api/v1/velero/schedules", s.veleroSchedules)
+	mux.HandleFunc("POST /api/v1/velero/schedules", s.createVeleroSchedule)
 	mux.HandleFunc("GET /api/v1/gitops", s.gitops)
 	mux.HandleFunc("GET /api/v1/alerts", s.alerts)
 	mux.HandleFunc("GET /api/v1/audit", s.audit)

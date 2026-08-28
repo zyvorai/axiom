@@ -141,12 +141,54 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
     );
 }
 
+function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
+    const [form, setForm] = useState({ namespace: "velero", name: "", schedule: "0 2 * * *", ttl: "" });
+    const [busy, setBusy] = useState(false);
+    const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+    const submit = async () => {
+        setBusy(true);
+        try {
+            await api.post("/velero/schedules", form);
+            toast.success(`Schedule ${form.name} created`);
+            onOpenChange(false);
+            onCreated();
+        } catch (e) {
+            toast.error("Create schedule failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="glass max-w-md border-white/10">
+                <DialogHeader>
+                    <DialogTitle>New Velero schedule</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                    <Field label="Namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
+                    <Field label="Name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="nightly-backup" />
+                    <Field label="Cron schedule" value={form.schedule} onChange={(e) => set({ schedule: e.target.value })} placeholder="0 2 * * *" />
+                    <Field label="TTL (optional)" value={form.ttl} onChange={(e) => set({ ttl: e.target.value })} placeholder="720h0m0s" />
+                </div>
+                <DialogFooter>
+                    <Button onClick={submit} disabled={busy || !form.name || !form.schedule} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        {busy ? "Creating…" : "Create"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function Backups() {
     const [snapshots, setSnapshots] = useState(null);
     const [veleroBackups, setVeleroBackups] = useState(null);
     const [veleroSchedules, setVeleroSchedules] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [restoreOpen, setRestoreOpen] = useState(false);
+    const [scheduleOpen, setScheduleOpen] = useState(false);
 
     const load = () => {
         Promise.all([
@@ -222,6 +264,11 @@ export default function Backups() {
                 icon={CalendarClock}
                 rows={veleroSchedules || []}
                 empty="No Velero schedules."
+                action={
+                    <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                        <Plus className="mr-1 h-3 w-3" /> New schedule
+                    </Button>
+                }
                 columns={[
                     { key: "name", span: "col-span-4", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
                     { key: "schedule", span: "col-span-3", render: (r) => <span className="mono text-muted-foreground">{r.schedule}</span> },
@@ -233,6 +280,7 @@ export default function Backups() {
 
             <CreateBackupDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <RestoreDialog open={restoreOpen} onOpenChange={setRestoreOpen} onCreated={load} />
+            <CreateScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} onCreated={load} />
         </div>
     );
 }

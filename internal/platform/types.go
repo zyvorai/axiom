@@ -532,6 +532,13 @@ type VeleroSchedule struct {
 	Age        string `json:"age"`
 }
 
+type CreateVeleroScheduleRequest struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	Schedule  string `json:"schedule"`
+	TTL       string `json:"ttl,omitempty"`
+}
+
 type AlertmanagerSummary struct {
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`

@@ -420,3 +420,19 @@ func (s *Server) veleroSchedules(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListVeleroSchedules(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)
 }
+
+func (s *Server) createVeleroSchedule(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateVeleroScheduleRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateVeleroSchedule(r.Context(), req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	platform.RecordAxiomAudit("velero-schedule.create", req.Namespace+"/"+req.Name, req.Schedule, s.auditUser(r))
+	EmitStateChanged("velero-schedule", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
