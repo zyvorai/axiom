@@ -80,6 +80,7 @@ export function AuthProvider({ children }) {
     const value = {
         user,
         ready,
+        isViewer: user?.role === "Viewer",
         providers,
         signInLocal,
         signOut,
