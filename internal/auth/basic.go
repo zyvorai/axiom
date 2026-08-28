@@ -59,6 +59,9 @@ type Guard struct {
 	// Users resolves local multi-user accounts created under Settings → Users.
 	// Optional — nil means only the single env-configured account exists.
 	Users UserAuthenticator
+	// Limiter throttles repeated failed logins per client IP. Optional — a
+	// fresh one is created automatically in Middleware when left nil.
+	Limiter *RateLimiter
 }
 
 func (g Guard) sessionSecret() string {
@@ -69,18 +72,32 @@ func (g Guard) sessionSecret() string {
 }
 
 func (g Guard) Middleware(next http.Handler) http.Handler {
+	limiter := g.Limiter
+	if limiter == nil {
+		limiter = NewRateLimiter()
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isPublicPath(r) {
 			next.ServeHTTP(w, r)
 			return
 		}
+		key := clientKey(r)
+		if !limiter.Allowed(key) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Retry-After", "60")
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte(`{"error":"too many failed login attempts — try again shortly"}`))
+			return
+		}
 		id, ok := g.authorizeDetail(r)
 		if !ok {
+			limiter.RecordFailure(key)
 			// Do not set WWW-Authenticate — that triggers the browser's native
 			// Basic-auth popup on top of Axiom's custom login form.
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
+		limiter.RecordSuccess(key)
 		if id.Role == "viewer" && isMutatingMethod(r.Method) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
