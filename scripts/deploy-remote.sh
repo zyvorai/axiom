@@ -8,12 +8,16 @@
 #   4. Import image into k3s
 #   5. Apply Kubernetes manifests + NodePort
 #   6. Verify HTTPS health (curl -k)
+#   7. --with-atlas: also deploy ../atlas to the same host (its own scripts/deploy-remote.sh),
+#      mint an admin JWT from its bootstrap-admin-token, and PUT it into Axiom's own
+#      Settings → Integrations (atlasUrl/atlasToken) so Atlas shows up wired on the Atlas page.
 #
 # Usage:
 #   ./scripts/deploy-remote.sh <host> [user] [password]
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick        # skip image rebuild
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --skip-images  # manifests only
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --with-atlas   # also deploy + wire ../atlas
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
 #
 # Environment:
@@ -23,6 +27,8 @@
 #   AXIOM_CHECKOUT             default: axiom
 #   AXIOM_IMAGE_TAG            default: dev
 #   AXIOM_NODE_PORT            default: 30590
+#   ATLAS_REPO                 path to the atlas checkout (default: ../atlas next to this repo)
+#   ATLAS_NODE_PORT            default: 30510 (must match ../atlas/deploy/k8s/atlas-gateway.yaml)
 #   AXIOM_USERNAME             default: demo
 #   AXIOM_PASSWORD             default: demo
 #
@@ -41,6 +47,7 @@ UNINSTALL_MODE=false
 SKIP_IMAGES=false
 SKIP_SYNC=false
 DRY_RUN=false
+WITH_ATLAS=false
 POSITIONAL=()
 for arg in "$@"; do
   case "$arg" in
@@ -49,6 +56,7 @@ for arg in "$@"; do
     --skip-sync)   SKIP_SYNC=true ;;
     --uninstall)   UNINSTALL_MODE=true ;;
     --dry-run)     DRY_RUN=true ;;
+    --with-atlas)  WITH_ATLAS=true ;;
     --help|-h)
       sed -n '2,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0
@@ -266,15 +274,61 @@ else
   _ssh 'kubectl -n axiom-system get pods,svc -o wide; kubectl -n axiom-system describe pods -l app=zyvor-axiom 2>/dev/null | tail -40' || true
 fi
 
+# ── Atlas (optional) ──
+ATLAS_WIRED=0
+if $WITH_ATLAS; then
+  ATLAS_NODE_PORT="${ATLAS_NODE_PORT:-30510}"
+  ATLAS_REPO="${ATLAS_REPO:-$(cd "$REPO_DIR/../atlas" 2>/dev/null && pwd || true)}"
+  if [ -z "$ATLAS_REPO" ] || [ ! -f "$ATLAS_REPO/scripts/deploy-remote.sh" ]; then
+    warn "--with-atlas given but no atlas checkout found at ../atlas (set ATLAS_REPO=/path/to/atlas) — skipping"
+  else
+    info "Deploying Atlas to ${HOST} (${ATLAS_REPO})"
+    ( cd "$ATLAS_REPO" && ./scripts/deploy-remote.sh "$HOST" "$USER" )
+
+    ATLAS_URL="http://${HOST}:${ATLAS_NODE_PORT}"
+    info "Minting an Axiom service token from Atlas's bootstrap-admin-token"
+    BOOT_TOKEN=$(_ssh "kubectl -n zyvor-system get secret atlas-gateway-auth -o jsonpath='{.data.bootstrap-admin-token}' 2>/dev/null | base64 -d" || true)
+    if [ -z "$BOOT_TOKEN" ]; then
+      warn "No bootstrap-admin-token on atlas-gateway-auth (already rotated out?) — wire Atlas manually in Settings → Integrations: ${ATLAS_URL}"
+    else
+      ATLAS_JWT=$(curl -fsS --connect-timeout 10 \
+        -H "Authorization: Bearer ${BOOT_TOKEN}" -H 'Content-Type: application/json' \
+        -d '{"subject":"axiom","role":"admin","ttl_secs":7776000}' \
+        "${ATLAS_URL}/api/atlas/v1/auth/tokens" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("token",""))' 2>/dev/null || true)
+      if [ -z "$ATLAS_JWT" ]; then
+        warn "Could not mint an Atlas token — wire Atlas manually in Settings → Integrations: ${ATLAS_URL}"
+      else
+        AXIOM_AUTH_B64=$(printf '%s:%s' "$AXIOM_USERNAME" "$AXIOM_PASSWORD" | base64 | tr -d '\n')
+        if curl -fsSk --connect-timeout 10 -X PUT \
+            -H "Authorization: Basic ${AXIOM_AUTH_B64}" -H 'Content-Type: application/json' \
+            -d "{\"atlasUrl\":\"${ATLAS_URL}\",\"atlasToken\":\"${ATLAS_JWT}\"}" \
+            "${BASE_URL}/api/v1/integrations" >/dev/null 2>&1; then
+          info "Axiom ↔ Atlas wired: ${ATLAS_URL} (token expires in 90d, mints a fresh one on redeploy)"
+          ATLAS_WIRED=1
+        else
+          warn "Atlas token minted but PUT ${BASE_URL}/api/v1/integrations failed — wire manually in Settings → Integrations: ${ATLAS_URL}"
+        fi
+      fi
+    fi
+  fi
+fi
+
 MODE_LABEL=$($SKIP_IMAGES && echo quick || echo full)
 axiom_save_deploy_last "$REPO_DIR" "$HOST" "$USER" "$MODE_LABEL" "$AXIOM_IMAGE_TAG"
 
 axiom_ui_success "$HOST" "$USER"
-axiom_ui_panel "Access (HTTPS only, self-signed)" \
-  "UI:      ${BASE_URL}" \
-  "Health:  ${BASE_URL}/api/v1/health" \
-  "Login:   ${AXIOM_USERNAME} / ${AXIOM_PASSWORD}" \
-  "curl:    curl -k ${BASE_URL}/api/v1/health" \
-  "" \
-  "Accept the browser certificate warning once." \
+PANEL_LINES=(
+  "UI:      ${BASE_URL}"
+  "Health:  ${BASE_URL}/api/v1/health"
+  "Login:   ${AXIOM_USERNAME} / ${AXIOM_PASSWORD}"
+  "curl:    curl -k ${BASE_URL}/api/v1/health"
+)
+if [ "${ATLAS_WIRED:-0}" = "1" ]; then
+  PANEL_LINES+=("Atlas:   ${ATLAS_URL} (wired into Settings → Integrations)")
+fi
+PANEL_LINES+=(
+  ""
+  "Accept the browser certificate warning once."
   "Redeploy fast: ./scripts/deploy-remote.sh ${HOST} ${USER} --quick"
+)
+axiom_ui_panel "Access (HTTPS only, self-signed)" "${PANEL_LINES[@]}"
