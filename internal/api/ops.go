@@ -406,7 +406,7 @@ func (s *Server) createVMSnapshot(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateVMSnapshot(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("vm.snapshot", req.Namespace+"/"+req.VM, v.Name, s.auditUser(r))
@@ -439,7 +439,7 @@ func (s *Server) createVMClone(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateVMClone(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("vm.clone", req.Namespace+"/"+req.SourceVM, v.Name+" → "+req.TargetVM, s.auditUser(r))
@@ -460,7 +460,7 @@ func (s *Server) createVMExport(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateVMExport(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("vm.export", req.Namespace+"/"+req.VM, v.Name, s.auditUser(r))
@@ -481,7 +481,7 @@ func (s *Server) createVMRestore(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateVMRestore(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("vm.restore", req.Namespace+"/"+req.Snapshot, v.Name+" → "+req.TargetVM, s.auditUser(r))

@@ -40,8 +40,12 @@ func (d *DemoProvider) CreateVMClone(ctx context.Context, req CreateVMCloneReque
 	}
 	clone := VMClone{Namespace: req.Namespace, Name: name, Source: req.SourceVM, SourceKind: kind, Target: req.TargetVM, Phase: "Succeeded", Age: "now"}
 	demoVMClonesMu.Lock()
-	demoVMClones[req.Namespace+"/"+name] = clone
-	demoVMClonesMu.Unlock()
+	defer demoVMClonesMu.Unlock()
+	key := req.Namespace + "/" + name
+	if _, exists := demoVMClones[key]; exists {
+		return VMClone{}, fmt.Errorf("vmclone %s/%s already exists", req.Namespace, name)
+	}
+	demoVMClones[key] = clone
 	return clone, nil
 }
 
@@ -74,8 +78,12 @@ func (d *DemoProvider) CreateVMExport(ctx context.Context, req CreateVMExportReq
 	}
 	exp := VMExport{Namespace: req.Namespace, Name: name, Source: req.VM, Phase: "Ready", Links: fmt.Sprintf("https://export.example/%s", name), Age: "now"}
 	demoVMExportsMu.Lock()
-	demoVMExports[req.Namespace+"/"+name] = exp
-	demoVMExportsMu.Unlock()
+	defer demoVMExportsMu.Unlock()
+	key := req.Namespace + "/" + name
+	if _, exists := demoVMExports[key]; exists {
+		return VMExport{}, fmt.Errorf("vmexport %s/%s already exists", req.Namespace, name)
+	}
+	demoVMExports[key] = exp
 	return exp, nil
 }
 
@@ -108,8 +116,12 @@ func (d *DemoProvider) CreateVMRestore(ctx context.Context, req CreateVMRestoreR
 	}
 	restore := VMRestore{Namespace: req.Namespace, Name: name, Snapshot: req.Snapshot, Target: req.TargetVM, Complete: true, Phase: "Complete", Age: "now"}
 	demoVMRestoresMu.Lock()
-	demoVMRestores[req.Namespace+"/"+name] = restore
-	demoVMRestoresMu.Unlock()
+	defer demoVMRestoresMu.Unlock()
+	key := req.Namespace + "/" + name
+	if _, exists := demoVMRestores[key]; exists {
+		return VMRestore{}, fmt.Errorf("vmrestore %s/%s already exists", req.Namespace, name)
+	}
+	demoVMRestores[key] = restore
 	return restore, nil
 }
 

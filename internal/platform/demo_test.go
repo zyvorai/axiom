@@ -285,6 +285,57 @@ func TestCreateAgentRunRejectsDuplicateName(t *testing.T) {
 	}
 }
 
+// Rounding out the sweep: the VM snapshot/clone/export/restore Create
+// methods auto-generate a name when none is given, but still had the
+// same missing existence check for a caller-supplied name.
+func TestCreateVMSnapshotRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateVMSnapshotRequest{Namespace: "default", VM: "edge-api-vm", Name: "dup-snap"}
+	if _, err := d.CreateVMSnapshot(ctx, req); err != nil {
+		t.Fatalf("first CreateVMSnapshot should succeed, got %v", err)
+	}
+	if _, err := d.CreateVMSnapshot(ctx, req); err == nil {
+		t.Fatal("expected second CreateVMSnapshot with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateVMCloneRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateVMCloneRequest{Namespace: "default", SourceVM: "edge-api-vm", TargetVM: "edge-api-vm-2", Name: "dup-clone"}
+	if _, err := d.CreateVMClone(ctx, req); err != nil {
+		t.Fatalf("first CreateVMClone should succeed, got %v", err)
+	}
+	if _, err := d.CreateVMClone(ctx, req); err == nil {
+		t.Fatal("expected second CreateVMClone with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateVMExportRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateVMExportRequest{Namespace: "default", VM: "edge-api-vm", Name: "dup-export"}
+	if _, err := d.CreateVMExport(ctx, req); err != nil {
+		t.Fatalf("first CreateVMExport should succeed, got %v", err)
+	}
+	if _, err := d.CreateVMExport(ctx, req); err == nil {
+		t.Fatal("expected second CreateVMExport with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateVMRestoreRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateVMRestoreRequest{Namespace: "default", Snapshot: "dup-snap", TargetVM: "edge-api-vm", Name: "dup-restore"}
+	if _, err := d.CreateVMRestore(ctx, req); err != nil {
+		t.Fatalf("first CreateVMRestore should succeed, got %v", err)
+	}
+	if _, err := d.CreateVMRestore(ctx, req); err == nil {
+		t.Fatal("expected second CreateVMRestore with the same name to fail, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()

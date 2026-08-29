@@ -108,8 +108,12 @@ func (d *DemoProvider) CreateVMSnapshot(ctx context.Context, req CreateVMSnapsho
 	}
 	snap := VMSnapshot{Namespace: req.Namespace, Name: name, VM: req.VM, Ready: true, Status: "Succeeded", Age: "now"}
 	demoVMSnapshotsMu.Lock()
-	demoVMSnapshots[req.Namespace+"/"+name] = snap
-	demoVMSnapshotsMu.Unlock()
+	defer demoVMSnapshotsMu.Unlock()
+	key := req.Namespace + "/" + name
+	if _, exists := demoVMSnapshots[key]; exists {
+		return VMSnapshot{}, fmt.Errorf("vmsnapshot %s/%s already exists", req.Namespace, name)
+	}
+	demoVMSnapshots[key] = snap
 	return snap, nil
 }
 
