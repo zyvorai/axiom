@@ -97,7 +97,7 @@ Axiom uses the Kubernetes API and does not depend on a specific distro. In a k3s
 One command deploys Axiom to a remote k3s node (**HTTPS only**, self-signed TLS):
 
 ```bash
-./scripts/deploy-remote.sh 80.79.5.173 zyvorai
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai
 ```
 
 Flow: rsync → generate/reuse `.run/tls` cert → Secret `zyvor-axiom-tls` → podman build → k3s import → kubectl apply → `curl -k` health.
@@ -105,13 +105,13 @@ Flow: rsync → generate/reuse `.run/tls` cert → Secret `zyvor-axiom-tls` → 
 Fast redeploy (skip image rebuild):
 
 ```bash
-./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --quick
 ```
 
 Also deploy [Atlas](../../atlas) (the separate storage control-plane service) to the same host and wire it into Axiom automatically — mints an admin token from Atlas's freshly-created `atlas-gateway-auth` secret and `PUT`s it into Axiom's own `/api/v1/integrations`, the same call Settings → Integrations makes:
 
 ```bash
-./scripts/deploy-remote.sh 80.79.5.173 zyvorai --with-atlas
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --with-atlas
 ```
 
 Requires a sibling `../atlas` checkout with its own `scripts/deploy-remote.sh` (override the path with `ATLAS_REPO=/path/to/atlas`, and its NodePort with `ATLAS_NODE_PORT` if not `30510`). If the wiring step fails (e.g. Axiom's own health check didn't pass yet), it prints the Atlas URL so you can finish it by hand in Settings → Integrations.
@@ -125,12 +125,12 @@ Check last target and health:
 Or via Make:
 
 ```bash
-make deploy-remote H=80.79.5.173 U=zyvorai
+make deploy-remote H=<ephemeral-ip> U=zyvorai
 ```
 
 ### Prerequisites (remote host)
 
-- SSH access (key-based recommended): `ssh zyvorai@<host>` — some lab hosts use a different user (e.g. `sus@80.79.5.173`); pass it as the second argument
+- SSH access (key-based recommended): `ssh zyvorai@<host>` — some lab hosts use a different user (e.g. `operator@<ephemeral-ip>`); pass it as the second argument
 - k3s with `kubectl` configured for the deploy user (`~/.kube/config`)
 - `podman` or `docker` for image builds
 - `openssl` for self-signed cert generation
@@ -150,16 +150,16 @@ Override with environment variables: `AXIOM_IMAGE_TAG`, `AXIOM_NODE_PORT`, `AXIO
 
 ### After deploy
 
-- UI: `https://80.79.5.173:30591` (accept self-signed warning; port may differ if `30590` is in use)
-- Health: `curl -k https://80.79.5.173:30591/api/v1/health`
+- UI: `https://<ephemeral-ip>:30591` (accept self-signed warning; port may differ if `30590` is in use)
+- Health: `curl -k https://<ephemeral-ip>:30591/api/v1/health`
 - **Lab sign-in:** username `demo`, password `demo` — the login form appears automatically when SSO is not configured
 
 ### Troubleshooting
 
 ```bash
-ssh zyvorai@80.79.5.173 kubectl -n axiom-system get pods,svc
-ssh zyvorai@80.79.5.173 kubectl -n axiom-system logs -l app=zyvor-axiom --tail=50
-ssh zyvorai@80.79.5.173 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
+ssh zyvorai@<ephemeral-ip> kubectl -n axiom-system get pods,svc
+ssh zyvorai@<ephemeral-ip> kubectl -n axiom-system logs -l app=zyvor-axiom --tail=50
+ssh zyvorai@<ephemeral-ip> 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
 ```
 
 If the NodePort is blocked, open TCP `30590` (or your `AXIOM_NODE_PORT`) on the host firewall (the deploy script attempts this automatically).
@@ -167,14 +167,14 @@ If the NodePort is blocked, open TCP `30590` (or your `AXIOM_NODE_PORT`) on the 
 If deploy fails with `nodePort ... already allocated to another Service`, another Service on that cluster already holds the port (shared lab hosts often have unrelated workloads squatting on NodePorts). Find it and redeploy on a free one:
 
 ```bash
-ssh zyvorai@80.79.5.173 'kubectl get svc -A -o wide | grep 30590'
-AXIOM_NODE_PORT=30592 ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick
+ssh zyvorai@<ephemeral-ip> 'kubectl get svc -A -o wide | grep 30590'
+AXIOM_NODE_PORT=30592 ./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --quick
 ```
 
 Uninstall:
 
 ```bash
-./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --uninstall
 ```
 
 ## Production hardening checklist
