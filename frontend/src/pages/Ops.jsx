@@ -26,7 +26,7 @@ const TABS = [
     { key: "agents", label: "Agents", icon: Bot },
     { key: "identity", label: "Identity", icon: Fingerprint },
     { key: "audit", label: "Audit", icon: ScrollText },
-    { key: "rbac", label: "Access", icon: ShieldCheck },
+    { key: "access", label: "Access", icon: ShieldCheck },
     { key: "webhooks", label: "Webhooks", icon: Webhook },
     { key: "cost", label: "Cost", icon: DollarSign },
 ];
@@ -735,7 +735,7 @@ const PANELS = {
     agents: AgentsTab,
     identity: IdentityTab,
     audit: AuditTab,
-    rbac: RbacTab,
+    access: RbacTab,
     webhooks: WebhooksTab,
     cost: CostTab,
 };
