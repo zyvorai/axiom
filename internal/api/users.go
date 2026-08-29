@@ -32,7 +32,7 @@ func (s *Server) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.users.Create(r.Context(), req.Username, req.Password, req.Role, req.Namespaces)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("user.create", v.Username, v.Role, s.auditUser(r))
@@ -63,7 +63,7 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
 	if req.Role != nil {
 		v, err = s.users.UpdateRole(r.Context(), username, *req.Role)
 		if err != nil {
-			fail(w, http.StatusBadRequest, err)
+			fail(w, platform.HTTPStatus(err), err)
 			return
 		}
 		platform.RecordAxiomAudit("user.role_change", username, v.Role, s.auditUser(r))
@@ -71,7 +71,7 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
 	if req.Password != nil {
 		v, err = s.users.ResetPassword(r.Context(), username, *req.Password)
 		if err != nil {
-			fail(w, http.StatusBadRequest, err)
+			fail(w, platform.HTTPStatus(err), err)
 			return
 		}
 		platform.RecordAxiomAudit("user.password_reset", username, "", s.auditUser(r))
@@ -79,7 +79,7 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) {
 	if req.Namespaces != nil {
 		v, err = s.users.UpdateNamespaces(r.Context(), username, *req.Namespaces)
 		if err != nil {
-			fail(w, http.StatusBadRequest, err)
+			fail(w, platform.HTTPStatus(err), err)
 			return
 		}
 		platform.RecordAxiomAudit("user.namespaces_change", username, strings.Join(v.Namespaces, ","), s.auditUser(r))
