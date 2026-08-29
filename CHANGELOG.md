@@ -21,6 +21,7 @@ All notable changes to Zyvor Axiom are documented here.
 - Workloads and Pods bulk actions (Delete/Restart/Evict): both pages poll every 10s, so a checkbox selection could go stale — a selected row already gone by click time was silently dropped from the batch with no indication, so "Deleted 2 workloads" could mean 3 were selected. The toast now says so explicitly when it happens.
 - User management: creating a duplicate username, or updating a role/password/namespace-restriction for a nonexistent user, reported a flat `400` instead of `409`/`404` — the same hardcoded-status-code gap as the earlier API fixes, just in `internal/api/users.go`.
 - Audited every remaining always-`400` handler across `internal/api`: `approveAgentRun`, `denyAgentRun`, `triggerCronJob`, `restoreBackup`, `helmUninstall`, `helmRollback`, `helmInstall`, and `migrateVM` all now classify errors via `platform.HTTPStatus` instead of hardcoding `400`. Also found and fixed one more duplicate-name gap this turned up: `InstallHelmChart` silently overwrote a release name already in use instead of rejecting it like real Helm does.
+- The Ops page's "Access" tab used the route segment `/ops/rbac`, not `/ops/access` — navigating to the URL matching its visible label silently rendered the Helm tab instead (Ops.jsx falls back to Helm for any unrecognized tab segment). Renamed the route key to `access` to match its label.
 
 ## [0.1.0] - 2026-08-29
 
