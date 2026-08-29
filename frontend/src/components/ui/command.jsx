@@ -18,11 +18,12 @@ Command.displayName = CommandPrimitive.displayName
 
 const CommandDialog = ({
   children,
+  "data-testid": dataTestId,
   ...props
 }) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0">
+      <DialogContent className="overflow-hidden p-0" data-testid={dataTestId}>
         <DialogTitle className="sr-only">Command menu</DialogTitle>
         <DialogDescription className="sr-only">Search for pages, clusters and actions</DialogDescription>
         <Command

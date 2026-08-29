@@ -1,0 +1,29 @@
+Copyright (c) 2026 Zyvor. All rights reserved.
+
+This repository and its contents (the "Software") are the proprietary and
+confidential property of Zyvor ("Zyvor," "we," "us"). The Software is made
+available to a recipient solely under the terms of a separate written
+agreement with Zyvor (e.g., an evaluation agreement, subscription, or
+commercial license agreement, referred to as the "Agreement").
+
+No license to use, copy, modify, merge, publish, distribute, sublicense,
+or sell copies of the Software is granted except as expressly set out in
+the Agreement. In the absence of an Agreement, no rights are granted to
+any person by this notice.
+
+If you have received this Software without an accompanying Agreement,
+you are not authorized to use it — contact Zyvor before proceeding.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE, EXCEPT AS OTHERWISE STATED IN THE AGREEMENT.
+
+---
+NOTE TO REVIEWER: this notice uses "Zyvor" without a legal entity suffix
+(Inc./LLC/Ltd.) because the exact registered entity name wasn't available
+to generate this file. Confirm the correct legal entity name with counsel
+before relying on this notice, and update the copyright line accordingly.

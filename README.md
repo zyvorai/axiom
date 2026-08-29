@@ -220,8 +220,12 @@ Settings → Notifications configures a Slack incoming-webhook URL and/or a gene
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — k3s/Kubernetes deployment and hardening
 - [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) — Axiom "Liquid Glass" UX system
 - [`docs/RENAMING.md`](docs/RENAMING.md) — full Aether → Axiom identity map
+- [`docs/BACKUP-RESTORE.md`](docs/BACKUP-RESTORE.md) — backing up Axiom's own runtime state (local accounts, integration settings, audit log)
+- [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — current security/compliance posture
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
 - [`SECURITY.md`](SECURITY.md) — vulnerability disclosure policy
+- [`LICENSE`](LICENSE) — proprietary, all rights reserved
+- `legal/` — draft EULA/DPA templates for counsel review (not for customer use as-is)
 
 ## Project layout
 

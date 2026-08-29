@@ -78,3 +78,49 @@ jobs:
         continue-on-error: true
         working-directory: frontend
         run: npm audit --audit-level=high
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build demo binary
+        run: |
+          ./scripts/sync-ui.sh
+          go build -o bin/zyvor-axiom ./cmd/zyvor-axiom
+
+      - name: Start demo server
+        run: |
+          AXIOM_MODE=demo AXIOM_USERNAME=demo AXIOM_PASSWORD=demo AXIOM_ADDR=:5090 ./bin/zyvor-axiom &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5090/api/v1/health && break
+            sleep 1
+          done
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E smoke tests
+        working-directory: e2e
+        run: npm test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/test-results/

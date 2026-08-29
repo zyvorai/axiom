@@ -29,3 +29,7 @@ internal/ui/dist/
 # Go workspace noise
 go.work
 go.work.sum
+
+# Playwright output (e2e/)
+e2e/test-results/
+e2e/playwright-report/

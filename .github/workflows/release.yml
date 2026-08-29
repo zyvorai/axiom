@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write # required for cosign keyless signing (Sigstore/Fulcio via GitHub OIDC)
 
 jobs:
   build-and-publish:
@@ -31,6 +32,7 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -49,3 +51,23 @@ jobs:
           image-ref: ghcr.io/zyvorai/axiom:${{ steps.version.outputs.version }}
           format: table
           severity: CRITICAL,HIGH
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      # Keyless signing via Sigstore/Fulcio, using this workflow's own
+      # GitHub OIDC token as identity — no private key to generate,
+      # store, or rotate. Verify with:
+      #   cosign verify ghcr.io/zyvorai/axiom:<version> \
+      #     --certificate-identity-regexp 'https://github.com/zyvorai/axiom/.*' \
+      #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+      - name: Sign published image
+        run: cosign sign --yes "ghcr.io/zyvorai/axiom@${{ steps.build.outputs.digest }}"
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/zyvorai/axiom:${{ steps.version.outputs.version }}
+          format: spdx-json
+          output-file: axiom-${{ steps.version.outputs.version }}.sbom.spdx.json
+          upload-artifact: true
