@@ -45,6 +45,14 @@ type KubernetesProvider struct {
 	client  kubernetes.Interface
 	dynamic dynamic.Interface
 	config  *rest.Config
+	// clusterKey distinguishes this provider's cached in-process state (the
+	// pod/node metrics history ring in ops_kubernetes.go) from another
+	// KubernetesProvider's when multiple are registered in the same process
+	// — the multi-context kubeconfig case (see
+	// factory_kubernetes.go:newKubernetesClusterRegistry). Left empty for
+	// the single-cluster in-cluster/default construction paths, where only
+	// one KubernetesProvider ever exists so there's nothing to collide with.
+	clusterKey string
 }
 
 func NewKubernetesProvider(kubeconfig string) (*KubernetesProvider, error) {

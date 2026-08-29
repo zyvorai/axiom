@@ -1642,7 +1642,7 @@ func (k *KubernetesProvider) GetPodMetrics(ctx context.Context, ns, name string)
 		totalCPU += cpu
 		totalMem += mem
 	}
-	key := ns + "/" + name
+	key := k.metricsKey(ns + "/" + name)
 	recordPodMetric(key, totalCPU, totalMem)
 	return PodMetricSeries{
 		Namespace: ns, Name: name, CPUMillicores: totalCPU, MemoryBytes: totalMem,
@@ -1655,6 +1655,20 @@ type nodeMetricsAPIResponse struct {
 		CPU    string `json:"cpu"`
 		Memory string `json:"memory"`
 	} `json:"usage"`
+}
+
+// metricsKey scopes a pod/node-metrics ring-buffer key to this provider's
+// cluster. podMetricsHist (ops_kubernetes.go) is a package-level map shared
+// by every KubernetesProvider in the process — in the multi-context
+// kubeconfig case (factory_kubernetes.go), that's more than one real
+// cluster. Without this, two clusters both happening to have e.g. a
+// "default/nginx" Pod would silently share (and corrupt) each other's
+// metric history when a user switches between them.
+func (k *KubernetesProvider) metricsKey(suffix string) string {
+	if k.clusterKey == "" {
+		return suffix
+	}
+	return k.clusterKey + "|" + suffix
 }
 
 // GetNodeMetrics reuses the pod-metrics ring buffer (recordPodMetric/podMetricPoints)
@@ -1673,7 +1687,7 @@ func (k *KubernetesProvider) GetNodeMetrics(ctx context.Context, name string) (N
 	}
 	cpu := parseCPUMillis(resp.Usage.CPU)
 	mem := parseMemoryBytes(resp.Usage.Memory)
-	key := "node:" + name
+	key := k.metricsKey("node:" + name)
 	recordPodMetric(key, cpu, mem)
 	podPoints := podMetricPoints(key)
 	points := make([]NodeMetricPoint, len(podPoints))

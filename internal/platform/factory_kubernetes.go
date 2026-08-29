@@ -84,7 +84,7 @@ func newKubernetesClusterRegistry(kubeconfigPath, clusterName string) (*Switchab
 		if clusterName != "" && name == raw.CurrentContext {
 			label = clusterName
 		}
-		sp.Register(name, label, &KubernetesProvider{client: client, config: cfg, dynamic: dyn}, cfg.Host)
+		sp.Register(name, label, &KubernetesProvider{client: client, config: cfg, dynamic: dyn, clusterKey: name}, cfg.Host)
 	}
 	if sp.Count() == 0 {
 		return nil, fmt.Errorf("no usable contexts found in kubeconfig %q", path)
