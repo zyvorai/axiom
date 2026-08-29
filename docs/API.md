@@ -19,10 +19,10 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/clusters` | List registered clusters, with the currently-active one flagged |
-| POST | `/api/v1/clusters/{name}/activate` | Switch the active cluster — every subsequent request across the whole API hits the new one |
+| GET | `/api/v1/clusters` | List registered clusters, with the caller's own currently-active one flagged |
+| POST | `/api/v1/clusters/{name}/activate` | Switch the active cluster for the calling browser tab/script only |
 
-The backend `Provider` is always a `SwitchableProvider` delegating to whichever cluster is active. A normal in-cluster (ServiceAccount) deployment registers exactly one cluster — this is not a stub, it's the honest single-cluster case. A kubeconfig with multiple contexts registers one provider per context. Demo mode registers three independent demo clusters.
+The backend `Provider` is always a `SwitchableProvider` delegating to whichever cluster is active *for the caller*, not one global switch — see `docs/ARCHITECTURE.md`'s Multi-cluster section. The frontend sends an `X-Axiom-Session` header (one random ID per browser tab) so switching clusters in one tab never affects another tab or another user; a request sent with no such header (e.g. a scripted `curl`) is scoped per authenticated username instead. A normal in-cluster (ServiceAccount) deployment registers exactly one cluster — this is not a stub, it's the honest single-cluster case. A kubeconfig with multiple contexts registers one provider per context. Demo mode registers three independent demo clusters.
 
 ## Authentication
 
@@ -175,6 +175,8 @@ Listing CRD *definitions* only requires the `apiextensions.k8s.io` RBAC grant Ax
 | GET | `/api/v1/nodes/{name}/metrics` | Live CPU/memory for the node plus a short in-memory rolling time series (not historical Prometheus data) — shares the per-pod metrics ring buffer, keyed `"node:<name>"` |
 | POST | `/api/v1/nodes/{name}/taints` | Add a taint: `{"key","value","effect"}` (`effect` one of `NoSchedule`\|`PreferNoSchedule`\|`NoExecute`) |
 | DELETE | `/api/v1/nodes/{name}/taints/{key}?effect=...` | Remove a taint matching `key` and `effect` |
+
+A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: true`) instead of its usual `"Ready"`/`"NotReady"` — this is how the Nodes page decides whether to show Cordon or Uncordon. Uncordon reverts `status` to the normal condition-derived value.
 
 ## Pod diagnostics
 

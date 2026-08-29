@@ -194,7 +194,9 @@ The audit log (`GET /api/v1/audit`) persists across restarts in production — a
 
 ### Multi-cluster
 
-`internal/platform.Provider` is always a `*SwitchableProvider` that delegates every call to whichever cluster is currently active (`internal/platform/switchable_provider_gen.go` — one generated delegator method per `Provider` interface method, so no handler code needs to know clusters exist). `GET /api/v1/clusters` lists registered clusters; `POST /api/v1/clusters/{name}/activate` switches the active one.
+`internal/platform.Provider` is always a `*SwitchableProvider` that delegates every call to whichever cluster is currently active *for the caller* (`internal/platform/switchable_provider_gen.go` — one generated delegator method per `Provider` interface method, so no handler code needs to know clusters exist). `GET /api/v1/clusters` lists registered clusters; `POST /api/v1/clusters/{name}/activate` switches the active one for the calling browser tab/script.
+
+"Active" is scoped per caller, not one global switch: the frontend sends an `X-Axiom-Session` header (a random ID minted once per browser tab), so two tabs — or two different users — can each have a different cluster active without stomping on each other. A request with no session header (e.g. a scripted `curl`) falls back to a per-authenticated-username default instead. See `docs/ARCHITECTURE.md`'s Multi-cluster section for the exact plumbing.
 
 - **Kubernetes mode, in-cluster (the normal deploy)**: exactly one cluster is registered, since a ServiceAccount token has no notion of "other contexts". Name it with `AXIOM_CLUSTER_NAME` instead of the generic `in-cluster` default.
 - **Kubernetes mode, kubeconfig with multiple contexts**: one provider is registered per context, and switching is real.
