@@ -26,6 +26,7 @@ func NewDemoProvider() *DemoProvider {
 		{Namespace: "commerce", Name: "checkout", Kind: "Deployment", Image: "ghcr.io/zyvorai/checkout:v1.14.2", Desired: 6, Ready: 6, Available: 6, Status: "Healthy", Age: "11d"},
 		{Namespace: "data", Name: "redis", Kind: "StatefulSet", Image: "redis:7.4", Desired: 3, Ready: 3, Available: 3, Status: "Healthy", Age: "28d"},
 		{Namespace: "observability", Name: "otel-collector", Kind: "Deployment", Image: "otel/opentelemetry-collector:0.120.0", Desired: 4, Ready: 3, Available: 3, Status: "Degraded", Age: "19d"},
+		{Namespace: "observability", Name: "log-shipper", Kind: "DaemonSet", Image: "fluent/fluent-bit:3.1", Desired: 4, Ready: 4, Available: 4, Status: "Healthy", Age: "45d"},
 	}
 	for _, w := range seed {
 		d.workloads[key(w.Namespace, w.Kind, w.Name)] = w

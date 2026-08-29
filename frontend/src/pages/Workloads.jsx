@@ -178,6 +178,11 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
 
 function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     const [busy, setBusy] = useState("");
+    // A DaemonSet has no replica count in Kubernetes' own model — one Pod
+    // per matching node, not a scalable target — so Start/Stop/Scale/
+    // Rollout/Seal/Unseal all correctly 400 server-side. Restart and
+    // Delete do apply and stay available.
+    const isDaemonSet = w.kind === "DaemonSet";
 
     const act = async (action) => {
         setBusy(action);
@@ -213,28 +218,36 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem onClick={() => act("start")}>
-                    <Play className="mr-2 h-3.5 w-3.5" /> Start
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => act("stop")}>
-                    <Square className="mr-2 h-3.5 w-3.5" /> Stop
-                </DropdownMenuItem>
+                {!isDaemonSet && (
+                    <>
+                        <DropdownMenuItem onClick={() => act("start")}>
+                            <Play className="mr-2 h-3.5 w-3.5" /> Start
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => act("stop")}>
+                            <Square className="mr-2 h-3.5 w-3.5" /> Stop
+                        </DropdownMenuItem>
+                    </>
+                )}
                 <DropdownMenuItem onClick={() => act("restart")}>
                     <RotateCw className="mr-2 h-3.5 w-3.5" /> Restart
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onScale}>
-                    <GitCommitHorizontal className="mr-2 h-3.5 w-3.5" /> Scale…
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onRollout}>
-                    <Rocket className="mr-2 h-3.5 w-3.5" /> Rollout…
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => act("seal")}>
-                    <Lock className="mr-2 h-3.5 w-3.5" /> Seal
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => act("unseal")}>
-                    <Unlock className="mr-2 h-3.5 w-3.5" /> Unseal
-                </DropdownMenuItem>
+                {!isDaemonSet && (
+                    <>
+                        <DropdownMenuItem onClick={onScale}>
+                            <GitCommitHorizontal className="mr-2 h-3.5 w-3.5" /> Scale…
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={onRollout}>
+                            <Rocket className="mr-2 h-3.5 w-3.5" /> Rollout…
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => act("seal")}>
+                            <Lock className="mr-2 h-3.5 w-3.5" /> Seal
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => act("unseal")}>
+                            <Unlock className="mr-2 h-3.5 w-3.5" /> Unseal
+                        </DropdownMenuItem>
+                    </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={remove} className="text-rose-400 focus:text-rose-400">
                     <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete

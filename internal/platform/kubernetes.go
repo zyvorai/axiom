@@ -164,12 +164,19 @@ func (k *KubernetesProvider) ListWorkloads(ctx context.Context, ns string) ([]Wo
 	if err != nil {
 		return nil, err
 	}
-	out := make([]Workload, 0, len(deps.Items)+len(sts.Items))
+	dss, err := k.client.AppsV1().DaemonSets(selectorNS).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Workload, 0, len(deps.Items)+len(sts.Items)+len(dss.Items))
 	for _, d := range deps.Items {
 		out = append(out, deploymentToWorkload(d))
 	}
 	for _, s := range sts.Items {
 		out = append(out, statefulSetToWorkload(s))
+	}
+	for _, ds := range dss.Items {
+		out = append(out, daemonSetToWorkload(ds))
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace == out[j].Namespace {
@@ -213,6 +220,24 @@ func statefulSetToWorkload(s appsv1.StatefulSet) Workload {
 		status = "Degraded"
 	}
 	return Workload{Namespace: s.Namespace, Name: s.Name, Kind: "StatefulSet", Image: image, Desired: desired, Ready: s.Status.ReadyReplicas, Available: s.Status.CurrentReplicas, Status: status, Age: age(s.CreationTimestamp.Time), Labels: s.Labels}
+}
+
+// daemonSetToWorkload has no replica count to report — a DaemonSet runs
+// exactly one Pod per matching node, so "Desired" here means "how many
+// nodes it should be scheduled on," not a scalable target. Scale/Stop/
+// Start correctly don't apply and keep returning their existing
+// "unsupported workload kind" error for it.
+func daemonSetToWorkload(d appsv1.DaemonSet) Workload {
+	image := ""
+	if len(d.Spec.Template.Spec.Containers) > 0 {
+		image = d.Spec.Template.Spec.Containers[0].Image
+	}
+	desired := d.Status.DesiredNumberScheduled
+	status := "Healthy"
+	if d.Status.NumberReady < desired {
+		status = "Degraded"
+	}
+	return Workload{Namespace: d.Namespace, Name: d.Name, Kind: "DaemonSet", Image: image, Desired: desired, Ready: d.Status.NumberReady, Available: d.Status.NumberAvailable, Status: status, Age: age(d.CreationTimestamp.Time), Labels: d.Labels}
 }
 
 func (k *KubernetesProvider) Launch(ctx context.Context, req LaunchRequest) (Workload, error) {
@@ -365,6 +390,9 @@ func (k *KubernetesProvider) Restart(ctx context.Context, ns, kind, name string)
 	case "statefulset":
 		_, err := k.client.AppsV1().StatefulSets(ns).Patch(ctx, name, types.MergePatchType, raw, metav1.PatchOptions{})
 		return err
+	case "daemonset":
+		_, err := k.client.AppsV1().DaemonSets(ns).Patch(ctx, name, types.MergePatchType, raw, metav1.PatchOptions{})
+		return err
 	default:
 		return fmt.Errorf("unsupported workload kind %q", kind)
 	}
@@ -377,6 +405,8 @@ func (k *KubernetesProvider) DeleteWorkload(ctx context.Context, ns, kind, name 
 		err = k.client.AppsV1().Deployments(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
 	case "statefulset":
 		err = k.client.AppsV1().StatefulSets(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
+	case "daemonset":
+		err = k.client.AppsV1().DaemonSets(ns).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &prop})
 	default:
 		return fmt.Errorf("unsupported workload kind %q", kind)
 	}
