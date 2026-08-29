@@ -3,10 +3,11 @@ package platform
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 func (d *DemoProvider) GetResource(ctx context.Context, ns, kind, name string) (ResourceDetail, error) {
-	return ResourceDetail{
+	detail := ResourceDetail{
 		Namespace: ns,
 		Kind:      kind,
 		Name:      name,
@@ -16,7 +17,26 @@ func (d *DemoProvider) GetResource(ctx context.Context, ns, kind, name string) (
 			"kind":       kind,
 			"metadata":   map[string]any{"name": name, "namespace": ns},
 		},
-	}, nil
+	}
+	if strings.ToLower(kind) != "pod" {
+		d.mu.RLock()
+		if ps, ok := d.pods[ns+"/"+name]; ok {
+			detail.Pods = append([]Pod(nil), ps...)
+		}
+		d.mu.RUnlock()
+	}
+	events, err := d.ListEvents(ctx, ns)
+	if err == nil {
+		for _, e := range events {
+			if strings.Contains(e.Object, name) {
+				detail.RelatedEvents = append(detail.RelatedEvents, e)
+				if len(detail.RelatedEvents) >= 20 {
+					break
+				}
+			}
+		}
+	}
+	return detail, nil
 }
 
 func (d *DemoProvider) GetNode(ctx context.Context, name string) (Node, error) {
