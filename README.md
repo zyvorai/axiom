@@ -72,7 +72,7 @@ Production Kubernetes support is kept behind the `kubernetes` build tag and uses
 
 See [`docs/API.md`](docs/API.md) for the full reference (100+ routes). Core groups:
 
-- **Cluster:** health, session, overview, regions, utilization, events, real cluster list/switch
+- **Cluster:** health, self-metrics (`/api/v1/metrics`, Prometheus text format), session, overview, regions, utilization, events, real cluster list/switch
 - **Workloads:** CRUD, scale, stop/start, restart, seal/unseal, rollout, Still previews
 - **Jobs/CronJobs:** list, delete, trigger (run-now), suspend/resume
 - **Config:** ConfigMaps (CRUD), ResourceQuotas, LimitRanges, Ingresses, PodDisruptionBudgets
@@ -214,11 +214,14 @@ Settings → Notifications configures a Slack incoming-webhook URL and/or a gene
 
 ## Detailed documentation
 
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — install via Helm in a few minutes (no Go/Node toolchain needed)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — runtime and provider design
 - [`docs/API.md`](docs/API.md) — complete HTTP API reference
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — k3s/Kubernetes deployment and hardening
 - [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) — Axiom "Liquid Glass" UX system
 - [`docs/RENAMING.md`](docs/RENAMING.md) — full Aether → Axiom identity map
+- [`CHANGELOG.md`](CHANGELOG.md) — release history
+- [`SECURITY.md`](SECURITY.md) — vulnerability disclosure policy
 
 ## Project layout
 

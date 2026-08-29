@@ -1,0 +1,47 @@
+{{- if eq .Values.expose.type "NodePort" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom-nodeport
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+      nodePort: {{ .Values.expose.nodePort }}
+{{- else if eq .Values.expose.type "Ingress" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.expose.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.expose.ingress.className }}
+  ingressClassName: {{ .Values.expose.ingress.className }}
+  {{- end }}
+  tls:
+    - hosts:
+        - {{ required "expose.ingress.host is required when expose.type=Ingress" .Values.expose.ingress.host }}
+      secretName: {{ include "axiom.tlsSecretName" . }}
+  rules:
+    - host: {{ .Values.expose.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zyvor-axiom
+                port:
+                  name: https
+{{- end }}

@@ -1,0 +1,72 @@
+# Default values for the Axiom Helm chart.
+# See docs/QUICKSTART.md for a walkthrough of a first install.
+
+namespace: axiom-system
+
+image:
+  repository: ghcr.io/zyvorai/axiom
+  tag: "" # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Sets AXIOM_CLUSTER_NAME (the label shown in the sidebar cluster switcher
+# and Settings -> Clusters). Defaults to "in-cluster" if left blank.
+clusterName: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Local operator credentials, seeded into Secret zyvor-axiom-auth.
+# CHANGE THESE before installing anywhere but a throwaway evaluation
+# cluster — see docs/QUICKSTART.md and docs/DEPLOYMENT.md#production-hardening-checklist.
+auth:
+  username: demo
+  password: demo
+
+tls:
+  # If set, the chart uses this pre-existing TLS Secret (type: kubernetes.io/tls)
+  # instead of generating one — the right choice for a CA-issued certificate.
+  existingSecret: ""
+  # Only used when existingSecret is empty: the chart generates and reuses a
+  # self-signed cert across upgrades (same shape as scripts/deploy-remote.sh's
+  # lab flow). Fine for evaluation; replace with existingSecret in production.
+  selfSigned:
+    enabled: true
+    hosts:
+      - axiom.local
+
+# How the Service is exposed. One of: ClusterIP, NodePort, Ingress.
+expose:
+  type: NodePort
+  nodePort: 30590
+  ingress:
+    className: ""
+    host: ""
+    annotations: {}
+
+# Optional OIDC wiring (can also be configured later via Settings -> Integrations).
+oidc:
+  issuer: ""
+  loginURL: ""
+  clientID: ""
+  groupsClaim: ""
+  adminGroup: ""
+  viewerGroup: ""
+
+# Optional Atlas storage control-plane wiring (can also be configured later
+# via Settings -> Integrations).
+atlas:
+  url: ""
+  consoleURL: ""
+
+# RBAC scope. The default ClusterRole matches deploy/k8s/rbac.yaml exactly.
+# Set to false only if you're supplying your own narrower Role/RoleBinding
+# per docs/DEPLOYMENT.md's least-privilege guidance.
+rbac:
+  create: true

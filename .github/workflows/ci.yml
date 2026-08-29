@@ -46,3 +46,35 @@ jobs:
           for f in deploy/k8s/*.yaml; do
             python3 -c "import yaml,sys; list(yaml.safe_load_all(open(sys.argv[1])))" "$f"
           done
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint and render the Helm chart
+        run: |
+          helm lint deploy/helm/axiom
+          helm template axiom deploy/helm/axiom > /tmp/axiom-chart-rendered.yaml
+          helm template axiom deploy/helm/axiom --set expose.type=Ingress --set expose.ingress.host=axiom.example.com >> /tmp/axiom-chart-rendered.yaml
+          python3 -c "import yaml; list(yaml.safe_load_all(open('/tmp/axiom-chart-rendered.yaml')))"
+
+      # Vulnerability scanning: visible, not yet a merge gate — see SECURITY.md.
+      - name: govulncheck (demo build)
+        continue-on-error: true
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./cmd/... ./internal/...
+
+      - name: govulncheck (kubernetes build)
+        continue-on-error: true
+        run: |
+          cp go.mod /tmp/go.mod.bak && cp go.sum /tmp/go.sum.bak
+          cp go.production.mod go.mod && cp go.production.sum go.sum
+          set +e
+          go run golang.org/x/vuln/cmd/govulncheck@latest -tags kubernetes ./cmd/... ./internal/...
+          status=$?
+          set -e
+          cp /tmp/go.mod.bak go.mod && cp /tmp/go.sum.bak go.sum
+          exit $status
+
+      - name: npm audit (frontend)
+        continue-on-error: true
+        working-directory: frontend
+        run: npm audit --audit-level=high

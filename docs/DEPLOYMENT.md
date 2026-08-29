@@ -1,5 +1,12 @@
 # Deploying Zyvor Axiom on k3s / Kubernetes
 
+For a first install, see [QUICKSTART.md](QUICKSTART.md) — it uses the Helm
+chart at `deploy/helm/axiom` and only assumes `helm`, `kubectl`, and a
+browser. The rest of this document covers the underlying raw-manifest
+deploy (what the Helm chart templates) and remains useful for the lab-SSH
+workflow, understanding what the chart does under the hood, or building
+from source.
+
 ## 1. Build the production binary
 
 ```bash

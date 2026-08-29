@@ -219,6 +219,12 @@ func isPublicPath(r *http.Request) bool {
 	if r.Method == http.MethodGet && path == "/api/v1/health" {
 		return true
 	}
+	// Public like /health: a Prometheus scraper shouldn't need Basic Auth
+	// creds baked into its scrape config, and the exposed labels (route
+	// prefix, method, status code, request counts) carry no cluster data.
+	if r.Method == http.MethodGet && path == "/api/v1/metrics" {
+		return true
+	}
 	if r.Method == http.MethodGet && path == "/api/v1/auth/providers" {
 		return true
 	}

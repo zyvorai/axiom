@@ -85,6 +85,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
+	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
 	mux.HandleFunc("GET /api/v1/session", s.session)
 	mux.HandleFunc("GET /api/v1/overview", s.overview)
 	mux.HandleFunc("GET /api/v1/workloads", s.workloads)
@@ -283,8 +284,11 @@ func (s *Server) common(next http.Handler) http.Handler {
 			return
 		}
 		start := time.Now()
-		next.ServeHTTP(w, r)
-		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start).Round(time.Millisecond))
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rec, r)
+		elapsed := time.Since(start)
+		globalMetrics.record(r.Method, r.URL.Path, rec.status, elapsed.Seconds())
+		log.Printf("%s %s %s", r.Method, r.URL.Path, elapsed.Round(time.Millisecond))
 	})
 }
 

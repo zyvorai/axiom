@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "axiom.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "axiom.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: zyvor-axiom
+      containers:
+        - name: zyvor-axiom
+          image: {{ include "axiom.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 5090
+          env:
+            - name: AXIOM_MODE
+              value: kubernetes
+            - name: AXIOM_ADDR
+              value: :5090
+            - name: AXIOM_TLS_CERT
+              value: /etc/axiom/tls/tls.crt
+            - name: AXIOM_TLS_KEY
+              value: /etc/axiom/tls/tls.key
+            - name: AXIOM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: username
+            - name: AXIOM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: password
+            {{- if .Values.clusterName }}
+            - name: AXIOM_CLUSTER_NAME
+              value: {{ .Values.clusterName | quote }}
+            {{- end }}
+            - name: AXIOM_ATLAS_URL
+              value: {{ .Values.atlas.url | quote }}
+            - name: AXIOM_ATLAS_CONSOLE_URL
+              value: {{ .Values.atlas.consoleURL | quote }}
+            - name: AXIOM_OIDC_ISSUER
+              value: {{ .Values.oidc.issuer | quote }}
+            - name: AXIOM_OIDC_LOGIN_URL
+              value: {{ .Values.oidc.loginURL | quote }}
+            - name: AXIOM_OIDC_CLIENT_ID
+              value: {{ .Values.oidc.clientID | quote }}
+            {{- if .Values.oidc.groupsClaim }}
+            - name: AXIOM_OIDC_GROUPS_CLAIM
+              value: {{ .Values.oidc.groupsClaim | quote }}
+            {{- end }}
+            {{- if .Values.oidc.adminGroup }}
+            - name: AXIOM_OIDC_ADMIN_GROUP
+              value: {{ .Values.oidc.adminGroup | quote }}
+            {{- end }}
+            {{- if .Values.oidc.viewerGroup }}
+            - name: AXIOM_OIDC_VIEWER_GROUP
+              value: {{ .Values.oidc.viewerGroup | quote }}
+            {{- end }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/axiom/tls
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ include "axiom.tlsSecretName" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
