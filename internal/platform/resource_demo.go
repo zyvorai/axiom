@@ -7,6 +7,9 @@ import (
 )
 
 func (d *DemoProvider) GetResource(ctx context.Context, ns, kind, name string) (ResourceDetail, error) {
+	if !d.resourceExists(ns, kind, name) {
+		return ResourceDetail{}, fmt.Errorf("%s %s/%s not found", strings.ToLower(kind), ns, name)
+	}
 	detail := ResourceDetail{
 		Namespace: ns,
 		Kind:      kind,
@@ -37,6 +40,28 @@ func (d *DemoProvider) GetResource(ctx context.Context, ns, kind, name string) (
 		}
 	}
 	return detail, nil
+}
+
+// resourceExists reports whether ns/kind/name is a real resource this
+// provider knows about, so GetResource can return a proper "not found"
+// error instead of the generic synthetic manifest it previously built
+// for literally any name — including one that was never created, or was
+// already deleted.
+func (d *DemoProvider) resourceExists(ns, kind, name string) bool {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	if strings.EqualFold(kind, "pod") {
+		for _, ps := range d.pods {
+			for _, p := range ps {
+				if p.Namespace == ns && p.Name == name {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	_, ok := d.workloads[key(ns, kind, name)]
+	return ok
 }
 
 func (d *DemoProvider) GetNode(ctx context.Context, name string) (Node, error) {

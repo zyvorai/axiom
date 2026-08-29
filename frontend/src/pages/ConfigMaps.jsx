@@ -171,8 +171,9 @@ export default function ConfigMaps() {
                         <TableBody>
                             {rows.map((c) => (
                                 <TableRow key={`${c.namespace}/${c.name}`} className="border-white/5 hover:bg-white/[0.03]">
-                                    <TableCell className="flex items-center gap-2 font-medium">
-                                        <FileCog className="h-3.5 w-3.5 text-[#6ab6f0]" /> {c.name}
+                                    <TableCell className="flex max-w-xs items-center gap-2 font-medium">
+                                        <FileCog className="h-3.5 w-3.5 shrink-0 text-[#6ab6f0]" />
+                                        <span className="min-w-0 truncate" title={c.name}>{c.name}</span>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{c.namespace}</TableCell>
                                     <TableCell>

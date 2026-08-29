@@ -244,8 +244,9 @@ export default function Secrets() {
                         <TableBody>
                             {rows.map((s) => (
                                 <TableRow key={`${s.namespace}/${s.name}`} className="border-white/5 hover:bg-white/[0.03]">
-                                    <TableCell className="flex items-center gap-2 font-medium">
-                                        <KeySquare className="h-3.5 w-3.5 text-[#b49bd8]" /> {s.name}
+                                    <TableCell className="flex max-w-xs items-center gap-2 font-medium">
+                                        <KeySquare className="h-3.5 w-3.5 shrink-0 text-[#b49bd8]" />
+                                        <span className="min-w-0 truncate" title={s.name}>{s.name}</span>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{s.namespace}</TableCell>
                                     <TableCell className="mono text-xs">{s.type}</TableCell>

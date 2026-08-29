@@ -629,8 +629,12 @@ export default function Workloads() {
                                     <TableCell>
                                         <Checkbox checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
                                     </TableCell>
-                                    <TableCell>
-                                        <Link to={`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`} className="font-medium hover:underline">
+                                    <TableCell className="max-w-xs">
+                                        <Link
+                                            to={`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`}
+                                            className="block truncate font-medium hover:underline"
+                                            title={w.name}
+                                        >
                                             {w.name}
                                         </Link>
                                         <div className="mono truncate text-[11px] text-muted-foreground">{w.image}</div>
