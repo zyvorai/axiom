@@ -78,8 +78,18 @@ func (d *DemoProvider) CreateAgentRun(ctx context.Context, req CreateAgentRunReq
 		Age: "now", CanApprove: true, CanDeny: true,
 	}
 	demoAgentRunsMu.Lock()
+	defer demoAgentRunsMu.Unlock()
+	// Approve/Deny look a run up by namespace+name and only ever affect the
+	// first match, so a duplicate name would leave every run after the
+	// first permanently stuck at "Pending" with no way to act on it —
+	// reject the duplicate here instead, matching every other demo-mode
+	// Create method's already-exists check.
+	for _, existing := range demoAgentRuns {
+		if existing.Namespace == ns && existing.Name == name {
+			return AgentRun{}, fmt.Errorf("agent run %s/%s already exists", ns, name)
+		}
+	}
 	demoAgentRuns = append(demoAgentRuns, run)
-	demoAgentRunsMu.Unlock()
 	return run, nil
 }
 

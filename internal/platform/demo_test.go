@@ -268,6 +268,23 @@ func TestCreateBackupRejectsDuplicateName(t *testing.T) {
 	}
 }
 
+// A duplicate agent-run name is worse than the other duplicate-name bugs:
+// ApproveAgentRun/DenyAgentRun look a run up by namespace+name and only
+// ever act on the first match, so the second identically-named run was
+// left permanently stuck at "Pending" with no way to approve or deny
+// it. Confirmed live via curl before fixing.
+func TestCreateAgentRunRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateAgentRunRequest{Namespace: "default", Name: "dup-run", Goal: "scale checkout"}
+	if _, err := d.CreateAgentRun(ctx, req); err != nil {
+		t.Fatalf("first CreateAgentRun should succeed, got %v", err)
+	}
+	if _, err := d.CreateAgentRun(ctx, req); err == nil {
+		t.Fatal("expected second CreateAgentRun with the same name to fail, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()

@@ -28,7 +28,7 @@ func (s *Server) createAgentRun(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateAgentRun(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("agentrun.create", req.Namespace+"/"+v.Name, req.Goal, s.auditUser(r))
