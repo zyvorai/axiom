@@ -60,7 +60,7 @@ Sidebar order (`frontend/src/components/Sidebar.jsx`):
 | Events | `/events` | |
 | ConfigMaps | `/configmaps` | Create/delete, same pattern as Secrets |
 | Secrets | `/secrets` | + External Secrets section |
-| Quotas & Limits | `/quotas` | ResourceQuotas (hard/used) + LimitRanges + PodDisruptionBudgets, read-only |
+| Quotas & Limits | `/quotas` | ResourceQuotas (hard/used) + LimitRanges + PodDisruptionBudgets + PriorityClasses, read-only |
 | Autoscaling | `/autoscaling` | HorizontalPodAutoscaler list/create/delete |
 | Custom Resources | `/custom-resources` | Generic browser for any installed CRD |
 | Backups | `/backups` | VolumeSnapshots + Velero, create/restore + Velero schedule create |
@@ -126,7 +126,7 @@ Three tabs, all real (`frontend/src/pages/Workloads.jsx`'s `LaunchWizard`):
 `frontend/src/pages/PodDetail.jsx`, using the real pod spec from `GET /api/v1/resources/{ns}/pod/{name}` (kubernetes build) with a graceful fallback to the simpler pod-list fields in demo mode or on error:
 
 - Details: containers (resources, env, volume mounts, liveness/readiness probe summaries), init containers, volumes, tolerations, node selector, service account, conditions, owner reference
-- Terminal: real xterm.js + WebSocket PTY when `GET /api/v1/realtime/capabilities` reports `interactiveExec: true`; otherwise a one-shot exec panel with an explanation why
+- Terminal: multi-tab — a nested tab bar lets you open several concurrent shell sessions (a "+" button adds one, each closable), every tab mounting its own real xterm.js + WebSocket PTY instance (`interactiveExec: true` from `GET /api/v1/realtime/capabilities`), each fully independent; otherwise a one-shot exec panel with an explanation why
 - YAML: an editable `<textarea>` (not just a read-only `<pre>`) with a Save button that POSTs the edited text to `POST /api/v1/apply` — a real server-side apply, not a dry run
 - Metrics: two `Sparkline`s (CPU/memory, shared component with Overview.jsx) from `GET /api/v1/pods/{ns}/{name}/metrics`, plus a per-container breakdown table; labeled as a live rolling window, not historical Prometheus data
 - Ports: "Open" buttons proxy into the pod's container port via `GET /api/v1/pods/{ns}/{name}/window/{port}/`
@@ -156,6 +156,14 @@ Rollback opens a revision input inline in the Ops → Helm row, then `POST .../r
 ## RBAC (Ops → Access)
 
 `RbacTab` shows four sections (Cluster roles, Cluster role bindings, Roles, Role bindings) in the same two-column grid as before, but only the namespaced Roles/RoleBindings sections get a "New role"/"New binding" button and a per-row delete icon — Cluster roles/bindings stay read-only, matching the backend's deliberate security boundary (see [ARCHITECTURE.md](ARCHITECTURE.md#rbac-write-boundary)). The create dialogs take rules/subjects as a small JSON textarea (pre-filled with a valid example) rather than a policy-rule form builder, mirroring the generic-apply textarea pattern used elsewhere.
+
+## Cost (Ops → Cost)
+
+`CostTab` shows the total/CPU-rate/memory-rate summary cards, then two `Rows` sections: "By namespace" (unchanged) and a new "By workload" table (workload name, namespace · kind, cores, GiB, monthly USD) sourced from the same `GET /api/v1/cost` response's `workloads` field.
+
+## Audit (Ops → Audit)
+
+`AuditTab` gained a search input (filters the already-fetched entries client-side by action/target/detail/user substring — the whole dataset is always ≤200 entries in one response, so no new backend query params) and an "Export CSV" button that builds a CSV blob from the currently-filtered entries and triggers a browser download (`axiom-audit-YYYY-MM-DD.csv`) — no new endpoint, since the server has no more data than what's already on screen.
 
 ## Admission webhooks (Ops → Webhooks)
 
@@ -194,7 +202,7 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 ## ConfigMaps / Quotas & Limits / Ingresses pages
 
 - **ConfigMaps** (`ConfigMaps.jsx`) mirrors Secrets.jsx's CRUD pattern exactly: a searchable table, key badges per row, a "Create ConfigMap" dialog with dynamic key/value rows.
-- **Quotas & Limits** (`Quotas.jsx`) reuses Backups.jsx's `Section` component for three read-only lists: ResourceQuotas (Hard/Used badge groups), LimitRanges (Container/Pod/PVC type badges with default/request/max/min inline), and PodDisruptionBudgets (min/max-available, current/desired healthy, expected pod count).
+- **Quotas & Limits** (`Quotas.jsx`) reuses Backups.jsx's `Section` component for four read-only lists: ResourceQuotas (Hard/Used badge groups), LimitRanges (Container/Pod/PVC type badges with default/request/max/min inline), PodDisruptionBudgets (min/max-available, current/desired healthy, expected pod count), and PriorityClasses (value, a "default" badge for the cluster's `globalDefault` class, description).
 - **Ingresses** (`Ingresses.jsx`) is a plain searchable table (name, namespace, class, host badges, address, a lock/unlock icon for TLS, age) — no create/delete, since Ingress objects are typically managed by application manifests rather than click-ops.
 
 ## Appearance

@@ -16,7 +16,7 @@ Pages:
 - **Workloads** — Deployments/StatefulSets/DaemonSets/CronJobs, with a full action menu (start/stop/restart/scale/seal/unseal/delete), a rollout dialog (history + pause/resume/restart/undo), bulk multi-select restart/delete, and a "Run workload" wizard (Form / natural-language Intent / YAML validate-and-apply)
 - **Workload detail** (`/workloads/:ns/:kind/:name`) — labels/annotations, an editable raw-manifest YAML tab (Save applies via server-side apply, kubernetes build only), owned Pods, related events
 - **Pods** — list with per-row exec and evict, plus bulk multi-select evict
-- **Pod detail** (`/pods/:ns/:name`) — full container specs (resources, env, mounts, probes), volumes, tolerations, owner, conditions, an editable raw-manifest YAML tab (Save applies via server-side apply), live per-pod/per-container CPU & memory graphs (Metrics tab, rolling window from `metrics.k8s.io`), an automatic scheduling-diagnosis banner ("why is this pod not running") whenever the pod isn't cleanly Running/Succeeded, an **interactive PTY terminal** (real WebSocket shell — falls back to one-shot exec in demo mode), and per-port "Open" buttons that proxy straight into the pod's container port from the browser
+- **Pod detail** (`/pods/:ns/:name`) — full container specs (resources, env, mounts, probes), volumes, tolerations, owner, conditions, an editable raw-manifest YAML tab (Save applies via server-side apply), live per-pod/per-container CPU & memory graphs (Metrics tab, rolling window from `metrics.k8s.io`), an automatic scheduling-diagnosis banner ("why is this pod not running") whenever the pod isn't cleanly Running/Succeeded, a **multi-tab interactive PTY terminal** (open several concurrent shell sessions, each its own real WebSocket connection — falls back to one-shot exec in demo mode), and per-port "Open" buttons that proxy straight into the pod's container port from the browser
 - **Platform Intents** — workloads placed via the Intent launch flow
 - **Networking · Cilium** — service graph, a live PacketWolf (eBPF/Cilium flow) panel when `AXIOM_PACKETWOLF_URL` is configured, and full NetworkPolicy list/delete + "Create via YAML"
 - **Command palette (⌘K)** — jumps to any of the 26 top-level routes and live-searches real pods/workloads/namespaces by name, not just a static page list
@@ -27,12 +27,12 @@ Pages:
 - **Pod Logs** — chunked-HTTP live tail with container selection, deep-linkable from Pod detail
 - **Jobs & CronJobs** — CronJob run-now/suspend-resume/delete, Job status/completions/duration, separate from the Workloads table
 - **ConfigMaps** — full CRUD alongside Secrets
-- **Quotas & Limits** — ResourceQuotas (hard/used), LimitRanges, and PodDisruptionBudgets per namespace, read-only
+- **Quotas & Limits** — ResourceQuotas (hard/used), LimitRanges, PodDisruptionBudgets per namespace, and cluster-wide PriorityClasses, read-only
 - **Ingresses** — hosts, class, TLS, address — OpenShift-Route-equivalent view, plus a Gateway API section (GatewayClass/Gateway/HTTPRoute) when that CRD group is installed
 - **Autoscaling** — HorizontalPodAutoscaler list/create/delete, targeting any existing workload with min/max replicas and a target CPU percent
 - **Custom Resources** — a generic browser for any installed CustomResourceDefinition: pick a CRD by group/version/kind, browse its instances, open one to view its raw manifest — works for CRDs Axiom has no dedicated integration for
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
-- **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost
+- **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit (client-side search + CSV export) / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost (by namespace and by workload)
 - **Users** — local accounts (admin/viewer roles) layered on top of the env-configured operator account and any SSO login
 - **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection, plus Slack/webhook alert notifications
 
@@ -65,6 +65,8 @@ Production Kubernetes support is kept behind the `kubernetes` build tag and uses
 - Namespaced RBAC `Role`/`RoleBinding` create/delete (deliberately **not** `ClusterRole`/`ClusterRoleBinding` — see Security below)
 - GitOps force-sync: patches Flux's `reconcile.fluxcd.io/requestedAt` annotation or Argo's top-level `operation.sync` field via a JSON merge patch — the same mechanism `flux reconcile`/`argocd app sync` use
 - Helm chart install: launches a `batchv1.Job` running `alpine/helm` with `helm install --repo <url>` (same Job-based mechanism as the existing uninstall/rollback), values YAML mounted from a ConfigMap — no shell interpolation of user input anywhere, so no command-injection surface regardless of the release/chart name or repo URL
+- `SchedulingV1` PriorityClasses (read-only, cluster-scoped)
+- Per-workload cost breakdown: the existing per-pod CPU/memory-request cost loop gained a second accumulator keyed by owner reference, with ReplicaSet owners resolved to their Deployment name (stripping the pod-template-hash suffix) so pods roll up to "checkout" rather than the ReplicaSet's generated "checkout-7f7fc496b4" — no extra API calls
 
 ### API surface
 
@@ -84,7 +86,8 @@ See [`docs/API.md`](docs/API.md) for the full reference (100+ routes). Core grou
 - **Admission:** ValidatingWebhookConfiguration/MutatingWebhookConfiguration visibility
 - **Diagnostics:** per-pod scheduling diagnosis ("why is this pod not running")
 - **VMs:** KubeVirt lifecycle, snapshots, clones, exports, restores
-- **Ops:** Helm (list/install/rollback/uninstall), GitOps (list/sync), secrets, backups, Velero (list + schedule create), alerts, audit, RBAC (list + namespaced Role/RoleBinding create/delete), cost
+- **Ops:** Helm (list/install/rollback/uninstall), GitOps (list/sync), secrets, backups, Velero (list + schedule create), alerts, audit, RBAC (list + namespaced Role/RoleBinding create/delete), cost (by namespace and by workload)
+- **Scheduling policy:** PriorityClasses (read-only)
 - **Platform:** Atlas, Haven identity, agent runs, integrations, intent placement
 - **Notifications:** Slack/webhook config + test, automatic Warning-event dispatch
 - **Users:** local account CRUD (admin/viewer)

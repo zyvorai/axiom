@@ -188,6 +188,7 @@ Listing CRD *definitions* only requires the `apiextensions.k8s.io` RBAC grant Ax
 |---|---|---|
 | GET | `/api/v1/storageclasses` | List StorageClasses (provisioner, reclaim policy, binding mode, default flag) |
 | GET | `/api/v1/persistentvolumes` | List cluster-scoped PersistentVolumes (capacity, access modes, claim ref, storage class) |
+| GET | `/api/v1/priorityclasses` | List PriorityClasses (value, global-default flag, description) — read-only |
 
 ## Gateway API
 
@@ -276,7 +277,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | DELETE | `/api/v1/rbac/roles/{namespace}/{name}` | Delete a Role |
 | POST | `/api/v1/rbac/rolebindings` | Create a namespaced RoleBinding: `{"namespace","name","roleName","subjects":[{"kind","name","namespace"}]}` |
 | DELETE | `/api/v1/rbac/rolebindings/{namespace}/{name}` | Delete a RoleBinding |
-| GET | `/api/v1/cost` | Cost / utilization estimates |
+| GET | `/api/v1/cost` | Cost / utilization estimates — `namespaces` (by namespace) and `workloads` (by owning Deployment/StatefulSet/etc., derived from the same per-pod CPU/memory-request pass) |
 | POST | `/api/v1/validate` | Dry-run manifest validation |
 
 RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRoleBinding` have no create/delete endpoint and stay read-only via `GET /api/v1/rbac`. See [Security](../README.md#security) for why.

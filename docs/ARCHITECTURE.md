@@ -22,6 +22,7 @@ Zyvor Axiom API (Go net/http)
   +-- Pod scheduling diagnosis ("why is this pod not running")
   +-- Node taint add/remove + per-node metrics
   +-- Namespaced RBAC Role/RoleBinding create/delete
+  +-- PriorityClasses (read-only), cost estimation (by namespace and by workload)
   +-- Cluster API (list/activate — real multi-cluster switch)
   +-- Network + PacketWolf proxy
   +-- KubeVirt VM lifecycle
@@ -46,7 +47,7 @@ SwitchableProvider (internal/platform) — implements Provider, delegates to the
         +-- Pods / Logs / Exec (one-shot + WebSocket PTY) / Eviction / per-pod metrics / diagnosis
         +-- Nodes / Events / Namespaces / per-node metrics / taints
         +-- HorizontalPodAutoscalers / PodDisruptionBudgets / NetworkPolicies
-        +-- StorageClasses / cluster-scoped PersistentVolumes
+        +-- StorageClasses / cluster-scoped PersistentVolumes / PriorityClasses
         +-- Generic server-side apply (any GVK, via discovery + dynamic client)
         +-- Generic CRD browser (any installed CRD, via dynamic client)
         +-- Gateway API (GatewayClass/Gateway/HTTPRoute, via dynamic client)
@@ -114,6 +115,12 @@ Per-pod metrics (`GetPodMetrics`) reuse the same raw `AbsPath("/apis/metrics.k8s
 `InstallHelmChart` reuses the exact "launch a `batchv1.Job` running `alpine/helm`" mechanism `HelmUninstall`/`HelmRollback` already use, rather than adding a Helm Go SDK dependency. It runs `helm install --repo <url>` (fetching the chart directly from the repo's index) instead of a separate `helm repo add && helm install` shell pipeline, so every argument is a literal element of the Job's `Command` slice with no shell interpolation of user input anywhere — no command-injection surface regardless of what characters are in the release/chart name or repo URL. Optional values YAML is mounted from a ConfigMap (`/values/values.yaml`), not passed as an arg. There is no chart-repo browsing or index parsing — the caller supplies a repo URL and chart name directly, the same as `helm install --repo` on the CLI; a searchable chart catalog would be a separate, larger feature.
 
 The install path does **not** pass `--wait` (unlike uninstall/rollback, which rely on it) — install is already framed to the caller as "started" rather than a synchronous result, and confirmed by live testing against a real cluster, `--wait` needs RBAC read on `apps/replicasets` to poll rollout status, and even applying a Deployment-backed chart at all (not just waiting on it) needs that same `replicasets` read — `deploy/k8s/rbac.yaml` grants it read-only, alongside the existing `deployments`/`statefulsets` write grant.
+
+## Per-workload cost and multi-tab terminal
+
+`EstimateCost`'s existing per-pod, per-container CPU/memory-request accumulation loop (already grouping into `byNS` for the "by namespace" breakdown) gained a second `byWorkload` accumulator populated in the same pass — no extra Kubernetes API calls. The workload key is derived from the pod's controlling owner reference (`workloadOwnerForPod`); a `ReplicaSet` owner has its pod-template-hash suffix stripped (`strings.LastIndex(name, "-")`), since Deployments always name their managed ReplicaSets `<name>-<hash>` — this rolls pods up to the Deployment they actually belong to (`checkout`) rather than the ReplicaSet's generated name (`checkout-7f7fc496b4`), confirmed against 72 real workloads on the live cluster. A bare Pod with no controller owner falls back to its own name.
+
+The multi-tab terminal (`PodDetail.jsx`'s `TerminalSessions`) requires no backend changes at all: `ExecWS` already builds a fresh `remotecommand.NewSPDYExecutor` and a fresh `*websocket.Conn` per request, with no shared per-connection state beyond a presence counter (`internal/platform/track.go`) — confirmed by opening two simultaneous raw WebSocket connections to the same real pod and running different commands on each with zero cross-talk. `TerminalSessions` is a thin array-of-`{id}` React state wrapper rendering nested shadcn `Tabs`, each mounting its own keyed `<PodTerminal>` instance; `PodTerminal.jsx` itself is unchanged, since it already owns a fully isolated xterm+WebSocket pair per mount.
 
 ## Integrations hub
 

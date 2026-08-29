@@ -1,6 +1,30 @@
 # Zyvor Axiom Validation Results
 
-## 2026-08-29 (latest) — Second Kubernetes-console gap tier: command palette, admission webhooks, storage objects, node metrics/taints, Gateway API, Velero schedules, pod diagnosis, RBAC write, GitOps sync, Helm install
+## 2026-08-29 (latest) — Nice-to-have tier: PriorityClasses, per-workload cost, audit filtering/export, multi-tab terminal
+
+Closes the last tier from the "what's missing" audit (a fifth item, a plugin/extension architecture, stays deliberately deferred — a large architectural investment with no concrete design basis, left for its own dedicated conversation rather than a batch-plan bullet):
+
+```text
+go test ./cmd/... ./internal/...                                        PASS
+go vet ./cmd/... ./internal/...                                         PASS
+go build ./cmd/zyvor-axiom                                              PASS (demo build)
+go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (kubernetes build)
+npx craco build (frontend/)                                             PASS
+```
+
+**PriorityClasses** (read-only) — new fourth section on the Quotas page. Verified via Chrome (demo: all four seeded classes including the "default" badge) and curl (real cluster — real `system-node-critical`/`system-cluster-critical`/`kubevirt-cluster-critical` classes).
+
+**Per-workload cost breakdown** — a "By workload" table on Ops → Cost, derived from the same per-pod CPU/memory-request loop `EstimateCost` already ran for the namespace breakdown, with ReplicaSet-owned pods resolved to their Deployment name. Verified via Chrome (demo) and curl against the real cluster: 72 real workloads, correctly showing clean names like `cdi-apiserver`/`cluster-network-addons-operator` rather than raw ReplicaSet hash suffixes.
+
+**Audit log search + CSV export** — frontend-only (the whole audit dataset is always ≤200 entries in one response already). Verified via Chrome: typed a non-matching search term and got "No audit entries match", cleared it, clicked Export and confirmed a real `Blob`-backed download was triggered with the correct `axiom-audit-YYYY-MM-DD.csv` filename (intercepted `HTMLAnchorElement.prototype.click` to inspect the synthetic download without actually saving a file).
+
+**Multi-tab terminal** — `PodDetail.jsx`'s Terminal tab now manages an array of sessions rendered as nested tabs, each mounting its own `PodTerminal` instance. Verified via Chrome that demo mode's one-shot-exec fallback still renders correctly (no regression — multi-tab only applies to the real interactive-terminal branch). Chrome could not reach the real cluster's terminal directly (the self-signed-cert interstitial blocks browser automation on that host, a known limitation noted in the 2026-08-28 entries below), so the feature's core technical assumption — that concurrent WebSocket terminal connections to the same pod are fully independent — was verified instead with two simultaneous raw Python `websocket-client` connections to a real KubeVirt `virt-launcher` pod on the live cluster, each sending a different `echo` command and each receiving only its own output with zero cross-talk.
+
+### Live remote deployment (real k3s cluster, 80.79.5.173)
+
+One deploy for the batch (`./scripts/deploy-remote.sh 80.79.5.173 sus`, picking up the new `scheduling.k8s.io/priorityclasses` RBAC grant). PriorityClasses and per-workload cost re-verified against real cluster data via curl; the terminal's concurrency assumption verified via raw WebSocket as described above, then the scratch verification scripts and their throwaway Python virtualenv were deleted.
+
+## 2026-08-29 — Second Kubernetes-console gap tier: command palette, admission webhooks, storage objects, node metrics/taints, Gateway API, Velero schedules, pod diagnosis, RBAC write, GitOps sync, Helm install
 
 A second "what else is missing" audit (fresh, grep-verified against the repo as it stood after the Tier-1 pass) found 11 more concrete gaps versus OpenShift Console/Lens/Rancher/k9s. Scoped to "must-have + high-value" (explicitly excluding a nice-to-have tier: PriorityClasses, audit-log filtering, per-workload cost breakdown, multi-tab terminal, plugin architecture). Implemented and verified one item at a time, easiest/lowest-risk first, committing and deploying after each:
 
