@@ -101,8 +101,12 @@ func (d *DemoProvider) CreateSecret(ctx context.Context, req CreateSecretRequest
 		Keys: keys, Values: values, Labels: req.Labels, Age: "now",
 	}
 	demoSecretsMu.Lock()
-	demoSecrets[secretKey(req.Namespace, req.Name)] = detail
-	demoSecretsMu.Unlock()
+	defer demoSecretsMu.Unlock()
+	key := secretKey(req.Namespace, req.Name)
+	if _, exists := demoSecrets[key]; exists {
+		return SecretDetail{}, fmt.Errorf("secret %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoSecrets[key] = detail
 	return detail, nil
 }
 
@@ -331,8 +335,12 @@ func (d *DemoProvider) CreateRole(ctx context.Context, req CreateRoleRequest) (R
 	}
 	role := RBACRoleSummary{Namespace: req.Namespace, Name: req.Name, Rules: len(req.Rules), Age: "now"}
 	demoRBACMu.Lock()
-	demoRoles[req.Namespace+"/"+req.Name] = role
-	demoRBACMu.Unlock()
+	defer demoRBACMu.Unlock()
+	key := req.Namespace + "/" + req.Name
+	if _, exists := demoRoles[key]; exists {
+		return RBACRoleSummary{}, fmt.Errorf("role %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoRoles[key] = role
 	return role, nil
 }
 
@@ -355,8 +363,12 @@ func (d *DemoProvider) CreateRoleBinding(ctx context.Context, req CreateRoleBind
 		Subjects: len(req.Subjects), Age: "now",
 	}
 	demoRBACMu.Lock()
-	demoRoleBindings[req.Namespace+"/"+req.Name] = binding
-	demoRBACMu.Unlock()
+	defer demoRBACMu.Unlock()
+	key := req.Namespace + "/" + req.Name
+	if _, exists := demoRoleBindings[key]; exists {
+		return RBACBindingSummary{}, fmt.Errorf("rolebinding %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoRoleBindings[key] = binding
 	return binding, nil
 }
 
@@ -517,8 +529,12 @@ func (d *DemoProvider) CreateConfigMap(ctx context.Context, req CreateConfigMapR
 	}
 	detail := ConfigMapDetail{Namespace: req.Namespace, Name: req.Name, Data: req.Data, Labels: req.Labels, Age: "now"}
 	demoConfigMapsMu.Lock()
-	demoConfigMaps[configMapKey(req.Namespace, req.Name)] = detail
-	demoConfigMapsMu.Unlock()
+	defer demoConfigMapsMu.Unlock()
+	key := configMapKey(req.Namespace, req.Name)
+	if _, exists := demoConfigMaps[key]; exists {
+		return ConfigMapDetail{}, fmt.Errorf("configmap %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoConfigMaps[key] = detail
 	return detail, nil
 }
 
@@ -754,8 +770,12 @@ func (d *DemoProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPA
 		TargetCPUPercent: targetCPU, CurrentCPUPercent: 0, Age: "now",
 	}
 	demoHPAsMu.Lock()
-	demoHPAs[req.Namespace+"/"+req.Name] = h
-	demoHPAsMu.Unlock()
+	defer demoHPAsMu.Unlock()
+	key := req.Namespace + "/" + req.Name
+	if _, exists := demoHPAs[key]; exists {
+		return HPASummary{}, fmt.Errorf("hpa %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoHPAs[key] = h
 	return h, nil
 }
 

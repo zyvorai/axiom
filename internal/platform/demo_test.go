@@ -109,6 +109,72 @@ func TestLaunchRejectsDuplicateName(t *testing.T) {
 	}
 }
 
+// Same duplicate-name bug as TestLaunchRejectsDuplicateName, found to be
+// systemic across every demo-mode Create method that writes straight
+// into a map with no existence check: ConfigMaps, Secrets, HPAs, and
+// RBAC Roles/RoleBindings all silently overwrote an existing resource
+// of the same name and returned success both times, unlike a real
+// cluster's 409 AlreadyExists. Confirmed live via curl before fixing.
+func TestCreateConfigMapRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateConfigMapRequest{Namespace: "default", Name: "dup-cm", Data: map[string]string{"a": "1"}}
+	if _, err := d.CreateConfigMap(ctx, req); err != nil {
+		t.Fatalf("first CreateConfigMap should succeed, got %v", err)
+	}
+	if _, err := d.CreateConfigMap(ctx, req); err == nil {
+		t.Fatal("expected second CreateConfigMap with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateSecretRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateSecretRequest{Namespace: "default", Name: "dup-secret", Data: map[string]string{"a": "1"}}
+	if _, err := d.CreateSecret(ctx, req); err != nil {
+		t.Fatalf("first CreateSecret should succeed, got %v", err)
+	}
+	if _, err := d.CreateSecret(ctx, req); err == nil {
+		t.Fatal("expected second CreateSecret with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateHPARejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateHPARequest{Namespace: "default", Name: "dup-hpa", TargetKind: "Deployment", TargetName: "checkout", MinReplicas: 1, MaxReplicas: 5}
+	if _, err := d.CreateHPA(ctx, req); err != nil {
+		t.Fatalf("first CreateHPA should succeed, got %v", err)
+	}
+	if _, err := d.CreateHPA(ctx, req); err == nil {
+		t.Fatal("expected second CreateHPA with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateRoleRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateRoleRequest{Namespace: "default", Name: "dup-role", Rules: []RBACPolicyRule{{APIGroups: []string{""}, Resources: []string{"pods"}, Verbs: []string{"get"}}}}
+	if _, err := d.CreateRole(ctx, req); err != nil {
+		t.Fatalf("first CreateRole should succeed, got %v", err)
+	}
+	if _, err := d.CreateRole(ctx, req); err == nil {
+		t.Fatal("expected second CreateRole with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateRoleBindingRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateRoleBindingRequest{Namespace: "default", Name: "dup-rb", RoleName: "some-role", Subjects: []RBACSubject{{Kind: "User", Name: "demo"}}}
+	if _, err := d.CreateRoleBinding(ctx, req); err != nil {
+		t.Fatalf("first CreateRoleBinding should succeed, got %v", err)
+	}
+	if _, err := d.CreateRoleBinding(ctx, req); err == nil {
+		t.Fatal("expected second CreateRoleBinding with the same name to fail, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()

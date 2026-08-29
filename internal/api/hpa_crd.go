@@ -21,7 +21,7 @@ func (s *Server) createHPA(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateHPA(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("hpa.create", req.Namespace+"/"+req.Name, req.TargetKind+"/"+req.TargetName, s.auditUser(r))

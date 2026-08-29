@@ -32,7 +32,7 @@ func (s *Server) createSecret(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateSecret(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("secret.create", req.Namespace+"/"+req.Name, req.Type, s.auditUser(r))
@@ -69,7 +69,7 @@ func (s *Server) createConfigMap(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateConfigMap(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("configmap.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
@@ -249,7 +249,7 @@ func (s *Server) createRole(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateRole(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("rbac.role.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
@@ -275,7 +275,7 @@ func (s *Server) createRoleBinding(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateRoleBinding(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("rbac.rolebinding.create", req.Namespace+"/"+req.Name, req.RoleName, s.auditUser(r))
