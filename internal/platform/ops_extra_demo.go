@@ -55,10 +55,17 @@ func (d *DemoProvider) InstallHelmChart(ctx context.Context, req InstallHelmRequ
 		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
 	}
 	demoHelmMu.Lock()
-	demoHelmReleases[req.Namespace+"/"+req.ReleaseName] = HelmRelease{
+	defer demoHelmMu.Unlock()
+	// A real `helm install` rejects a release name already in use in the
+	// namespace ("cannot re-use a name that is still in use") — mirror
+	// that instead of silently overwriting the existing release's state.
+	key := req.Namespace + "/" + req.ReleaseName
+	if _, exists := demoHelmReleases[key]; exists {
+		return HelmActionResult{}, fmt.Errorf("release %s/%s already exists", req.Namespace, req.ReleaseName)
+	}
+	demoHelmReleases[key] = HelmRelease{
 		Name: req.ReleaseName, Namespace: req.Namespace, Status: "deployed", Chart: req.ChartName, Revision: 1, Age: "now",
 	}
-	demoHelmMu.Unlock()
 	return HelmActionResult{OK: true, Action: "install", Message: fmt.Sprintf("demo install %s/%s from %s (%s)", req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName)}, nil
 }
 

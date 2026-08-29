@@ -40,7 +40,7 @@ func (s *Server) approveAgentRun(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	v, err := s.provider.ApproveAgentRun(r.Context(), ns, name)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("agentrun.approve", ns+"/"+name, v.Phase, s.auditUser(r))
@@ -52,7 +52,7 @@ func (s *Server) denyAgentRun(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	v, err := s.provider.DenyAgentRun(r.Context(), ns, name)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("agentrun.deny", ns+"/"+name, v.Phase, s.auditUser(r))

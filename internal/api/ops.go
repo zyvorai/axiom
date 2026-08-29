@@ -131,7 +131,7 @@ func (s *Server) triggerCronJob(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	v, err := s.provider.TriggerCronJob(r.Context(), ns, name)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("cronjob.trigger", ns+"/"+name, "", s.auditUser(r))
@@ -199,7 +199,7 @@ func (s *Server) restoreBackup(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.RestoreBackup(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("backup.restore", req.Namespace+"/"+req.PVCName, "snapshot="+req.SnapshotName, s.auditUser(r))
@@ -346,7 +346,7 @@ func (s *Server) helmUninstall(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	v, err := s.provider.HelmUninstall(r.Context(), ns, name)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("helm.uninstall", ns+"/"+name, v.JobName, s.auditUser(r))
@@ -364,7 +364,7 @@ func (s *Server) helmRollback(w http.ResponseWriter, r *http.Request) {
 	rev = body.Revision
 	v, err := s.provider.HelmRollback(r.Context(), ns, name, rev)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("helm.rollback", ns+"/"+name, v.Message, s.auditUser(r))
@@ -380,7 +380,7 @@ func (s *Server) helmInstall(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.InstallHelmChart(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, req.RepoURL+" "+req.ChartName, s.auditUser(r))
@@ -418,7 +418,7 @@ func (s *Server) migrateVM(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	v, err := s.provider.LiveMigrateVM(r.Context(), ns, name)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("vm.migrate", ns+"/"+name, v.JobName, s.auditUser(r))

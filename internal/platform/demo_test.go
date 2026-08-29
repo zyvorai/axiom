@@ -336,6 +336,24 @@ func TestCreateVMRestoreRejectsDuplicateName(t *testing.T) {
 	}
 }
 
+// A real `helm install` rejects a release name already in use in the
+// namespace; InstallHelmChart had the same missing existence check as
+// every other duplicate-name bug fixed this session, found by auditing
+// every remaining fail(w, http.StatusBadRequest, err) call site in
+// internal/api for the always-400 status-code gap and checking each
+// paired provider method along the way.
+func TestInstallHelmChartRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := InstallHelmRequest{Namespace: "default", ReleaseName: "dup-release", RepoURL: "https://charts.example/repo", ChartName: "nginx"}
+	if _, err := d.InstallHelmChart(ctx, req); err != nil {
+		t.Fatalf("first InstallHelmChart should succeed, got %v", err)
+	}
+	if _, err := d.InstallHelmChart(ctx, req); err == nil {
+		t.Fatal("expected second InstallHelmChart with the same release name to fail, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()
