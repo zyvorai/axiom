@@ -347,7 +347,11 @@ func (d *DemoProvider) CreateRole(ctx context.Context, req CreateRoleRequest) (R
 func (d *DemoProvider) DeleteRole(ctx context.Context, ns, name string) error {
 	demoRBACMu.Lock()
 	defer demoRBACMu.Unlock()
-	delete(demoRoles, ns+"/"+name)
+	key := ns + "/" + name
+	if _, ok := demoRoles[key]; !ok {
+		return fmt.Errorf("role %s/%s not found", ns, name)
+	}
+	delete(demoRoles, key)
 	return nil
 }
 
@@ -375,7 +379,11 @@ func (d *DemoProvider) CreateRoleBinding(ctx context.Context, req CreateRoleBind
 func (d *DemoProvider) DeleteRoleBinding(ctx context.Context, ns, name string) error {
 	demoRBACMu.Lock()
 	defer demoRBACMu.Unlock()
-	delete(demoRoleBindings, ns+"/"+name)
+	key := ns + "/" + name
+	if _, ok := demoRoleBindings[key]; !ok {
+		return fmt.Errorf("rolebinding %s/%s not found", ns, name)
+	}
+	delete(demoRoleBindings, key)
 	return nil
 }
 

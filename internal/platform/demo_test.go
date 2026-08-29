@@ -175,6 +175,57 @@ func TestCreateRoleBindingRejectsDuplicateName(t *testing.T) {
 	}
 }
 
+// A repeat delete of an already-deleted (or never-created) resource used
+// to silently report success, unlike a real cluster's 404 NotFound —
+// and unlike this codebase's own dominant convention (DeleteSecret,
+// DeleteJob, DeleteCronJob, DeleteHPA, DeleteNetworkPolicy, DeletePod
+// all already check first). DeleteWorkload, DeleteRole, and
+// DeleteRoleBinding were the three outliers, found by curling the same
+// delete endpoint twice in a row.
+func TestDeleteWorkloadRejectsMissing(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	if _, err := d.Launch(ctx, LaunchRequest{Namespace: "default", Name: "del-race", Image: "nginx:latest", Replicas: 1}); err != nil {
+		t.Fatalf("Launch: %v", err)
+	}
+	if err := d.DeleteWorkload(ctx, "default", "Deployment", "del-race"); err != nil {
+		t.Fatalf("first DeleteWorkload should succeed, got %v", err)
+	}
+	if err := d.DeleteWorkload(ctx, "default", "Deployment", "del-race"); err == nil {
+		t.Fatal("expected second DeleteWorkload to fail with not-found, got nil error")
+	}
+}
+
+func TestDeleteRoleRejectsMissing(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateRoleRequest{Namespace: "default", Name: "del-role-race", Rules: []RBACPolicyRule{{APIGroups: []string{""}, Resources: []string{"pods"}, Verbs: []string{"get"}}}}
+	if _, err := d.CreateRole(ctx, req); err != nil {
+		t.Fatalf("CreateRole: %v", err)
+	}
+	if err := d.DeleteRole(ctx, "default", "del-role-race"); err != nil {
+		t.Fatalf("first DeleteRole should succeed, got %v", err)
+	}
+	if err := d.DeleteRole(ctx, "default", "del-role-race"); err == nil {
+		t.Fatal("expected second DeleteRole to fail with not-found, got nil error")
+	}
+}
+
+func TestDeleteRoleBindingRejectsMissing(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateRoleBindingRequest{Namespace: "default", Name: "del-rb-race", RoleName: "some-role", Subjects: []RBACSubject{{Kind: "User", Name: "demo"}}}
+	if _, err := d.CreateRoleBinding(ctx, req); err != nil {
+		t.Fatalf("CreateRoleBinding: %v", err)
+	}
+	if err := d.DeleteRoleBinding(ctx, "default", "del-rb-race"); err != nil {
+		t.Fatalf("first DeleteRoleBinding should succeed, got %v", err)
+	}
+	if err := d.DeleteRoleBinding(ctx, "default", "del-rb-race"); err == nil {
+		t.Fatal("expected second DeleteRoleBinding to fail with not-found, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()

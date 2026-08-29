@@ -221,9 +221,13 @@ func (d *DemoProvider) Restart(ctx context.Context, ns, kind, name string) error
 func (d *DemoProvider) DeleteWorkload(ctx context.Context, ns, kind, name string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	delete(d.workloads, key(ns, kind, name))
+	k := key(ns, kind, name)
+	if _, ok := d.workloads[k]; !ok {
+		return fmt.Errorf("%s %s/%s not found", strings.ToLower(kind), ns, name)
+	}
+	delete(d.workloads, k)
 	delete(d.pods, ns+"/"+name)
-	delete(d.sealed, key(ns, kind, name))
+	delete(d.sealed, k)
 	return nil
 }
 
