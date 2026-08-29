@@ -706,7 +706,7 @@ func (s *Server) logs(w http.ResponseWriter, r *http.Request) {
 	previous := r.URL.Query().Get("previous") == "true"
 	stream, err := s.provider.PodLogs(r.Context(), r.PathValue("namespace"), r.PathValue("name"), r.URL.Query().Get("container"), follow, tail, previous)
 	if err != nil {
-		fail(w, 500, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	defer stream.Close()
@@ -758,7 +758,7 @@ func (s *Server) execCommand(w http.ResponseWriter, r *http.Request) {
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
 	out, err := s.provider.ExecCommand(r.Context(), ns, name, req.Container, cmd)
 	if err != nil {
-		fail(w, 500, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("pod.exec", ns+"/"+name, strings.Join(cmd, " "), s.auditUser(r))
@@ -773,14 +773,14 @@ func decode(r *http.Request, v any) error {
 }
 func respond(w http.ResponseWriter, v any, err error) {
 	if err != nil {
-		fail(w, 500, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	writeJSON(w, 200, v)
 }
 func respondAction(w http.ResponseWriter, err error) {
 	if err != nil {
-		fail(w, 500, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
