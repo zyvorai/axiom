@@ -3,6 +3,7 @@
 package platform
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,7 +91,7 @@ func newKubernetesClusterRegistry(kubeconfigPath, clusterName string) (*Switchab
 		return nil, fmt.Errorf("no usable contexts found in kubeconfig %q", path)
 	}
 	if raw.CurrentContext != "" {
-		_ = sp.SetActive(raw.CurrentContext)
+		_ = sp.SetActive(context.Background(), raw.CurrentContext)
 	}
 	return sp, nil
 }

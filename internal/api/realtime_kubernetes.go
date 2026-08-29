@@ -13,7 +13,7 @@ func RegisterRealtime(mux *http.ServeMux, provider platform.Provider) {
 		writeJSON(w, 200, map[string]any{"interactiveExec": true, "logFollow": true, "mode": "kubernetes"})
 	})
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/terminal", func(w http.ResponseWriter, r *http.Request) {
-		p, ok := platform.CurrentKubernetesProvider(provider)
+		p, ok := platform.CurrentKubernetesProvider(r.Context(), provider)
 		if !ok {
 			fail(w, 500, errors.New("interactive terminal requires Kubernetes provider"))
 			return

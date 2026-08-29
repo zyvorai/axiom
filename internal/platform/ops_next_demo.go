@@ -7,14 +7,29 @@ import (
 	"time"
 )
 
-func (d *DemoProvider) ListVMClones(ctx context.Context, ns string) ([]VMClone, error) {
-	all := []VMClone{
-		{Namespace: "default", Name: "edge-clone-1", Source: "edge-api-vm", SourceKind: "VirtualMachine", Target: "edge-api-vm-copy", Phase: "Succeeded", Age: "2d"},
+var (
+	demoVMClonesMu sync.Mutex
+	demoVMClones   = map[string]VMClone{
+		"default/edge-clone-1": {Namespace: "default", Name: "edge-clone-1", Source: "edge-api-vm", SourceKind: "VirtualMachine", Target: "edge-api-vm-copy", Phase: "Succeeded", Age: "2d"},
 	}
-	return filterNS(ns, all, func(c VMClone) string { return c.Namespace }), nil
+)
+
+func (d *DemoProvider) ListVMClones(ctx context.Context, ns string) ([]VMClone, error) {
+	demoVMClonesMu.Lock()
+	defer demoVMClonesMu.Unlock()
+	out := make([]VMClone, 0, len(demoVMClones))
+	for _, c := range demoVMClones {
+		if ns == "" || ns == "all" || c.Namespace == ns {
+			out = append(out, c)
+		}
+	}
+	return out, nil
 }
 
 func (d *DemoProvider) CreateVMClone(ctx context.Context, req CreateVMCloneRequest) (VMClone, error) {
+	if req.Namespace == "" || req.SourceVM == "" || req.TargetVM == "" {
+		return VMClone{}, fmt.Errorf("namespace, sourceVM, and targetVM are required")
+	}
 	name := req.Name
 	if name == "" {
 		name = fmt.Sprintf("%s-clone", req.TargetVM)
@@ -23,37 +38,79 @@ func (d *DemoProvider) CreateVMClone(ctx context.Context, req CreateVMCloneReque
 	if kind == "" {
 		kind = "VirtualMachine"
 	}
-	return VMClone{Namespace: req.Namespace, Name: name, Source: req.SourceVM, SourceKind: kind, Target: req.TargetVM, Phase: "InProgress", Age: "now"}, nil
+	clone := VMClone{Namespace: req.Namespace, Name: name, Source: req.SourceVM, SourceKind: kind, Target: req.TargetVM, Phase: "Succeeded", Age: "now"}
+	demoVMClonesMu.Lock()
+	demoVMClones[req.Namespace+"/"+name] = clone
+	demoVMClonesMu.Unlock()
+	return clone, nil
 }
 
-func (d *DemoProvider) ListVMExports(ctx context.Context, ns string) ([]VMExport, error) {
-	all := []VMExport{
-		{Namespace: "default", Name: "edge-export", Source: "edge-api-vm", Phase: "Ready", Links: "https://export.example/vmi", Age: "1d"},
+var (
+	demoVMExportsMu sync.Mutex
+	demoVMExports   = map[string]VMExport{
+		"default/edge-export": {Namespace: "default", Name: "edge-export", Source: "edge-api-vm", Phase: "Ready", Links: "https://export.example/vmi", Age: "1d"},
 	}
-	return filterNS(ns, all, func(e VMExport) string { return e.Namespace }), nil
+)
+
+func (d *DemoProvider) ListVMExports(ctx context.Context, ns string) ([]VMExport, error) {
+	demoVMExportsMu.Lock()
+	defer demoVMExportsMu.Unlock()
+	out := make([]VMExport, 0, len(demoVMExports))
+	for _, e := range demoVMExports {
+		if ns == "" || ns == "all" || e.Namespace == ns {
+			out = append(out, e)
+		}
+	}
+	return out, nil
 }
 
 func (d *DemoProvider) CreateVMExport(ctx context.Context, req CreateVMExportRequest) (VMExport, error) {
+	if req.Namespace == "" || req.VM == "" {
+		return VMExport{}, fmt.Errorf("namespace and vm are required")
+	}
 	name := req.Name
 	if name == "" {
 		name = fmt.Sprintf("%s-export", req.VM)
 	}
-	return VMExport{Namespace: req.Namespace, Name: name, Source: req.VM, Phase: "Pending", Age: "now"}, nil
+	exp := VMExport{Namespace: req.Namespace, Name: name, Source: req.VM, Phase: "Ready", Links: fmt.Sprintf("https://export.example/%s", name), Age: "now"}
+	demoVMExportsMu.Lock()
+	demoVMExports[req.Namespace+"/"+name] = exp
+	demoVMExportsMu.Unlock()
+	return exp, nil
 }
 
-func (d *DemoProvider) ListVMRestores(ctx context.Context, ns string) ([]VMRestore, error) {
-	all := []VMRestore{
-		{Namespace: "default", Name: "edge-restore", Snapshot: "edge-api-vm-snap", Target: "edge-api-vm", Complete: true, Phase: "Complete", Age: "5d"},
+var (
+	demoVMRestoresMu sync.Mutex
+	demoVMRestores   = map[string]VMRestore{
+		"default/edge-restore": {Namespace: "default", Name: "edge-restore", Snapshot: "edge-api-vm-snap", Target: "edge-api-vm", Complete: true, Phase: "Complete", Age: "5d"},
 	}
-	return filterNS(ns, all, func(r VMRestore) string { return r.Namespace }), nil
+)
+
+func (d *DemoProvider) ListVMRestores(ctx context.Context, ns string) ([]VMRestore, error) {
+	demoVMRestoresMu.Lock()
+	defer demoVMRestoresMu.Unlock()
+	out := make([]VMRestore, 0, len(demoVMRestores))
+	for _, r := range demoVMRestores {
+		if ns == "" || ns == "all" || r.Namespace == ns {
+			out = append(out, r)
+		}
+	}
+	return out, nil
 }
 
 func (d *DemoProvider) CreateVMRestore(ctx context.Context, req CreateVMRestoreRequest) (VMRestore, error) {
+	if req.Namespace == "" || req.Snapshot == "" || req.TargetVM == "" {
+		return VMRestore{}, fmt.Errorf("namespace, snapshot, and targetVM are required")
+	}
 	name := req.Name
 	if name == "" {
 		name = fmt.Sprintf("%s-restore", req.TargetVM)
 	}
-	return VMRestore{Namespace: req.Namespace, Name: name, Snapshot: req.Snapshot, Target: req.TargetVM, Phase: "InProgress", Age: "now"}, nil
+	restore := VMRestore{Namespace: req.Namespace, Name: name, Snapshot: req.Snapshot, Target: req.TargetVM, Complete: true, Phase: "Complete", Age: "now"}
+	demoVMRestoresMu.Lock()
+	demoVMRestores[req.Namespace+"/"+name] = restore
+	demoVMRestoresMu.Unlock()
+	return restore, nil
 }
 
 func (d *DemoProvider) ListVeleroBackups(ctx context.Context, ns string) ([]VeleroBackup, error) {

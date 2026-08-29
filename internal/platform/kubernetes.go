@@ -652,6 +652,9 @@ func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 				status = "Ready"
 			}
 		}
+		if n.Spec.Unschedulable {
+			status = "SchedulingDisabled"
+		}
 		role := "agent"
 		if _, ok := n.Labels["node-role.kubernetes.io/control-plane"]; ok {
 			role = "server"

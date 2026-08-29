@@ -2,15 +2,43 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"time"
 )
 
-func (d *DemoProvider) ListVirtualMachines(ctx context.Context, ns string) ([]VirtualMachine, error) {
-	all := []VirtualMachine{
+func demoBaseVMs() []VirtualMachine {
+	return []VirtualMachine{
 		{Namespace: "default", Name: "edge-api-vm", Status: "Running", Ready: true, Running: true, CPU: "4", Memory: "8Gi", Node: "worker-a", OS: "ubuntu 22.04", Age: "12d"},
 		{Namespace: "platform", Name: "observability-vm", Status: "Running", Ready: true, Running: true, CPU: "2", Memory: "4Gi", Node: "worker-b", OS: "ubuntu 22.04", Age: "4d"},
 		{Namespace: "labs", Name: "chrome-qa", Status: "Stopped", Ready: false, Running: false, CPU: "2", Memory: "4Gi", OS: "ubuntu 22.04", Age: "23d"},
+	}
+}
+
+func demoVMExists(ns, name string) bool {
+	for _, vm := range demoBaseVMs() {
+		if vm.Namespace == ns && vm.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *DemoProvider) ListVirtualMachines(ctx context.Context, ns string) ([]VirtualMachine, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	all := demoBaseVMs()
+	for i := range all {
+		vk := all[i].Namespace + "/" + all[i].Name
+		if running, ok := d.vmRunning[vk]; ok {
+			all[i].Running = running
+			all[i].Ready = running
+			if running {
+				all[i].Status = "Running"
+			} else {
+				all[i].Status = "Stopped"
+			}
+		}
 	}
 	out := make([]VirtualMachine, 0, len(all))
 	for _, vm := range all {
@@ -22,10 +50,22 @@ func (d *DemoProvider) ListVirtualMachines(ctx context.Context, ns string) ([]Vi
 }
 
 func (d *DemoProvider) StartVirtualMachine(ctx context.Context, ns, name string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if !demoVMExists(ns, name) {
+		return fmt.Errorf("vm %s/%s not found", ns, name)
+	}
+	d.vmRunning[ns+"/"+name] = true
 	return nil
 }
 
 func (d *DemoProvider) StopVirtualMachine(ctx context.Context, ns, name string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if !demoVMExists(ns, name) {
+		return fmt.Errorf("vm %s/%s not found", ns, name)
+	}
+	d.vmRunning[ns+"/"+name] = false
 	return nil
 }
 
@@ -36,6 +76,9 @@ func (d *DemoProvider) ListVolumes(ctx context.Context, ns string) ([]Volume, er
 		{Namespace: "data", Name: "postgres-data", Status: "Bound", Capacity: "200Gi", StorageClass: "zyvor-cephfs-shared", AccessModes: "ReadWriteMany", VolumeName: "pvc-pg-1", Age: "28d"},
 		{Namespace: "labs", Name: "qa-scratch", Status: "Pending", Capacity: "20Gi", StorageClass: "local-path", AccessModes: "ReadWriteOnce", Age: "2h"},
 	}
+	d.mu.RLock()
+	all = append(all, d.extraVolumes...)
+	d.mu.RUnlock()
 	out := make([]Volume, 0, len(all))
 	for _, v := range all {
 		if ns == "" || ns == "all" || v.Namespace == ns {

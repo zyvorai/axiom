@@ -152,6 +152,18 @@ func (d *DemoProvider) RestoreBackup(ctx context.Context, req RestoreBackupReque
 	if req.Namespace == "" || req.SnapshotName == "" || req.PVCName == "" {
 		return Volume{}, fmt.Errorf("namespace, snapshotName, and pvcName are required")
 	}
+	demoBackupsMu.Lock()
+	found := false
+	for _, b := range demoBackups {
+		if b.Namespace == req.Namespace && b.Name == req.SnapshotName {
+			found = true
+			break
+		}
+	}
+	demoBackupsMu.Unlock()
+	if !found {
+		return Volume{}, fmt.Errorf("snapshot %s/%s not found", req.Namespace, req.SnapshotName)
+	}
 	size := req.Size
 	if size == "" {
 		size = "10Gi"
@@ -164,36 +176,82 @@ func (d *DemoProvider) RestoreBackup(ctx context.Context, req RestoreBackupReque
 	if len(req.AccessModes) > 0 {
 		modes = strings.Join(req.AccessModes, ",")
 	}
-	return Volume{
+	vol := Volume{
 		Namespace: req.Namespace, Name: req.PVCName, Status: "Bound",
 		Capacity: size, StorageClass: sc, AccessModes: modes, Age: "now",
-	}, nil
+	}
+	d.mu.Lock()
+	d.extraVolumes = append(d.extraVolumes, vol)
+	d.mu.Unlock()
+	return vol, nil
 }
 
-func (d *DemoProvider) ListHelmReleases(ctx context.Context, ns string) ([]HelmRelease, error) {
-	all := []HelmRelease{
-		{Name: "ingress-nginx", Namespace: "ingress-nginx", Status: "deployed", Chart: "ingress-nginx-4.11.0", Revision: 3, Age: "45d"},
-		{Name: "prometheus", Namespace: "monitoring", Status: "deployed", Chart: "kube-prometheus-stack-61.2.0", Revision: 7, Age: "22d"},
-		{Name: "cert-manager", Namespace: "cert-manager", Status: "deployed", Chart: "cert-manager-v1.15.1", Revision: 2, Age: "60d"},
+var (
+	demoHelmMu       sync.Mutex
+	demoHelmReleases = map[string]HelmRelease{
+		"ingress-nginx/ingress-nginx": {Name: "ingress-nginx", Namespace: "ingress-nginx", Status: "deployed", Chart: "ingress-nginx-4.11.0", Revision: 3, Age: "45d"},
+		"monitoring/prometheus":       {Name: "prometheus", Namespace: "monitoring", Status: "deployed", Chart: "kube-prometheus-stack-61.2.0", Revision: 7, Age: "22d"},
+		"cert-manager/cert-manager":   {Name: "cert-manager", Namespace: "cert-manager", Status: "deployed", Chart: "cert-manager-v1.15.1", Revision: 2, Age: "60d"},
 	}
-	out := make([]HelmRelease, 0, len(all))
-	for _, r := range all {
+)
+
+func (d *DemoProvider) ListHelmReleases(ctx context.Context, ns string) ([]HelmRelease, error) {
+	demoHelmMu.Lock()
+	defer demoHelmMu.Unlock()
+	out := make([]HelmRelease, 0, len(demoHelmReleases))
+	for _, r := range demoHelmReleases {
 		if ns == "" || ns == "all" || r.Namespace == ns {
 			out = append(out, r)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
 	return out, nil
 }
 
+var (
+	demoGitOpsMu sync.Mutex
+	demoGitOps   = map[string]GitOpsItem{
+		"argocd/platform-apps":  {Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d"},
+		"flux-system/apps":      {Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
+		"monitoring/prometheus": {Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d"},
+	}
+)
+
 func (d *DemoProvider) ListGitOps(ctx context.Context) ([]GitOpsItem, error) {
-	return []GitOpsItem{
-		{Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d"},
-		{Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
-		{Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d"},
-	}, nil
+	demoGitOpsMu.Lock()
+	defer demoGitOpsMu.Unlock()
+	out := make([]GitOpsItem, 0, len(demoGitOps))
+	for _, g := range demoGitOps {
+		out = append(out, g)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace == out[j].Namespace {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Namespace < out[j].Namespace
+	})
+	return out, nil
 }
 
 func (d *DemoProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name string) error {
+	demoGitOpsMu.Lock()
+	defer demoGitOpsMu.Unlock()
+	key := ns + "/" + name
+	g, ok := demoGitOps[key]
+	if !ok || g.Kind != kind {
+		return fmt.Errorf("%s %s/%s not found", kind, ns, name)
+	}
+	if kind == "Application" {
+		g.Status = "Synced"
+	} else {
+		g.Status = "Ready"
+	}
+	demoGitOps[key] = g
 	return nil
 }
 
@@ -807,14 +865,39 @@ func (d *DemoProvider) ListCRDs(ctx context.Context) ([]CRDSummary, error) {
 	}, nil
 }
 
+var (
+	demoCRDInstancesMu sync.Mutex
+	demoCRDDeleted     = map[string]bool{}
+)
+
+func crdInstanceKey(group, plural, ns, name string) string {
+	return group + "/" + plural + "/" + ns + "/" + name
+}
+
 func (d *DemoProvider) ListCRDInstances(ctx context.Context, group, version, plural, ns string) ([]map[string]any, error) {
-	return []map[string]any{
+	all := []map[string]any{
 		{"name": "demo-instance-1", "namespace": "default", "age": "5d"},
 		{"name": "demo-instance-2", "namespace": "default", "age": "12d"},
-	}, nil
+	}
+	demoCRDInstancesMu.Lock()
+	defer demoCRDInstancesMu.Unlock()
+	out := make([]map[string]any, 0, len(all))
+	for _, inst := range all {
+		if demoCRDDeleted[crdInstanceKey(group, plural, inst["namespace"].(string), inst["name"].(string))] {
+			continue
+		}
+		out = append(out, inst)
+	}
+	return out, nil
 }
 
 func (d *DemoProvider) GetCRDInstance(ctx context.Context, group, version, plural, ns, name string) (map[string]any, error) {
+	demoCRDInstancesMu.Lock()
+	deleted := demoCRDDeleted[crdInstanceKey(group, plural, ns, name)]
+	demoCRDInstancesMu.Unlock()
+	if deleted {
+		return nil, fmt.Errorf("%s %s/%s not found", plural, ns, name)
+	}
 	return map[string]any{
 		"apiVersion": group + "/" + version,
 		"kind":       plural,
@@ -824,6 +907,13 @@ func (d *DemoProvider) GetCRDInstance(ctx context.Context, group, version, plura
 }
 
 func (d *DemoProvider) DeleteCRDInstance(ctx context.Context, group, version, plural, ns, name string) error {
+	demoCRDInstancesMu.Lock()
+	defer demoCRDInstancesMu.Unlock()
+	k := crdInstanceKey(group, plural, ns, name)
+	if demoCRDDeleted[k] {
+		return fmt.Errorf("%s %s/%s not found", plural, ns, name)
+	}
+	demoCRDDeleted[k] = true
 	return nil
 }
 

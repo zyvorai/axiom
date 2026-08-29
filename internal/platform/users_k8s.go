@@ -55,7 +55,7 @@ func OpenUserStore(mode string, provider Provider) UserStore {
 	if strings.ToLower(mode) != "kubernetes" {
 		return NewMemoryUserStore()
 	}
-	k, ok := CurrentKubernetesProvider(provider)
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
 	if !ok || k == nil || k.client == nil {
 		return NewMemoryUserStore()
 	}

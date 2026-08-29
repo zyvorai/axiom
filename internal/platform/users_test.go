@@ -107,31 +107,32 @@ func TestSwitchableProviderRegisterAndSwitch(t *testing.T) {
 	sp.Register("a", "Cluster A", a, "server-a")
 	sp.Register("b", "Cluster B", b, "server-b")
 
-	if sp.ActiveName() != "a" {
-		t.Fatalf("expected first-registered cluster active, got %q", sp.ActiveName())
+	ctx := context.Background()
+	if sp.ActiveName(ctx) != "a" {
+		t.Fatalf("expected first-registered cluster active, got %q", sp.ActiveName(ctx))
 	}
 	if sp.Count() != 2 {
 		t.Fatalf("expected 2 clusters, got %d", sp.Count())
 	}
 
-	ov, err := sp.Overview(context.Background())
+	ov, err := sp.Overview(ctx)
 	if err != nil {
 		t.Fatalf("overview: %v", err)
 	}
 	_ = ov
 
-	if err := sp.SetActive("b"); err != nil {
+	if err := sp.SetActive(ctx, "b"); err != nil {
 		t.Fatalf("set active: %v", err)
 	}
-	if sp.ActiveName() != "b" {
-		t.Fatalf("expected active b, got %q", sp.ActiveName())
+	if sp.ActiveName(ctx) != "b" {
+		t.Fatalf("expected active b, got %q", sp.ActiveName(ctx))
 	}
 
-	if err := sp.SetActive("nonexistent"); err == nil {
+	if err := sp.SetActive(ctx, "nonexistent"); err == nil {
 		t.Fatal("expected error switching to unknown cluster")
 	}
 
-	clusters := sp.Clusters()
+	clusters := sp.Clusters(ctx)
 	if len(clusters) != 2 {
 		t.Fatalf("expected 2 cluster infos, got %d", len(clusters))
 	}

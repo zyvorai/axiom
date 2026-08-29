@@ -262,8 +262,29 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		authenticator = users
 	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
-	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: opts.SessionSecret, Users: authenticator, Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader}.Middleware(mux)
+	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: opts.SessionSecret, Users: authenticator, Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader}.Middleware(clusterSessionMiddleware(mux))
 	return s.common(secured)
+}
+
+// clusterSessionMiddleware scopes multi-cluster "active cluster" selection
+// (see platform.SwitchableProvider) to the calling browser tab/script
+// instead of one process-wide switch that different tabs or users would
+// otherwise stomp on. It runs after auth.Guard.Middleware, so the resolved
+// Identity is already on the request context to use as a fallback key for
+// callers that send no session header (e.g. scripted API/curl access).
+func clusterSessionMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		key := r.Header.Get(platform.ClusterSessionHeader)
+		if key == "" {
+			if id, ok := auth.IdentityFromContext(r.Context()); ok && id.User != "" {
+				key = "user:" + id.User
+			}
+		}
+		if key != "" {
+			r = r.WithContext(platform.WithClusterSession(r.Context(), key))
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // axiomAuditLogger adapts platform.RecordAxiomAudit to auth.AuditLogger, so
@@ -294,7 +315,7 @@ func (s *Server) common(next http.Handler) http.Handler {
 		}
 		if s.allowOrigin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", s.allowOrigin)
-			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, "+platform.ClusterSessionHeader)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		}
 		if r.Method == http.MethodOptions {

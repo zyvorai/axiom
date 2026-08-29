@@ -39,7 +39,7 @@ func OpenAuditStore(mode string, provider Provider) AuditStore {
 	if strings.ToLower(mode) != "kubernetes" {
 		return nil
 	}
-	k, ok := CurrentKubernetesProvider(provider)
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
 	if !ok || k == nil || k.client == nil {
 		return nil
 	}

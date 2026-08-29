@@ -17,7 +17,7 @@ func (s *Server) listClusters(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, []platform.ClusterInfo{})
 		return
 	}
-	writeJSON(w, http.StatusOK, sp.Clusters())
+	writeJSON(w, http.StatusOK, sp.Clusters(r.Context()))
 }
 
 func (s *Server) activateCluster(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +27,7 @@ func (s *Server) activateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := r.PathValue("name")
-	if err := sp.SetActive(name); err != nil {
+	if err := sp.SetActive(r.Context(), name); err != nil {
 		fail(w, http.StatusNotFound, err)
 		return
 	}

@@ -6,6 +6,25 @@ export const api = axios.create({ baseURL: API, timeout: 15000 });
 
 const TOKEN_KEY = "axiom.basicAuth";
 
+// Multi-cluster mode tracks the "active cluster" per caller so two tabs (or
+// two users) switching clusters don't stomp on each other — see
+// platform.SwitchableProvider on the backend. sessionStorage is scoped per
+// tab (unlike localStorage), so a fresh, stable ID minted here and sent on
+// every request is enough to give each tab its own independent selection.
+const CLUSTER_SESSION_HEADER = "X-Axiom-Session";
+const CLUSTER_SESSION_KEY = "axiom.clusterSession";
+
+function clusterSessionId() {
+    let id = sessionStorage.getItem(CLUSTER_SESSION_KEY);
+    if (!id) {
+        id = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        sessionStorage.setItem(CLUSTER_SESSION_KEY, id);
+    }
+    return id;
+}
+
+api.defaults.headers.common[CLUSTER_SESSION_HEADER] = clusterSessionId();
+
 export function setBasicAuth(token) {
     if (token) {
         sessionStorage.setItem(TOKEN_KEY, token);
@@ -50,6 +69,7 @@ export function streamPodLogs(namespace, name, { container, follow = true, tail 
     if (api.defaults.headers.common["Authorization"]) {
         headers["Authorization"] = api.defaults.headers.common["Authorization"];
     }
+    headers[CLUSTER_SESSION_HEADER] = clusterSessionId();
 
     (async () => {
         try {

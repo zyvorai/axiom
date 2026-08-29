@@ -17,10 +17,20 @@ type DemoProvider struct {
 	pods         map[string][]Pod
 	lastReplicas map[string]int32
 	sealed       map[string]bool
+	namespaces   map[string]*Namespace
+	cordoned     map[string]bool
+	nodeTaints   map[string][]TaintSummary
+	rollouts     map[string]*demoRolloutState
+	vmRunning    map[string]bool
+	extraVolumes []Volume
 }
 
 func NewDemoProvider() *DemoProvider {
-	d := &DemoProvider{workloads: map[string]Workload{}, pods: map[string][]Pod{}, lastReplicas: map[string]int32{}, sealed: map[string]bool{}}
+	d := &DemoProvider{
+		workloads: map[string]Workload{}, pods: map[string][]Pod{}, lastReplicas: map[string]int32{}, sealed: map[string]bool{},
+		namespaces: map[string]*Namespace{}, cordoned: map[string]bool{}, nodeTaints: map[string][]TaintSummary{},
+		rollouts: map[string]*demoRolloutState{}, vmRunning: map[string]bool{},
+	}
 	seed := []Workload{
 		{Namespace: "payments", Name: "payments-api", Kind: "Deployment", Image: "ghcr.io/zyvorai/payments:v2.8.4", Desired: 12, Ready: 12, Available: 12, Status: "Healthy", Age: "3d"},
 		{Namespace: "commerce", Name: "checkout", Kind: "Deployment", Image: "ghcr.io/zyvorai/checkout:v1.14.2", Desired: 6, Ready: 6, Available: 6, Status: "Healthy", Age: "11d"},
@@ -291,20 +301,113 @@ func (d *DemoProvider) DiagnosePod(ctx context.Context, ns, name string) (PodDia
 	}
 	return PodDiagnosis{}, errors.New("pod not found")
 }
-func (d *DemoProvider) ListNodes(ctx context.Context) ([]Node, error) {
+func demoBaseNodes() []Node {
 	return []Node{
 		{Name: "axiom-01", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.11", Pods: 18, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-02", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.12", Pods: 21, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-03", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.13", Pods: 17, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "gpu-01", Status: "Ready", Role: "agent", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.21", Pods: 11, CPU: "32", Memory: "256Gi", AllocatableCPU: "32", AllocatableMemory: "256Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "17d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}, Taints: []TaintSummary{{Key: "nvidia.com/gpu", Value: "true", Effect: "NoSchedule"}}},
-	}, nil
+	}
 }
-func (d *DemoProvider) Cordon(ctx context.Context, name string, cordon bool) error { return nil }
-func (d *DemoProvider) Drain(ctx context.Context, name string) error               { return nil }
-func (d *DemoProvider) AddTaint(ctx context.Context, name, key, value, effect string) error {
+
+func demoNodeExists(name string) bool {
+	for _, n := range demoBaseNodes() {
+		if n.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *DemoProvider) ListNodes(ctx context.Context) ([]Node, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	nodes := demoBaseNodes()
+	for i := range nodes {
+		n := &nodes[i]
+		if d.cordoned[n.Name] {
+			n.Unschedulable = true
+			n.Status = "SchedulingDisabled"
+		}
+		if extra := d.nodeTaints[n.Name]; len(extra) > 0 {
+			n.Taints = append(append([]TaintSummary{}, n.Taints...), extra...)
+		}
+	}
+	return nodes, nil
+}
+
+func (d *DemoProvider) Cordon(ctx context.Context, name string, cordon bool) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if !demoNodeExists(name) {
+		return fmt.Errorf("node %s not found", name)
+	}
+	d.cordoned[name] = cordon
 	return nil
 }
-func (d *DemoProvider) RemoveTaint(ctx context.Context, name, key, effect string) error { return nil }
+
+func (d *DemoProvider) Drain(ctx context.Context, name string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if !demoNodeExists(name) {
+		return fmt.Errorf("node %s not found", name)
+	}
+	d.cordoned[name] = true
+	for wk, ps := range d.pods {
+		ns, wname, ok := strings.Cut(wk, "/")
+		if !ok {
+			continue
+		}
+		kind := ""
+		for _, w := range d.workloads {
+			if w.Namespace == ns && w.Name == wname {
+				kind = w.Kind
+				break
+			}
+		}
+		if kind == "DaemonSet" {
+			continue
+		}
+		kept := ps[:0]
+		for _, p := range ps {
+			if p.Node == name {
+				continue
+			}
+			kept = append(kept, p)
+		}
+		d.pods[wk] = kept
+	}
+	return nil
+}
+
+func (d *DemoProvider) AddTaint(ctx context.Context, name, key, value, effect string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if !demoNodeExists(name) {
+		return fmt.Errorf("node %s not found", name)
+	}
+	for _, t := range d.nodeTaints[name] {
+		if t.Key == key && t.Effect == effect {
+			return nil
+		}
+	}
+	d.nodeTaints[name] = append(d.nodeTaints[name], TaintSummary{Key: key, Value: value, Effect: effect})
+	return nil
+}
+
+func (d *DemoProvider) RemoveTaint(ctx context.Context, name, key, effect string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	kept := d.nodeTaints[name][:0]
+	for _, t := range d.nodeTaints[name] {
+		if t.Key == key && t.Effect == effect {
+			continue
+		}
+		kept = append(kept, t)
+	}
+	d.nodeTaints[name] = kept
+	return nil
+}
 func (d *DemoProvider) ListEvents(ctx context.Context, ns string) ([]Event, error) {
 	now := time.Now()
 	return []Event{{Namespace: "payments", Type: "Normal", Reason: "ScalingReplicaSet", Object: "Deployment/payments-api", Message: "Scaled up replica set payments-api to 12", Count: 1, Time: now.Add(-8 * time.Minute)}, {Namespace: "observability", Type: "Warning", Reason: "BackOff", Object: "Pod/otel-collector-69d8", Message: "Back-off restarting failed container collector", Count: 4, Time: now.Add(-3 * time.Minute)}}, nil
@@ -386,6 +489,10 @@ func (d *DemoProvider) ListNamespaces(ctx context.Context) ([]Namespace, error) 
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	nsMap := map[string]*Namespace{}
+	for name, n := range d.namespaces {
+		cp := *n
+		nsMap[name] = &cp
+	}
 	for _, w := range d.workloads {
 		if nsMap[w.Namespace] == nil {
 			nsMap[w.Namespace] = &Namespace{Name: w.Namespace, Status: "Active", Age: "30d"}
@@ -422,7 +529,12 @@ func (d *DemoProvider) CreateNamespace(ctx context.Context, name string) (Namesp
 			return Namespace{Name: name, Status: "Active", Age: "now"}, nil
 		}
 	}
-	return Namespace{Name: name, Status: "Active", Age: "now"}, nil
+	if existing, ok := d.namespaces[name]; ok {
+		return *existing, nil
+	}
+	ns := Namespace{Name: name, Status: "Active", Age: "now"}
+	d.namespaces[name] = &ns
+	return ns, nil
 }
 
 func (d *DemoProvider) DeleteNamespace(ctx context.Context, name string) error {
@@ -437,6 +549,7 @@ func (d *DemoProvider) DeleteNamespace(ctx context.Context, name string) error {
 			delete(d.pods, w.Namespace+"/"+w.Name)
 		}
 	}
+	delete(d.namespaces, name)
 	return nil
 }
 
