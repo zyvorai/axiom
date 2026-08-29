@@ -111,6 +111,23 @@ func (s *Server) getCRDInstance(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) deleteCRDInstance(w http.ResponseWriter, r *http.Request) {
+	group, version, plural, name := r.PathValue("group"), r.PathValue("version"), r.PathValue("plural"), r.PathValue("name")
+	err := s.provider.DeleteCRDInstance(r.Context(), group, version, plural, r.URL.Query().Get("namespace"), name)
+	if err == nil {
+		platform.RecordAxiomAudit("crd.delete", group+"/"+plural+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("crd", "delete")
+	}
+	respondAction(w, err)
+}
+
+// --- Plugins (Tier 1: declarative CRD-view plugins) ---
+
+func (s *Server) listPlugins(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListPlugins(r.Context())
+	respond(w, v, err)
+}
+
 // --- Admission webhooks ---
 
 func (s *Server) listAdmissionWebhooks(w http.ResponseWriter, r *http.Request) {

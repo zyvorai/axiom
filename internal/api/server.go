@@ -168,6 +168,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/crds", s.listCRDs)
 	mux.HandleFunc("GET /api/v1/crds/{group}/{version}/{plural}", s.listCRDInstances)
 	mux.HandleFunc("GET /api/v1/crds/{group}/{version}/{plural}/{name}", s.getCRDInstance)
+	mux.HandleFunc("DELETE /api/v1/crds/{group}/{version}/{plural}/{name}", s.deleteCRDInstance)
+	mux.HandleFunc("GET /api/v1/plugins", s.listPlugins)
 	mux.HandleFunc("GET /api/v1/admission-webhooks", s.listAdmissionWebhooks)
 	mux.HandleFunc("GET /api/v1/storageclasses", s.listStorageClasses)
 	mux.HandleFunc("GET /api/v1/priorityclasses", s.listPriorityClasses)

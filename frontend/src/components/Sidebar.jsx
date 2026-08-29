@@ -1,11 +1,29 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
 import { NAV } from "@/constants/testIds";
-import { NAV_ITEMS as ITEMS } from "@/constants/navItems";
+import { NAV_ITEMS, resolveIcon } from "@/constants/navItems";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function Sidebar() {
+    const [plugins, setPlugins] = useState([]);
+
+    useEffect(() => {
+        api.get("/plugins").then((r) => setPlugins(r.data || [])).catch(() => setPlugins([]));
+    }, []);
+
+    const ITEMS = [
+        ...NAV_ITEMS,
+        ...plugins.map((p) => ({
+            to: `/plugins/${p.name}`,
+            label: p.displayName,
+            icon: resolveIcon(p.icon),
+            key: `plugin-${p.name}`,
+        })),
+    ];
+
     return (
         <aside
             data-testid={NAV.sidebar}

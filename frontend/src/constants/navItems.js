@@ -24,7 +24,25 @@ import {
     Users as UsersIcon,
     TrendingUp,
     Layers3,
+    Snowflake,
+    Puzzle,
 } from "lucide-react";
+
+// Fixed name -> lucide-react component lookup for plugin-declared icons.
+// Deliberately not a dynamic import: a plugin manifest can only select
+// from this list, never cause arbitrary code to load.
+const PLUGIN_ICON_MAP = {
+    Snowflake,
+    Puzzle,
+    Layers3,
+    Boxes,
+    Database,
+    Archive,
+};
+
+export function resolveIcon(name) {
+    return PLUGIN_ICON_MAP[name] || Puzzle;
+}
 
 // Single source of truth for every top-level route, shared by the Sidebar
 // and the command palette so the two can't drift out of sync again.

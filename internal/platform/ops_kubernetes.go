@@ -1785,6 +1785,98 @@ func (k *KubernetesProvider) GetCRDInstance(ctx context.Context, group, version,
 	return obj.Object, nil
 }
 
+// DeleteCRDInstance makes the generic CRD browser read-write: any instance
+// of any CRD the ServiceAccount has delete RBAC for can be removed. This
+// is also the one action Tier 1 plugins (see ListPlugins) are allowed to
+// invoke.
+func (k *KubernetesProvider) DeleteCRDInstance(ctx context.Context, group, version, plural, ns, name string) error {
+	if k.dynamic == nil {
+		return fmt.Errorf("dynamic client unavailable")
+	}
+	gvr := schema.GroupVersionResource{Group: group, Version: version, Resource: plural}
+	if ns != "" {
+		return k.dynamic.Resource(gvr).Namespace(ns).Delete(ctx, name, metav1.DeleteOptions{})
+	}
+	return k.dynamic.Resource(gvr).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// --- Plugin discovery (Tier 1: declarative CRD-view plugins) ---
+//
+// An AxiomPlugin is pure data — it tells the frontend how to render an
+// existing CRD (which columns, which of a small whitelisted action set)
+// using Axiom's own already-trusted rendering code. It never carries or
+// executes third-party code, and it cannot grant itself RBAC beyond what
+// its target CRD's group already has in deploy/k8s/rbac.yaml. See
+// docs/ARCHITECTURE.md's plugin architecture section.
+var axiomPluginGVR = schema.GroupVersionResource{Group: "axiom.zyvor.dev", Version: "v1alpha1", Resource: "axiomplugins"}
+
+func (k *KubernetesProvider) ListPlugins(ctx context.Context) ([]PluginManifest, error) {
+	if k.dynamic == nil {
+		return []PluginManifest{}, nil
+	}
+	list, err := k.dynamic.Resource(axiomPluginGVR).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		if isMissingCRD(err) {
+			return []PluginManifest{}, nil
+		}
+		return nil, err
+	}
+	out := make([]PluginManifest, 0, len(list.Items))
+	for _, item := range list.Items {
+		out = append(out, pluginManifestFromUnstructured(item))
+	}
+	return out, nil
+}
+
+func pluginManifestFromUnstructured(item unstructured.Unstructured) PluginManifest {
+	displayName, _, _ := unstructured.NestedString(item.Object, "spec", "displayName")
+	icon, _, _ := unstructured.NestedString(item.Object, "spec", "icon")
+	targetGroup, _, _ := unstructured.NestedString(item.Object, "spec", "target", "group")
+	targetVersion, _, _ := unstructured.NestedString(item.Object, "spec", "target", "version")
+	targetKind, _, _ := unstructured.NestedString(item.Object, "spec", "target", "kind")
+	targetPlural, _, _ := unstructured.NestedString(item.Object, "spec", "target", "plural")
+	targetScope, _, _ := unstructured.NestedString(item.Object, "spec", "target", "scope")
+
+	var columns []PluginColumn
+	if rawColumns, _, _ := unstructured.NestedSlice(item.Object, "spec", "columns"); rawColumns != nil {
+		for _, c := range rawColumns {
+			cm, ok := c.(map[string]any)
+			if !ok {
+				continue
+			}
+			path, _ := cm["path"].(string)
+			label, _ := cm["label"].(string)
+			typ, _ := cm["type"].(string)
+			columns = append(columns, PluginColumn{Path: path, Label: label, Type: typ})
+		}
+	}
+
+	var actions []PluginAction
+	if rawActions, _, _ := unstructured.NestedSlice(item.Object, "spec", "actions"); rawActions != nil {
+		for _, a := range rawActions {
+			am, ok := a.(map[string]any)
+			if !ok {
+				continue
+			}
+			name, _ := am["name"].(string)
+			typ, _ := am["type"].(string)
+			actions = append(actions, PluginAction{Name: name, Type: typ})
+		}
+	}
+
+	return PluginManifest{
+		Name:        item.GetName(),
+		DisplayName: displayName,
+		Icon:        icon,
+		Target: PluginTarget{
+			Group: targetGroup, Version: targetVersion, Kind: targetKind,
+			Plural: targetPlural, Scope: targetScope,
+		},
+		Columns: columns,
+		Actions: actions,
+	}
+}
+
 func admissionWebhookRules(rules []admissionregistrationv1.RuleWithOperations) []string {
 	out := make([]string, 0, len(rules))
 	for _, r := range rules {

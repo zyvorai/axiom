@@ -303,6 +303,12 @@ func (sp *SwitchableProvider) ListCRDInstances(a0 context.Context, a1 string, a2
 func (sp *SwitchableProvider) GetCRDInstance(a0 context.Context, a1 string, a2 string, a3 string, a4 string, a5 string) (map[string]any, error) {
 	return sp.current().GetCRDInstance(a0, a1, a2, a3, a4, a5)
 }
+func (sp *SwitchableProvider) DeleteCRDInstance(a0 context.Context, a1 string, a2 string, a3 string, a4 string, a5 string) error {
+	return sp.current().DeleteCRDInstance(a0, a1, a2, a3, a4, a5)
+}
+func (sp *SwitchableProvider) ListPlugins(a0 context.Context) ([]PluginManifest, error) {
+	return sp.current().ListPlugins(a0)
+}
 func (sp *SwitchableProvider) ListAdmissionWebhooks(a0 context.Context) ([]AdmissionWebhookSummary, error) {
 	return sp.current().ListAdmissionWebhooks(a0)
 }

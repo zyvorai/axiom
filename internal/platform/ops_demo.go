@@ -823,6 +823,27 @@ func (d *DemoProvider) GetCRDInstance(ctx context.Context, group, version, plura
 	}, nil
 }
 
+func (d *DemoProvider) DeleteCRDInstance(ctx context.Context, group, version, plural, ns, name string) error {
+	return nil
+}
+
+func (d *DemoProvider) ListPlugins(ctx context.Context) ([]PluginManifest, error) {
+	return []PluginManifest{
+		{
+			Name:        "volume-snapshots-viewer",
+			DisplayName: "Volume Snapshots",
+			Icon:        "Snowflake",
+			Target:      PluginTarget{Group: "snapshot.storage.k8s.io", Version: "v1", Kind: "VolumeSnapshot", Plural: "volumesnapshots", Scope: "Namespaced"},
+			Columns: []PluginColumn{
+				{Path: "name", Label: "Name", Type: "name"},
+				{Path: "namespace", Label: "Namespace", Type: "string"},
+				{Path: "age", Label: "Age", Type: "age"},
+			},
+			Actions: []PluginAction{{Name: "delete", Type: "delete"}},
+		},
+	}, nil
+}
+
 func (d *DemoProvider) ListAdmissionWebhooks(ctx context.Context) ([]AdmissionWebhookSummary, error) {
 	return []AdmissionWebhookSummary{
 		{ConfigName: "cert-manager-webhook", WebhookName: "webhook.cert-manager.io", Type: "Validating", Rules: []string{"cert-manager.io/v1/certificaterequests"}, FailurePolicy: "Fail", Age: "60d"},

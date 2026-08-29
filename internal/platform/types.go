@@ -745,6 +745,39 @@ type CRDSummary struct {
 	Age     string `json:"age"`
 }
 
+// PluginTarget/PluginColumn/PluginAction/PluginManifest are the Tier 1
+// "declarative CRD-view plugin" schema — see docs/ARCHITECTURE.md. A
+// plugin is pure data: it tells the frontend how to render an existing,
+// already-RBAC-authorized CRD (which columns, which actions), it never
+// carries or executes code.
+type PluginTarget struct {
+	Group   string `json:"group"`
+	Version string `json:"version"`
+	Kind    string `json:"kind"`
+	Plural  string `json:"plural"`
+	Scope   string `json:"scope"`
+}
+
+type PluginColumn struct {
+	Path  string `json:"path"`
+	Label string `json:"label"`
+	Type  string `json:"type"` // name|string|badge|status|age|count
+}
+
+type PluginAction struct {
+	Name string `json:"name"`
+	Type string `json:"type"` // delete (v1 only)
+}
+
+type PluginManifest struct {
+	Name        string         `json:"name"`
+	DisplayName string         `json:"displayName"`
+	Icon        string         `json:"icon,omitempty"`
+	Target      PluginTarget   `json:"target"`
+	Columns     []PluginColumn `json:"columns,omitempty"`
+	Actions     []PluginAction `json:"actions,omitempty"`
+}
+
 type InstallHelmRequest struct {
 	Namespace    string `json:"namespace"`
 	ReleaseName  string `json:"releaseName"`

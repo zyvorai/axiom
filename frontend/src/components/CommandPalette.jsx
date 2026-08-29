@@ -14,7 +14,7 @@ import { useCluster } from "@/lib/cluster";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
-import { NAV_ITEMS } from "@/constants/navItems";
+import { NAV_ITEMS, resolveIcon } from "@/constants/navItems";
 import { PALETTE } from "@/constants/testIds";
 
 export default function CommandPalette() {
@@ -22,6 +22,7 @@ export default function CommandPalette() {
     const [pods, setPods] = useState([]);
     const [workloads, setWorkloads] = useState([]);
     const [namespaces, setNamespaces] = useState([]);
+    const [plugins, setPlugins] = useState([]);
     const [loadedResources, setLoadedResources] = useState(false);
     const navigate = useNavigate();
     const { clusters, activate } = useCluster();
@@ -51,12 +52,19 @@ export default function CommandPalette() {
             api.get("/pods").catch(() => ({ data: [] })),
             api.get("/workloads").catch(() => ({ data: [] })),
             api.get("/namespaces").catch(() => ({ data: [] })),
-        ]).then(([p, w, n]) => {
+            api.get("/plugins").catch(() => ({ data: [] })),
+        ]).then(([p, w, n, pl]) => {
             setPods(p.data || []);
             setWorkloads(w.data || []);
             setNamespaces(n.data || []);
+            setPlugins(pl.data || []);
         });
     }, [open, loadedResources]);
+
+    const navItems = [
+        ...NAV_ITEMS,
+        ...plugins.map((p) => ({ to: `/plugins/${p.name}`, label: p.displayName, icon: resolveIcon(p.icon) })),
+    ];
 
     const run = (fn) => {
         setOpen(false);
@@ -69,7 +77,7 @@ export default function CommandPalette() {
             <CommandList className="scrollbar-thin">
                 <CommandEmpty>Nothing found.</CommandEmpty>
                 <CommandGroup heading="Navigate">
-                    {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+                    {navItems.map(({ to, label, icon: Icon }) => (
                         <CommandItem
                             key={to}
                             value={label}

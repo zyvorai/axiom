@@ -116,6 +116,9 @@ type Provider interface {
 	ListCRDs(context.Context) ([]CRDSummary, error)
 	ListCRDInstances(context.Context, string, string, string, string) ([]map[string]any, error)
 	GetCRDInstance(context.Context, string, string, string, string, string) (map[string]any, error)
+	DeleteCRDInstance(context.Context, string, string, string, string, string) error
+
+	ListPlugins(context.Context) ([]PluginManifest, error)
 
 	ListAdmissionWebhooks(context.Context) ([]AdmissionWebhookSummary, error)
 
