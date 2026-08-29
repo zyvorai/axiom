@@ -71,7 +71,7 @@ export default function Alerts() {
 
             <GlassCard className="p-0 overflow-hidden">
                 <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
-                    <ListChecks className="h-4 w-4 text-[#93c88f]" /> Alerting rule groups
+                    <ListChecks className="h-4 w-4 text-i17-sage" /> Alerting rule groups
                 </div>
                 <div className="max-h-[300px] overflow-auto scrollbar-thin">
                     {rules.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No alerting rules configured.</div>}

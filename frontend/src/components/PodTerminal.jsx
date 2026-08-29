@@ -125,7 +125,7 @@ export default function PodTerminal({ namespace, name, containers }) {
                         <Plug className="mr-1.5 h-3.5 w-3.5" /> Disconnect
                     </Button>
                 ) : (
-                    <Button size="sm" onClick={connect} disabled={status === "connecting"} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button size="sm" variant="brand" onClick={connect} disabled={status === "connecting"} className="rounded-xl">
                         <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {status === "connecting" ? "Connecting…" : "Connect"}
                     </Button>
                 )}

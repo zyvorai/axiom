@@ -147,7 +147,7 @@ export default function WorkloadDetail() {
                         />
                     </GlassCard>
                     <div className="flex justify-end">
-                        <Button onClick={saveManifest} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
                             <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
                         </Button>
                     </div>

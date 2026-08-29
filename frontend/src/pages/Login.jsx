@@ -94,7 +94,7 @@ export default function Login() {
                 {/* Brand panel */}
                 <div className="hidden lg:block">
                     <div className="fade-up flex items-center gap-3" style={{ animationDelay: "0ms" }}>
-                        <div className="z-mark grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#ff7550] via-[#f26b3a] to-[#c8452a] shadow-xl shadow-[#f26b3a]/40 ring-1 ring-white/15">
+                        <div className="z-mark grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic via-[#f26b3a] to-[#c8452a] shadow-xl shadow-[#f26b3a]/40 ring-1 ring-white/15">
                             <svg width="24" height="24" viewBox="0 0 18 18" aria-hidden="true">
                                 <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                             </svg>
@@ -105,7 +105,7 @@ export default function Login() {
                     <h1 className="fade-up mt-10 text-5xl font-semibold leading-[1.05] tracking-tight lg:text-6xl" style={{ animationDelay: "90ms" }}>
                         Axiom.
                         <br />
-                        <span className="bg-gradient-to-r from-[#ff7550] via-[#e0c996] to-[#6ab6f0] bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-i17-cosmic via-i17-gold to-i17-sky bg-clip-text text-transparent">
                             Every cluster, one truth.
                         </span>
                     </h1>
@@ -117,7 +117,7 @@ export default function Login() {
                     <div className="fade-up mt-10 flex gap-3" style={{ animationDelay: "270ms" }}>
                         {STATS.map(({ icon: Icon, label, sub }) => (
                             <div key={label} className="glass specular flex items-center gap-2.5 rounded-2xl px-4 py-3">
-                                <Icon className="h-4 w-4 text-[#ff7550]" />
+                                <Icon className="h-4 w-4 text-i17-cosmic" />
                                 <div className="leading-tight">
                                     <div className="text-sm font-medium">{label}</div>
                                     <div className="text-[11px] text-muted-foreground">{sub}</div>
@@ -130,7 +130,7 @@ export default function Login() {
                 {/* Sign-in card */}
                 <div className="fade-up glass specular noise relative rounded-3xl p-8 sm:p-10" style={{ animationDelay: "140ms" }}>
                     <div className="mb-8 flex items-center gap-3 lg:hidden">
-                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#ff7550] to-[#c8452a] ring-1 ring-white/15">
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic to-[#c8452a] ring-1 ring-white/15">
                             <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true">
                                 <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                             </svg>
@@ -138,7 +138,7 @@ export default function Login() {
                         <span className="text-base font-semibold lowercase">zyvor · Axiom</span>
                     </div>
 
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-[#ff7550]/90">Axiom Console</div>
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
                     <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in to continue</h2>
                     <p className="mt-1.5 text-sm text-muted-foreground">
                         Single sign-on enforced by your Zyvor organization.
@@ -168,7 +168,7 @@ export default function Login() {
                                 className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
                             >
                                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
-                                    <ShieldCheck className="h-4 w-4 text-[#93c88f]" />
+                                    <ShieldCheck className="h-4 w-4 text-i17-sage" />
                                 </span>
                                 <span>Continue with SAML</span>
                             </a>
@@ -201,7 +201,7 @@ export default function Login() {
                             disabled={pending || !username || !password}
                             className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
                         >
-                            {pending ? <Loader2 className="h-4 w-4 animate-spin text-[#ff7550]" /> : <KeyRound className="h-4 w-4" />}
+                            {pending ? <Loader2 className="h-4 w-4 animate-spin text-i17-cosmic" /> : <KeyRound className="h-4 w-4" />}
                             {pending ? "Signing in…" : "Sign in"}
                         </button>
 
@@ -217,7 +217,7 @@ export default function Login() {
                     </form>
 
                     <div className="mt-8 flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5 text-[11px] text-muted-foreground">
-                        <Lock className="h-3.5 w-3.5 text-[#93c88f]" />
+                        <Lock className="h-3.5 w-3.5 text-i17-sage" />
                         Sessions are scoped per device and expire automatically.
                     </div>
                 </div>

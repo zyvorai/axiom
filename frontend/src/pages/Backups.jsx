@@ -21,7 +21,7 @@ function Section({ title, icon: Icon, rows, columns, empty, action }) {
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
+                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
                 {action}
             </div>
@@ -87,7 +87,7 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
                     />
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.name || !form.pvc} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !form.name || !form.pvc} className="rounded-xl">
                         {busy ? "Requesting…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -132,7 +132,7 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
                     <Field label="StorageClass (optional)" value={form.storageClass} onChange={(e) => set({ storageClass: e.target.value })} />
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.snapshotName || !form.pvcName} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button onClick={submit} disabled={busy || !form.snapshotName || !form.pvcName} className="rounded-xl">
                         {busy ? "Requesting…" : "Restore"}
                     </Button>
                 </DialogFooter>
@@ -173,7 +173,7 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
                     <Field label="TTL (optional)" value={form.ttl} onChange={(e) => set({ ttl: e.target.value })} placeholder="720h0m0s" />
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.name || !form.schedule} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button onClick={submit} disabled={busy || !form.name || !form.schedule} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -227,7 +227,7 @@ export default function Backups() {
                     <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl border-white/10 bg-white/[0.03]">
                         <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Restore
                     </Button>
-                    <Button size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
                         <Plus className="mr-1.5 h-3.5 w-3.5" /> Create snapshot
                     </Button>
                 </div>

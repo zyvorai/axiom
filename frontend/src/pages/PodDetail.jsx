@@ -83,7 +83,7 @@ function ExecPanel({ namespace, name, containers }) {
                     onKeyDown={(e) => e.key === "Enter" && run()}
                     className="mono border-white/10 bg-white/[0.03]"
                 />
-                <Button onClick={run} disabled={busy} className="shrink-0 rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button variant="brand" onClick={run} disabled={busy} className="shrink-0 rounded-xl">
                     {busy ? "Running…" : "Run"}
                 </Button>
             </div>
@@ -196,20 +196,20 @@ function MetricsPanel({ namespace, name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-[#ff7550]" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-i17-cosmic" /> CPU
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>
-                    <Sparkline data={cpuPoints} color="#ff7550" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
+                    <Sparkline data={cpuPoints} color="var(--i17-cosmic)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
                 </GlassCard>
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <MemoryStick className="h-3.5 w-3.5 text-[#93c88f]" /> Memory
+                            <MemoryStick className="h-3.5 w-3.5 text-i17-sage" /> Memory
                         </div>
                         <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
                     </div>
-                    <Sparkline data={memPoints} color="#93c88f" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
+                    <Sparkline data={memPoints} color="var(--i17-sage)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
                 </GlassCard>
             </div>
             {(series.containers || []).length > 0 && (
@@ -515,7 +515,7 @@ export default function PodDetail() {
                             {(spec.volumes || []).length > 0 && (
                                 <GlassCard className="p-0 overflow-hidden">
                                     <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
-                                        <HardDrive className="h-4 w-4 text-[#b49bd8]" /> Volumes
+                                        <HardDrive className="h-4 w-4 text-i17-lavender" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
                                         const kind = Object.keys(v).find((k) => k !== "name") || "—";
@@ -643,7 +643,7 @@ export default function PodDetail() {
                     </GlassCard>
                     {detail && detail.manifest && (
                         <div className="flex justify-end">
-                            <Button onClick={saveManifest} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
                                 <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
                             </Button>
                         </div>

@@ -33,16 +33,16 @@ function SetupBanner() {
     return (
         <Link
             to="/getting-started"
-            className="flex items-center gap-3 rounded-2xl border border-[#ff7550]/25 bg-[#ff7550]/[0.06] px-4 py-3 transition-colors hover:bg-[#ff7550]/[0.1]"
+            className="flex items-center gap-3 rounded-2xl border border-i17-cosmic/25 bg-i17-cosmic/[0.06] px-4 py-3 transition-colors hover:bg-i17-cosmic/[0.1]"
         >
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff7550]/15 text-[#ff7550]">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-i17-cosmic/15 text-i17-cosmic">
                 <Rocket className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">This instance still has setup steps to finish</div>
                 <div className="text-xs text-muted-foreground">SSO, storage and networking integrations aren't fully wired up yet.</div>
             </div>
-            <div className="flex shrink-0 items-center gap-1 text-xs font-medium text-[#ff7550]">
+            <div className="flex shrink-0 items-center gap-1 text-xs font-medium text-i17-cosmic">
                 View checklist <ArrowRight className="h-3 w-3" />
             </div>
         </Link>
@@ -106,7 +106,7 @@ export default function Overview() {
             <GlassCard className="p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-[#ff7550]/90">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-i17-cosmic/90">
                             zyvor · Axiom · Kubernetes · {data.region}
                         </div>
                         <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{data.cluster}</h1>
@@ -119,9 +119,9 @@ export default function Overview() {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-                        <MetricRing value={Math.round(data.cpuPercent)} label="CPU" color="#ff7550" sublabel="of allocatable" />
-                        <MetricRing value={Math.round(data.memoryPercent)} label="Memory" color="#93c88f" sublabel="of allocatable" />
-                        <MetricRing value={storagePct} label="Storage" color="#b49bd8" sublabel="of provisioned" />
+                        <MetricRing value={Math.round(data.cpuPercent)} label="CPU" color="var(--i17-cosmic)" sublabel="of allocatable" />
+                        <MetricRing value={Math.round(data.memoryPercent)} label="Memory" color="var(--i17-sage)" sublabel="of allocatable" />
+                        <MetricRing value={storagePct} label="Storage" color="var(--i17-lavender)" sublabel="of provisioned" />
                     </div>
                 </div>
             </GlassCard>
@@ -129,10 +129,10 @@ export default function Overview() {
             {/* Counters */}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {[
-                    { key: "nodes", label: "Nodes", value: `${data.readyNodes}/${data.nodes}`, icon: Server, color: "#ff7550", series: cpuSeries },
-                    { key: "pods", label: "Pods", value: `${data.runningPods}/${data.pods}`, icon: Boxes, color: "#93c88f", series: memSeries },
-                    { key: "workloads", label: "Workloads", value: data.workloads, icon: Activity, color: "#e0c996", series: cpuSeries },
-                    { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}`, icon: MonitorSmartphone, color: "#6ab6f0", series: memSeries },
+                    { key: "nodes", label: "Nodes", value: `${data.readyNodes}/${data.nodes}`, icon: Server, color: "var(--i17-cosmic)", series: cpuSeries },
+                    { key: "pods", label: "Pods", value: `${data.runningPods}/${data.pods}`, icon: Boxes, color: "var(--i17-sage)", series: memSeries },
+                    { key: "workloads", label: "Workloads", value: data.workloads, icon: Activity, color: "var(--i17-gold)", series: cpuSeries },
+                    { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}`, icon: MonitorSmartphone, color: "var(--i17-sky-blue)", series: memSeries },
                 ].map((c) => (
                     <GlassCard key={c.key} data-testid={OVERVIEW.metric(c.key)} className="p-4">
                         <div className="flex items-center justify-between">
@@ -157,7 +157,7 @@ export default function Overview() {
                         </div>
                         <span className="mono text-xs text-muted-foreground">{Math.round(data.cpuPercent)}%</span>
                     </div>
-                    <Sparkline data={cpuSeries} color="#ff7550" />
+                    <Sparkline data={cpuSeries} color="var(--i17-cosmic)" />
                 </GlassCard>
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
@@ -167,7 +167,7 @@ export default function Overview() {
                         </div>
                         <span className="mono text-xs text-muted-foreground">{Math.round(data.memoryPercent)}%</span>
                     </div>
-                    <Sparkline data={memSeries} color="#93c88f" />
+                    <Sparkline data={memSeries} color="var(--i17-sage)" />
                 </GlassCard>
             </div>
 
@@ -175,7 +175,7 @@ export default function Overview() {
             <div className="grid gap-4 lg:grid-cols-3">
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-[#93c88f]" />
+                        <ShieldCheck className="h-4 w-4 text-i17-sage" />
                         <div className="text-sm font-medium">Cluster health</div>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -223,7 +223,7 @@ export default function Overview() {
                             <div key={i} data-testid={OVERVIEW.activity(i)} className="text-sm">
                                 <div className="flex items-center gap-2">
                                     <span className={`status-dot ${a.type === "Warning" ? "warn" : "info"}`} />
-                                    <span className="mono text-xs text-[#6ab6f0]">
+                                    <span className="mono text-xs text-i17-sky">
                                         {a.namespace}/{a.object}
                                     </span>
                                     <span className="ml-auto text-[11px] text-muted-foreground">{relTime(a.time)}</span>

@@ -84,7 +84,7 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.name} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !form.name} className="rounded-xl">
                         {busy ? "Requesting…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -160,7 +160,7 @@ export default function Atlas() {
                             </Button>
                         </a>
                     )}
-                    <Button onClick={() => setDialogOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
                         <Plus className="mr-1.5 h-3.5 w-3.5" /> Create volume
                     </Button>
                 </div>

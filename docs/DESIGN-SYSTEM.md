@@ -1,15 +1,16 @@
 # Axiom Design System (Kube-cockpit / Liquid Glass)
 
-`frontend/` **is** the kube-cockpit reference source (React 19 + CRACO + Tailwind + shadcn/ui), copied in directly and wired to Axiom's real Go API — not a hand-rolled reimplementation. Dark liquid-glass surfaces, coral brand accent (`#ff7550`), Inter + JetBrains Mono, 16px card radii.
+`frontend/` **is** the kube-cockpit reference source (React 19 + CRACO + Tailwind + shadcn/ui), copied in directly and wired to Axiom's real Go API — not a hand-rolled reimplementation. Dark liquid-glass surfaces, coral→sky-blue brand gradient (`#ff7550` → `#6ab6f0`), Inter + JetBrains Mono (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), 20px card radii.
 
 ## Tokens
 
-Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn convention):
+Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn convention), registered as Tailwind color/radius tokens in `frontend/tailwind.config.js`:
 
 ```css
 :root {
   --background: 20 10% 3%;
   --foreground: 30 20% 96%;
+  --radius: 1.25rem;
   --brand-hex: #ff7550;
   --glass-bg: 255 255 255 / 0.04;
   --glass-border: 255 255 255 / 0.10;
@@ -18,10 +19,17 @@ Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn 
   --k-warn: 22 92% 62%;
   --k-err: 4 90% 65%;
   --k-info: 205 65% 72%;
+  --chart-1..5: /* five distinct series hues for future chart work */
 }
 ```
 
-Fonts load from Google Fonts (see `frontend/public/index.html`'s preconnect + stylesheet link) — this is a real network dependency, not self-hosted.
+Fonts load from Google Fonts (see `frontend/public/index.html`'s preconnect + stylesheet link) — this is a real network dependency, not self-hosted; it's the fallback behind the system-font stack above, not the primary source.
+
+### Brand accent & the i17 palette
+
+`index.css` also defines a fuller "iPhone 17 palette" (`--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold`, each with distinct light/dark values) — this is the actual source of the brand gradient (`--i17-cosmic` ≡ `--brand-hex`, `--i17-sky-blue` is the gradient's blue end) plus extended accent hues used for metric-ring/sparkline/chart coloring (`Overview.jsx`, `MetricRing.jsx`, `Sparkline.jsx`) instead of ad hoc per-page hex literals. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.) and as a `brand` variant on `components/ui/button.jsx` (`bg-gradient-to-r from-brand-cosmic to-brand-sky`).
+
+**Convention**: the brand gradient (`variant="brand"`) is reserved for the single most prominent action on a page or dialog (the one thing a user came there to do — "Run workload," "Create X," "Install," "Save"). Every other button — secondary actions, row-level operations, less-frequent dialog confirms — uses the plain `default` or `outline` variant instead. This is deliberate: the gradient is a rare, confident accent, not a default button style.
 
 ## Glass utilities
 

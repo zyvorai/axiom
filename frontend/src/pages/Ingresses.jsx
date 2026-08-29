@@ -80,7 +80,7 @@ export default function Ingresses() {
                             {rows.map((i) => (
                                 <TableRow key={`${i.namespace}/${i.name}`} className="border-white/5 hover:bg-white/[0.03]">
                                     <TableCell className="flex items-center gap-2 font-medium">
-                                        <Waypoints className="h-3.5 w-3.5 text-[#6ab6f0]" /> {i.name}
+                                        <Waypoints className="h-3.5 w-3.5 text-i17-sky" /> {i.name}
                                     </TableCell>
                                     <TableCell className="mono text-xs">{i.namespace}</TableCell>
                                     <TableCell className="text-xs">{i.class || "—"}</TableCell>

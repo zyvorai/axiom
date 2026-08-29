@@ -99,7 +99,7 @@ export default function Logs() {
 
             <GlassCard className="flex flex-wrap items-center gap-3 p-3">
                 <div className="flex items-center gap-2">
-                    <TerminalSquare className="h-4 w-4 text-[#ff7550]" />
+                    <TerminalSquare className="h-4 w-4 text-i17-cosmic" />
                     <span className="text-sm font-medium">Pod</span>
                 </div>
                 <Select
@@ -147,7 +147,8 @@ export default function Logs() {
                     <Button
                         data-testid={LOGS.startBtn}
                         onClick={start}
-                        className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white hover:brightness-110"
+                        variant="brand"
+                        className="rounded-xl"
                     >
                         <Play className="mr-1.5 h-4 w-4" /> Follow
                     </Button>
@@ -178,7 +179,7 @@ export default function Logs() {
                     {lines.length === 0 && (
                         <div className="text-muted-foreground">
                             Press <span className="text-foreground">Follow</span> to start streaming logs for{" "}
-                            <span className="text-[#ff7550]">{selected}</span>.
+                            <span className="text-i17-cosmic">{selected}</span>.
                         </div>
                     )}
                     {lines.map((l, i) => (

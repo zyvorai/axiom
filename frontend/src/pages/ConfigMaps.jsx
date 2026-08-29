@@ -89,7 +89,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !name} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -144,7 +144,7 @@ export default function ConfigMaps() {
                     <h1 className="text-3xl font-semibold tracking-tight">ConfigMaps</h1>
                     <p className="text-sm text-muted-foreground">Application configuration across all namespaces.</p>
                 </div>
-                <Button size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Create ConfigMap
                 </Button>
             </div>
@@ -172,7 +172,7 @@ export default function ConfigMaps() {
                             {rows.map((c) => (
                                 <TableRow key={`${c.namespace}/${c.name}`} className="border-white/5 hover:bg-white/[0.03]">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
-                                        <FileCog className="h-3.5 w-3.5 shrink-0 text-[#6ab6f0]" />
+                                        <FileCog className="h-3.5 w-3.5 shrink-0 text-i17-sky" />
                                         <span className="min-w-0 truncate" title={c.name}>{c.name}</span>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{c.namespace}</TableCell>

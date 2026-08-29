@@ -1,4 +1,4 @@
-export default function MetricRing({ value = 0, size = 108, stroke = 10, label, sublabel, color = "#ff7550" }) {
+export default function MetricRing({ value = 0, size = 108, stroke = 10, label, sublabel, color = "var(--i17-cosmic)" }) {
     const clamped = Math.max(0, Math.min(100, value));
     const r = (size - stroke) / 2;
     const c = 2 * Math.PI * r;
@@ -36,7 +36,7 @@ export default function MetricRing({ value = 0, size = 108, stroke = 10, label, 
             </svg>
             <div>
                 <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</div>
-                <div className="text-3xl font-semibold tracking-tight tabular-nums">{clamped}%</div>
+                <div className="text-3xl font-semibold tracking-[-0.02em] tabular-nums">{clamped}%</div>
                 {sublabel ? (
                     <div className="mt-0.5 text-xs text-muted-foreground">{sublabel}</div>
                 ) : null}

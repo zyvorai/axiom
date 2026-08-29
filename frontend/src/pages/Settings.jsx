@@ -24,13 +24,13 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
         <GlassCard className="p-5">
             <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-[#ff7550]" />
+                    <Icon className="h-4 w-4 text-i17-cosmic" />
                     <div className="text-sm font-medium">{title}</div>
                 </div>
                 <Badge
                     className={
                         configured
-                            ? "border-[#93c88f]/40 bg-[#93c88f]/10 text-[#93c88f] hover:bg-[#93c88f]/10"
+                            ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage hover:bg-i17-sage/10"
                             : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.03]"
                     }
                 >
@@ -39,7 +39,7 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
             </div>
             <div className="grid gap-3 sm:grid-cols-2">{children}</div>
             <div className="mt-4 flex gap-2">
-                <Button size="sm" onClick={onSave} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button size="sm" onClick={onSave} disabled={saving} className="rounded-xl">
                     <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
                 </Button>
                 {onTest && (
@@ -307,13 +307,13 @@ export default function Settings() {
             <GlassCard className="p-5">
                 <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <BellRing className="h-4 w-4 text-[#ff7550]" />
+                        <BellRing className="h-4 w-4 text-i17-cosmic" />
                         <div className="text-sm font-medium">Notifications</div>
                     </div>
                     <Badge
                         className={
                             data.notifyConfigured
-                                ? "border-[#93c88f]/40 bg-[#93c88f]/10 text-[#93c88f] hover:bg-[#93c88f]/10"
+                                ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage hover:bg-i17-sage/10"
                                 : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.03]"
                         }
                     >
@@ -344,7 +344,7 @@ export default function Settings() {
                     <Switch checked={!!form.notifyOnWarnings} onCheckedChange={(v) => set({ notifyOnWarnings: v })} />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                    <Button size="sm" onClick={saveNotify} disabled={busy === "notify-save"} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button size="sm" onClick={saveNotify} disabled={busy === "notify-save"} className="rounded-xl">
                         <Save className="mr-1.5 h-3.5 w-3.5" /> {busy === "notify-save" ? "Saving…" : "Save"}
                     </Button>
                     <Button size="sm" variant="outline" onClick={testSlack} disabled={busy === "slack-test"} className="rounded-xl border-white/10 bg-white/[0.03]">

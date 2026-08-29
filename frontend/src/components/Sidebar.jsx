@@ -30,7 +30,7 @@ export default function Sidebar() {
             className="glass specular sticky top-4 hidden h-[calc(100vh-2rem)] w-72 shrink-0 flex-col p-3 lg:flex"
         >
             <div className="flex items-center gap-2.5 px-2 pt-1 pb-3">
-                <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#ff7550] via-[#f26b3a] to-[#c8452a] shadow-lg shadow-[#f26b3a]/30 ring-1 ring-white/10">
+                <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic via-[#f26b3a] to-[#c8452a] shadow-lg shadow-[#f26b3a]/30 ring-1 ring-white/10">
                     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
                         <path
                             d="M2 2h14L6.6 16H16"
@@ -44,8 +44,8 @@ export default function Sidebar() {
                 </div>
                 <div className="leading-tight">
                     <div className="flex items-baseline gap-1.5">
-                        <span className="text-[15px] font-semibold tracking-tight lowercase">zyvor</span>
-                        <span className="text-[10px] uppercase tracking-[0.22em] text-[#ff7550]/90">Axiom</span>
+                        <span className="text-[15px] font-semibold tracking-[-0.02em] lowercase">zyvor</span>
+                        <span className="text-[10px] uppercase tracking-[0.22em] text-i17-cosmic/90">Axiom</span>
                     </div>
                     <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                         Multi-cluster Console
@@ -75,12 +75,12 @@ export default function Sidebar() {
                                 <Icon
                                     className={cn(
                                         "h-4 w-4 transition-colors",
-                                        isActive ? "text-[#ff7550]" : "text-muted-foreground group-hover:text-foreground"
+                                        isActive ? "text-i17-cosmic" : "text-muted-foreground group-hover:text-foreground"
                                     )}
                                 />
                                 <span className="truncate">{label}</span>
                                 {isActive && (
-                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#ff7550] shadow-[0_0_10px_#ff7550]" />
+                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-i17-cosmic shadow-[0_0_10px_#ff7550]" />
                                 )}
                             </>
                         )}

@@ -115,7 +115,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !name} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -138,7 +138,7 @@ function ExternalSecretsSection() {
     return (
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
-                <Link2 className="h-4 w-4 text-[#6ab6f0]" /> External Secrets
+                <Link2 className="h-4 w-4 text-i17-sky" /> External Secrets
             </div>
             <div className="max-h-[300px] overflow-auto scrollbar-thin">
                 {!items && <Skeleton className="m-4 h-16 rounded-xl bg-white/[0.04]" />}
@@ -215,7 +215,7 @@ export default function Secrets() {
                     <Button size="sm" variant="outline" onClick={load} className="rounded-xl border-white/10 bg-white/[0.03]">
                         <RefreshCcw className="mr-1.5 h-3.5 w-3.5" /> Refresh
                     </Button>
-                    <Button size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
                         <Plus className="mr-1.5 h-3.5 w-3.5" /> Create secret
                     </Button>
                 </div>
@@ -245,7 +245,7 @@ export default function Secrets() {
                             {rows.map((s) => (
                                 <TableRow key={`${s.namespace}/${s.name}`} className="border-white/5 hover:bg-white/[0.03]">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
-                                        <KeySquare className="h-3.5 w-3.5 shrink-0 text-[#b49bd8]" />
+                                        <KeySquare className="h-3.5 w-3.5 shrink-0 text-i17-lavender" />
                                         <span className="min-w-0 truncate" title={s.name}>{s.name}</span>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{s.namespace}</TableCell>

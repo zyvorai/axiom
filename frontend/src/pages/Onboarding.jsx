@@ -44,7 +44,7 @@ function Step({ done, required, icon: Icon, title, description, to, cta }) {
                 {done ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <Circle className="h-5 w-5 text-muted-foreground" />}
             </div>
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.04]">
-                <Icon className="h-4 w-4 text-[#ff7550]" />
+                <Icon className="h-4 w-4 text-i17-cosmic" />
             </div>
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export default function Onboarding() {
                 </div>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                     <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] transition-all"
+                        className="h-full rounded-full bg-gradient-to-r from-i17-cosmic to-i17-sky transition-all"
                         style={{ width: `${(doneCount / steps.length) * 100}%` }}
                     />
                 </div>

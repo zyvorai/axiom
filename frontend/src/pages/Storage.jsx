@@ -58,7 +58,7 @@ export default function Storage() {
                 {classes.map((sc) => (
                     <GlassCard key={sc.name} data-testid={STORAGE.classRow(sc.name)} className="p-4">
                         <div className="flex items-start justify-between gap-2">
-                            <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#6ab6f0]/15 text-[#6ab6f0]">
+                            <div className="grid h-9 w-9 place-items-center rounded-xl bg-i17-sky/15 text-i17-sky">
                                 <Database className="h-4 w-4" />
                             </div>
                         </div>
@@ -81,7 +81,7 @@ export default function Storage() {
                             className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
                         >
                             <div className="col-span-4 flex items-center gap-3 min-w-0">
-                                <HardDrive className="h-4 w-4 text-[#b49bd8] shrink-0" />
+                                <HardDrive className="h-4 w-4 text-i17-lavender shrink-0" />
                                 <div className="min-w-0">
                                     <div className="mono truncate text-sm">{p.name}</div>
                                     <div className="text-[11px] text-muted-foreground">

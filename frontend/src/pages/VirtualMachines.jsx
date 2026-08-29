@@ -46,7 +46,7 @@ function ConsolePanel({ vm }) {
         <div className="space-y-4 rounded-xl border border-white/10 bg-black/30 p-6">
             <div className="flex items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06]">
-                    <Terminal className="h-4 w-4 text-[#6ab6f0]" />
+                    <Terminal className="h-4 w-4 text-i17-sky" />
                 </div>
                 <div>
                     <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
@@ -56,7 +56,7 @@ function ConsolePanel({ vm }) {
             <div>
                 <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
                 <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    <code className="mono flex-1 truncate text-xs text-[#93c88f]">{info.virtctl}</code>
+                    <code className="mono flex-1 truncate text-xs text-i17-sage">{info.virtctl}</code>
                     <button onClick={copy} className="text-muted-foreground hover:text-foreground">
                         {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
@@ -108,9 +108,9 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
+                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
-                <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
                     <Plus className="mr-1 h-3.5 w-3.5" /> New
                 </Button>
             </div>
@@ -153,7 +153,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                         ))}
                     </div>
                     <DialogFooter>
-                        <Button onClick={submit} disabled={busy} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Button variant="brand" onClick={submit} disabled={busy} className="rounded-xl">
                             {busy ? "Creating…" : "Create"}
                         </Button>
                     </DialogFooter>
@@ -423,7 +423,7 @@ export default function VirtualMachines() {
                                 <Button
                                     size="sm"
                                     onClick={() => setOpenVm(vm)}
-                                    className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white"
+                                    className="rounded-xl"
                                 >
                                     <Terminal className="mr-1 h-3.5 w-3.5" /> Console
                                 </Button>

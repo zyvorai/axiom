@@ -67,20 +67,20 @@ function MetricsPanel({ name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-[#ff7550]" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-i17-cosmic" /> CPU
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>
-                    <Sparkline data={cpuPoints} color="#ff7550" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
+                    <Sparkline data={cpuPoints} color="var(--i17-cosmic)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
                 </GlassCard>
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <MemoryStick className="h-3.5 w-3.5 text-[#93c88f]" /> Memory
+                            <MemoryStick className="h-3.5 w-3.5 text-i17-sage" /> Memory
                         </div>
                         <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
                     </div>
-                    <Sparkline data={memPoints} color="#93c88f" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
+                    <Sparkline data={memPoints} color="var(--i17-sage)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
                 </GlassCard>
             </div>
         </div>
@@ -163,7 +163,7 @@ function TaintsPanel({ name, taints, onChanged }) {
                         </Select>
                     </div>
                     <div className="flex items-end">
-                        <Button onClick={add} disabled={busy || !key} className="w-full rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Button variant="brand" onClick={add} disabled={busy || !key} className="w-full rounded-xl">
                             <Plus className="mr-1.5 h-3.5 w-3.5" /> Add
                         </Button>
                     </div>

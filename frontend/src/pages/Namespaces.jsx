@@ -73,7 +73,7 @@ export default function Namespaces() {
                     <h1 className="text-3xl font-semibold tracking-tight">Namespaces</h1>
                     <p className="text-sm text-muted-foreground">Every namespace in the cluster, with pod and service counts.</p>
                 </div>
-                <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Create namespace
                 </Button>
             </div>
@@ -83,7 +83,7 @@ export default function Namespaces() {
                     <GlassCard key={n.name} className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 min-w-0">
-                                <Boxes className="h-4 w-4 shrink-0 text-[#6ab6f0]" />
+                                <Boxes className="h-4 w-4 shrink-0 text-i17-sky" />
                                 <div className="mono truncate text-sm">{n.name}</div>
                             </div>
                             <StatusBadge status={n.status} />
@@ -115,7 +115,7 @@ export default function Namespaces() {
                     </DialogHeader>
                     <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="tenant-b" className="border-white/10 bg-white/[0.03]" />
                     <DialogFooter>
-                        <Button onClick={create} disabled={busy || !name} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Button variant="brand" onClick={create} disabled={busy || !name} className="rounded-xl">
                             {busy ? "Creating…" : "Create"}
                         </Button>
                     </DialogFooter>

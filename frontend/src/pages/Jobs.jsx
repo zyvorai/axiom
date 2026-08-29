@@ -13,7 +13,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-[#ff7550]" /> {title}
+                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
             </div>
             <div className="max-h-[420px] overflow-auto scrollbar-thin">
@@ -127,7 +127,7 @@ export default function Jobs() {
                         span: "col-span-2",
                         render: (r) => (
                             <div className="flex items-center justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => trigger(r)} title="Run now" className="h-7 px-2 text-muted-foreground hover:text-[#6ab6f0]">
+                                <Button size="sm" variant="ghost" onClick={() => trigger(r)} title="Run now" className="h-7 px-2 text-muted-foreground hover:text-i17-sky">
                                     <PlayCircle className="h-3.5 w-3.5" />
                                 </Button>
                                 <Switch checked={!r.suspend} onCheckedChange={(v) => setSuspend(r, !v)} />

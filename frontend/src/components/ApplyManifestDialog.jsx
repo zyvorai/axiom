@@ -63,7 +63,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                     </div>
                 )}
                 <DialogFooter>
-                    <Button onClick={apply} disabled={busy || !manifest} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={apply} disabled={busy || !manifest} className="rounded-xl">
                         {busy ? "Applying…" : "Apply"}
                     </Button>
                 </DialogFooter>

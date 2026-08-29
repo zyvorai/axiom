@@ -108,7 +108,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                     )}
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !username || password.length < 8} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !username || password.length < 8} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -191,7 +191,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || (password.length > 0 && password.length < 8)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button onClick={submit} disabled={busy || (password.length > 0 && password.length < 8)} className="rounded-xl">
                         {busy ? "Saving…" : "Save"}
                     </Button>
                 </DialogFooter>
@@ -239,7 +239,7 @@ export default function Users() {
                         Local accounts alongside SSO. Viewers can read every page but cannot create, change, or delete anything.
                     </p>
                 </div>
-                <Button size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
                     <UserPlus className="mr-1.5 h-3.5 w-3.5" /> Add user
                 </Button>
             </div>
@@ -264,7 +264,7 @@ export default function Users() {
                                         variant="outline"
                                         className={
                                             u.role === "admin"
-                                                ? "border-[#93c88f]/40 bg-[#93c88f]/10 text-[#93c88f]"
+                                                ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage"
                                                 : "border-white/10 bg-white/[0.03] text-muted-foreground"
                                         }
                                     >
@@ -294,7 +294,7 @@ export default function Users() {
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex justify-end gap-1">
-                                        <Button size="sm" variant="ghost" onClick={() => setEditingUser(u)} className="text-muted-foreground hover:text-[#6ab6f0]">
+                                        <Button size="sm" variant="ghost" onClick={() => setEditingUser(u)} className="text-muted-foreground hover:text-i17-sky">
                                             <Pencil className="h-3.5 w-3.5" />
                                         </Button>
                                         <Button size="sm" variant="ghost" onClick={() => remove(u)} className="text-muted-foreground hover:text-rose-400">

@@ -167,7 +167,7 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
                 </DialogHeader>
                 <Input type="number" min={0} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="border-white/10 bg-white/[0.03]" />
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button onClick={submit} disabled={busy} className="rounded-xl">
                         {busy ? "Scaling…" : "Scale"}
                     </Button>
                 </DialogFooter>
@@ -381,7 +381,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button onClick={launchForm} disabled={busy || !form.name || !form.image} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            <Button variant="brand" onClick={launchForm} disabled={busy || !form.name || !form.image} className="rounded-xl">
                                 {busy ? "Launching…" : "Launch"}
                             </Button>
                         </DialogFooter>
@@ -403,7 +403,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             <Button variant="outline" onClick={parseIntent} disabled={busy || !intent} className="rounded-xl border-white/10 bg-white/[0.03]">
                                 Preview
                             </Button>
-                            <Button onClick={placeIntent} disabled={busy || !intent} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                            <Button onClick={placeIntent} disabled={busy || !intent} className="rounded-xl">
                                 {busy ? "Placing…" : "Place"}
                             </Button>
                         </DialogFooter>
@@ -428,7 +428,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             <Button
                                 onClick={() => setApplyOpen(true)}
                                 disabled={!validation?.valid}
-                                className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white"
+                                className="rounded-xl"
                             >
                                 Apply
                             </Button>
@@ -559,7 +559,7 @@ export default function Workloads() {
                             </Button>
                         </div>
                     )}
-                    <Button size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
                         <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
                     </Button>
                 </div>

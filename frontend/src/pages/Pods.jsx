@@ -84,7 +84,7 @@ function ExecDialog({ pod, onOpenChange }) {
                             className="mono border-white/10 bg-white/[0.03]"
                             placeholder="ls -la"
                         />
-                        <Button onClick={run} disabled={busy} className="shrink-0 rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                        <Button variant="brand" onClick={run} disabled={busy} className="shrink-0 rounded-xl">
                             {busy ? "Running…" : "Run"}
                         </Button>
                     </div>

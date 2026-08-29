@@ -180,7 +180,7 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
                     </p>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName} className="rounded-xl">
                         {busy ? "Starting…" : "Install"}
                     </Button>
                 </DialogFooter>
@@ -196,7 +196,7 @@ function HelmTab() {
     return (
         <div className="space-y-3">
             <div className="flex justify-end">
-                <Button size="sm" onClick={() => setInstallOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button variant="brand" size="sm" onClick={() => setInstallOpen(true)} className="rounded-xl">
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Install chart
                 </Button>
             </div>
@@ -251,7 +251,7 @@ function GitOpsTab() {
                                 variant="ghost"
                                 disabled={syncing === `${a.namespace}/${a.name}`}
                                 onClick={() => sync(a)}
-                                className="h-7 px-2 text-muted-foreground hover:text-[#6ab6f0]"
+                                className="h-7 px-2 text-muted-foreground hover:text-i17-sky"
                                 title="Sync"
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
@@ -487,7 +487,7 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !name} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -551,7 +551,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !name || !roleName} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !name || !roleName} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>

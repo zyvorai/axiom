@@ -27,7 +27,7 @@
         --border: 220 15% 85%;
         --input: 220 15% 88%;
         --ring: 187 92% 42%;
-        --radius: 1rem;
+        --radius: 1.25rem;
         --brand: 12 85% 55%;
         --brand-hex: #f0583a;
         --zeus: 187 92% 54%;
@@ -41,6 +41,12 @@
         --k-warn: 22 88% 55%;
         --k-err: 4 90% 58%;
         --k-info: 205 45% 62%;
+
+        --chart-1: 12 85% 55%;
+        --chart-2: 187 92% 42%;
+        --chart-3: 205 45% 62%;
+        --chart-4: 128 30% 55%;
+        --chart-5: 22 88% 55%;
 
         /* iPhone 17 palette */
         --i17-cosmic: #f26b3a;
@@ -88,6 +94,12 @@
         --k-err: 4 90% 65%;
         --k-info: 205 65% 72%;
 
+        --chart-1: 12 88% 60%;
+        --chart-2: 187 92% 54%;
+        --chart-3: 205 65% 72%;
+        --chart-4: 128 45% 62%;
+        --chart-5: 22 92% 62%;
+
         /* iPhone 17 palette – vivid for dark mode */
         --i17-cosmic: #ff7550;
         --i17-deep-blue: #4d80c7;
@@ -114,8 +126,8 @@
     }
     body {
         font-family:
-            "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont,
-            "Segoe UI", Roboto, sans-serif;
+            -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
+            sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         letter-spacing: -0.01em;

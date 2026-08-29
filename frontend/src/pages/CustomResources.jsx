@@ -123,7 +123,7 @@ export default function CustomResources() {
                                     }}
                                     className={`flex w-full items-center gap-3 border-b border-white/5 px-4 py-3 text-left last:border-none hover:bg-white/[0.03] ${active ? "bg-white/[0.06]" : ""}`}
                                 >
-                                    <Layers className="h-4 w-4 shrink-0 text-[#b49bd8]" />
+                                    <Layers className="h-4 w-4 shrink-0 text-i17-lavender" />
                                     <div className="min-w-0 flex-1">
                                         <div className="mono truncate text-sm">{c.kind}</div>
                                         <div className="truncate text-[11px] text-muted-foreground">

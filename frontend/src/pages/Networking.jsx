@@ -60,7 +60,7 @@ function NetworkPolicyPanel() {
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <ShieldHalf className="h-4 w-4 text-[#ff7550]" /> NetworkPolicies
+                    <ShieldHalf className="h-4 w-4 text-i17-cosmic" /> NetworkPolicies
                 </div>
                 <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
                     <Plus className="mr-1 h-3 w-3" /> Create via YAML
@@ -147,7 +147,7 @@ function PacketWolfPanel() {
         <GlassCard className="p-0 overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Radar className="h-4 w-4 text-[#ff7550]" /> PacketWolf
+                    <Radar className="h-4 w-4 text-i17-cosmic" /> PacketWolf
                 </div>
                 <div className="flex items-center gap-2">
                     <span className={`status-dot ${tone}`} />
@@ -233,13 +233,13 @@ export default function Networking() {
 
             <div className="grid gap-4 md:grid-cols-3">
                 {[
-                    { label: "Graph nodes", value: d.nodes.length, icon: Network, tone: "text-[#6ab6f0]" },
-                    { label: "Connections", value: d.edges.length, icon: ArrowRightLeft, tone: "text-[#93c88f]" },
+                    { label: "Graph nodes", value: d.nodes.length, icon: Network, tone: "text-i17-sky" },
+                    { label: "Connections", value: d.edges.length, icon: ArrowRightLeft, tone: "text-i17-sage" },
                     {
                         label: "Services",
                         value: d.nodes.filter((n) => n.kind === "service").length,
                         icon: Boxes,
-                        tone: "text-[#ff7550]",
+                        tone: "text-i17-cosmic",
                     },
                 ].map((c) => (
                     <GlassCard key={c.label} className="p-4">
@@ -261,7 +261,7 @@ export default function Networking() {
                                 key={n.id}
                                 className="flex items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
                             >
-                                <Network className="h-4 w-4 text-[#93c88f]" />
+                                <Network className="h-4 w-4 text-i17-sage" />
                                 <div className="min-w-0 flex-1">
                                     <div className="mono truncate text-sm">{n.label}</div>
                                     <div className="text-[11px] text-muted-foreground">

@@ -52,6 +52,22 @@ module.exports = {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))'
+        },
+        brand: {
+          DEFAULT: 'var(--brand-hex)',
+          cosmic: 'var(--i17-cosmic)',
+          sky: 'var(--i17-sky-blue)',
+        },
+        i17: {
+          cosmic: 'var(--i17-cosmic)',
+          deepblue: 'var(--i17-deep-blue)',
+          sky: 'var(--i17-sky-blue)',
+          lavender: 'var(--i17-lavender)',
+          sage: 'var(--i17-sage)',
+          mist: 'var(--i17-mist)',
+          white: 'var(--i17-white)',
+          silver: 'var(--i17-silver)',
+          gold: 'var(--i17-gold)',
         }
       },
       keyframes: {

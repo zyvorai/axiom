@@ -38,7 +38,7 @@ export default function TopBar() {
                 variant="outline"
                 className="glass-inset specular rounded-xl border-white/10 bg-white/[0.03] hover:bg-white/[0.08]"
             >
-                <Zap className="mr-1.5 h-4 w-4 text-[#ff7550]" />
+                <Zap className="mr-1.5 h-4 w-4 text-i17-cosmic" />
                 Connect kubeconfig
             </Button>
 

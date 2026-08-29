@@ -85,7 +85,7 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || !form.targetName} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                    <Button variant="brand" onClick={submit} disabled={busy || !form.targetName} className="rounded-xl">
                         {busy ? "Creating…" : "Create"}
                     </Button>
                 </DialogFooter>
@@ -139,7 +139,7 @@ export default function HPA() {
                     <h1 className="text-3xl font-semibold tracking-tight">Autoscaling</h1>
                     <p className="text-sm text-muted-foreground">Horizontal Pod Autoscalers across all namespaces.</p>
                 </div>
-                <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl bg-gradient-to-r from-[#ff7550] to-[#6ab6f0] text-white">
+                <Button size="sm" variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Create autoscaler
                 </Button>
             </div>
@@ -147,7 +147,7 @@ export default function HPA() {
             <GlassCard className="p-0 overflow-hidden">
                 <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
                     <div className="flex items-center gap-2 text-sm font-medium">
-                        <Gauge className="h-4 w-4 text-[#ff7550]" /> HorizontalPodAutoscalers
+                        <Gauge className="h-4 w-4 text-i17-cosmic" /> HorizontalPodAutoscalers
                     </div>
                     <span className="text-xs text-muted-foreground">{hpas.length}</span>
                 </div>
