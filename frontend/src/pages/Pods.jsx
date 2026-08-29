@@ -152,14 +152,20 @@ export default function Pods() {
 
     const bulkEvict = async () => {
         const targets = rows.filter((p) => selected.has(key(p)));
+        // rows reflects the last 10s poll, which can be stale relative to
+        // `selected` — a selected pod may have already been evicted/deleted
+        // elsewhere in that window. Surface the gap instead of silently
+        // acting on fewer pods than the user actually selected.
+        const skipped = selected.size - targets.length;
         setBulkBusy(true);
         try {
             const results = await Promise.allSettled(
                 targets.map((p) => api.post(`/pods/${p.namespace}/${encodeURIComponent(p.name)}/evict`))
             );
             const failed = results.filter((r) => r.status === "rejected").length;
-            if (failed) toast.error(`${failed} of ${targets.length} evictions failed`);
-            else toast.success(`Evicted ${targets.length} pod${targets.length === 1 ? "" : "s"}`);
+            const skippedNote = skipped > 0 ? ` (${skipped} selected pod${skipped === 1 ? "" : "s"} no longer listed, skipped)` : "";
+            if (failed) toast.error(`${failed} of ${targets.length} evictions failed${skippedNote}`);
+            else toast.success(`Evicted ${targets.length} pod${targets.length === 1 ? "" : "s"}${skippedNote}`);
             setSelected(new Set());
             load();
         } finally {

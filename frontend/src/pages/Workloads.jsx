@@ -503,6 +503,12 @@ export default function Workloads() {
 
     const bulkAction = async (action) => {
         const targets = rows.filter((w) => selected.has(key(w)));
+        // rows reflects the last poll, which can be stale relative to
+        // `selected` — a selected row may have been deleted elsewhere (or
+        // filtered out) in the up-to-10s since it was picked. Track that
+        // gap explicitly rather than silently acting on fewer items than
+        // the user actually selected.
+        const skipped = selected.size - targets.length;
         setBulkBusy(true);
         try {
             const results = await Promise.allSettled(
@@ -513,8 +519,9 @@ export default function Workloads() {
                 )
             );
             const failed = results.filter((r) => r.status === "rejected").length;
-            if (failed) toast.error(`${failed} of ${targets.length} ${action}s failed`);
-            else toast.success(`${action === "delete" ? "Deleted" : "Restarted"} ${targets.length} workload${targets.length === 1 ? "" : "s"}`);
+            const skippedNote = skipped > 0 ? ` (${skipped} selected item${skipped === 1 ? "" : "s"} no longer listed, skipped)` : "";
+            if (failed) toast.error(`${failed} of ${targets.length} ${action}s failed${skippedNote}`);
+            else toast.success(`${action === "delete" ? "Deleted" : "Restarted"} ${targets.length} workload${targets.length === 1 ? "" : "s"}${skippedNote}`);
             setSelected(new Set());
             load();
         } finally {
