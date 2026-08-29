@@ -91,6 +91,24 @@ func TestScaleAllowsMaxReplicaCount(t *testing.T) {
 	}
 }
 
+// A duplicate Launch for the same namespace/kind/name used to silently
+// overwrite the existing workload and report success both times, unlike
+// a real cluster's API server which rejects the second create with
+// AlreadyExists. Found by rapid-clicking the Launch button three times
+// in the browser before the button had a chance to disable — all three
+// POSTs returned 201.
+func TestLaunchRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := LaunchRequest{Namespace: "default", Name: "race-launch-test", Image: "nginx:latest", Replicas: 1}
+	if _, err := d.Launch(ctx, req); err != nil {
+		t.Fatalf("first Launch should succeed, got %v", err)
+	}
+	if _, err := d.Launch(ctx, req); err == nil {
+		t.Fatal("expected second Launch with the same name to fail, got nil error")
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()

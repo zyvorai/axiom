@@ -138,6 +138,14 @@ func (d *DemoProvider) Launch(ctx context.Context, req LaunchRequest) (Workload,
 	w := Workload{Namespace: req.Namespace, Name: req.Name, Kind: "Deployment", Image: req.Image, Desired: req.Replicas, Ready: req.Replicas, Available: req.Replicas, Status: "Healthy", Age: "now", Labels: map[string]string{"app.kubernetes.io/name": req.Name, "app.kubernetes.io/managed-by": "zyvor-axiom"}}
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	// A real cluster's API server rejects a Create for a name that already
+	// exists in the namespace with a 409 AlreadyExists — mirror that here
+	// so a duplicate submission (e.g. a double-click before the Launch
+	// button disables) reports a clear conflict instead of silently
+	// overwriting the existing workload and reporting success either way.
+	if _, exists := d.workloads[key(w.Namespace, w.Kind, w.Name)]; exists {
+		return Workload{}, fmt.Errorf("%s %s/%s already exists", strings.ToLower(w.Kind), w.Namespace, w.Name)
+	}
 	d.workloads[key(w.Namespace, w.Kind, w.Name)] = w
 	d.rebuildPodsLocked(w)
 	return w, nil

@@ -382,7 +382,7 @@ func (s *Server) launch(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.Launch(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("workload.launch", req.Namespace+"/"+req.Name, req.Image, s.auditUser(r))
@@ -584,7 +584,7 @@ func (s *Server) createNamespace(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateNamespace(r.Context(), req.Name)
 	if err != nil {
-		fail(w, 400, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("namespace.create", req.Name, "", s.auditUser(r))
@@ -643,7 +643,7 @@ func (s *Server) placeIntent(w http.ResponseWriter, r *http.Request) {
 	launch.Intent = req.Intent
 	v, err := s.provider.Launch(r.Context(), launch)
 	if err != nil {
-		fail(w, 400, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("workload.launch", launch.Namespace+"/"+launch.Name, "intent", s.auditUser(r))
@@ -688,7 +688,7 @@ func (s *Server) podWindow(w http.ResponseWriter, r *http.Request) {
 	}
 	target, err := s.provider.PodProxyTarget(r.Context(), r.PathValue("namespace"), r.PathValue("name"), int32(port))
 	if err != nil {
-		fail(w, 400, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.IncWindow(r.PathValue("namespace"), r.PathValue("name"))
