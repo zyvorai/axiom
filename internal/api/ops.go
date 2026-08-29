@@ -183,7 +183,7 @@ func (s *Server) createBackup(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateBackup(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("backup.create", req.Namespace+"/"+req.Name, "pvc="+req.PVC, s.auditUser(r))
@@ -507,7 +507,7 @@ func (s *Server) createVeleroSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := s.provider.CreateVeleroSchedule(r.Context(), req)
 	if err != nil {
-		fail(w, http.StatusBadRequest, err)
+		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
 	platform.RecordAxiomAudit("velero-schedule.create", req.Namespace+"/"+req.Name, req.Schedule, s.auditUser(r))

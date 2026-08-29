@@ -145,8 +145,12 @@ func (d *DemoProvider) CreateVeleroSchedule(ctx context.Context, req CreateVeler
 	}
 	sched := VeleroSchedule{Namespace: req.Namespace, Name: req.Name, Schedule: req.Schedule, Age: "now"}
 	demoVeleroSchedulesMu.Lock()
-	demoVeleroSchedules[req.Namespace+"/"+req.Name] = sched
-	demoVeleroSchedulesMu.Unlock()
+	defer demoVeleroSchedulesMu.Unlock()
+	key := req.Namespace + "/" + req.Name
+	if _, exists := demoVeleroSchedules[key]; exists {
+		return VeleroSchedule{}, fmt.Errorf("velero schedule %s/%s already exists", req.Namespace, req.Name)
+	}
+	demoVeleroSchedules[key] = sched
 	return sched, nil
 }
 

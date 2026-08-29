@@ -147,8 +147,13 @@ func (d *DemoProvider) CreateBackup(ctx context.Context, req CreateBackupRequest
 		snap.VolumeSnapshotClass = "csi-rbd"
 	}
 	demoBackupsMu.Lock()
+	defer demoBackupsMu.Unlock()
+	for _, existing := range demoBackups {
+		if existing.Namespace == req.Namespace && existing.Name == req.Name {
+			return BackupSnapshot{}, fmt.Errorf("backup %s/%s already exists", req.Namespace, req.Name)
+		}
+	}
 	demoBackups = append(demoBackups, snap)
-	demoBackupsMu.Unlock()
 	return snap, nil
 }
 

@@ -226,6 +226,48 @@ func TestDeleteRoleBindingRejectsMissing(t *testing.T) {
 	}
 }
 
+// Same bug class again, found by extending the duplicate-submission test
+// to the remaining named-resource Create dialogs: Velero schedule (a map
+// write with no existence check) and Backup (append-only, so a
+// duplicate name produced two visually-identical rows rather than a
+// silent overwrite, but the same underlying gap).
+func TestCreateVeleroScheduleRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateVeleroScheduleRequest{Namespace: "velero", Name: "dup-sched", Schedule: "@daily"}
+	if _, err := d.CreateVeleroSchedule(ctx, req); err != nil {
+		t.Fatalf("first CreateVeleroSchedule should succeed, got %v", err)
+	}
+	if _, err := d.CreateVeleroSchedule(ctx, req); err == nil {
+		t.Fatal("expected second CreateVeleroSchedule with the same name to fail, got nil error")
+	}
+}
+
+func TestCreateBackupRejectsDuplicateName(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	req := CreateBackupRequest{Namespace: "default", Name: "dup-backup", PVC: "data-pvc"}
+	if _, err := d.CreateBackup(ctx, req); err != nil {
+		t.Fatalf("first CreateBackup should succeed, got %v", err)
+	}
+	if _, err := d.CreateBackup(ctx, req); err == nil {
+		t.Fatal("expected second CreateBackup with the same name to fail, got nil error")
+	}
+	backups, err := d.ListBackups(ctx, "default")
+	if err != nil {
+		t.Fatalf("ListBackups: %v", err)
+	}
+	count := 0
+	for _, b := range backups {
+		if b.Name == "dup-backup" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("expected exactly 1 backup named dup-backup, got %d", count)
+	}
+}
+
 func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
 	d := NewDemoProvider()
 	ctx := context.Background()
