@@ -77,6 +77,26 @@ Integrations in the UI):
 --set oidc.viewerGroup=axiom-viewers
 ```
 
+If you use OIDC, also set a stable `auth.sessionSecret` (a long random
+string) so sessions survive a pod restart — left blank, Axiom generates a
+random one per process, which is a safe default but logs everyone out on
+every restart/rollout:
+
+```bash
+--set auth.sessionSecret=$(openssl rand -base64 32)
+```
+
+**Behind a reverse proxy or identity-aware proxy**: also set
+`auth.trustedProxyHeader` (e.g. `X-Forwarded-For`) — otherwise every
+client behind that proxy shares one rate-limit bucket, and one user's
+failed logins can lock out everyone else behind it. Only set this when
+the proxy itself sets/overwrites the header; never when it's reachable
+directly, since the header is otherwise spoofable by the client:
+
+```bash
+--set auth.trustedProxyHeader=X-Forwarded-For
+```
+
 ## 4. Next steps
 
 - Read the [production hardening checklist](DEPLOYMENT.md#production-hardening-checklist)

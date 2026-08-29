@@ -160,6 +160,17 @@ func TestGuardNamespaceRestriction(t *testing.T) {
 		{"explicit all is blocked", "/api/v1/pods?namespace=all", 403},
 		{"allowed namespace via path segment", "/api/v1/secrets/team-b/my-secret", 204},
 		{"disallowed namespace via path segment", "/api/v1/secrets/team-c/my-secret", 403},
+		// Regression coverage for a real gap: these six were missing from
+		// namespacedResourcePrefixes entirely, so a restricted viewer could
+		// read them across every namespace before this test existed.
+		{"hpas: allowed namespace", "/api/v1/hpas?namespace=team-a", 204},
+		{"hpas: disallowed namespace", "/api/v1/hpas?namespace=team-c", 403},
+		{"networkpolicies: allowed namespace", "/api/v1/networkpolicies?namespace=team-a", 204},
+		{"networkpolicies: disallowed namespace", "/api/v1/networkpolicies?namespace=team-c", 403},
+		{"poddisruptionbudgets: disallowed namespace", "/api/v1/poddisruptionbudgets?namespace=team-c", 403},
+		{"gateways: disallowed namespace", "/api/v1/gateways?namespace=team-c", 403},
+		{"haven planes: disallowed namespace", "/api/v1/haven/planes?namespace=team-c", 403},
+		{"crd instances: disallowed namespace", "/api/v1/crds/apps/v1/deployments?namespace=team-c", 403},
 		{"non-namespaced endpoint is unaffected", "/api/v1/nodes", 204},
 		{"users endpoint (admin-only surface) is unaffected", "/api/v1/session", 204},
 	}

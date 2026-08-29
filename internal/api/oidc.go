@@ -48,10 +48,7 @@ func (s *Server) oidcConfig() (issuer, loginURL, clientID string) {
 }
 
 func (s *Server) sessionSecret() string {
-	if s.password != "" {
-		return s.password
-	}
-	return "axiom-dev-session"
+	return s.auth.SessionSecret
 }
 
 func (s *Server) requestSecure(r *http.Request) bool {

@@ -55,14 +55,16 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
-		APIKey:      cfg.APIKey,
-		OIDCLogin:   firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
-		OIDCIssuer:  firstNonEmpty(cur.OIDCIssuer, cfg.OIDCIssuer),
-		OIDCClient:  firstNonEmpty(cur.OIDCClientID, cfg.OIDCClient),
-		SAMLLogin:   cfg.SAMLLogin,
-		LDAPEnabled: cfg.LDAPEnabled,
-		LDAPDomain:  cfg.LDAPDomain,
-		LDAPURL:     cfg.LDAPURL,
+		APIKey:             cfg.APIKey,
+		SessionSecret:      cfg.SessionSecret,
+		TrustedProxyHeader: cfg.TrustedProxyHeader,
+		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
+		OIDCIssuer:         firstNonEmpty(cur.OIDCIssuer, cfg.OIDCIssuer),
+		OIDCClient:         firstNonEmpty(cur.OIDCClientID, cfg.OIDCClient),
+		SAMLLogin:          cfg.SAMLLogin,
+		LDAPEnabled:        cfg.LDAPEnabled,
+		LDAPDomain:         cfg.LDAPDomain,
+		LDAPURL:            cfg.LDAPURL,
 
 		OIDCGroupsClaim: cfg.OIDCGroupsClaim,
 		OIDCAdminGroup:  cfg.OIDCAdminGroup,

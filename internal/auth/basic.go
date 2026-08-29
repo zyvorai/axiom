@@ -66,6 +66,12 @@ type Guard struct {
 	// audit trail. Optional — nil means these events aren't audited (they
 	// still fully function, just without a security-review trail).
 	Audit AuditLogger
+	// TrustedProxyHeader, when set, is the header (e.g. "X-Forwarded-For")
+	// the rate limiter reads the real client IP from instead of
+	// RemoteAddr. Leave empty unless Axiom sits behind a reverse proxy
+	// that itself sets/overwrites this header — see clientKey's doc
+	// comment in ratelimit.go for why trusting it by default is unsafe.
+	TrustedProxyHeader string
 }
 
 // AuditLogger records a security-relevant event. Implemented by an adapter
@@ -92,7 +98,7 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		key := clientKey(r)
+		key := clientKey(r, g.TrustedProxyHeader)
 		if !limiter.Allowed(key) {
 			if g.Audit != nil {
 				g.Audit.Record("auth.rate_limited", key, r.URL.Path, attemptedUsername(r))
@@ -171,6 +177,18 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/velero/backups",
 	"/api/v1/velero/schedules",
 	"/api/v1/haven/identity",
+	"/api/v1/haven/planes",
+	"/api/v1/hpas",
+	"/api/v1/poddisruptionbudgets",
+	"/api/v1/networkpolicies",
+	"/api/v1/gateways",
+	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
+	// of installed CRD definitions, which is cluster-scoped metadata with
+	// no namespace of its own) when no ?namespace= is given — an
+	// acceptable over-restriction given this list's existing fail-closed
+	// philosophy, versus leaving CRD instances readable across every
+	// namespace.
+	"/api/v1/crds",
 }
 
 // namespaceOfRequest returns the namespace a request targets and whether

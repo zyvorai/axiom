@@ -3,8 +3,34 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/zyvorai/axiom/internal/auth"
+	"github.com/zyvorai/axiom/internal/platform"
 )
+
+// A session forged with the Basic-auth password must never be accepted —
+// regression test for the bug where the session-signing secret defaulted
+// to the login password, letting anyone who knew that password forge an
+// admin session and bypass OIDC entirely.
+func TestSessionSecretIsNotTheLoginPassword(t *testing.T) {
+	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "")
+
+	forged, err := auth.SignSession("demo", auth.Session{User: "attacker", Role: "admin"})
+	if err != nil {
+		t.Fatalf("sign forged session: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/overview", nil)
+	r.AddCookie(&http.Cookie{Name: auth.SessionCookie, Value: forged})
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected a session forged with the known login password to be rejected (401), got %d: %s", w.Code, w.Body.String())
+	}
+}
 
 func fakeJWT(t *testing.T, claims map[string]any) string {
 	t.Helper()

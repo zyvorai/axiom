@@ -95,7 +95,12 @@ func (s *Server) rolloutStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) rolloutAction(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.RolloutAction(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"), r.PathValue("action"))
+	ns, kind, name, action := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"), r.PathValue("action")
+	err := s.provider.RolloutAction(r.Context(), ns, kind, name, action)
+	if err == nil {
+		platform.RecordAxiomAudit("workload.rollout."+action, ns+"/"+kind+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("workload", "rollout")
+	}
 	respondAction(w, err)
 }
 

@@ -181,6 +181,8 @@ Uninstall:
 
 - Real TLS certificate (replace self-signed lab cert)
 - OIDC/SAML or identity-aware proxy instead of reference Basic Auth
+- If using OIDC, set `AXIOM_SESSION_SECRET` (Helm: `auth.sessionSecret`) to a stable random value — left unset, Axiom generates a safe random one per process automatically, but sessions won't survive a restart
+- If Axiom sits behind a reverse proxy or identity-aware proxy, set `AXIOM_TRUSTED_PROXY_HEADER` (Helm: `auth.trustedProxyHeader`, e.g. `X-Forwarded-For`) so the login rate limiter keys on the real client IP — otherwise every client behind that proxy shares one rate-limit bucket
 - Local `viewer`-role accounts (Settings → Users) for anyone who doesn't need write access, instead of sharing the admin credential — restrict them to specific namespaces when a team should only see their own workloads
 - namespace-scoped RBAC where possible, both at the Kubernetes ServiceAccount level (`deploy/k8s/rbac.yaml`) and at Axiom's own viewer-account level (Settings → Users)
 - network policy protecting the Axiom namespace

@@ -3,6 +3,7 @@ package auth
 import (
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -93,10 +94,27 @@ func (rl *RateLimiter) sweepLocked() {
 }
 
 // clientKey extracts the client IP from a request, ignoring any port.
-// Deliberately does not trust X-Forwarded-For (spoofable by the client
+//
+// By default it does not trust X-Forwarded-For (spoofable by the client
 // unless a trusted proxy strips/overwrites it, which isn't guaranteed in
-// this deployment model).
-func clientKey(r *http.Request) string {
+// every deployment). When trustedHeader is set (opt-in via
+// AXIOM_TRUSTED_PROXY_HEADER — only safe when Axiom sits behind a reverse
+// proxy that itself sets/overwrites that header, never passing through a
+// client-supplied value), the leftmost address in that header is used
+// instead of RemoteAddr. Without this, every client behind a shared
+// reverse proxy or identity-aware proxy — the exact topology this
+// project's own docs recommend for production — shares one rate-limit
+// bucket, so one user's failed logins can lock out everyone else behind
+// the same proxy.
+func clientKey(r *http.Request, trustedHeader string) string {
+	if trustedHeader != "" {
+		if v := strings.TrimSpace(r.Header.Get(trustedHeader)); v != "" {
+			first, _, _ := strings.Cut(v, ",")
+			if ip := strings.TrimSpace(first); ip != "" {
+				return ip
+			}
+		}
+	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr

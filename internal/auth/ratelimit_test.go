@@ -74,6 +74,68 @@ func TestRateLimiterBackoffGrows(t *testing.T) {
 	}
 }
 
+func TestClientKeyIgnoresProxyHeaderByDefault(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "192.0.2.1:1234"
+	r.Header.Set("X-Forwarded-For", "203.0.113.5")
+	if got := clientKey(r, ""); got != "192.0.2.1" {
+		t.Fatalf("expected the raw connection address when no trusted header is configured, got %q", got)
+	}
+}
+
+func TestClientKeyUsesTrustedProxyHeaderWhenConfigured(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "192.0.2.1:1234"
+	r.Header.Set("X-Forwarded-For", "203.0.113.5, 192.0.2.1")
+	if got := clientKey(r, "X-Forwarded-For"); got != "203.0.113.5" {
+		t.Fatalf("expected the leftmost (original client) address from the trusted header, got %q", got)
+	}
+}
+
+func TestClientKeyFallsBackWhenTrustedHeaderMissing(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "192.0.2.1:1234"
+	if got := clientKey(r, "X-Forwarded-For"); got != "192.0.2.1" {
+		t.Fatalf("expected fallback to RemoteAddr when the configured header is absent, got %q", got)
+	}
+}
+
+// Regression coverage for a real gap: without a trusted proxy header
+// configured, every client behind a shared reverse proxy gets the same
+// rate-limit bucket (same RemoteAddr), so one user's failed logins can
+// lock out everyone else behind that proxy.
+func TestTrustedProxyHeaderIsolatesClientsBehindSharedProxy(t *testing.T) {
+	g := Guard{Username: "demo", Password: "demo", TrustedProxyHeader: "X-Forwarded-For"}
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+
+	requestFrom := func(realClientIP, user, pass string) *http.Request {
+		r := httptest.NewRequest("GET", "/api/v1/overview", nil)
+		r.RemoteAddr = "10.0.0.1:443" // the shared reverse proxy's own address
+		r.Header.Set("X-Forwarded-For", realClientIP)
+		r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(user+":"+pass)))
+		return r
+	}
+
+	// Client A exhausts its grace failures and gets locked out.
+	for i := 0; i < rateLimitGraceFailures+1; i++ {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, requestFrom("203.0.113.1", "demo", "wrongpass"))
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, requestFrom("203.0.113.1", "demo", "demo"))
+	if w.Code != 429 {
+		t.Fatalf("expected client A to be locked out, got %d", w.Code)
+	}
+
+	// Client B, behind the same proxy (same RemoteAddr) but a different
+	// forwarded IP, must be unaffected.
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, requestFrom("203.0.113.2", "demo", "demo"))
+	if w.Code != 204 {
+		t.Fatalf("expected client B (different forwarded IP) to be unaffected, got %d", w.Code)
+	}
+}
+
 func TestGuardRateLimitsRepeatedFailedLogins(t *testing.T) {
 	g := Guard{Username: "demo", Password: "demo"}
 	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))

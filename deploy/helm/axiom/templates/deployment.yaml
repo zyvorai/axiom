@@ -44,6 +44,17 @@ spec:
             - name: AXIOM_CLUSTER_NAME
               value: {{ .Values.clusterName | quote }}
             {{- end }}
+            {{- if .Values.auth.sessionSecret }}
+            - name: AXIOM_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: sessionSecret
+            {{- end }}
+            {{- if .Values.auth.trustedProxyHeader }}
+            - name: AXIOM_TRUSTED_PROXY_HEADER
+              value: {{ .Values.auth.trustedProxyHeader | quote }}
+            {{- end }}
             - name: AXIOM_ATLAS_URL
               value: {{ .Values.atlas.url | quote }}
             - name: AXIOM_ATLAS_CONSOLE_URL

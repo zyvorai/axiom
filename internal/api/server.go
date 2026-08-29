@@ -17,14 +17,26 @@ import (
 )
 
 type AuthOptions struct {
-	APIKey      string
-	OIDCLogin   string
-	OIDCIssuer  string
-	OIDCClient  string
-	SAMLLogin   string
-	LDAPEnabled bool
-	LDAPDomain  string
-	LDAPURL     string
+	APIKey string
+	// SessionSecret signs OIDC session cookies/tokens. Left empty, NewWithUsers
+	// generates a random per-process secret rather than falling back to the
+	// Basic-auth password — reusing the password would let anyone who knows
+	// it forge an admin session and bypass OIDC entirely. Set
+	// AXIOM_SESSION_SECRET for sessions that survive a restart or are shared
+	// across replicas.
+	SessionSecret string
+	// TrustedProxyHeader, when set, tells the login rate limiter to key on
+	// this header (e.g. "X-Forwarded-For") instead of the raw connection
+	// address. Only set this when Axiom sits behind a reverse proxy that
+	// itself sets/overwrites the header — see auth.Guard's doc comment.
+	TrustedProxyHeader string
+	OIDCLogin          string
+	OIDCIssuer         string
+	OIDCClient         string
+	SAMLLogin          string
+	LDAPEnabled        bool
+	LDAPDomain         string
+	LDAPURL            string
 
 	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup map an ID token's groups
 	// claim to a viewer/admin role. When OIDCAdminGroup and OIDCViewerGroup
@@ -69,6 +81,12 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	var opts AuthOptions
 	if len(authOpts) > 0 {
 		opts = authOpts[0]
+	}
+	if opts.SessionSecret == "" {
+		// A random per-process secret is a safer default than reusing the
+		// Basic-auth password: OIDC sessions won't survive a restart, but
+		// nothing lets an attacker who knows the login password forge one.
+		opts.SessionSecret = auth.RandomURLToken(32)
 	}
 	if hub != nil {
 		cur := hub.Get()
@@ -244,7 +262,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		authenticator = users
 	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
-	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: password, Users: authenticator, Audit: axiomAuditLogger{}}.Middleware(mux)
+	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: opts.SessionSecret, Users: authenticator, Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader}.Middleware(mux)
 	return s.common(secured)
 }
 
@@ -356,36 +374,46 @@ func (s *Server) scale(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, err)
 		return
 	}
-	err := s.provider.Scale(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"), req.Replicas)
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.Scale(r.Context(), ns, kind, name, req.Replicas)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.scale", ns+"/"+kind+"/"+name, fmt.Sprintf("replicas=%d", req.Replicas), s.auditUser(r))
 		EmitStateChanged("workload", "scale")
 	}
 	respondAction(w, err)
 }
 func (s *Server) start(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Start(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.Start(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.start", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "start")
 	}
 	respondAction(w, err)
 }
 func (s *Server) stop(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Stop(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.Stop(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.stop", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "stop")
 	}
 	respondAction(w, err)
 }
 func (s *Server) restart(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Restart(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.Restart(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.restart", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "restart")
 	}
 	respondAction(w, err)
 }
 func (s *Server) deleteWorkload(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.DeleteWorkload(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.DeleteWorkload(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.delete", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "delete")
 	}
 	respondAction(w, err)
@@ -395,15 +423,19 @@ func (s *Server) pods(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 func (s *Server) deletePod(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.DeletePod(r.Context(), r.PathValue("namespace"), r.PathValue("name"))
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeletePod(r.Context(), ns, name)
 	if err == nil {
+		platform.RecordAxiomAudit("pod.delete", ns+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("pod", "delete")
 	}
 	respondAction(w, err)
 }
 func (s *Server) evictPod(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.EvictPod(r.Context(), r.PathValue("namespace"), r.PathValue("name"))
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.EvictPod(r.Context(), ns, name)
 	if err == nil {
+		platform.RecordAxiomAudit("pod.evict", ns+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("pod", "evict")
 	}
 	respondAction(w, err)
@@ -454,22 +486,28 @@ func (s *Server) regions(w http.ResponseWriter, r *http.Request) {
 	respond(w, platform.DefaultRegions(cluster), nil)
 }
 func (s *Server) cordon(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Cordon(r.Context(), r.PathValue("name"), true)
+	name := r.PathValue("name")
+	err := s.provider.Cordon(r.Context(), name, true)
 	if err == nil {
+		platform.RecordAxiomAudit("node.cordon", name, "", s.auditUser(r))
 		EmitStateChanged("node", "cordon")
 	}
 	respondAction(w, err)
 }
 func (s *Server) uncordon(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Cordon(r.Context(), r.PathValue("name"), false)
+	name := r.PathValue("name")
+	err := s.provider.Cordon(r.Context(), name, false)
 	if err == nil {
+		platform.RecordAxiomAudit("node.uncordon", name, "", s.auditUser(r))
 		EmitStateChanged("node", "uncordon")
 	}
 	respondAction(w, err)
 }
 func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.Drain(r.Context(), r.PathValue("name"))
+	name := r.PathValue("name")
+	err := s.provider.Drain(r.Context(), name)
 	if err == nil {
+		platform.RecordAxiomAudit("node.drain", name, "", s.auditUser(r))
 		EmitStateChanged("node", "drain")
 	}
 	respondAction(w, err)
@@ -488,15 +526,19 @@ func (s *Server) addTaint(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	err := s.provider.AddTaint(r.Context(), r.PathValue("name"), req.Key, req.Value, req.Effect)
+	name := r.PathValue("name")
+	err := s.provider.AddTaint(r.Context(), name, req.Key, req.Value, req.Effect)
 	if err == nil {
+		platform.RecordAxiomAudit("node.taint", name, req.Key+"="+req.Value+":"+req.Effect, s.auditUser(r))
 		EmitStateChanged("node", "taint")
 	}
 	respondAction(w, err)
 }
 func (s *Server) removeTaint(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.RemoveTaint(r.Context(), r.PathValue("name"), r.PathValue("key"), r.URL.Query().Get("effect"))
+	name := r.PathValue("name")
+	err := s.provider.RemoveTaint(r.Context(), name, r.PathValue("key"), r.URL.Query().Get("effect"))
 	if err == nil {
+		platform.RecordAxiomAudit("node.untaint", name, r.PathValue("key"), s.auditUser(r))
 		EmitStateChanged("node", "untaint")
 	}
 	respondAction(w, err)
@@ -524,13 +566,16 @@ func (s *Server) createNamespace(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, err)
 		return
 	}
+	platform.RecordAxiomAudit("namespace.create", req.Name, "", s.auditUser(r))
 	EmitStateChanged("namespace", "create")
 	writeJSON(w, 201, v)
 }
 
 func (s *Server) deleteNamespace(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.DeleteNamespace(r.Context(), r.PathValue("name"))
+	name := r.PathValue("name")
+	err := s.provider.DeleteNamespace(r.Context(), name)
 	if err == nil {
+		platform.RecordAxiomAudit("namespace.delete", name, "", s.auditUser(r))
 		EmitStateChanged("namespace", "delete")
 	}
 	respondAction(w, err)
@@ -595,16 +640,20 @@ func (s *Server) stillPreview(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) sealWorkload(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.SealWorkload(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.SealWorkload(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.seal", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "seal")
 	}
 	respondAction(w, err)
 }
 
 func (s *Server) unsealWorkload(w http.ResponseWriter, r *http.Request) {
-	err := s.provider.UnsealWorkload(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	err := s.provider.UnsealWorkload(r.Context(), ns, kind, name)
 	if err == nil {
+		platform.RecordAxiomAudit("workload.unseal", ns+"/"+kind+"/"+name, "", s.auditUser(r))
 		EmitStateChanged("workload", "unseal")
 	}
 	respondAction(w, err)
@@ -685,11 +734,13 @@ func (s *Server) execCommand(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, errors.New("command must be a string or array"))
 		return
 	}
-	out, err := s.provider.ExecCommand(r.Context(), r.PathValue("namespace"), r.PathValue("name"), req.Container, cmd)
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	out, err := s.provider.ExecCommand(r.Context(), ns, name, req.Container, cmd)
 	if err != nil {
 		fail(w, 500, err)
 		return
 	}
+	platform.RecordAxiomAudit("pod.exec", ns+"/"+name, strings.Join(cmd, " "), s.auditUser(r))
 	writeJSON(w, 200, map[string]string{"output": out})
 }
 
