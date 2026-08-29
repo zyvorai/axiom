@@ -59,3 +59,70 @@ func TestDemoExecShellWrappedCommand(t *testing.T) {
 		t.Fatalf("unexpected output %q", out)
 	}
 }
+
+// A huge replica count used to crash the whole process: rebuildPodsLocked
+// did make([]Pod, 0, desired) with an unvalidated caller-supplied value,
+// and a multi-gigabyte allocation attempt triggers a fatal (unrecoverable)
+// Go runtime out-of-memory error, not something an HTTP handler's
+// deferred recover() can catch. Found via randomized/exploratory testing:
+// POSTing {"replicas": 999999999} to the scale endpoint took the demo
+// server down entirely.
+func TestScaleRejectsHugeReplicaCount(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	err := d.Scale(ctx, "commerce", "Deployment", "checkout", 999999999)
+	if err == nil {
+		t.Fatal("expected Scale to reject a replica count above maxDemoReplicas, got nil error")
+	}
+}
+
+func TestScaleAllowsMaxReplicaCount(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	if err := d.Scale(ctx, "commerce", "Deployment", "checkout", maxDemoReplicas); err != nil {
+		t.Fatalf("Scale(maxDemoReplicas) should succeed, got %v", err)
+	}
+	pods, err := d.ListPods(ctx, "commerce")
+	if err != nil {
+		t.Fatalf("ListPods: %v", err)
+	}
+	if len(pods) != maxDemoReplicas {
+		t.Fatalf("expected %d pods after scaling to the cap, got %d", maxDemoReplicas, len(pods))
+	}
+}
+
+func TestLaunchRejectsHugeReplicaCount(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	_, err := d.Launch(ctx, LaunchRequest{Namespace: "default", Name: "huge", Image: "nginx:latest", Replicas: 999999999})
+	if err == nil {
+		t.Fatal("expected Launch to reject a replica count above maxDemoReplicas, got nil error")
+	}
+}
+
+// rebuildPodsLocked itself must never allocate beyond the cap, even if a
+// future call site somehow skips the Scale/Launch validation — this is
+// the defense-in-depth clamp, tested directly against the internal
+// struct field rather than through Scale/Launch's own validation.
+func TestRebuildPodsLockedClampsAllocation(t *testing.T) {
+	d := NewDemoProvider()
+	d.mu.Lock()
+	w := Workload{Namespace: "default", Name: "unchecked", Kind: "Deployment", Desired: 999999999}
+	d.workloads[key(w.Namespace, w.Kind, w.Name)] = w
+	d.rebuildPodsLocked(w)
+	d.mu.Unlock()
+
+	pods, err := d.ListPods(context.Background(), "default")
+	if err != nil {
+		t.Fatalf("ListPods: %v", err)
+	}
+	count := 0
+	for _, p := range pods {
+		if p.WorkloadID == "unchecked" {
+			count++
+		}
+	}
+	if count != maxDemoReplicas {
+		t.Fatalf("rebuildPodsLocked should clamp to %d pods even with an unvalidated Desired, got %d", maxDemoReplicas, count)
+	}
+}

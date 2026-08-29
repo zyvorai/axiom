@@ -111,6 +111,17 @@ func (d *DemoProvider) ListWorkloads(ctx context.Context, ns string) ([]Workload
 	return out, nil
 }
 
+// maxDemoReplicas bounds how many synthetic Pod objects rebuildPodsLocked
+// will ever materialize for one workload. Without this, a huge replica
+// count (e.g. from a malformed request, or just a typo with an extra
+// digit) makes make([]Pod, 0, desired) attempt a multi-gigabyte
+// allocation — a Go out-of-memory condition is a fatal, unrecoverable
+// runtime error that kills the whole process, not something a deferred
+// recover() in the HTTP handler can catch. A real cluster has no
+// equivalent failure mode here since scaling a Deployment doesn't
+// synchronously materialize pod objects in the caller's process.
+const maxDemoReplicas = 1000
+
 func (d *DemoProvider) Launch(ctx context.Context, req LaunchRequest) (Workload, error) {
 	if req.Name == "" || req.Image == "" {
 		return Workload{}, errors.New("name and image are required")
@@ -120,6 +131,9 @@ func (d *DemoProvider) Launch(ctx context.Context, req LaunchRequest) (Workload,
 	}
 	if req.Replicas < 1 {
 		req.Replicas = 1
+	}
+	if req.Replicas > maxDemoReplicas {
+		return Workload{}, fmt.Errorf("replicas must be <= %d in demo mode", maxDemoReplicas)
 	}
 	w := Workload{Namespace: req.Namespace, Name: req.Name, Kind: "Deployment", Image: req.Image, Desired: req.Replicas, Ready: req.Replicas, Available: req.Replicas, Status: "Healthy", Age: "now", Labels: map[string]string{"app.kubernetes.io/name": req.Name, "app.kubernetes.io/managed-by": "zyvor-axiom"}}
 	d.mu.Lock()
@@ -138,6 +152,9 @@ func (d *DemoProvider) Scale(ctx context.Context, ns, kind, name string, replica
 	}
 	if replicas < 0 {
 		return errors.New("replicas must be >= 0")
+	}
+	if replicas > maxDemoReplicas {
+		return fmt.Errorf("replicas must be <= %d in demo mode", maxDemoReplicas)
 	}
 	w.Desired = replicas
 	w.Ready = replicas
@@ -442,9 +459,17 @@ func (d *DemoProvider) ExecCommand(ctx context.Context, ns, pod, container strin
 }
 
 func (d *DemoProvider) rebuildPodsLocked(w Workload) {
-	ps := make([]Pod, 0, w.Desired)
+	// Defense in depth: every caller is expected to have already rejected
+	// w.Desired > maxDemoReplicas, but clamp here too so a future call
+	// site can never reintroduce the huge-allocation crash by skipping
+	// that check.
+	desired := w.Desired
+	if desired > maxDemoReplicas {
+		desired = maxDemoReplicas
+	}
+	ps := make([]Pod, 0, desired)
 	sealed := d.sealed[key(w.Namespace, w.Kind, w.Name)]
-	for i := int32(0); i < w.Desired; i++ {
+	for i := int32(0); i < desired; i++ {
 		name := fmt.Sprintf("%s-%02d", w.Name, i+1)
 		status := "Running"
 		ready := "1/1"
