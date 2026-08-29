@@ -1,0 +1,177 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Admin Basics — Axiom</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#0a0a12,#1a1528,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#6ab6f0}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:24em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #6ab6f0;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · Customer Documentation</div>
+<h1>Ax<span>iom</span></h1>
+<div class="sub">Admin Basics</div>
+<div class="badge">2026-08-29</div>
+<div class="foot">zyvor.dev · Confidential — for licensed customers</div></section>
+<main><h2>Endpoints</h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axiom UI</td>
+<td><code>https://&lt;host&gt;:30590/</code></td>
+</tr>
+<tr>
+<td>API health</td>
+<td><code>curl -k https://&lt;host&gt;:30590/api/v1/health</code></td>
+</tr>
+<tr>
+<td>Session</td>
+<td><code>curl -k -u demo:demo https://&lt;host&gt;:30590/api/v1/session</code></td>
+</tr>
+</tbody></table>
+<p>Namespace: <code>axiom-system</code>. Cluster deploys are <strong>HTTPS only</strong>.</p>
+<p>If <strong>30590</strong> is allocated, redeploy with <code>AXIOM_NODE_PORT=30591</code> (or another free port).</p>
+<h2>Ports</h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Port</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axiom UI</td>
+<td><code>30590</code></td>
+<td>NodePort HTTPS (self-signed lab cert OK)</td>
+</tr>
+<tr>
+<td>In-cluster</td>
+<td><code>443</code></td>
+<td>Service → container <code>5090</code></td>
+</tr>
+<tr>
+<td>Local demo</td>
+<td><code>5090</code></td>
+<td>HTTP OK for <code>AXIOM_MODE=demo</code> only</td>
+</tr>
+</tbody></table>
+<p>Port-forward:</p>
+<pre><code class="language-bash">kubectl -n axiom-system port-forward svc/zyvor-axiom 5090:443
+curl -k https://localhost:5090/api/v1/health
+</code></pre>
+<h2>Secrets and env</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>zyvor-axiom-auth</code></td>
+<td>Operator username/password</td>
+</tr>
+<tr>
+<td><code>zyvor-axiom-tls</code></td>
+<td>TLS cert/key</td>
+</tr>
+<tr>
+<td><code>zyvor-axiom-users</code></td>
+<td>Local users JSON (production)</td>
+</tr>
+<tr>
+<td><code>zyvor-axiom-integrations</code></td>
+<td>Integration config</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AXIOM_MODE</code></td>
+<td><code>demo</code> or <code>kubernetes</code></td>
+</tr>
+<tr>
+<td><code>AXIOM_USERNAME</code> / <code>AXIOM_PASSWORD</code></td>
+<td>Operator Basic auth</td>
+</tr>
+<tr>
+<td><code>AXIOM_TLS_CERT</code> / <code>AXIOM_TLS_KEY</code></td>
+<td>Mounted TLS paths</td>
+</tr>
+<tr>
+<td><code>AXIOM_CLUSTER_NAME</code></td>
+<td>In-cluster label (default <code>in-cluster</code>)</td>
+</tr>
+<tr>
+<td><code>AXIOM_ATLAS_URL</code> / <code>AXIOM_ATLAS_TOKEN</code></td>
+<td>Atlas</td>
+</tr>
+<tr>
+<td><code>AXIOM_PACKETWOLF_URL</code> / <code>AXIOM_PACKETWOLF_API_KEY</code></td>
+<td>PacketWolf</td>
+</tr>
+<tr>
+<td><code>AXIOM_NODE_PORT</code></td>
+<td>Override NodePort</td>
+</tr>
+<tr>
+<td><code>AXIOM_OIDC_*</code></td>
+<td>OIDC groups/claims</td>
+</tr>
+<tr>
+<td><code>AXIOM_SESSION_SECRET</code></td>
+<td>Stable sessions across restarts</td>
+</tr>
+<tr>
+<td><code>AXIOM_TRUSTED_PROXY_HEADER</code></td>
+<td>Real client IP behind proxies</td>
+</tr>
+</tbody></table>
+<p>Lab login <strong><code>demo</code> / <code>demo</code></strong> when SSO is off.</p>
+<h2>Auth model</h2>
+<ul>
+<li>Public: <code>GET /api/v1/health</code></li>
+<li>Protected: Basic, OIDC/SAML cookie, or API key</li>
+<li>Viewer: GET allowed; mutating verbs <strong>403</strong></li>
+<li>WebSocket / port proxy: <code>?access_token=&lt;base64 user:pass&gt;</code> when needed</li>
+</ul>
+<p>OIDC: register a <strong>public</strong> client (Authorization Code + PKCE). Redirect URI:</p>
+<p><code>https://&lt;host&gt;:30590/api/v1/auth/oidc/callback</code></p>
+<h2>Operate from the console (admin)</h2>
+<ol>
+<li><strong>Settings → Integrations</strong> — Save + Test Atlas/OIDC/PacketWolf.</li>
+<li><strong>Users</strong> — create admin/viewer accounts.</li>
+<li><strong>Ops</strong> — RBAC roles/bindings; Identity when Haven is present.</li>
+<li>After restart, re-login; confirm Overview metrics.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="pages/admin/settings.md">Settings</a></li>
+<li><a href="pages/admin/users.md">Users</a></li>
+</ul>
+</main></body></html>

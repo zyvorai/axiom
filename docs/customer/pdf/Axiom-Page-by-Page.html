@@ -1,0 +1,1496 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Page-by-Page Product Manual — Axiom</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#0a0a12,#1a1528,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#6ab6f0}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:24em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #6ab6f0;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · Customer Documentation</div>
+<h1>Ax<span>iom</span></h1>
+<div class="sub">Page-by-Page Product Manual</div>
+<div class="badge">2026-08-29</div>
+<div class="foot">zyvor.dev · Confidential — for licensed customers</div></section>
+<main><h2>Page-by-page guides</h2>
+<p>Each guide follows: Purpose → When to use it → How to get there → Operate from the console (UX) → Related pages.</p>
+<p>Every route is also listed in the <a href="../PAGE_INDEX.md">complete page index</a>.</p>
+<h3>Admin</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="admin/ops.md">Ops hub</a></td>
+<td>Day-2 ops tabs — GitOps/Helm/RBAC/Identity and related operator tools.</td>
+</tr>
+<tr>
+<td><a href="admin/settings.md">Settings</a></td>
+<td>Integrations, clusters, theme, and console configuration.</td>
+</tr>
+<tr>
+<td><a href="admin/users.md">Users</a></td>
+<td>Local user accounts with admin or viewer roles.</td>
+</tr>
+</tbody></table>
+<h3>Auth</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="auth/login.md">Login</a></td>
+<td>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
+</tr>
+</tbody></table>
+<h3>Cluster</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="cluster/custom-resources.md">Custom Resources</a></td>
+<td>Browse CRD kinds and list custom resource instances.</td>
+</tr>
+<tr>
+<td><a href="cluster/namespaces.md">Namespaces</a></td>
+<td>Namespace inventory — create and delete tenancy boundaries.</td>
+</tr>
+<tr>
+<td><a href="cluster/nodes-name.md">Node detail</a></td>
+<td>Single-node conditions, capacity, taints, and related workloads.</td>
+</tr>
+<tr>
+<td><a href="cluster/nodes.md">Nodes</a></td>
+<td>Kubernetes node inventory — Ready state, capacity, and entry into node detail.</td>
+</tr>
+</tbody></table>
+<h3>Compute</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="compute/vms.md">Virtual Machines</a></td>
+<td>KubeVirt VM inventory and day-2 actions in the Axiom console.</td>
+</tr>
+</tbody></table>
+<h3>Config</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="config/configmaps.md">ConfigMaps</a></td>
+<td>ConfigMap inventory — create, edit keys, delete.</td>
+</tr>
+<tr>
+<td><a href="config/quotas.md">Quotas &amp; Limits</a></td>
+<td>ResourceQuotas, LimitRanges, PDBs, PriorityClasses.</td>
+</tr>
+<tr>
+<td><a href="config/secrets.md">Secrets</a></td>
+<td>Secret inventory — create typed secrets, add keys, delete.</td>
+</tr>
+</tbody></table>
+<h3>Console</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="console/getting-started.md">Getting Started</a></td>
+<td>Live setup checklist — integration status and first tasks after sign-in.</td>
+</tr>
+<tr>
+<td><a href="console/overview.md">Overview</a></td>
+<td>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</td>
+</tr>
+</tbody></table>
+<h3>Networking</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="networking/ingresses.md">Ingresses</a></td>
+<td>Ingress and Gateway API exposure inventory.</td>
+</tr>
+<tr>
+<td><a href="networking/networking.md">Networking · Cilium</a></td>
+<td>Service graph, NetworkPolicies, and live PacketWolf flows when configured.</td>
+</tr>
+<tr>
+<td><a href="networking/services.md">Services</a></td>
+<td>Kubernetes Service inventory and endpoints overview.</td>
+</tr>
+</tbody></table>
+<h3>Observe</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="observe/alerts.md">Alerts</a></td>
+<td>Alert inventory and webhook-driven notifications.</td>
+</tr>
+<tr>
+<td><a href="observe/events.md">Events</a></td>
+<td>Kubernetes warning/normal events stream for triage.</td>
+</tr>
+<tr>
+<td><a href="observe/logs.md">Pod Logs</a></td>
+<td>Stream and inspect pod/container logs from the console.</td>
+</tr>
+</tbody></table>
+<h3>Protect</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="protect/backups.md">Backups</a></td>
+<td>Volume snapshots, Velero backups, and schedules.</td>
+</tr>
+</tbody></table>
+<h3>Storage</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="storage/atlas.md">Atlas</a></td>
+<td>Atlas storage control-plane panel — backends, pools, volumes, buckets, policies.</td>
+</tr>
+<tr>
+<td><a href="storage/storage.md">Storage</a></td>
+<td>PVC / storage class intelligence for the connected cluster.</td>
+</tr>
+</tbody></table>
+<h3>Workloads</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="workloads/autoscaling.md">Autoscaling</a></td>
+<td>Horizontal Pod Autoscalers — create and delete.</td>
+</tr>
+<tr>
+<td><a href="workloads/jobs.md">Jobs &amp; CronJobs</a></td>
+<td>Batch Jobs and CronJobs — trigger runs, inspect status, delete.</td>
+</tr>
+<tr>
+<td><a href="workloads/platform-intents.md">Platform Intents</a></td>
+<td>Intent-driven placement / platform requests surfaced in the console.</td>
+</tr>
+<tr>
+<td><a href="workloads/pods-namespace-name.md">Pod detail</a></td>
+<td>Container specs, metrics, multi-tab PTY terminal, manifest Save, port Open.</td>
+</tr>
+<tr>
+<td><a href="workloads/pods.md">Pods</a></td>
+<td>Pod inventory across namespaces — phase, restarts, entry into pod detail.</td>
+</tr>
+<tr>
+<td><a href="workloads/workloads-namespace-kind-name.md">Workload detail</a></td>
+<td>Single controller — owned pods, events, labels, rollout, raw YAML.</td>
+</tr>
+<tr>
+<td><a href="workloads/workloads.md">Workloads</a></td>
+<td>Deployments, StatefulSets, DaemonSets — scale, restart, seal, rollout, and Run workload wizard.</td>
+</tr>
+</tbody></table>
+<hr>
+<p>30 guides. Regenerate: <code>node scripts/customer-docs/generate-guide-index.mjs</code>.</p>
+<hr>
+<h2>Ops hub</h2>
+<h3>Purpose</h3>
+<p>Day-2 ops tabs — GitOps/Helm/RBAC/Identity and related operator tools.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Ops hub</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/ops</code></li>
+<li>Nav: <strong>Sidebar → Ops (<code>/ops</code> or <code>/ops/:tab</code>)</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/ops</code> and switch tabs as labeled in the UI.</li>
+<li>RBAC: <strong>New Role</strong> / <strong>New RoleBinding</strong>; Sync where offered.</li>
+<li>Identity tab: Haven/Keycloak health when installed.</li>
+<li><strong>Empty / fail:</strong> Tab empty → optional component not installed.</li>
+<li><strong>Success:</strong> Sync/create toasts succeed; RBAC objects listed.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="users.md">Users</a></li>
+<li><a href="settings.md">Settings</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Settings</h2>
+<h3>Purpose</h3>
+<p>Integrations, clusters, theme, and console configuration.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Settings</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/settings</code></li>
+<li>Nav: <strong>Sidebar → Settings</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/settings</code>.</li>
+<li>Integrations: Atlas URL/token → Save → Test connection; OIDC/SAML; PacketWolf.</li>
+<li>Clusters: review activated cluster label (<code>AXIOM_CLUSTER_NAME</code>).</li>
+<li>Theme toggle via shell control.</li>
+<li><strong>Empty / fail:</strong> Test connection failed → network/token; OIDC redirect URI must be <code>https://&lt;host&gt;:30590/api/v1/auth/oidc/callback</code>.</li>
+<li><strong>Success:</strong> Integration cards healthy; Atlas/Networking panels populate.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../storage/atlas.md">Atlas</a></li>
+<li><a href="users.md">Users</a></li>
+<li><a href="../console/getting-started.md">Getting Started</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Users</h2>
+<h3>Purpose</h3>
+<p>Local user accounts with admin or viewer roles.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Users</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/users</code></li>
+<li>Nav: <strong>Sidebar → Users</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/users</code> (admin).</li>
+<li>Create users with admin/viewer; viewers read-only on mutating APIs.</li>
+<li><strong>Empty / fail:</strong> Persistence needs <code>zyvor-axiom-users</code> Secret in production.</li>
+<li><strong>Success:</strong> New user can sign in with the assigned role.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="settings.md">Settings</a></li>
+<li><a href="../auth/login.md">Login</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Login</h2>
+<h3>Purpose</h3>
+<p>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Login</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/login</code></li>
+<li>Nav: <strong>Shown when unauthenticated → <code>/login</code></strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>https://&lt;host&gt;:30590/</code> and accept the self-signed certificate once if needed.</li>
+<li>When SSO is off, use <strong>fill demo / demo</strong> then <strong>Sign in</strong> (lab default <code>demo</code> / <code>demo</code>).</li>
+<li>Or enter operator credentials from Secret <code>zyvor-axiom-auth</code> / <code>AXIOM_USERNAME</code>+<code>AXIOM_PASSWORD</code>.</li>
+<li>When SSO is configured, use the OIDC/SAML buttons (public client + PKCE).</li>
+<li><strong>Empty / fail:</strong> Sign in failed toast → check credentials / SSO redirect URI <code>/api/v1/auth/oidc/callback</code>; health: <code>curl -k https://&lt;host&gt;:30590/api/v1/health</code>.</li>
+<li><strong>Success:</strong> Redirect to <strong>Overview</strong>; cluster switcher and sidebar appear.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../console/overview.md">Overview</a></li>
+<li><a href="../console/getting-started.md">Getting Started</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Custom Resources</h2>
+<h3>Purpose</h3>
+<p>Browse CRD kinds and list custom resource instances.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Custom Resources</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/custom-resources</code></li>
+<li>Nav: <strong>Sidebar → Custom Resources</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/custom-resources</code>.</li>
+<li>Select a kind; inspect instance table.</li>
+<li><strong>Empty / fail:</strong> No CRDs → expected on minimal clusters; install operators as needed.</li>
+<li><strong>Success:</strong> Instances for installed operators appear.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../admin/ops.md">Ops hub</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Namespaces</h2>
+<h3>Purpose</h3>
+<p>Namespace inventory — create and delete tenancy boundaries.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Namespaces</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/namespaces</code></li>
+<li>Nav: <strong>Sidebar → Namespaces</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/namespaces</code>.</li>
+<li><strong>Create namespace</strong> → name → Create; Delete from row actions (confirm).</li>
+<li><strong>Empty / fail:</strong> 403 → viewer; delete blocked if resources remain.</li>
+<li><strong>Success:</strong> Namespace appears in filters across Workloads/Pods.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../config/quotas.md">Quotas &amp; Limits</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Node detail</h2>
+<h3>Purpose</h3>
+<p>Single-node conditions, capacity, taints, and related workloads.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Node detail</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/nodes/:name</code></li>
+<li>Nav: <strong>Nodes → row</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open a node from <code>/nodes</code>.</li>
+<li>Review conditions and capacity; add/remove taints as needed.</li>
+<li>Correlate NotReady with Events and Pods.</li>
+<li><strong>Empty / fail:</strong> 404 → stale name; permission errors → ClusterRole.</li>
+<li><strong>Success:</strong> Taint/condition changes reflect after refresh.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="nodes.md">Nodes</a></li>
+<li><a href="../observe/events.md">Events</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Nodes</h2>
+<h3>Purpose</h3>
+<p>Kubernetes node inventory — Ready state, capacity, and entry into node detail.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Nodes</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/nodes</code></li>
+<li>Nav: <strong>Sidebar → Nodes</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/nodes</code> and wait for the table.</li>
+<li>Filter/search; open a row → <code>/nodes/:name</code> for taints, conditions, capacity.</li>
+<li>On detail: <strong>Add taint</strong> when draining or isolating capacity.</li>
+<li><strong>Empty / fail:</strong> No nodes → cluster API / RBAC; demo mode should still show fixtures.</li>
+<li><strong>Success:</strong> Ready nodes listed; detail matches cluster state.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="nodes-name.md">Node detail</a></li>
+<li><a href="../observe/events.md">Events</a></li>
+<li><a href="../workloads/pods.md">Pods</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Virtual Machines</h2>
+<h3>Purpose</h3>
+<p>KubeVirt VM inventory and day-2 actions in the Axiom console.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Virtual Machines</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/vms</code></li>
+<li>Nav: <strong>Sidebar → Virtual Machines</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/vms</code>.</li>
+<li>Filter and open VMs; use lifecycle actions the page exposes (start/stop when available).</li>
+<li>Confirm KubeVirt is installed if the list stays empty on a real cluster.</li>
+<li><strong>Empty / fail:</strong> No VMs → install KubeVirt or use demo fixtures.</li>
+<li><strong>Success:</strong> VM phases update after power actions.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../storage/storage.md">Storage</a></li>
+<li><a href="../console/overview.md">Overview</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>ConfigMaps</h2>
+<h3>Purpose</h3>
+<p>ConfigMap inventory — create, edit keys, delete.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>ConfigMaps</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/configmaps</code></li>
+<li>Nav: <strong>Sidebar → ConfigMaps</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/configmaps</code>.</li>
+<li><strong>Create ConfigMap</strong> — add keys → Create; delete retired maps.</li>
+<li><strong>Empty / fail:</strong> 403 on mutate → viewer role.</li>
+<li><strong>Success:</strong> ConfigMap listed and mountable by workloads.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="secrets.md">Secrets</a></li>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Quotas &amp; Limits</h2>
+<h3>Purpose</h3>
+<p>ResourceQuotas, LimitRanges, PDBs, PriorityClasses.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Quotas &amp; Limits</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/quotas</code></li>
+<li>Nav: <strong>Sidebar → Quotas &amp; Limits</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/quotas</code>.</li>
+<li>Review quota / limit range / PDB / priority class tables.</li>
+<li>Adjust via YAML apply when the UI does not offer inline edit.</li>
+<li><strong>Empty / fail:</strong> No quotas → create for multi-tenant namespaces.</li>
+<li><strong>Success:</strong> Hard limits visible; workload create respects them.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../cluster/namespaces.md">Namespaces</a></li>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Secrets</h2>
+<h3>Purpose</h3>
+<p>Secret inventory — create typed secrets, add keys, delete.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Secrets</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/secrets</code></li>
+<li>Nav: <strong>Sidebar → Secrets</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/secrets</code>.</li>
+<li><strong>Create secret</strong> — type + keys → Create; treat values as sensitive in UI.</li>
+<li><strong>Empty / fail:</strong> ClusterRole must allow secrets write in scope used by Users/Integrations.</li>
+<li><strong>Success:</strong> Secret available to workloads; delete cleans up.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="configmaps.md">ConfigMaps</a></li>
+<li><a href="../admin/users.md">Users</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Getting Started</h2>
+<h3>Purpose</h3>
+<p>Live setup checklist — integration status and first tasks after sign-in.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Getting Started</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/getting-started</code></li>
+<li>Nav: <strong>Sidebar → Getting Started</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/getting-started</code> after first login.</li>
+<li>Walk the checklist; items reflect live Atlas/OIDC/PacketWolf/Haven status.</li>
+<li>Jump from incomplete items into Settings → Integrations or the related center.</li>
+<li><strong>Empty / fail:</strong> Checklist stale → refresh; viewer role can read but cannot complete mutating setup.</li>
+<li><strong>Success:</strong> Critical integrations green; you can run a workload or open Overview confidently.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="overview.md">Overview</a></li>
+<li><a href="../admin/settings.md">Settings</a></li>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Overview</h2>
+<h3>Purpose</h3>
+<p>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Overview</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/overview</code></li>
+<li>Nav: <strong>Sidebar → Overview (default after login)</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Land on <code>/overview</code> after sign-in (or click Overview).</li>
+<li>Confirm cluster name/metrics and recent activity load.</li>
+<li>Use the sidebar cluster switcher when multiple clusters are configured (demo mode ships three).</li>
+<li>Jump to Nodes / Workloads / Alerts from shortcuts or ⌘K.</li>
+<li><strong>Empty / fail:</strong> Metrics blank → API unreachable or wrong activated cluster; re-login.</li>
+<li><strong>Success:</strong> Cluster headline + cards match <code>kubectl</code> reality (or demo fixtures).</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../cluster/nodes.md">Nodes</a></li>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../observe/alerts.md">Alerts</a></li>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Ingresses</h2>
+<h3>Purpose</h3>
+<p>Ingress and Gateway API exposure inventory.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Ingresses</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/ingresses</code></li>
+<li>Nav: <strong>Sidebar → Ingresses</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/ingresses</code>.</li>
+<li>Review host/path rules and Gateway API section when present.</li>
+<li><strong>Empty / fail:</strong> No ingresses → install ingress controller / apply manifests.</li>
+<li><strong>Success:</strong> Hosts listed match customer DNS expectations.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="services.md">Services</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Networking · Cilium</h2>
+<h3>Purpose</h3>
+<p>Service graph, NetworkPolicies, and live PacketWolf flows when configured.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Networking · Cilium</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/networking</code></li>
+<li>Nav: <strong>Sidebar → Networking · Cilium</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/networking</code>.</li>
+<li>Inspect service graph / Cilium summary.</li>
+<li>NetworkPolicies: <strong>Create via YAML</strong> (ApplyManifest) or Delete rows.</li>
+<li>When <code>AXIOM_PACKETWOLF_URL</code> is set, read the live eBPF flow panel.</li>
+<li><strong>Empty / fail:</strong> No flows → PacketWolf unreachable; policies empty → create first.</li>
+<li><strong>Success:</strong> Graph + policies match cluster; seal on a workload shows isolation.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="services.md">Services</a></li>
+<li><a href="../workloads/workloads.md">Workloads</a></li>
+<li><a href="../admin/settings.md">Settings</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Services</h2>
+<h3>Purpose</h3>
+<p>Kubernetes Service inventory and endpoints overview.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Services</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/services</code></li>
+<li>Nav: <strong>Sidebar → Services</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/services</code>; filter by namespace.</li>
+<li>Open a row for ports/selectors; correlate with Ingresses and Pods.</li>
+<li><strong>Empty / fail:</strong> No services → deploy a workload first.</li>
+<li><strong>Success:</strong> ClusterIP/NodePort/LB entries listed.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="ingresses.md">Ingresses</a></li>
+<li><a href="networking.md">Networking · Cilium</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Alerts</h2>
+<h3>Purpose</h3>
+<p>Alert inventory and webhook-driven notifications.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Alerts</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/alerts</code></li>
+<li>Nav: <strong>Sidebar → Alerts</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/alerts</code>.</li>
+<li>Review firing/open alerts; configure webhooks under Settings when available.</li>
+<li><strong>Empty / fail:</strong> No alerts → healthy or integrations not wired.</li>
+<li><strong>Success:</strong> Alert rows match monitoring rules / webhooks.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="events.md">Events</a></li>
+<li><a href="../admin/settings.md">Settings</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Events</h2>
+<h3>Purpose</h3>
+<p>Kubernetes warning/normal events stream for triage.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Events</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/events</code></li>
+<li>Nav: <strong>Sidebar → Events</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/events</code>.</li>
+<li>Filter by type/namespace; open related object links when present.</li>
+<li><strong>Empty / fail:</strong> Quiet cluster is OK; missing events → API watch issue.</li>
+<li><strong>Success:</strong> Recent warnings explain Pending/Failed pods.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../workloads/pods.md">Pods</a></li>
+<li><a href="alerts.md">Alerts</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Pod Logs</h2>
+<h3>Purpose</h3>
+<p>Stream and inspect pod/container logs from the console.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Pod Logs</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/logs</code></li>
+<li>Nav: <strong>Sidebar → Pod Logs</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/logs</code>.</li>
+<li>Select namespace/pod/container; stream or fetch recent lines.</li>
+<li>Correlate with Events and Pod detail when diagnosing CrashLoop.</li>
+<li><strong>Empty / fail:</strong> No lines → wrong container / pod gone; 403 → RBAC logs.</li>
+<li><strong>Success:</strong> Live or recent log text for the selected container.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../workloads/pods.md">Pods</a></li>
+<li><a href="events.md">Events</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Backups</h2>
+<h3>Purpose</h3>
+<p>Volume snapshots, Velero backups, and schedules.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Backups</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/backups</code></li>
+<li>Nav: <strong>Sidebar → Backups</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/backups</code>.</li>
+<li><strong>Create snapshot</strong> for a PVC; <strong>Restore</strong> into a new PVC name when offered.</li>
+<li>Velero: create schedules / list backups when Velero is installed.</li>
+<li><strong>Empty / fail:</strong> Snapshot class missing → install CSI snapshotter; Velero empty → install Velero.</li>
+<li><strong>Success:</strong> Snapshot/backup row appears; restore binds a PVC.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../storage/storage.md">Storage</a></li>
+<li><a href="../storage/atlas.md">Atlas</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Atlas</h2>
+<h3>Purpose</h3>
+<p>Atlas storage control-plane panel — backends, pools, volumes, buckets, policies.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Atlas</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/atlas</code></li>
+<li>Nav: <strong>Sidebar → Atlas</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Wire Atlas under <strong>Settings → Integrations</strong> (URL + token) or deploy with <code>--with-atlas</code>.</li>
+<li>Open <code>/atlas</code> — backends/pools should load when connected.</li>
+<li><strong>Create volume</strong> for a smoke provision; review buckets/policies tables.</li>
+<li><strong>Empty / fail:</strong> Connection failed → Test connection in Settings; token/RBAC.</li>
+<li><strong>Success:</strong> Volume appears; Storage page reflects new PVC if bound into k8s.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="storage.md">Storage</a></li>
+<li><a href="../admin/settings.md">Settings</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Storage</h2>
+<h3>Purpose</h3>
+<p>PVC / storage class intelligence for the connected cluster.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Storage</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/storage</code></li>
+<li>Nav: <strong>Sidebar → Storage</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/storage</code>.</li>
+<li>Review PVCs/StorageClasses; note bound vs pending.</li>
+<li>Cross-link to Atlas for intent-backed provisioning.</li>
+<li><strong>Empty / fail:</strong> Pending PVCs → check provisioner / Atlas.</li>
+<li><strong>Success:</strong> Bound volumes listed for workloads.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="atlas.md">Atlas</a></li>
+<li><a href="../protect/backups.md">Backups</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Autoscaling</h2>
+<h3>Purpose</h3>
+<p>Horizontal Pod Autoscalers — create and delete.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Autoscaling</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/autoscaling</code></li>
+<li>Nav: <strong>Sidebar → Autoscaling</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/autoscaling</code>.</li>
+<li><strong>Create autoscaler</strong> — pick workload + min/max/CPU target → Create.</li>
+<li>Delete retired HPAs from the table.</li>
+<li><strong>Empty / fail:</strong> metrics-server missing → HPA cannot compute.</li>
+<li><strong>Success:</strong> HPA listed; replicas move under load.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Jobs &amp; CronJobs</h2>
+<h3>Purpose</h3>
+<p>Batch Jobs and CronJobs — trigger runs, inspect status, delete.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Jobs &amp; CronJobs</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/jobs</code></li>
+<li>Nav: <strong>Sidebar → Jobs &amp; CronJobs</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/jobs</code>.</li>
+<li>On CronJobs: <strong>Run now</strong> to trigger; delete retired jobs/cronjobs from row actions.</li>
+<li>Confirm Job pods under Pods / Logs.</li>
+<li><strong>Empty / fail:</strong> No CronJobs → create via Apply YAML or workload wizard.</li>
+<li><strong>Success:</strong> Triggered Job appears with completions.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="pods.md">Pods</a></li>
+<li><a href="../observe/logs.md">Pod Logs</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Platform Intents</h2>
+<h3>Purpose</h3>
+<p>Intent-driven placement / platform requests surfaced in the console.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Platform Intents</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/platform-intents</code></li>
+<li>Nav: <strong>Sidebar → Platform Intents</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/platform-intents</code>.</li>
+<li>Review intent cards/status; create via Workloads → Run → Intent when offered.</li>
+<li><strong>Empty / fail:</strong> No intents → submit one from the wizard.</li>
+<li><strong>Success:</strong> Intent progresses to a concrete workload.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Pod detail</h2>
+<h3>Purpose</h3>
+<p>Container specs, metrics, multi-tab PTY terminal, manifest Save, port Open.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Pod detail</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/pods/:namespace/:name</code></li>
+<li>Nav: <strong>Pods → row</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open a pod from <code>/pods</code>.</li>
+<li>Read resources/env/probes; Metrics tab for CPU/memory sparklines.</li>
+<li>Terminal: open sessions (multi-tab WebSocket); demo falls back to one-shot exec.</li>
+<li>YAML tab → <strong>Save</strong> (server-side apply); Open buttons for container ports.</li>
+<li><strong>Empty / fail:</strong> Terminal blocked → auth/token on WS; Save 403 → viewer role.</li>
+<li><strong>Success:</strong> Shell prompt or metrics stream; Save toast OK.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="pods.md">Pods</a></li>
+<li><a href="../observe/logs.md">Pod Logs</a></li>
+<li><a href="workloads.md">Workloads</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Pods</h2>
+<h3>Purpose</h3>
+<p>Pod inventory across namespaces — phase, restarts, entry into pod detail.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Pods</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/pods</code></li>
+<li>Nav: <strong>Sidebar → Pods</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/pods</code>; filter by namespace/status.</li>
+<li>Open <code>/pods/:ns/:name</code> for specs, metrics, terminal, YAML.</li>
+<li>Use scheduling-diagnosis banner when not Running.</li>
+<li><strong>Empty / fail:</strong> Empty → broaden namespace; CrashLoop → Logs + Events.</li>
+<li><strong>Success:</strong> Running pods listed; detail terminal connects (HTTPS / token).</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="pods-namespace-name.md">Pod detail</a></li>
+<li><a href="../observe/logs.md">Pod Logs</a></li>
+<li><a href="../observe/events.md">Events</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Workload detail</h2>
+<h3>Purpose</h3>
+<p>Single controller — owned pods, events, labels, rollout, raw YAML.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Workload detail</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/workloads/:namespace/:kind/:name</code></li>
+<li>Nav: <strong>Workloads → row</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open a workload from the list.</li>
+<li>Inspect owned Pods and Events; use lifecycle actions from the page.</li>
+<li>Edit YAML carefully — Save uses server-side apply where offered.</li>
+<li><strong>Empty / fail:</strong> Missing pods → check selectors / Events.</li>
+<li><strong>Success:</strong> Desired replicas match Ready; rollout history coherent.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="workloads.md">Workloads</a></li>
+<li><a href="pods.md">Pods</a></li>
+<li><a href="../observe/events.md">Events</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Workloads</h2>
+<h3>Purpose</h3>
+<p>Deployments, StatefulSets, DaemonSets — scale, restart, seal, rollout, and Run workload wizard.</p>
+<h3>When to use it</h3>
+<ul>
+<li>Operate <strong>Workloads</strong> when your job matches this page</li>
+<li>Prefer <strong>Overview</strong> after login if you are unsure where to start</li>
+<li>Confirm auth and activated cluster if inventories look empty</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>Route: <code>/workloads</code></li>
+<li>Nav: <strong>Sidebar → Workloads</strong></li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open <code>/workloads</code>.</li>
+<li><strong>Run workload</strong> — Form / Intent / YAML tabs → submit.</li>
+<li>Row menu: Start / Stop / Restart / Scale / Seal / Unseal / Delete / Rollout (pause, resume, undo).</li>
+<li>Open detail <code>/workloads/:ns/:kind/:name</code> for pods, events, YAML.</li>
+<li><strong>Empty / fail:</strong> Viewer gets 403 on mutate; empty list → wrong namespace filter or fresh cluster.</li>
+<li><strong>Success:</strong> New Deployment appears; scale/restart toasts succeed.</li>
+</ol>
+<p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="workloads-namespace-kind-name.md">Workload detail</a></li>
+<li><a href="pods.md">Pods</a></li>
+<li><a href="platform-intents.md">Platform Intents</a></li>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
+<hr>
+<h2>Axiom — Complete page index</h2>
+<p>Every primary navigable dashboard route.</p>
+<p><em>Generated: 2026-08-29 · 30 routes</em></p>
+<p>Regenerate: <code>node scripts/customer-docs/generate-page-index.mjs</code></p>
+<h3>AUTH</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Login</td>
+<td><code>/login</code></td>
+<td>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
+<td><a href="pages/auth/login.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>CONSOLE</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Getting Started</td>
+<td><code>/getting-started</code></td>
+<td>Live setup checklist — integration status and first tasks after sign-in.</td>
+<td><a href="pages/console/getting-started.md">Open</a></td>
+</tr>
+<tr>
+<td>Overview</td>
+<td><code>/overview</code></td>
+<td>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</td>
+<td><a href="pages/console/overview.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>CLUSTER</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nodes</td>
+<td><code>/nodes</code></td>
+<td>Kubernetes node inventory — Ready state, capacity, and entry into node detail.</td>
+<td><a href="pages/cluster/nodes.md">Open</a></td>
+</tr>
+<tr>
+<td>Node detail</td>
+<td><code>/nodes/:name</code></td>
+<td>Single-node conditions, capacity, taints, and related workloads.</td>
+<td><a href="pages/cluster/nodes-name.md">Open</a></td>
+</tr>
+<tr>
+<td>Namespaces</td>
+<td><code>/namespaces</code></td>
+<td>Namespace inventory — create and delete tenancy boundaries.</td>
+<td><a href="pages/cluster/namespaces.md">Open</a></td>
+</tr>
+<tr>
+<td>Custom Resources</td>
+<td><code>/custom-resources</code></td>
+<td>Browse CRD kinds and list custom resource instances.</td>
+<td><a href="pages/cluster/custom-resources.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>WORKLOADS</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Workloads</td>
+<td><code>/workloads</code></td>
+<td>Deployments, StatefulSets, DaemonSets — scale, restart, seal, rollout, and Run workload wizard.</td>
+<td><a href="pages/workloads/workloads.md">Open</a></td>
+</tr>
+<tr>
+<td>Workload detail</td>
+<td><code>/workloads/:namespace/:kind/:name</code></td>
+<td>Single controller — owned pods, events, labels, rollout, raw YAML.</td>
+<td><a href="pages/workloads/workloads-namespace-kind-name.md">Open</a></td>
+</tr>
+<tr>
+<td>Jobs &amp; CronJobs</td>
+<td><code>/jobs</code></td>
+<td>Batch Jobs and CronJobs — trigger runs, inspect status, delete.</td>
+<td><a href="pages/workloads/jobs.md">Open</a></td>
+</tr>
+<tr>
+<td>Pods</td>
+<td><code>/pods</code></td>
+<td>Pod inventory across namespaces — phase, restarts, entry into pod detail.</td>
+<td><a href="pages/workloads/pods.md">Open</a></td>
+</tr>
+<tr>
+<td>Pod detail</td>
+<td><code>/pods/:namespace/:name</code></td>
+<td>Container specs, metrics, multi-tab PTY terminal, manifest Save, port Open.</td>
+<td><a href="pages/workloads/pods-namespace-name.md">Open</a></td>
+</tr>
+<tr>
+<td>Platform Intents</td>
+<td><code>/platform-intents</code></td>
+<td>Intent-driven placement / platform requests surfaced in the console.</td>
+<td><a href="pages/workloads/platform-intents.md">Open</a></td>
+</tr>
+<tr>
+<td>Autoscaling</td>
+<td><code>/autoscaling</code></td>
+<td>Horizontal Pod Autoscalers — create and delete.</td>
+<td><a href="pages/workloads/autoscaling.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>NETWORKING</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Networking · Cilium</td>
+<td><code>/networking</code></td>
+<td>Service graph, NetworkPolicies, and live PacketWolf flows when configured.</td>
+<td><a href="pages/networking/networking.md">Open</a></td>
+</tr>
+<tr>
+<td>Services</td>
+<td><code>/services</code></td>
+<td>Kubernetes Service inventory and endpoints overview.</td>
+<td><a href="pages/networking/services.md">Open</a></td>
+</tr>
+<tr>
+<td>Ingresses</td>
+<td><code>/ingresses</code></td>
+<td>Ingress and Gateway API exposure inventory.</td>
+<td><a href="pages/networking/ingresses.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>COMPUTE</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Virtual Machines</td>
+<td><code>/vms</code></td>
+<td>KubeVirt VM inventory and day-2 actions in the Axiom console.</td>
+<td><a href="pages/compute/vms.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>STORAGE</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Storage</td>
+<td><code>/storage</code></td>
+<td>PVC / storage class intelligence for the connected cluster.</td>
+<td><a href="pages/storage/storage.md">Open</a></td>
+</tr>
+<tr>
+<td>Atlas</td>
+<td><code>/atlas</code></td>
+<td>Atlas storage control-plane panel — backends, pools, volumes, buckets, policies.</td>
+<td><a href="pages/storage/atlas.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>OBSERVE</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pod Logs</td>
+<td><code>/logs</code></td>
+<td>Stream and inspect pod/container logs from the console.</td>
+<td><a href="pages/observe/logs.md">Open</a></td>
+</tr>
+<tr>
+<td>Events</td>
+<td><code>/events</code></td>
+<td>Kubernetes warning/normal events stream for triage.</td>
+<td><a href="pages/observe/events.md">Open</a></td>
+</tr>
+<tr>
+<td>Alerts</td>
+<td><code>/alerts</code></td>
+<td>Alert inventory and webhook-driven notifications.</td>
+<td><a href="pages/observe/alerts.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>CONFIG</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ConfigMaps</td>
+<td><code>/configmaps</code></td>
+<td>ConfigMap inventory — create, edit keys, delete.</td>
+<td><a href="pages/config/configmaps.md">Open</a></td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td><code>/secrets</code></td>
+<td>Secret inventory — create typed secrets, add keys, delete.</td>
+<td><a href="pages/config/secrets.md">Open</a></td>
+</tr>
+<tr>
+<td>Quotas &amp; Limits</td>
+<td><code>/quotas</code></td>
+<td>ResourceQuotas, LimitRanges, PDBs, PriorityClasses.</td>
+<td><a href="pages/config/quotas.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>PROTECT</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Backups</td>
+<td><code>/backups</code></td>
+<td>Volume snapshots, Velero backups, and schedules.</td>
+<td><a href="pages/protect/backups.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>ADMIN</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>Purpose</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ops hub</td>
+<td><code>/ops</code></td>
+<td>Day-2 ops tabs — GitOps/Helm/RBAC/Identity and related operator tools.</td>
+<td><a href="pages/admin/ops.md">Open</a></td>
+</tr>
+<tr>
+<td>Users</td>
+<td><code>/users</code></td>
+<td>Local user accounts with admin or viewer roles.</td>
+<td><a href="pages/admin/users.md">Open</a></td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>/settings</code></td>
+<td>Integrations, clusters, theme, and console configuration.</td>
+<td><a href="pages/admin/settings.md">Open</a></td>
+</tr>
+</tbody></table>
+<h3>Related</h3>
+<ul>
+<li><a href="README.md">Customer docs home</a></li>
+<li><a href="pages/README.md">Page-by-page guides</a></li>
+</ul>
+</main></body></html>

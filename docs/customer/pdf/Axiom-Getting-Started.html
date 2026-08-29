@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Getting Started — Axiom</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#0a0a12,#1a1528,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#6ab6f0}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:24em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #6ab6f0;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · Customer Documentation</div>
+<h1>Ax<span>iom</span></h1>
+<div class="sub">Getting Started</div>
+<div class="badge">2026-08-29</div>
+<div class="foot">zyvor.dev · Confidential — for licensed customers</div></section>
+<main><h2>Prerequisites</h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>k3s / Kubernetes</td>
+<td>Or <code>AXIOM_MODE=demo</code> for a local deterministic lab</td>
+</tr>
+<tr>
+<td>Browser</td>
+<td>Accept self-signed HTTPS on lab NodePort <strong>30590</strong></td>
+</tr>
+<tr>
+<td>Credentials</td>
+<td>Lab <code>demo</code> / <code>demo</code>, operator Secret, local Users, or SSO</td>
+</tr>
+</tbody></table>
+<h2>1. Open the console</h2>
+<ol>
+<li>Browse to <code>https://&lt;host&gt;:30590/</code> (or your ingress). Accept the certificate warning once if needed.</li>
+<li>Probe health: <code>curl -k https://&lt;host&gt;:30590/api/v1/health</code>.</li>
+<li>If NodePort <strong>30590</strong> is taken, redeploy with <code>AXIOM_NODE_PORT=30591</code> (or another free port).</li>
+</ol>
+<h3>Lab deploy (remote)</h3>
+<pre><code class="language-bash">./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt;
+./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt; --quick          # skip image rebuild
+./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt; --with-atlas     # optional Atlas on same host
+</code></pre>
+<h3>Local demo (no cluster)</h3>
+<p>Follow product QUICKSTART for <code>AXIOM_MODE=demo</code> on port <strong>5090</strong>.</p>
+<h2>2. Sign in</h2>
+<table>
+<thead>
+<tr>
+<th>Account</th>
+<th>Credentials</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lab demo</td>
+<td><code>demo</code> / <code>demo</code></td>
+<td>SSO not configured</td>
+</tr>
+<tr>
+<td>Operator</td>
+<td><code>AXIOM_USERNAME</code> / <code>AXIOM_PASSWORD</code></td>
+<td>Secret <code>zyvor-axiom-auth</code></td>
+</tr>
+<tr>
+<td>Local user</td>
+<td>Settings → Users</td>
+<td><code>admin</code> or <code>viewer</code></td>
+</tr>
+<tr>
+<td>SSO</td>
+<td>OIDC/SAML</td>
+<td>Settings → Integrations</td>
+</tr>
+</tbody></table>
+<p>Use <strong>fill demo / demo</strong> on the login form when SSO is off.</p>
+<h2>3. Orient yourself (UX)</h2>
+<ol>
+<li><strong>Overview</strong> — cluster pulse and shortcuts.</li>
+<li><strong>Getting Started</strong> — live integration checklist.</li>
+<li>Sidebar + command palette (⌘K) — Workloads, Pods, Networking, Atlas, Ops, Settings.</li>
+<li>Cluster switcher — real multi-cluster activate; demo mode ships three clusters.</li>
+<li>Viewer role can read everything but mutating APIs return <strong>403</strong>.</li>
+</ol>
+<h2>4. First useful work</h2>
+<ol>
+<li><strong>Workloads → Run workload</strong> (Form / Intent / YAML).</li>
+<li>Open <strong>Pods</strong> / <strong>Pod detail</strong> — logs and terminal.</li>
+<li><strong>Settings → Integrations</strong> — wire Atlas or PacketWolf if needed.</li>
+</ol>
+<h2>Next steps</h2>
+<ul>
+<li><a href="using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="admin-basics.md">Admin basics</a></li>
+<li><a href="pages/README.md">Page guides</a></li>
+<li><a href="workflows.md">Workflows</a></li>
+</ul>
+<hr>
+<p>Axiom is a Go API with an embedded React SPA (Liquid Glass). Production talks to k3s/Kubernetes; demo mode uses deterministic fixtures.</p>
+<h2>Shell chrome</h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sidebar</td>
+<td>NAV_ITEMS — Getting Started through Settings</td>
+</tr>
+<tr>
+<td>Cluster switcher</td>
+<td><code>GET/POST /api/v1/clusters…/activate</code></td>
+</tr>
+<tr>
+<td>Command palette</td>
+<td>⌘K / Ctrl+K — same route list as the sidebar</td>
+</tr>
+<tr>
+<td>Top bar / user menu</td>
+<td>Session, theme, sign out</td>
+</tr>
+<tr>
+<td>Toasts</td>
+<td>Mutation results (create/scale/delete)</td>
+</tr>
+</tbody></table>
+<h2>Operate tips</h2>
+<ol>
+<li>Start on <strong>Overview</strong>, then <strong>Getting Started</strong> for integration gaps.</li>
+<li>Prefer semantic workload actions (Start/Stop/Restart/Scale/Seal) over raw kubectl for day-2.</li>
+<li>Pod detail terminal needs a valid session (WebSocket may use <code>?access_token=</code> for Basic auth).</li>
+<li>Deterministic navigation calls the router — do not send “open Workloads” through an AI helper.</li>
+<li>Never paste lab IPs into runbooks — use <code>&lt;host&gt;</code>.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="PAGE_INDEX.md">Page index</a></li>
+<li><a href="workflows.md">Workflows</a></li>
+</ul>
+<hr>
+<p>Each recipe assumes you can reach <code>https://&lt;host&gt;:30590/</code> and have signed in.</p>
+<h2>Verify a fresh deploy</h2>
+<ol>
+<li>Deploy: <code>./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt;</code> (<a href="getting-started.md">Getting Started</a>).</li>
+<li><code>curl -k https://&lt;host&gt;:30590/api/v1/health</code>.</li>
+<li>Sign in (<code>demo</code> / <code>demo</code> when SSO is off).</li>
+<li><a href="pages/console/overview.md">Overview</a> → metrics load.</li>
+<li><a href="pages/console/getting-started.md">Getting Started</a> checklist.</li>
+<li><a href="pages/cluster/nodes.md">Nodes</a> → Ready nodes.</li>
+<li><a href="pages/admin/settings.md">Settings</a> → integrations.</li>
+</ol>
+<p>If NodePort conflicts: <code>AXIOM_NODE_PORT=30592 ./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt; --quick</code>.</p>
+<h2>Connect Atlas</h2>
+<pre><code class="language-bash">./scripts/deploy-remote.sh &lt;host&gt; &lt;user&gt; --with-atlas
+</code></pre>
+<p>Or Settings → Integrations → Atlas → Save → Test → <a href="pages/storage/atlas.md">Atlas</a> → <strong>Create volume</strong>.</p>
+<h2>Connect PacketWolf</h2>
+<p>Set <code>AXIOM_PACKETWOLF_URL</code> (and key) → <a href="pages/networking/networking.md">Networking</a> live flow panel → seal a workload to confirm isolation.</p>
+<h2>Run and scale a workload</h2>
+<ol>
+<li><a href="pages/workloads/workloads.md">Workloads</a> → <strong>Run workload</strong> (Form / Intent / YAML).</li>
+<li>Open workload detail → owned Pods.</li>
+<li>Scale / Restart from the row menu.</li>
+<li><a href="pages/workloads/pods-namespace-name.md">Pod detail</a> → Logs / Terminal.</li>
+</ol>
+<h2>Backup a PVC</h2>
+<ol>
+<li><a href="pages/protect/backups.md">Backups</a> → <strong>Create snapshot</strong>.</li>
+<li>Restore to a new PVC name when rehearsing DR.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="admin-basics.md">Admin basics</a></li>
+</ul>
+</main></body></html>

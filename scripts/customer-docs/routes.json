@@ -1,0 +1,184 @@
+{
+  "routes": [
+    {
+      "label": "Login",
+      "path": "/login",
+      "category": "AUTH",
+      "legacy": false
+    },
+    {
+      "label": "Getting Started",
+      "path": "/getting-started",
+      "category": "CONSOLE",
+      "legacy": false
+    },
+    {
+      "label": "Overview",
+      "path": "/overview",
+      "category": "CONSOLE",
+      "legacy": false
+    },
+    {
+      "label": "Nodes",
+      "path": "/nodes",
+      "category": "CLUSTER",
+      "legacy": false
+    },
+    {
+      "label": "Node detail",
+      "path": "/nodes/:name",
+      "category": "CLUSTER",
+      "legacy": false
+    },
+    {
+      "label": "Workloads",
+      "path": "/workloads",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Workload detail",
+      "path": "/workloads/:namespace/:kind/:name",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Jobs & CronJobs",
+      "path": "/jobs",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Pods",
+      "path": "/pods",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Pod detail",
+      "path": "/pods/:namespace/:name",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Platform Intents",
+      "path": "/platform-intents",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Networking \u00b7 Cilium",
+      "path": "/networking",
+      "category": "NETWORKING",
+      "legacy": false
+    },
+    {
+      "label": "Services",
+      "path": "/services",
+      "category": "NETWORKING",
+      "legacy": false
+    },
+    {
+      "label": "Ingresses",
+      "path": "/ingresses",
+      "category": "NETWORKING",
+      "legacy": false
+    },
+    {
+      "label": "Namespaces",
+      "path": "/namespaces",
+      "category": "CLUSTER",
+      "legacy": false
+    },
+    {
+      "label": "Virtual Machines",
+      "path": "/vms",
+      "category": "COMPUTE",
+      "legacy": false
+    },
+    {
+      "label": "Storage",
+      "path": "/storage",
+      "category": "STORAGE",
+      "legacy": false
+    },
+    {
+      "label": "Atlas",
+      "path": "/atlas",
+      "category": "STORAGE",
+      "legacy": false
+    },
+    {
+      "label": "Pod Logs",
+      "path": "/logs",
+      "category": "OBSERVE",
+      "legacy": false
+    },
+    {
+      "label": "Events",
+      "path": "/events",
+      "category": "OBSERVE",
+      "legacy": false
+    },
+    {
+      "label": "ConfigMaps",
+      "path": "/configmaps",
+      "category": "CONFIG",
+      "legacy": false
+    },
+    {
+      "label": "Secrets",
+      "path": "/secrets",
+      "category": "CONFIG",
+      "legacy": false
+    },
+    {
+      "label": "Quotas & Limits",
+      "path": "/quotas",
+      "category": "CONFIG",
+      "legacy": false
+    },
+    {
+      "label": "Autoscaling",
+      "path": "/autoscaling",
+      "category": "WORKLOADS",
+      "legacy": false
+    },
+    {
+      "label": "Custom Resources",
+      "path": "/custom-resources",
+      "category": "CLUSTER",
+      "legacy": false
+    },
+    {
+      "label": "Backups",
+      "path": "/backups",
+      "category": "PROTECT",
+      "legacy": false
+    },
+    {
+      "label": "Alerts",
+      "path": "/alerts",
+      "category": "OBSERVE",
+      "legacy": false
+    },
+    {
+      "label": "Ops hub",
+      "path": "/ops",
+      "category": "ADMIN",
+      "legacy": false
+    },
+    {
+      "label": "Users",
+      "path": "/users",
+      "category": "ADMIN",
+      "legacy": false
+    },
+    {
+      "label": "Settings",
+      "path": "/settings",
+      "category": "ADMIN",
+      "legacy": false
+    }
+  ]
+}

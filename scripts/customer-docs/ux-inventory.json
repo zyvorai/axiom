@@ -1,0 +1,421 @@
+{
+  "product": "Axiom",
+  "surfaces": [
+    {
+      "path": "/login",
+      "label": "Login",
+      "category": "AUTH",
+      "nav": "Shown when unauthenticated \u2192 `/login`",
+      "purpose": "Sign in to the Liquid Glass console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
+      "operate": [
+        "Open `https://<host>:30590/` and accept the self-signed certificate once if needed.",
+        "When SSO is off, use **fill demo / demo** then **Sign in** (lab default `demo` / `demo`).",
+        "Or enter operator credentials from Secret `zyvor-axiom-auth` / `AXIOM_USERNAME`+`AXIOM_PASSWORD`.",
+        "When SSO is configured, use the OIDC/SAML buttons (public client + PKCE).",
+        "**Empty / fail:** Sign in failed toast \u2192 check credentials / SSO redirect URI `/api/v1/auth/oidc/callback`; health: `curl -k https://<host>:30590/api/v1/health`.",
+        "**Success:** Redirect to **Overview**; cluster switcher and sidebar appear."
+      ]
+    },
+    {
+      "path": "/getting-started",
+      "label": "Getting Started",
+      "category": "CONSOLE",
+      "nav": "Sidebar \u2192 Getting Started",
+      "purpose": "Live setup checklist \u2014 integration status and first tasks after sign-in.",
+      "operate": [
+        "Open `/getting-started` after first login.",
+        "Walk the checklist; items reflect live Atlas/OIDC/PacketWolf/Haven status.",
+        "Jump from incomplete items into Settings \u2192 Integrations or the related center.",
+        "**Empty / fail:** Checklist stale \u2192 refresh; viewer role can read but cannot complete mutating setup.",
+        "**Success:** Critical integrations green; you can run a workload or open Overview confidently."
+      ]
+    },
+    {
+      "path": "/overview",
+      "label": "Overview",
+      "category": "CONSOLE",
+      "nav": "Sidebar \u2192 Overview (default after login)",
+      "purpose": "Cluster pulse \u2014 capacity metrics, activity, and shortcuts into day-2 centers.",
+      "operate": [
+        "Land on `/overview` after sign-in (or click Overview).",
+        "Confirm cluster name/metrics and recent activity load.",
+        "Use the sidebar cluster switcher when multiple clusters are configured (demo mode ships three).",
+        "Jump to Nodes / Workloads / Alerts from shortcuts or \u2318K.",
+        "**Empty / fail:** Metrics blank \u2192 API unreachable or wrong activated cluster; re-login.",
+        "**Success:** Cluster headline + cards match `kubectl` reality (or demo fixtures)."
+      ]
+    },
+    {
+      "path": "/nodes",
+      "label": "Nodes",
+      "category": "CLUSTER",
+      "nav": "Sidebar \u2192 Nodes",
+      "purpose": "Kubernetes node inventory \u2014 Ready state, capacity, and entry into node detail.",
+      "operate": [
+        "Open `/nodes` and wait for the table.",
+        "Filter/search; open a row \u2192 `/nodes/:name` for taints, conditions, capacity.",
+        "On detail: **Add taint** when draining or isolating capacity.",
+        "**Empty / fail:** No nodes \u2192 cluster API / RBAC; demo mode should still show fixtures.",
+        "**Success:** Ready nodes listed; detail matches cluster state."
+      ]
+    },
+    {
+      "path": "/nodes/:name",
+      "label": "Node detail",
+      "category": "CLUSTER",
+      "nav": "Nodes \u2192 row",
+      "purpose": "Single-node conditions, capacity, taints, and related workloads.",
+      "operate": [
+        "Open a node from `/nodes`.",
+        "Review conditions and capacity; add/remove taints as needed.",
+        "Correlate NotReady with Events and Pods.",
+        "**Empty / fail:** 404 \u2192 stale name; permission errors \u2192 ClusterRole.",
+        "**Success:** Taint/condition changes reflect after refresh."
+      ]
+    },
+    {
+      "path": "/workloads",
+      "label": "Workloads",
+      "category": "WORKLOADS",
+      "nav": "Sidebar \u2192 Workloads",
+      "purpose": "Deployments, StatefulSets, DaemonSets \u2014 scale, restart, seal, rollout, and Run workload wizard.",
+      "operate": [
+        "Open `/workloads`.",
+        "**Run workload** \u2014 Form / Intent / YAML tabs \u2192 submit.",
+        "Row menu: Start / Stop / Restart / Scale / Seal / Unseal / Delete / Rollout (pause, resume, undo).",
+        "Open detail `/workloads/:ns/:kind/:name` for pods, events, YAML.",
+        "**Empty / fail:** Viewer gets 403 on mutate; empty list \u2192 wrong namespace filter or fresh cluster.",
+        "**Success:** New Deployment appears; scale/restart toasts succeed."
+      ]
+    },
+    {
+      "path": "/workloads/:namespace/:kind/:name",
+      "label": "Workload detail",
+      "category": "WORKLOADS",
+      "nav": "Workloads \u2192 row",
+      "purpose": "Single controller \u2014 owned pods, events, labels, rollout, raw YAML.",
+      "operate": [
+        "Open a workload from the list.",
+        "Inspect owned Pods and Events; use lifecycle actions from the page.",
+        "Edit YAML carefully \u2014 Save uses server-side apply where offered.",
+        "**Empty / fail:** Missing pods \u2192 check selectors / Events.",
+        "**Success:** Desired replicas match Ready; rollout history coherent."
+      ]
+    },
+    {
+      "path": "/jobs",
+      "label": "Jobs & CronJobs",
+      "category": "WORKLOADS",
+      "nav": "Sidebar \u2192 Jobs & CronJobs",
+      "purpose": "Batch Jobs and CronJobs \u2014 trigger runs, inspect status, delete.",
+      "operate": [
+        "Open `/jobs`.",
+        "On CronJobs: **Run now** to trigger; delete retired jobs/cronjobs from row actions.",
+        "Confirm Job pods under Pods / Logs.",
+        "**Empty / fail:** No CronJobs \u2192 create via Apply YAML or workload wizard.",
+        "**Success:** Triggered Job appears with completions."
+      ]
+    },
+    {
+      "path": "/pods",
+      "label": "Pods",
+      "category": "WORKLOADS",
+      "nav": "Sidebar \u2192 Pods",
+      "purpose": "Pod inventory across namespaces \u2014 phase, restarts, entry into pod detail.",
+      "operate": [
+        "Open `/pods`; filter by namespace/status.",
+        "Open `/pods/:ns/:name` for specs, metrics, terminal, YAML.",
+        "Use scheduling-diagnosis banner when not Running.",
+        "**Empty / fail:** Empty \u2192 broaden namespace; CrashLoop \u2192 Logs + Events.",
+        "**Success:** Running pods listed; detail terminal connects (HTTPS / token)."
+      ]
+    },
+    {
+      "path": "/pods/:namespace/:name",
+      "label": "Pod detail",
+      "category": "WORKLOADS",
+      "nav": "Pods \u2192 row",
+      "purpose": "Container specs, metrics, multi-tab PTY terminal, manifest Save, port Open.",
+      "operate": [
+        "Open a pod from `/pods`.",
+        "Read resources/env/probes; Metrics tab for CPU/memory sparklines.",
+        "Terminal: open sessions (multi-tab WebSocket); demo falls back to one-shot exec.",
+        "YAML tab \u2192 **Save** (server-side apply); Open buttons for container ports.",
+        "**Empty / fail:** Terminal blocked \u2192 auth/token on WS; Save 403 \u2192 viewer role.",
+        "**Success:** Shell prompt or metrics stream; Save toast OK."
+      ]
+    },
+    {
+      "path": "/platform-intents",
+      "label": "Platform Intents",
+      "category": "WORKLOADS",
+      "nav": "Sidebar \u2192 Platform Intents",
+      "purpose": "Intent-driven placement / platform requests surfaced in the console.",
+      "operate": [
+        "Open `/platform-intents`.",
+        "Review intent cards/status; create via Workloads \u2192 Run \u2192 Intent when offered.",
+        "**Empty / fail:** No intents \u2192 submit one from the wizard.",
+        "**Success:** Intent progresses to a concrete workload."
+      ]
+    },
+    {
+      "path": "/networking",
+      "label": "Networking \u00b7 Cilium",
+      "category": "NETWORKING",
+      "nav": "Sidebar \u2192 Networking \u00b7 Cilium",
+      "purpose": "Service graph, NetworkPolicies, and live PacketWolf flows when configured.",
+      "operate": [
+        "Open `/networking`.",
+        "Inspect service graph / Cilium summary.",
+        "NetworkPolicies: **Create via YAML** (ApplyManifest) or Delete rows.",
+        "When `AXIOM_PACKETWOLF_URL` is set, read the live eBPF flow panel.",
+        "**Empty / fail:** No flows \u2192 PacketWolf unreachable; policies empty \u2192 create first.",
+        "**Success:** Graph + policies match cluster; seal on a workload shows isolation."
+      ]
+    },
+    {
+      "path": "/services",
+      "label": "Services",
+      "category": "NETWORKING",
+      "nav": "Sidebar \u2192 Services",
+      "purpose": "Kubernetes Service inventory and endpoints overview.",
+      "operate": [
+        "Open `/services`; filter by namespace.",
+        "Open a row for ports/selectors; correlate with Ingresses and Pods.",
+        "**Empty / fail:** No services \u2192 deploy a workload first.",
+        "**Success:** ClusterIP/NodePort/LB entries listed."
+      ]
+    },
+    {
+      "path": "/ingresses",
+      "label": "Ingresses",
+      "category": "NETWORKING",
+      "nav": "Sidebar \u2192 Ingresses",
+      "purpose": "Ingress and Gateway API exposure inventory.",
+      "operate": [
+        "Open `/ingresses`.",
+        "Review host/path rules and Gateway API section when present.",
+        "**Empty / fail:** No ingresses \u2192 install ingress controller / apply manifests.",
+        "**Success:** Hosts listed match customer DNS expectations."
+      ]
+    },
+    {
+      "path": "/namespaces",
+      "label": "Namespaces",
+      "category": "CLUSTER",
+      "nav": "Sidebar \u2192 Namespaces",
+      "purpose": "Namespace inventory \u2014 create and delete tenancy boundaries.",
+      "operate": [
+        "Open `/namespaces`.",
+        "**Create namespace** \u2192 name \u2192 Create; Delete from row actions (confirm).",
+        "**Empty / fail:** 403 \u2192 viewer; delete blocked if resources remain.",
+        "**Success:** Namespace appears in filters across Workloads/Pods."
+      ]
+    },
+    {
+      "path": "/vms",
+      "label": "Virtual Machines",
+      "category": "COMPUTE",
+      "nav": "Sidebar \u2192 Virtual Machines",
+      "purpose": "KubeVirt VM inventory and day-2 actions in the Axiom console.",
+      "operate": [
+        "Open `/vms`.",
+        "Filter and open VMs; use lifecycle actions the page exposes (start/stop when available).",
+        "Confirm KubeVirt is installed if the list stays empty on a real cluster.",
+        "**Empty / fail:** No VMs \u2192 install KubeVirt or use demo fixtures.",
+        "**Success:** VM phases update after power actions."
+      ]
+    },
+    {
+      "path": "/storage",
+      "label": "Storage",
+      "category": "STORAGE",
+      "nav": "Sidebar \u2192 Storage",
+      "purpose": "PVC / storage class intelligence for the connected cluster.",
+      "operate": [
+        "Open `/storage`.",
+        "Review PVCs/StorageClasses; note bound vs pending.",
+        "Cross-link to Atlas for intent-backed provisioning.",
+        "**Empty / fail:** Pending PVCs \u2192 check provisioner / Atlas.",
+        "**Success:** Bound volumes listed for workloads."
+      ]
+    },
+    {
+      "path": "/atlas",
+      "label": "Atlas",
+      "category": "STORAGE",
+      "nav": "Sidebar \u2192 Atlas",
+      "purpose": "Atlas storage control-plane panel \u2014 backends, pools, volumes, buckets, policies.",
+      "operate": [
+        "Wire Atlas under **Settings \u2192 Integrations** (URL + token) or deploy with `--with-atlas`.",
+        "Open `/atlas` \u2014 backends/pools should load when connected.",
+        "**Create volume** for a smoke provision; review buckets/policies tables.",
+        "**Empty / fail:** Connection failed \u2192 Test connection in Settings; token/RBAC.",
+        "**Success:** Volume appears; Storage page reflects new PVC if bound into k8s."
+      ]
+    },
+    {
+      "path": "/logs",
+      "label": "Pod Logs",
+      "category": "OBSERVE",
+      "nav": "Sidebar \u2192 Pod Logs",
+      "purpose": "Stream and inspect pod/container logs from the console.",
+      "operate": [
+        "Open `/logs`.",
+        "Select namespace/pod/container; stream or fetch recent lines.",
+        "Correlate with Events and Pod detail when diagnosing CrashLoop.",
+        "**Empty / fail:** No lines \u2192 wrong container / pod gone; 403 \u2192 RBAC logs.",
+        "**Success:** Live or recent log text for the selected container."
+      ]
+    },
+    {
+      "path": "/events",
+      "label": "Events",
+      "category": "OBSERVE",
+      "nav": "Sidebar \u2192 Events",
+      "purpose": "Kubernetes warning/normal events stream for triage.",
+      "operate": [
+        "Open `/events`.",
+        "Filter by type/namespace; open related object links when present.",
+        "**Empty / fail:** Quiet cluster is OK; missing events \u2192 API watch issue.",
+        "**Success:** Recent warnings explain Pending/Failed pods."
+      ]
+    },
+    {
+      "path": "/configmaps",
+      "label": "ConfigMaps",
+      "category": "CONFIG",
+      "nav": "Sidebar \u2192 ConfigMaps",
+      "purpose": "ConfigMap inventory \u2014 create, edit keys, delete.",
+      "operate": [
+        "Open `/configmaps`.",
+        "**Create ConfigMap** \u2014 add keys \u2192 Create; delete retired maps.",
+        "**Empty / fail:** 403 on mutate \u2192 viewer role.",
+        "**Success:** ConfigMap listed and mountable by workloads."
+      ]
+    },
+    {
+      "path": "/secrets",
+      "label": "Secrets",
+      "category": "CONFIG",
+      "nav": "Sidebar \u2192 Secrets",
+      "purpose": "Secret inventory \u2014 create typed secrets, add keys, delete.",
+      "operate": [
+        "Open `/secrets`.",
+        "**Create secret** \u2014 type + keys \u2192 Create; treat values as sensitive in UI.",
+        "**Empty / fail:** ClusterRole must allow secrets write in scope used by Users/Integrations.",
+        "**Success:** Secret available to workloads; delete cleans up."
+      ]
+    },
+    {
+      "path": "/quotas",
+      "label": "Quotas & Limits",
+      "category": "CONFIG",
+      "nav": "Sidebar \u2192 Quotas & Limits",
+      "purpose": "ResourceQuotas, LimitRanges, PDBs, PriorityClasses.",
+      "operate": [
+        "Open `/quotas`.",
+        "Review quota / limit range / PDB / priority class tables.",
+        "Adjust via YAML apply when the UI does not offer inline edit.",
+        "**Empty / fail:** No quotas \u2192 create for multi-tenant namespaces.",
+        "**Success:** Hard limits visible; workload create respects them."
+      ]
+    },
+    {
+      "path": "/autoscaling",
+      "label": "Autoscaling",
+      "category": "WORKLOADS",
+      "nav": "Sidebar \u2192 Autoscaling",
+      "purpose": "Horizontal Pod Autoscalers \u2014 create and delete.",
+      "operate": [
+        "Open `/autoscaling`.",
+        "**Create autoscaler** \u2014 pick workload + min/max/CPU target \u2192 Create.",
+        "Delete retired HPAs from the table.",
+        "**Empty / fail:** metrics-server missing \u2192 HPA cannot compute.",
+        "**Success:** HPA listed; replicas move under load."
+      ]
+    },
+    {
+      "path": "/custom-resources",
+      "label": "Custom Resources",
+      "category": "CLUSTER",
+      "nav": "Sidebar \u2192 Custom Resources",
+      "purpose": "Browse CRD kinds and list custom resource instances.",
+      "operate": [
+        "Open `/custom-resources`.",
+        "Select a kind; inspect instance table.",
+        "**Empty / fail:** No CRDs \u2192 expected on minimal clusters; install operators as needed.",
+        "**Success:** Instances for installed operators appear."
+      ]
+    },
+    {
+      "path": "/backups",
+      "label": "Backups",
+      "category": "PROTECT",
+      "nav": "Sidebar \u2192 Backups",
+      "purpose": "Volume snapshots, Velero backups, and schedules.",
+      "operate": [
+        "Open `/backups`.",
+        "**Create snapshot** for a PVC; **Restore** into a new PVC name when offered.",
+        "Velero: create schedules / list backups when Velero is installed.",
+        "**Empty / fail:** Snapshot class missing \u2192 install CSI snapshotter; Velero empty \u2192 install Velero.",
+        "**Success:** Snapshot/backup row appears; restore binds a PVC."
+      ]
+    },
+    {
+      "path": "/alerts",
+      "label": "Alerts",
+      "category": "OBSERVE",
+      "nav": "Sidebar \u2192 Alerts",
+      "purpose": "Alert inventory and webhook-driven notifications.",
+      "operate": [
+        "Open `/alerts`.",
+        "Review firing/open alerts; configure webhooks under Settings when available.",
+        "**Empty / fail:** No alerts \u2192 healthy or integrations not wired.",
+        "**Success:** Alert rows match monitoring rules / webhooks."
+      ]
+    },
+    {
+      "path": "/ops",
+      "label": "Ops hub",
+      "category": "ADMIN",
+      "nav": "Sidebar \u2192 Ops (`/ops` or `/ops/:tab`)",
+      "purpose": "Day-2 ops tabs \u2014 GitOps/Helm/RBAC/Identity and related operator tools.",
+      "operate": [
+        "Open `/ops` and switch tabs as labeled in the UI.",
+        "RBAC: **New Role** / **New RoleBinding**; Sync where offered.",
+        "Identity tab: Haven/Keycloak health when installed.",
+        "**Empty / fail:** Tab empty \u2192 optional component not installed.",
+        "**Success:** Sync/create toasts succeed; RBAC objects listed."
+      ]
+    },
+    {
+      "path": "/users",
+      "label": "Users",
+      "category": "ADMIN",
+      "nav": "Sidebar \u2192 Users",
+      "purpose": "Local user accounts with admin or viewer roles.",
+      "operate": [
+        "Open `/users` (admin).",
+        "Create users with admin/viewer; viewers read-only on mutating APIs.",
+        "**Empty / fail:** Persistence needs `zyvor-axiom-users` Secret in production.",
+        "**Success:** New user can sign in with the assigned role."
+      ]
+    },
+    {
+      "path": "/settings",
+      "label": "Settings",
+      "category": "ADMIN",
+      "nav": "Sidebar \u2192 Settings",
+      "purpose": "Integrations, clusters, theme, and console configuration.",
+      "operate": [
+        "Open `/settings`.",
+        "Integrations: Atlas URL/token \u2192 Save \u2192 Test connection; OIDC/SAML; PacketWolf.",
+        "Clusters: review activated cluster label (`AXIOM_CLUSTER_NAME`).",
+        "Theme toggle via shell control.",
+        "**Empty / fail:** Test connection failed \u2192 network/token; OIDC redirect URI must be `https://<host>:30590/api/v1/auth/oidc/callback`.",
+        "**Success:** Integration cards healthy; Atlas/Networking panels populate."
+      ]
+    }
+  ]
+}
