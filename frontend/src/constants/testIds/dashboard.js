@@ -1,5 +1,6 @@
 export const NAV = {
     sidebar: "sidebar-nav",
+    sidebarCollapseToggle: "sidebar-collapse-toggle",
     themeToggle: "theme-toggle",
     clusterSwitcher: "cluster-switcher",
     clusterOption: (id) => `cluster-option-${id}`,

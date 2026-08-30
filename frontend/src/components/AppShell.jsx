@@ -2,22 +2,28 @@ import { Outlet } from "react-router-dom";
 import AmbientBackdrop from "@/components/AmbientBackdrop";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import CommandPalette from "@/components/CommandPalette";
 import ViewerBanner from "@/components/ViewerBanner";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 
+// Mirrors zeus-os's WebShell.tsx shape: a full-width sticky header spanning
+// the top, with a flex row of [sidebar, content] below it — replacing the
+// old layout where everything (including the header) lived inside one
+// centered max-width row.
 export default function AppShell() {
     return (
         <ConfirmProvider>
-            <div className="relative min-h-screen">
+            <div className="relative flex h-screen min-h-screen flex-col overflow-hidden bg-background">
                 <AmbientBackdrop />
                 <CommandPalette />
-                <div className="mx-auto flex max-w-[1600px] gap-4 p-4">
+                <TopBar />
+                <div className="flex min-h-0 flex-1 gap-4 p-4">
                     <Sidebar />
-                    <main className="min-w-0 flex-1 space-y-4">
-                        <TopBar />
-                        <ViewerBanner />
-                        <div className="scrollbar-thin">
+                    <main className="scrollbar-thin min-w-0 flex-1 overflow-y-auto">
+                        <div className="mx-auto w-full max-w-[1600px] space-y-4">
+                            <ViewerBanner />
+                            <Breadcrumbs />
                             <Outlet />
                         </div>
                     </main>

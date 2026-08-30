@@ -8,7 +8,7 @@ export function GlassCard({ className, children, ...rest }) {
     return (
         <div
             className={cn(
-                "glass specular relative overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_45px_90px_-30px_rgb(0_0_0_/_0.7)]",
+                "glass specular relative overflow-hidden transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.3)]",
                 className
             )}
             {...rest}

@@ -8,7 +8,7 @@ export default function DetailHeader({ eyebrow, name, meta, action, className })
         <div className={cn("flex flex-wrap items-start justify-between gap-4", className)}>
             <div className="min-w-0">
                 <div className="text-xs uppercase tracking-widest text-muted-foreground">{eyebrow}</div>
-                <h1 className="mono truncate text-4xl font-semibold tracking-tight" title={name}>
+                <h1 className="mono truncate text-[clamp(1.5rem,2vw+1rem,2.25rem)] font-semibold tracking-[-0.035em]" title={name}>
                     {name}
                 </h1>
                 {meta && <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">{meta}</div>}

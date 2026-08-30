@@ -13,7 +13,7 @@ export default function PageHeader({ eyebrow, title, description, action, classN
                 {eyebrow && (
                     <div className="text-[11px] uppercase tracking-[0.2em] text-i17-cosmic/90">{eyebrow}</div>
                 )}
-                <h1 className={cn("text-4xl font-semibold tracking-[-0.02em] sm:text-5xl", eyebrow && "mt-1")}>
+                <h1 className={cn("text-[clamp(1.75rem,2.5vw+1rem,2.5rem)] font-semibold tracking-[-0.035em]", eyebrow && "mt-1")}>
                     {title}
                 </h1>
                 {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}

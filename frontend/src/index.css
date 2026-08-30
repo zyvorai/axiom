@@ -2,34 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
+
 /* --------------------------------------------------------------------- */
-/* KubeCloud OS — Apple "Liquid Glass" theme tokens                       */
+/* zeus-os design tokens — ported 1:1 from ui/src/index.css (dark) and    */
+/* docs/design/zeus-daylight-reference.css (light, the coherent flat-card */
+/* token set — zeus-os's own shipped `tahoe-light` is a decorative        */
+/* gradient wash over the dark primitives, not a standalone palette).     */
 /* --------------------------------------------------------------------- */
 
 @layer base {
     :root {
-        --background: 30 20% 97%;
-        --foreground: 220 20% 10%;
+        --background: 220 20% 94%;
+        --foreground: 218 22% 10%;
         --card: 0 0% 100%;
-        --card-foreground: 220 20% 10%;
+        --card-foreground: 218 22% 10%;
         --popover: 0 0% 100%;
-        --popover-foreground: 220 20% 10%;
-        --primary: 187 92% 42%;
+        --popover-foreground: 218 22% 10%;
+        --primary: 246 65% 54%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 220 15% 92%;
-        --secondary-foreground: 220 15% 20%;
-        --muted: 220 14% 90%;
-        --muted-foreground: 220 10% 40%;
-        --accent: 12 85% 55%;
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84% 60%;
+        --secondary: 220 20% 97%;
+        --secondary-foreground: 218 11% 41%;
+        --muted: 216 20% 91%;
+        --muted-foreground: 218 11% 41%;
+        --accent: 220 20% 97%;
+        --accent-foreground: 218 22% 10%;
+        --destructive: 4 76% 40%;
         --destructive-foreground: 0 0% 100%;
-        --border: 220 15% 85%;
-        --input: 220 15% 88%;
-        --ring: 187 92% 42%;
-        --radius: 1.25rem;
-        --brand: 12 85% 55%;
-        --brand-hex: #f0583a;
+        --success: 159 80% 24%;
+        --warning: 32 87% 31%;
+        --info: 246 65% 54%;
+        --danger: 4 76% 40%;
+        --border: 220 14% 90%;
+        --input: 220 14% 90%;
+        --ring: 246 65% 54%;
+        --radius: 0.9rem;
+        --brand: 246 65% 54%;
+        --brand-hex: hsl(246 65% 54%);
         --zeus: 187 92% 54%;
 
         --glass-bg: 255 255 255 / 0.55;
@@ -37,51 +47,68 @@
         --glass-shadow: 0 30px 60px -30px rgb(15 23 42 / 0.15);
         --grid-color: 15 23 42 / 0.05;
 
-        --k-ok: 128 30% 55%;
-        --k-warn: 22 88% 55%;
-        --k-err: 4 90% 58%;
-        --k-info: 205 45% 62%;
+        --k-ok: 159 80% 24%;
+        --k-warn: 32 87% 31%;
+        --k-err: 4 76% 40%;
+        --k-info: 246 65% 54%;
 
-        --chart-1: 12 85% 55%;
-        --chart-2: 187 92% 42%;
-        --chart-3: 205 45% 62%;
-        --chart-4: 128 30% 55%;
-        --chart-5: 22 88% 55%;
+        --chart-1: 246 65% 54%;
+        --chart-2: 270 48% 60%;
+        --chart-3: 159 75% 30%;
+        --chart-4: 32 87% 31%;
+        --chart-5: 4 76% 40%;
 
-        /* iPhone 17 palette */
-        --i17-cosmic: #f26b3a;
-        --i17-deep-blue: #2a4f80;
-        --i17-sky-blue: #7ab6dd;
-        --i17-lavender: #b49bd8;
-        --i17-sage: #9ac495;
-        --i17-mist: #8ab0c9;
+        /* Brand accents (aliases kept for the 34 files already using
+           `i17-*`/`brand-*` classes — only the values change) */
+        --i17-cosmic: hsl(246 65% 54%);
+        --i17-deep-blue: hsl(246 65% 30%);
+        --i17-sky-blue: hsl(246 65% 66%);
+        --i17-lavender: hsl(270 48% 60%);
+        --i17-sage: hsl(159 75% 30%);
+        --i17-mist: hsl(220 20% 85%);
         --i17-white: #f4efe6;
         --i17-silver: #c9ccd0;
-        --i17-gold: #d7c39a;
+        --i17-gold: hsl(32 87% 31%);
+
+        --fs-xs: 11px; --fs-sm: 13px; --fs-base: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px;
+        --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+        --lh-tight: 1.2; --lh-normal: 1.5;
+        --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+        --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --font-display: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        --font-mono: "JetBrains Mono Variable", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+        --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 
     .dark {
-        --background: 20 10% 3%;
-        --foreground: 30 20% 96%;
-        --card: 20 8% 8%;
-        --card-foreground: 30 20% 96%;
-        --popover: 20 8% 6%;
-        --popover-foreground: 30 20% 96%;
-        --primary: 187 92% 54%;
+        --background: 0 0% 0%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 11%;
+        --card-foreground: 0 0% 98%;
+        --popover: 0 0% 11%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 200 85% 52%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 220 8% 14%;
-        --secondary-foreground: 30 20% 96%;
-        --muted: 220 8% 14%;
-        --muted-foreground: 30 8% 65%;
-        --accent: 12 88% 60%;
-        --accent-foreground: 0 0% 100%;
-        --destructive: 4 90% 58%;
+        --secondary: 0 0% 16%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 14%;
+        --muted-foreground: 240 3% 54%;
+        --accent: 0 0% 16%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 63% 31%;
         --destructive-foreground: 0 0% 100%;
-        --border: 220 6% 18%;
-        --input: 220 6% 18%;
-        --ring: 187 92% 54%;
-        --brand: 12 88% 60%;
-        --brand-hex: #ff7550;
+        --success: 158 64% 52%;
+        --success-foreground: 158 64% 12%;
+        --warning: 43 96% 56%;
+        --warning-foreground: 43 96% 12%;
+        --info: 220 70% 58%;
+        --danger: 0 72% 51%;
+        --border: 0 0% 18%;
+        --input: 0 0% 18%;
+        --ring: 200 85% 52%;
+        --brand: 200 85% 52%;
+        --brand-hex: hsl(200 85% 52%);
         --zeus: 187 92% 60%;
 
         --glass-bg: 255 255 255 / 0.04;
@@ -89,27 +116,38 @@
         --glass-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
         --grid-color: 255 255 255 / 0.05;
 
-        --k-ok: 128 45% 62%;
-        --k-warn: 22 92% 62%;
-        --k-err: 4 90% 65%;
-        --k-info: 205 65% 72%;
+        --k-ok: 158 73% 54%;
+        --k-warn: 43 96% 56%;
+        --k-err: 0 72% 51%;
+        --k-info: 200 85% 52%;
 
-        --chart-1: 12 88% 60%;
-        --chart-2: 187 92% 54%;
-        --chart-3: 205 65% 72%;
-        --chart-4: 128 45% 62%;
-        --chart-5: 22 92% 62%;
+        --chart-1: 200 85% 52%;
+        --chart-2: 270 48% 68%;
+        --chart-3: 158 73% 54%;
+        --chart-4: 43 96% 56%;
+        --chart-5: 0 72% 51%;
 
-        /* iPhone 17 palette – vivid for dark mode */
-        --i17-cosmic: #ff7550;
-        --i17-deep-blue: #4d80c7;
-        --i17-sky-blue: #6ab6f0;
-        --i17-lavender: #b49bd8;
-        --i17-sage: #93c88f;
-        --i17-mist: #7fa8c7;
+        /* Brand accents (aliases kept for the 34 files already using
+           `i17-*`/`brand-*` classes — only the values change) */
+        --i17-cosmic: hsl(200 85% 52%);
+        --i17-deep-blue: hsl(200 85% 28%);
+        --i17-sky-blue: hsl(200 85% 64%);
+        --i17-lavender: hsl(270 48% 68%);
+        --i17-sage: hsl(158 73% 54%);
+        --i17-mist: hsl(210 30% 65%);
         --i17-white: #f4efe6;
         --i17-silver: #d0d3d8;
-        --i17-gold: #e0c996;
+        --i17-gold: hsl(43 96% 56%);
+
+        --fs-xs: 11px; --fs-sm: 13px; --fs-base: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px;
+        --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+        --lh-tight: 1.2; --lh-normal: 1.5;
+        --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+        --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --font-display: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        --font-mono: "JetBrains Mono Variable", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+        --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 }
 
@@ -125,9 +163,7 @@
         color: hsl(var(--foreground));
     }
     body {
-        font-family:
-            -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
-            sans-serif;
+        font-family: var(--font-display);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         letter-spacing: -0.01em;
@@ -137,16 +173,16 @@
 @layer components {
     .glass {
         background: rgb(var(--glass-bg));
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        backdrop-filter: blur(24px) saturate(140%);
+        -webkit-backdrop-filter: blur(24px) saturate(140%);
         border: 1px solid rgb(var(--glass-border));
         box-shadow: var(--glass-shadow);
         border-radius: var(--radius);
     }
     .glass-inset {
         background: rgb(var(--glass-bg));
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
         border: 1px solid rgb(var(--glass-border));
     }
     .specular {
@@ -205,10 +241,14 @@
     .status-dot.info  { background: hsl(var(--k-info)); box-shadow: 0 0 12px hsl(var(--k-info) / 0.6); }
 
     .mono {
-        font-family: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono",
-            "Roboto Mono", monospace;
+        font-family: var(--font-mono);
         font-feature-settings: "ss01", "ss02", "cv01";
     }
+
+    .glow-green { box-shadow: 0 0 8px hsl(var(--k-ok) / 0.4), 0 0 16px hsl(var(--k-ok) / 0.1); }
+    .glow-yellow { box-shadow: 0 0 8px hsl(var(--k-warn) / 0.4), 0 0 16px hsl(var(--k-warn) / 0.1); }
+    .glow-red { box-shadow: 0 0 8px hsl(var(--k-err) / 0.4), 0 0 16px hsl(var(--k-err) / 0.1); }
+    .glow-blue { box-shadow: 0 0 8px hsl(var(--k-info) / 0.4), 0 0 16px hsl(var(--k-info) / 0.1); }
 }
 
 @layer utilities {
@@ -269,7 +309,7 @@
 }
 
 .glass {
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+    transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
 
 @keyframes shimmer {

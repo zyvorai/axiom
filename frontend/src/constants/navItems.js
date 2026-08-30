@@ -46,31 +46,37 @@ export function resolveIcon(name) {
 
 // Single source of truth for every top-level route, shared by the Sidebar
 // and the command palette so the two can't drift out of sync again.
+// `group` mirrors zeus-os's sidebar grouping convention (Core/Cluster/
+// Observe/Run/Security/Cost/More), mapped onto Axiom's own domain.
 export const NAV_ITEMS = [
-    { to: "/getting-started", label: "Getting Started", icon: Rocket, key: "getting-started" },
-    { to: "/overview", label: "Overview", icon: LayoutDashboard, key: "overview" },
-    { to: "/nodes", label: "Nodes", icon: Server, key: "nodes" },
-    { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads" },
-    { to: "/jobs", label: "Jobs & CronJobs", icon: CalendarClock, key: "jobs" },
-    { to: "/pods", label: "Pods", icon: Component, key: "pods" },
-    { to: "/platform-intents", label: "Platform Intents", icon: Sparkles, key: "platform-intents" },
-    { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking" },
-    { to: "/services", label: "Services", icon: Waypoints, key: "services" },
-    { to: "/ingresses", label: "Ingresses", icon: Waypoints, key: "ingresses" },
-    { to: "/namespaces", label: "Namespaces", icon: FolderTree, key: "namespaces" },
-    { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone, key: "vms" },
-    { to: "/storage", label: "Storage", icon: Database, key: "storage" },
-    { to: "/atlas", label: "Atlas", icon: Cloudy, key: "atlas" },
-    { to: "/logs", label: "Pod Logs", icon: ScrollText, key: "logs" },
-    { to: "/events", label: "Events", icon: BellRing, key: "events" },
-    { to: "/configmaps", label: "ConfigMaps", icon: FileCog, key: "configmaps" },
-    { to: "/secrets", label: "Secrets", icon: KeySquare, key: "secrets" },
-    { to: "/quotas", label: "Quotas & Limits", icon: Gauge, key: "quotas" },
-    { to: "/autoscaling", label: "Autoscaling", icon: TrendingUp, key: "autoscaling" },
-    { to: "/custom-resources", label: "Custom Resources", icon: Layers3, key: "custom-resources" },
-    { to: "/backups", label: "Backups", icon: Archive, key: "backups" },
-    { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts" },
-    { to: "/ops", label: "Ops", icon: Layers, key: "ops" },
-    { to: "/users", label: "Users", icon: UsersIcon, key: "users" },
-    { to: "/settings", label: "Settings", icon: SlidersHorizontal, key: "settings" },
+    { to: "/getting-started", label: "Getting Started", icon: Rocket, key: "getting-started", group: "Core" },
+    { to: "/overview", label: "Overview", icon: LayoutDashboard, key: "overview", group: "Core" },
+    { to: "/nodes", label: "Nodes", icon: Server, key: "nodes", group: "Cluster" },
+    { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads", group: "Cluster" },
+    { to: "/jobs", label: "Jobs & CronJobs", icon: CalendarClock, key: "jobs", group: "Cluster" },
+    { to: "/pods", label: "Pods", icon: Component, key: "pods", group: "Cluster" },
+    { to: "/namespaces", label: "Namespaces", icon: FolderTree, key: "namespaces", group: "Cluster" },
+    { to: "/platform-intents", label: "Platform Intents", icon: Sparkles, key: "platform-intents", group: "Cluster" },
+    { to: "/networking", label: "Networking · Cilium", icon: Network, key: "networking", group: "Network" },
+    { to: "/services", label: "Services", icon: Waypoints, key: "services", group: "Network" },
+    { to: "/ingresses", label: "Ingresses", icon: Waypoints, key: "ingresses", group: "Network" },
+    { to: "/vms", label: "Virtual Machines", icon: MonitorSmartphone, key: "vms", group: "Storage" },
+    { to: "/storage", label: "Storage", icon: Database, key: "storage", group: "Storage" },
+    { to: "/atlas", label: "Atlas", icon: Cloudy, key: "atlas", group: "Storage" },
+    { to: "/backups", label: "Backups", icon: Archive, key: "backups", group: "Storage" },
+    { to: "/configmaps", label: "ConfigMaps", icon: FileCog, key: "configmaps", group: "Config" },
+    { to: "/secrets", label: "Secrets", icon: KeySquare, key: "secrets", group: "Config" },
+    { to: "/quotas", label: "Quotas & Limits", icon: Gauge, key: "quotas", group: "Config" },
+    { to: "/autoscaling", label: "Autoscaling", icon: TrendingUp, key: "autoscaling", group: "Config" },
+    { to: "/custom-resources", label: "Custom Resources", icon: Layers3, key: "custom-resources", group: "Config" },
+    { to: "/logs", label: "Pod Logs", icon: ScrollText, key: "logs", group: "Observe" },
+    { to: "/events", label: "Events", icon: BellRing, key: "events", group: "Observe" },
+    { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts", group: "Observe" },
+    { to: "/ops", label: "Ops", icon: Layers, key: "ops", group: "Observe" },
+    { to: "/users", label: "Users", icon: UsersIcon, key: "users", group: "Admin" },
+    { to: "/settings", label: "Settings", icon: SlidersHorizontal, key: "settings", group: "Admin" },
 ];
+
+// Render order for the grouped sidebar; any item (e.g. a plugin) without
+// a matching group falls into "Extensions" at the end.
+export const NAV_GROUP_ORDER = ["Core", "Cluster", "Network", "Storage", "Config", "Observe", "Admin", "Extensions"];
