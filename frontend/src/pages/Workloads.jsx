@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
 import StatusBadge from "@/components/StatusBadge";
+import SegmentedProgress from "@/components/SegmentedProgress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,6 +109,13 @@ function RolloutDialog({ workload, onOpenChange }) {
                                 </div>
                             ))}
                         </div>
+                        <SegmentedProgress
+                            segments={[
+                                { key: "available", label: "Available", value: status.available, tone: "done" },
+                                { key: "updating", label: "Updating", value: Math.max(0, status.ready - status.available), tone: "active" },
+                                { key: "pending", label: "Pending", value: Math.max(0, status.replicas - status.ready), tone: "pending" },
+                            ]}
+                        />
                         {(status.history || []).length > 0 && (
                             <div className="rounded-xl border border-white/5">
                                 {status.history.map((h) => (
