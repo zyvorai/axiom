@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import DetailHeader from "@/components/DetailHeader";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -213,38 +214,40 @@ export default function NodeDetail() {
     if (!node) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
 
-            <div className="flex items-start justify-between">
-                <div>
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Node · {node.role}</div>
-                    <h1 className="mono text-3xl font-semibold tracking-tight">{node.name}</h1>
-                    <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+            <DetailHeader
+                eyebrow={`Node · ${node.role}`}
+                name={node.name}
+                meta={
+                    <>
                         <StatusBadge status={node.status} />
                         <span>·</span>
                         <span className="mono">{node.internalIp}</span>
                         <span>·</span>
                         <span>{node.age}</span>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    {node.status === "SchedulingDisabled" ? (
-                        <Button variant="outline" disabled={busy === "uncordon"} onClick={() => act("uncordon", "uncordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
-                            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
+                    </>
+                }
+                action={
+                    <>
+                        {node.status === "SchedulingDisabled" ? (
+                            <Button variant="outline" disabled={busy === "uncordon"} onClick={() => act("uncordon", "uncordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
+                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
+                            </Button>
+                        ) : (
+                            <Button variant="outline" disabled={busy === "cordon"} onClick={() => act("cordon", "cordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
+                                <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
+                            </Button>
+                        )}
+                        <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
+                            <LogOut className="mr-1.5 h-3.5 w-3.5" /> Drain
                         </Button>
-                    ) : (
-                        <Button variant="outline" disabled={busy === "cordon"} onClick={() => act("cordon", "cordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
-                            <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
-                        </Button>
-                    )}
-                    <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
-                        <LogOut className="mr-1.5 h-3.5 w-3.5" /> Drain
-                    </Button>
-                </div>
-            </div>
+                    </>
+                }
+            />
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <GlassCard className="p-4">

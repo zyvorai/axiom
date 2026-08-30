@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import DetailHeader from "@/components/DetailHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +61,7 @@ export default function WorkloadDetail() {
 
     if (error) {
         return (
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-4 w-4" /> Back
                 </button>
@@ -72,16 +73,12 @@ export default function WorkloadDetail() {
     if (!detail) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
 
-            <div>
-                <div className="text-xs uppercase tracking-widest text-muted-foreground">{kind}</div>
-                <h1 className="mono text-3xl font-semibold tracking-tight">{detail.name}</h1>
-                <p className="text-sm text-muted-foreground">{detail.namespace}</p>
-            </div>
+            <DetailHeader eyebrow={kind} name={detail.name} meta={<span>{detail.namespace}</span>} />
 
             <Tabs defaultValue="overview">
                 <TabsList className="bg-white/[0.03] p-1">

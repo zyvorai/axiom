@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api, withAccessToken } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import DetailHeader from "@/components/DetailHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -372,7 +373,7 @@ export default function PodDetail() {
 
     if (!pod) {
         return (
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-4 w-4" /> Back
                 </button>
@@ -384,16 +385,16 @@ export default function PodDetail() {
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
 
-            <div className="flex items-start justify-between">
-                <div>
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Pod · {pod.namespace}</div>
-                    <h1 className="mono text-3xl font-semibold tracking-tight">{pod.name}</h1>
-                    <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+            <DetailHeader
+                eyebrow={`Pod · ${pod.namespace}`}
+                name={pod.name}
+                meta={
+                    <>
                         <StatusBadge status={pod.status} />
                         <span>·</span>
                         <span>{pod.node}</span>
@@ -409,20 +410,22 @@ export default function PodDetail() {
                                 </span>
                             </>
                         )}
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <Link
-                        to={`/logs?pod=${pod.namespace}/${encodeURIComponent(pod.name)}`}
-                        className="flex items-center gap-1 text-sm text-i17-sky hover:underline"
-                    >
-                        <ScrollText className="h-3.5 w-3.5" /> Logs <ArrowRight className="h-3 w-3" />
-                    </Link>
-                    <Button variant="outline" onClick={evict} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
-                        <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Evict
-                    </Button>
-                </div>
-            </div>
+                    </>
+                }
+                action={
+                    <>
+                        <Link
+                            to={`/logs?pod=${pod.namespace}/${encodeURIComponent(pod.name)}`}
+                            className="flex items-center gap-1 text-sm text-i17-sky hover:underline"
+                        >
+                            <ScrollText className="h-3.5 w-3.5" /> Logs <ArrowRight className="h-3 w-3" />
+                        </Link>
+                        <Button variant="outline" onClick={evict} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
+                            <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Evict
+                        </Button>
+                    </>
+                }
+            />
 
             {diagnosis && !diagnosis.scheduled && (
                 <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
