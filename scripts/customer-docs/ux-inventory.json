@@ -6,12 +6,13 @@
       "label": "Login",
       "category": "AUTH",
       "nav": "Shown when unauthenticated \u2192 `/login`",
-      "purpose": "Sign in to the Liquid Glass console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
+      "purpose": "Sign in to the Axiom console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
       "operate": [
         "Open `https://<host>:30590/` and accept the self-signed certificate once if needed.",
-        "When SSO is off, use **fill demo / demo** then **Sign in** (lab default `demo` / `demo`).",
+        "Sign-in is two steps: enter a username and **Continue**, then enter the password and **Sign in**. Use **Not you?** on the password screen to go back and change the username.",
+        "When SSO is off, click **Lab mode \u2014 fill demo** to fill both fields and jump straight to the password screen (lab default `demo` / `demo`).",
         "Or enter operator credentials from Secret `zyvor-axiom-auth` / `AXIOM_USERNAME`+`AXIOM_PASSWORD`.",
-        "When SSO is configured, use the OIDC/SAML buttons (public client + PKCE).",
+        "When SSO is configured, use the OIDC/SAML buttons (public client + PKCE) on the first screen instead.",
         "**Empty / fail:** Sign in failed toast \u2192 check credentials / SSO redirect URI `/api/v1/auth/oidc/callback`; health: `curl -k https://<host>:30590/api/v1/health`.",
         "**Success:** Redirect to **Overview**; cluster switcher and sidebar appear."
       ]

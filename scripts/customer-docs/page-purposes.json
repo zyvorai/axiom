@@ -1,5 +1,5 @@
 {
-  "/login": "Sign in to the Liquid Glass console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
+  "/login": "Sign in to the Axiom console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
   "/getting-started": "Live setup checklist \u2014 integration status and first tasks after sign-in.",
   "/overview": "Cluster pulse \u2014 capacity metrics, activity, and shortcuts into day-2 centers.",
   "/nodes": "Kubernetes node inventory \u2014 Ready state, capacity, and entry into node detail.",

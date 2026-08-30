@@ -35,7 +35,7 @@ Follow product QUICKSTART for `AXIOM_MODE=demo` on port **5090**.
 | Local user | Settings → Users | `admin` or `viewer` |
 | SSO | OIDC/SAML | Settings → Integrations |
 
-Use **fill demo / demo** on the login form when SSO is off.
+Use **Lab mode — fill demo** on the login screen's username step when SSO is off — it fills both fields and jumps straight to the password step.
 
 ## 3. Orient yourself (UX)
 

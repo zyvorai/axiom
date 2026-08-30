@@ -1,6 +1,6 @@
 # Axiom — Customer Documentation
 
-**Axiom** is a private in-house cloud console on **k3s and Kubernetes** — applications, VMs, storage, identity, and networking in one Liquid Glass UI.
+**Axiom** is a private in-house cloud console on **k3s and Kubernetes** — applications, VMs, storage, identity, and networking in one console UI.
 
 | You want to… | Open |
 |--------------|------|

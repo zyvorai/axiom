@@ -1,6 +1,6 @@
 # Using the Dashboard
 
-Axiom is a Go API with an embedded React SPA (Liquid Glass). Production talks to k3s/Kubernetes; demo mode uses deterministic fixtures.
+Axiom is a Go API with an embedded React SPA. Production talks to k3s/Kubernetes; demo mode uses deterministic fixtures.
 
 ## Shell chrome
 

@@ -16,7 +16,7 @@ Every route is also listed in the [complete page index](../PAGE_INDEX.md).
 
 | Page | What it covers |
 |------|----------------|
-| [Login](auth/login.md) | Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper. |
+| [Login](auth/login.md) | Sign in to the Axiom console — local Basic auth, SSO (OIDC/SAML), or lab demo helper. |
 
 ## Cluster
 

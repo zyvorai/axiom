@@ -2,7 +2,7 @@
 
 Every primary navigable dashboard route.
 
-_Generated: 2026-08-29 · 30 routes_
+_Generated: 2026-08-30 · 30 routes_
 
 Regenerate: `node scripts/customer-docs/generate-page-index.mjs`
 
@@ -10,7 +10,7 @@ Regenerate: `node scripts/customer-docs/generate-page-index.mjs`
 
 | Page | Route | Purpose | Guide |
 |------|-------|---------|-------|
-| Login | `/login` | Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper. | [Open](pages/auth/login.md) |
+| Login | `/login` | Sign in to the Axiom console — local Basic auth, SSO (OIDC/SAML), or lab demo helper. | [Open](pages/auth/login.md) |
 
 ## CONSOLE
 

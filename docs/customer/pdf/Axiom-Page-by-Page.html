@@ -24,7 +24,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <section class="cover"><div class="kicker">ZyvorAI Labs · Customer Documentation</div>
 <h1>Ax<span>iom</span></h1>
 <div class="sub">Page-by-Page Product Manual</div>
-<div class="badge">2026-08-29</div>
+<div class="badge">2026-08-30</div>
 <div class="foot">zyvor.dev · Confidential — for licensed customers</div></section>
 <main><h2>Page-by-page guides</h2>
 <p>Each guide follows: Purpose → When to use it → How to get there → Operate from the console (UX) → Related pages.</p>
@@ -60,7 +60,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 </thead>
 <tbody><tr>
 <td><a href="auth/login.md">Login</a></td>
-<td>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
+<td>Sign in to the Axiom console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
 </tr>
 </tbody></table>
 <h3>Cluster</h3>
@@ -347,7 +347,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <hr>
 <h2>Login</h2>
 <h3>Purpose</h3>
-<p>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</p>
+<p>Sign in to the Axiom console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</p>
 <h3>When to use it</h3>
 <ul>
 <li>Operate <strong>Login</strong> when your job matches this page</li>
@@ -362,9 +362,10 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <h3>Operate from the console (UX)</h3>
 <ol>
 <li>Open <code>https://&lt;host&gt;:30590/</code> and accept the self-signed certificate once if needed.</li>
-<li>When SSO is off, use <strong>fill demo / demo</strong> then <strong>Sign in</strong> (lab default <code>demo</code> / <code>demo</code>).</li>
+<li>Sign-in is two steps: enter a username and <strong>Continue</strong>, then enter the password and <strong>Sign in</strong>. Use <strong>Not you?</strong> on the password screen to go back and change the username.</li>
+<li>When SSO is off, click <strong>Lab mode — fill demo</strong> to fill both fields and jump straight to the password screen (lab default <code>demo</code> / <code>demo</code>).</li>
 <li>Or enter operator credentials from Secret <code>zyvor-axiom-auth</code> / <code>AXIOM_USERNAME</code>+<code>AXIOM_PASSWORD</code>.</li>
-<li>When SSO is configured, use the OIDC/SAML buttons (public client + PKCE).</li>
+<li>When SSO is configured, use the OIDC/SAML buttons (public client + PKCE) on the first screen instead.</li>
 <li><strong>Empty / fail:</strong> Sign in failed toast → check credentials / SSO redirect URI <code>/api/v1/auth/oidc/callback</code>; health: <code>curl -k https://&lt;host&gt;:30590/api/v1/health</code>.</li>
 <li><strong>Success:</strong> Redirect to <strong>Overview</strong>; cluster switcher and sidebar appear.</li>
 </ol>
@@ -1185,7 +1186,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <hr>
 <h2>Axiom — Complete page index</h2>
 <p>Every primary navigable dashboard route.</p>
-<p><em>Generated: 2026-08-29 · 30 routes</em></p>
+<p><em>Generated: 2026-08-30 · 30 routes</em></p>
 <p>Regenerate: <code>node scripts/customer-docs/generate-page-index.mjs</code></p>
 <h3>AUTH</h3>
 <table>
@@ -1200,7 +1201,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <tbody><tr>
 <td>Login</td>
 <td><code>/login</code></td>
-<td>Sign in to the Liquid Glass console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
+<td>Sign in to the Axiom console — local Basic auth, SSO (OIDC/SAML), or lab demo helper.</td>
 <td><a href="pages/auth/login.md">Open</a></td>
 </tr>
 </tbody></table>

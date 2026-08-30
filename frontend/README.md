@@ -36,7 +36,7 @@ src/
     auth.js               AuthProvider (local Basic-auth + OIDC/SAML)
     cluster.js             real cluster-switcher state (GET/POST /api/v1/clusters*)
     theme.js                dark/light toggle
-  index.css              design tokens + "Liquid Glass" utility classes
+  index.css              zeus-os design tokens + glass utility classes
 ```
 
 ## Real backend, not mocks

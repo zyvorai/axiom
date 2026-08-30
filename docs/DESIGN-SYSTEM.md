@@ -1,33 +1,44 @@
-# Axiom Design System (Kube-cockpit / Liquid Glass)
+# Axiom Design System (zeus-os)
 
-`frontend/` **is** the kube-cockpit reference source (React 19 + CRACO + Tailwind + shadcn/ui), copied in directly and wired to Axiom's real Go API — not a hand-rolled reimplementation. Dark liquid-glass surfaces, coral→sky-blue brand gradient (`#ff7550` → `#6ab6f0`), Inter + JetBrains Mono (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), 20px card radii.
+`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API, but the visual design system layered on top of that structure has since been fully replaced to match **zeus-os** (`../zeus-os`'s "WebShell" sidebar+content mode) — Axiom no longer uses kube-cockpit's original "Liquid Glass" iPhone-17 orange/coral palette. Pure-black dark theme with a mist-blue primary accent, an indigo/plasma "Daylight" light theme, self-hosted Inter + JetBrains Mono variable fonts (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), pill-shaped buttons, 0.9rem card radii.
 
 ## Tokens
 
 Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn convention), registered as Tailwind color/radius tokens in `frontend/tailwind.config.js`:
 
 ```css
-:root {
-  --background: 20 10% 3%;
-  --foreground: 30 20% 96%;
-  --radius: 1.25rem;
-  --brand-hex: #ff7550;
+.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 98%;
+  --primary: 200 85% 52%;       /* mist blue */
+  --radius: 0.9rem;
+  --brand-hex: hsl(200 85% 52%);
+  --success: 158 64% 52%;
+  --warning: 43 96% 56%;
+  --info: 220 70% 58%;
+  --danger: 0 72% 51%;
   --glass-bg: 255 255 255 / 0.04;
   --glass-border: 255 255 255 / 0.10;
   --grid-color: 255 255 255 / 0.05;
-  --k-ok: 128 45% 62%;
-  --k-warn: 22 92% 62%;
-  --k-err: 4 90% 65%;
-  --k-info: 205 65% 72%;
-  --chart-1..5: /* five distinct series hues for future chart work */
+  --k-ok: 158 73% 54%;
+  --k-warn: 43 96% 56%;
+  --k-err: 0 72% 51%;
+  --k-info: 200 85% 52%;
+  --chart-1..5: /* five distinct series hues, sourced from the accent set below */
+  --fs-xs..2xl, --fw-regular..bold, --lh-tight/normal: /* zeus-os type scale */
+  --sp-1..8: /* zeus-os spacing scale, 4px-64px */
+  --dur-fast/base/slow, --ease-out: /* motion tokens */
+  --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
 ```
 
-Fonts load from Google Fonts (see `frontend/public/index.html`'s preconnect + stylesheet link) — this is a real network dependency, not self-hosted; it's the fallback behind the system-font stack above, not the primary source.
+`:root` (light mode) carries the "Daylight" palette instead — `--background: 220 20% 94%`, `--primary: 246 65% 54%` (indigo/plasma), same token names throughout. Both blocks define the full spacing/type-scale/motion tokens shown above; they're mode-agnostic values, not overridden per theme.
+
+Fonts are self-hosted via `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono` (imported at the top of `frontend/src/index.css`) — no Google Fonts or other external font CDN dependency. `--font-display` and `--font-mono` point at the variable-font families, with system-font fallback stacks behind them.
 
 ### Brand accent & the i17 palette
 
-`index.css` also defines a fuller "iPhone 17 palette" (`--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold`, each with distinct light/dark values) — this is the actual source of the brand gradient (`--i17-cosmic` ≡ `--brand-hex`, `--i17-sky-blue` is the gradient's blue end) plus extended accent hues used for metric-ring/sparkline/chart coloring (`Overview.jsx`, `MetricRing.jsx`, `Sparkline.jsx`) instead of ad hoc per-page hex literals. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.) and as a `brand` variant on `components/ui/button.jsx` (`bg-gradient-to-r from-brand-cosmic to-brand-sky`).
+`index.css` also defines a fuller accent palette under the legacy `--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold` variable names (kept because ~34 files already reference `i17-*`/`brand-*` Tailwind classes — retinting the CSS variable values in place, rather than renaming every call site, is what made the zeus-os port a token-only change almost everywhere). `--i17-cosmic` is the primary brand accent (≡ `--brand-hex`, mist-blue in dark mode / indigo-plasma in light mode), `--i17-sage` ≡ zeus-os's emerald "accent-live" (success/healthy), `--i17-lavender` ≡ its violet "accent-alt", `--i17-gold` ≡ its amber warning hue. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.) and as a `brand` variant on `components/ui/button.jsx` (`bg-gradient-to-r from-brand-cosmic to-brand-sky`).
 
 **Convention**: the brand gradient (`variant="brand"`) is reserved for the single most prominent action on a page or dialog (the one thing a user came there to do — "Run workload," "Create X," "Install," "Save"). Every other button — secondary actions, row-level operations, less-frequent dialog confirms — uses the plain `default` or `outline` variant instead. This is deliberate: the gradient is a rare, confident accent, not a default button style.
 
@@ -35,18 +46,23 @@ Fonts load from Google Fonts (see `frontend/public/index.html`'s preconnect + st
 
 | Class | Purpose |
 |-------|---------|
-| `.glass` | Frosted panel with blur + border |
+| `.glass` | Frosted panel with blur (24px/140% saturate) + border |
 | `.glass-inset` | Inset variant (cluster switcher, inputs) |
 | `.specular` | Gradient border highlight |
 | `.grid-bg` | Background grid overlay |
-| `.aurora-a/b/c` | Login hero orbs |
+| `.aurora-a/b/c` | Ambient shell orbs (no longer used on Login, which dropped its aurora background — still available for other pages) |
 | `.orb` | Shell ambient orbs |
 | `.fade-up` | Entry animation |
 | `.status-dot` | Health indicator (ok/warn/err/info), driven by `<StatusBadge>` |
+| `.glow-green/yellow/red/blue` | Box-shadow glow keyed to the same ok/warn/err/info hues |
+
+Buttons (`components/ui/button.jsx`) are pill-shaped (`rounded-full`) with an inset-highlight + brightness/lift hover on the `default`/`brand` variants, focus-visible outlined via the `--focus-ring` token rather than a plain ring utility.
 
 ## Navigation
 
-Sidebar order (`frontend/src/components/Sidebar.jsx`):
+`frontend/src/components/Sidebar.jsx` groups `constants/navItems.js`'s routes into sections (**Core**, **Cluster**, **Network**, **Storage**, **Config**, **Observe**, **Admin**, plus an **Extensions** group for dynamically-registered plugins), each rendered under an uppercase group-header label — mirroring zeus-os's own sidebar grouping convention. The sidebar is collapsible: a footer toggle switches between a full `w-64` expanded state (group labels + text labels) and a `w-[68px]` icon-only rail (group boundaries shown as thin dividers instead), persisted to `localStorage` (`axiom:sidebar-collapsed`) so the choice survives a reload.
+
+Sidebar order:
 
 | UI | Route | Notes |
 |----|-------|-------|
@@ -81,7 +97,10 @@ Not in the sidebar but routable: `/workloads/:ns/:kind/:name` (workload detail),
 
 ## Auth
 
-The login screen (`frontend/src/pages/Login.jsx`) shows three SSO-styled buttons (Google/GitHub/Okta icons, matching the reference 1:1 visually) **all pointing at the same real OIDC login redirect** — Axiom has one generic OIDC provider slot, not per-vendor integrations, so the buttons are a visual choice, not three distinct backends. Below them, a local username/password form is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`).
+The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card centered on a flat background (no side marketing panel, no animated background glow — matching Apple's actual sign-in page look rather than Axiom's earlier two-column marketing-style layout), holding a two-step sign-in flow modeled on Apple ID's pattern:
+
+- **Step 1 (identity)**: three SSO-styled buttons (Google/GitHub/Okta icons, matching the reference 1:1 visually) **all pointing at the same real OIDC login redirect** — Axiom has one generic OIDC provider slot, not per-vendor integrations, so the buttons are a visual choice, not three distinct backends — plus a username-only field with a "Continue" action.
+- **Step 2 (password)**: an editable identity chip ("`{username}` · Not you?" — click to go back and change it) and just the password field. Submitting step 2 is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`); the two-step split is purely client-side UI state — there's no backend endpoint to check account existence before the password is entered, so both values still travel together in one `signInLocal(username, password)` call.
 
 - `GET /api/v1/auth/providers` drives everything: `oidc.enabled`/`saml.enabled` show/hide the SSO buttons and a SAML link; `lab.operator_login: true` + `lab.hint` shows a "fill demo / demo" one-click helper under the local form
 - Clicking an SSO button when OIDC isn't configured shows a toast pointing at Settings instead of doing nothing
@@ -90,9 +109,12 @@ The login screen (`frontend/src/pages/Login.jsx`) shows three SSO-styled buttons
 
 ## Shell
 
+`AppShell.jsx` matches zeus-os's WebShell structure: a full-width sticky header spans the top, above a `[Sidebar, content]` row — not the earlier layout where the header sat inside the same centered column as the sidebar.
+
 - Fixed ambient backdrop (grid + orbs)
-- Glass sidebar: brand, cluster switcher, nav (scrollable — 26 items), theme pill toggle
-- Glass topbar: breadcrumbs, ⌘K search, Connect kubeconfig (shows local dev instructions), user menu
+- Glass sidebar: brand, cluster switcher, grouped/collapsible nav (see Navigation above), theme pill toggle, collapse toggle
+- Full-width sticky header (`TopBar.jsx`, `h-14`, `border-b`, `bg-background/95 backdrop-blur` — no longer a floating glass pill): ⌘K search, Connect kubeconfig (shows local dev instructions), user menu. No breadcrumbs here.
+- `Breadcrumbs.jsx` renders inside the content area, above each page's body (`Clusters / {cluster} / {page}`) — matching zeus-os's placement rather than the header-inline breadcrumb this used to be.
 - Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive label instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
 
 ## Command palette
@@ -215,4 +237,8 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 
 ## Appearance
 
-Default is dark liquid glass. Theme toggle in sidebar footer switches dark/light (`html.dark` / `html.light`).
+Default is the zeus-os dark theme (pure black + mist blue). Theme toggle in sidebar footer switches dark/light (`html.dark` toggled via `lib/theme.js`, persisted to `localStorage` under `kubecloud.theme`) between it and the "Daylight" light theme.
+
+## Page headers
+
+Every top-level page uses a shared `PageHeader` component (`components/PageHeader.jsx`): a small tracked-caps eyebrow label above an oversized `clamp()`-scaled title, an optional description line, and an optional right-aligned `action` slot for the page's primary button(s). Resource-detail pages (Pod/Node/Workload) use the sibling `DetailHeader` component instead — the same eyebrow/title/meta shape, but with a mono-font resource-name title instead of a plain title, matching their identifier-header role rather than a page-title role. Both were rolled out to every page specifically so a sitewide visual change (like the zeus-os port) touches only these shared components, not each individual page file.
