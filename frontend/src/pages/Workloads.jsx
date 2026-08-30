@@ -55,6 +55,7 @@ import {
     Rocket,
     GitCommitHorizontal,
     Plus,
+    Boxes,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -697,7 +698,27 @@ export default function Workloads() {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {rows.length === 0 && (
+                            {rows.length === 0 && data.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={10} className="py-16">
+                                        <div className="flex flex-col items-center gap-3 text-center">
+                                            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/[0.04]">
+                                                <Boxes className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-medium">No workloads yet</div>
+                                                <div className="mt-0.5 text-xs text-muted-foreground">
+                                                    Deployments, StatefulSets, DaemonSets and CronJobs will show up here once launched.
+                                                </div>
+                                            </div>
+                                            <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
+                                                <Plus className="mr-1.5 h-3.5 w-3.5" /> Run your first workload
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {rows.length === 0 && data.length > 0 && (
                                 <TableRow>
                                     <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                                         No workloads match the current filters.
