@@ -164,6 +164,38 @@ func TestGuardRateLimitsRepeatedFailedLogins(t *testing.T) {
 	}
 }
 
+// The Retry-After header used to be hardcoded to 60 regardless of the
+// actual computed backoff, which ranges from 1 second (first offense past
+// the grace count) up to 5 minutes. A client that honestly waits the
+// stated 60 seconds on a 1-second lockout is misled into an unnecessarily
+// long wait.
+func TestGuardRateLimitRetryAfterReflectsActualBackoff(t *testing.T) {
+	g := Guard{Username: "demo", Password: "demo"}
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+
+	basicAuthRequest := func(user, pass string) *http.Request {
+		r := httptest.NewRequest("GET", "/api/v1/overview", nil)
+		r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(user+":"+pass)))
+		return r
+	}
+
+	// One failure past the grace count triggers the shortest possible
+	// backoff: 1<<0 = 1 second.
+	for i := 0; i < rateLimitGraceFailures+1; i++ {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, basicAuthRequest("demo", "wrongpass"))
+	}
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, basicAuthRequest("demo", "demo"))
+	if w.Code != 429 {
+		t.Fatalf("expected 429, got %d", w.Code)
+	}
+	if got := w.Header().Get("Retry-After"); got != "1" {
+		t.Fatalf("expected Retry-After: 1 for the first lockout, got %q", got)
+	}
+}
+
 func TestGuardRateLimitResetsOnSuccess(t *testing.T) {
 	g := Guard{Username: "demo", Password: "demo"}
 	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))

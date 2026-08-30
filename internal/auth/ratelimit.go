@@ -47,6 +47,26 @@ func (rl *RateLimiter) Allowed(key string) bool {
 	return time.Now().After(s.lockedUntil)
 }
 
+// RetryAfter returns how much longer the given key stays locked out, for
+// callers reporting an HTTP Retry-After header. The actual lockout ranges
+// from 1 second (first offense past the grace count) up to
+// rateLimitMaxBackoff, so this must be computed per key rather than
+// hardcoded — a client that respects a fixed value would either wait far
+// longer than necessary on a short lockout, or retry too early against a
+// long one.
+func (rl *RateLimiter) RetryAfter(key string) time.Duration {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+	s := rl.state[key]
+	if s == nil {
+		return 0
+	}
+	if d := time.Until(s.lockedUntil); d > 0 {
+		return d
+	}
+	return 0
+}
+
 // RecordFailure counts a failed authentication attempt and, once the grace
 // count is exceeded, locks the key out with exponential backoff.
 func (rl *RateLimiter) RecordFailure(key string) {

@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/base64"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -104,7 +106,13 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 				g.Audit.Record("auth.rate_limited", key, r.URL.Path, attemptedUsername(r))
 			}
 			w.Header().Set("Content-Type", "application/json")
-			w.Header().Set("Retry-After", "60")
+			// Round up so Retry-After never tells a client to retry before
+			// the lockout has actually cleared.
+			retryAfter := int(math.Ceil(limiter.RetryAfter(key).Seconds()))
+			if retryAfter < 1 {
+				retryAfter = 1
+			}
+			w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
 			w.WriteHeader(http.StatusTooManyRequests)
 			_, _ = w.Write([]byte(`{"error":"too many failed login attempts — try again shortly"}`))
 			return
