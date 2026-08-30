@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Lock, ShieldCheck, Globe2, Cpu, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
+import { Loader2, Lock, ShieldCheck, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { SSO } from "@/constants/testIds";
@@ -31,12 +31,6 @@ const SSO_BUTTONS = [
     { id: "google", label: "Continue with Google", Icon: GoogleIcon, testId: SSO.google },
     { id: "github", label: "Continue with GitHub", Icon: GitHubIcon, testId: SSO.github },
     { id: "okta", label: "Continue with Okta", Icon: OktaIcon, testId: SSO.okta },
-];
-
-const STATS = [
-    { icon: Globe2, label: "Multi-region", sub: "single cluster" },
-    { icon: Cpu, label: "Live", sub: "workload data" },
-    { icon: ShieldCheck, label: "mTLS", sub: "everywhere" },
 ];
 
 export default function Login() {
@@ -99,62 +93,19 @@ export default function Login() {
     };
 
     return (
-        <div data-testid={SSO.page} className="relative flex min-h-screen items-center overflow-hidden">
-            <div className="pointer-events-none absolute inset-0 -z-10">
-                <div className="absolute inset-0 grid-bg opacity-40" />
-                <div className="aurora aurora-a" />
-                <div className="aurora aurora-b" />
-                <div className="aurora aurora-c" />
-            </div>
-
-            <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
-                {/* Brand panel */}
-                <div className="hidden lg:block">
-                    <div className="fade-up flex items-center gap-3" style={{ animationDelay: "0ms" }}>
-                        <div className="z-mark grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic via-i17-cosmic to-i17-deep-blue shadow-xl shadow-i17-cosmic/40 ring-1 ring-white/15">
-                            <svg width="24" height="24" viewBox="0 0 18 18" aria-hidden="true">
-                                <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
-                            </svg>
-                        </div>
-                        <span className="text-lg font-semibold tracking-tight lowercase">zyvor</span>
+        <div data-testid={SSO.page} className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-16">
+            <div className="fade-up w-full max-w-sm">
+                <div className="mb-8 flex flex-col items-center gap-3 text-center">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic to-i17-deep-blue ring-1 ring-white/10">
+                        <svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true">
+                            <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
+                        </svg>
                     </div>
-
-                    <h1 className="fade-up mt-10 text-5xl font-semibold leading-[1.05] tracking-tight lg:text-6xl" style={{ animationDelay: "90ms" }}>
-                        Axiom.
-                        <br />
-                        <span className="bg-gradient-to-r from-i17-cosmic via-i17-gold to-i17-sky bg-clip-text text-transparent">
-                            Every cluster, one truth.
-                        </span>
-                    </h1>
-                    <p className="fade-up mt-6 max-w-md text-base text-muted-foreground" style={{ animationDelay: "180ms" }}>
-                        The Zyvor control plane for Kubernetes, Cilium, KubeVirt and multi-tenant SaaS —
-                        rendered in liquid glass.
-                    </p>
-
-                    <div className="fade-up mt-10 flex gap-3" style={{ animationDelay: "270ms" }}>
-                        {STATS.map(({ icon: Icon, label, sub }) => (
-                            <div key={label} className="glass specular flex items-center gap-2.5 rounded-2xl px-4 py-3">
-                                <Icon className="h-4 w-4 text-i17-cosmic" />
-                                <div className="leading-tight">
-                                    <div className="text-sm font-medium">{label}</div>
-                                    <div className="text-[11px] text-muted-foreground">{sub}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <span className="text-sm font-semibold lowercase tracking-tight text-muted-foreground">zyvor · axiom</span>
                 </div>
 
                 {/* Sign-in card */}
-                <div className="fade-up glass specular noise relative rounded-3xl p-8 sm:p-10" style={{ animationDelay: "140ms" }}>
-                    <div className="mb-8 flex items-center gap-3 lg:hidden">
-                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic to-i17-deep-blue ring-1 ring-white/15">
-                            <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true">
-                                <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
-                            </svg>
-                        </div>
-                        <span className="text-base font-semibold lowercase">zyvor · Axiom</span>
-                    </div>
-
+                <div className="glass specular noise relative rounded-3xl p-8">
                     {step === "identity" ? (
                         <div key="identity" className="fade-up">
                             <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
@@ -273,10 +224,8 @@ export default function Login() {
                         Sessions are scoped per device and expire automatically.
                     </div>
                 </div>
-            </div>
 
-            <div className="absolute bottom-5 left-0 right-0 text-center text-[11px] text-muted-foreground/60">
-                Axiom by Zyvor · zyvor.dev
+                <p className="mt-6 text-center text-[11px] text-muted-foreground/60">Axiom by Zyvor · zyvor.dev</p>
             </div>
         </div>
     );
