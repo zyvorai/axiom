@@ -27,6 +27,12 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Changed
 - Design system: an Apple-adapted refinement of the existing "Liquid Glass" theme. Fixed the `body` font stack (it declared unlicensable "SF Pro Display"/"SF Pro Text" names that never resolved; now leads with `-apple-system`/`BlinkMacSystemFont`, the same system-font technique apple.com itself uses, so Mac/iOS/Safari render real San Francisco). Activated a full light/dark "iPhone 17" color palette that was defined in `index.css` but never wired to any component — it's now registered as Tailwind tokens and consolidated ~100 hardcoded hex literals across every page into it. Added a `brand` gradient variant to the shared `Button` component (defined once) and reserved it for the single most prominent action per page/dialog instead of every primary button carrying the same gradient. Softened card corner radii slightly (`--radius` 16px → 20px).
+- UX pass inspired by apple.com and zyvor.dev:
+  - **Confirmation dialogs before every destructive action.** Every delete/evict button in the app (18 call sites across 13 pages) previously fired immediately on click with no confirmation — a misclick permanently destroyed a real ConfigMap/Secret/Namespace/Workload. Added a shared `confirm()` dialog on the shadcn `AlertDialog` primitive (already installed, never used) and wired it into all of them, each naming the specific resource and consequence, with bulk actions naming the count.
+  - A segmented (solid/striped/muted) progress bar — from zyvor.dev's migration-progress widget — in the workload Rollout dialog, replacing a bare stat grid with an at-a-glance available/updating/pending visualization.
+  - The Run-workload wizard's Form/Intent/Validate-YAML tabs are now a numbered "01/02/03" stepper instead of a plain tab strip.
+  - `PodDetail`'s "Logs" button (pure navigation, sitting next to the real "Evict" action) is now a plain text link, so the one destructive action per row reads unambiguously.
+  - Workloads' empty-list message now distinguishes a genuinely empty cluster (icon + "Run your first workload" CTA) from filters just matching nothing (unchanged plain message).
 
 ## [0.1.0] - 2026-08-29
 
