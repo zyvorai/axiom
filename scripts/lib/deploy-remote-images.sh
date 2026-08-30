@@ -63,7 +63,11 @@ axiom_build_image() {
   local ctr="$1"
   local tag="zyvor-axiom:${AXIOM_IMAGE_TAG}"
   echo "  Building ${tag}..."
-  "$ctr" build -t "$tag" -f Dockerfile .
+  # --ulimit nofile: the frontend build stage's `npm install` opens enough
+  # concurrent file handles to hit EMFILE under podman/docker's default
+  # build-container nofile limit on some hosts, independent of the host
+  # shell's own ulimit.
+  "$ctr" build --ulimit nofile=65536:65536 -t "$tag" -f Dockerfile .
   axiom_import_image "$tag" "$ctr"
 }
 
