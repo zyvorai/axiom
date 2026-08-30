@@ -34,6 +34,7 @@ All notable changes to Zyvor Axiom are documented here.
   - `PodDetail`'s "Logs" button (pure navigation, sitting next to the real "Evict" action) is now a plain text link, so the one destructive action per row reads unambiguously.
   - Workloads' empty-list message now distinguishes a genuinely empty cluster (icon + "Run your first workload" CTA) from filters just matching nothing (unchanged plain message).
   - Tactile motion polish: every button now gets a subtle press-down (`active:scale`) — previously only the Login page's SSO buttons had this. `GlassCard` now lifts slightly on hover (`.glass` already declared the transition, nothing ever triggered it). `Skeleton` loaders use a shimmer sweep instead of a flat opacity pulse.
+  - Bigger, bolder page headers: a new shared `PageHeader` component (an eyebrow label above an oversized `text-4xl`/`5xl` title) generalizes the hero treatment that previously only `Overview` had, rolled out across all 26 other top-level pages in place of their old plain `text-3xl` heading. Every page's outer section spacing also grew from `space-y-4` to `space-y-6` for more breathing room, trading a little table density for a layout closer to apple.com's own product pages. Resource-detail pages (Pod/Node/Workload) keep their distinct mono identifier header, unchanged.
 
 ## [0.1.0] - 2026-08-29
 
