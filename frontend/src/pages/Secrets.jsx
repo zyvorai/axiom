@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -213,21 +214,22 @@ export default function Secrets() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Secrets</h1>
-                    <p className="text-sm text-muted-foreground">Opaque, TLS and registry secrets across all namespaces.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={load} className="rounded-xl border-white/10 bg-white/[0.03]">
-                        <RefreshCcw className="mr-1.5 h-3.5 w-3.5" /> Refresh
-                    </Button>
-                    <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create secret
-                    </Button>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="SECRETS"
+                title="Secrets"
+                description="Opaque, TLS and registry secrets across all namespaces."
+                action={
+                    <>
+                        <Button size="sm" variant="outline" onClick={load} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <RefreshCcw className="mr-1.5 h-3.5 w-3.5" /> Refresh
+                        </Button>
+                        <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Create secret
+                        </Button>
+                    </>
+                }
+            />
 
             <GlassCard className="p-3">
                 <div className="relative">

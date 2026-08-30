@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -768,11 +769,12 @@ export default function Ops() {
     const Panel = PANELS[active];
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Ops</h1>
-                <p className="text-sm text-muted-foreground">Helm, GitOps, agents, identity, audit, access and cost.</p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="OPS"
+                title="Ops"
+                description="Helm, GitOps, agents, identity, audit, access and cost."
+            />
 
             <Tabs value={active} onValueChange={(v) => navigate(`/ops/${v}`)}>
                 <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">

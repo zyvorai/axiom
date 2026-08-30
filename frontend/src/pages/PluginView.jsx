@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -144,13 +145,12 @@ export default function PluginView() {
     const hasDelete = (manifest.actions || []).some((a) => a.type === "delete");
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">{manifest.displayName}</h1>
-                <p className="text-sm text-muted-foreground">
-                    {manifest.target.kind} · {manifest.target.group}/{manifest.target.version}
-                </p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow={manifest.displayName}
+                title={manifest.displayName}
+                description={`${manifest.target.kind} · ${manifest.target.group}/${manifest.target.version}`}
+            />
 
             <AutoTable
                 title={manifest.displayName}

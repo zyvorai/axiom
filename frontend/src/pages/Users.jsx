@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,18 +240,17 @@ export default function Users() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Users</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Local accounts alongside SSO. Viewers can read every page but cannot create, change, or delete anything.
-                    </p>
-                </div>
-                <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                    <UserPlus className="mr-1.5 h-3.5 w-3.5" /> Add user
-                </Button>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="USERS"
+                title="Users"
+                description="Local accounts alongside SSO. Viewers can read every page but cannot create, change, or delete anything."
+                action={
+                    <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
+                        <UserPlus className="mr-1.5 h-3.5 w-3.5" /> Add user
+                    </Button>
+                }
+            />
 
             <GlassCard className="p-0 overflow-hidden">
                 <Table>

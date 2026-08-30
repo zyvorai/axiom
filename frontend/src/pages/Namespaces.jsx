@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -75,16 +76,17 @@ export default function Namespaces() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Namespaces</h1>
-                    <p className="text-sm text-muted-foreground">Every namespace in the cluster, with pod and service counts.</p>
-                </div>
-                <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Create namespace
-                </Button>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="NAMESPACES"
+                title="Namespaces"
+                description="Every namespace in the cluster, with pod and service counts."
+                action={
+                    <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create namespace
+                    </Button>
+                }
+            />
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((n) => (

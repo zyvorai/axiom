@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -117,13 +118,12 @@ export default function Jobs() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Jobs &amp; CronJobs</h1>
-                    <p className="text-sm text-muted-foreground">Scheduled and one-off batch workloads across all namespaces.</p>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="JOBS"
+                title="Jobs & CronJobs"
+                description="Scheduled and one-off batch workloads across all namespaces."
+            />
 
             <Section
                 title="CronJobs"

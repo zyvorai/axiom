@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -91,11 +92,12 @@ export default function CustomResources() {
     }
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Custom Resources</h1>
-                <p className="text-sm text-muted-foreground">Browse any CustomResourceDefinition installed in the cluster.</p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="CUSTOM RESOURCES"
+                title="Custom Resources"
+                description="Browse any CustomResourceDefinition installed in the cluster."
+            />
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
                 <GlassCard className="p-0 overflow-hidden">

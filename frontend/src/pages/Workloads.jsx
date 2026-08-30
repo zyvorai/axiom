@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
 import StatusBadge from "@/components/StatusBadge";
 import SegmentedProgress from "@/components/SegmentedProgress";
@@ -572,31 +573,30 @@ export default function Workloads() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Workloads</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Deployments, StatefulSets, DaemonSets, Pods and CronJobs.
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    {selected.size > 0 && (
-                        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
-                            <span className="text-xs text-muted-foreground">{selected.size} selected</span>
-                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
-                                <RotateCw className="mr-1 h-3 w-3" /> Restart
-                            </Button>
-                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
-                                <Trash2 className="mr-1 h-3 w-3" /> Delete
-                            </Button>
-                        </div>
-                    )}
-                    <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
-                    </Button>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="WORKLOADS"
+                title="Workloads"
+                description="Deployments, StatefulSets, DaemonSets, Pods and CronJobs."
+                action={
+                    <>
+                        {selected.size > 0 && (
+                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                                <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                                    <RotateCw className="mr-1 h-3 w-3" /> Restart
+                                </Button>
+                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                                    <Trash2 className="mr-1 h-3 w-3" /> Delete
+                                </Button>
+                            </div>
+                        )}
+                        <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
+                        </Button>
+                    </>
+                }
+            />
 
             <GlassCard className="p-3">
                 <div className="flex flex-wrap items-center gap-2">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,16 +142,17 @@ export default function HPA() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Autoscaling</h1>
-                    <p className="text-sm text-muted-foreground">Horizontal Pod Autoscalers across all namespaces.</p>
-                </div>
-                <Button size="sm" variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Create autoscaler
-                </Button>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="AUTOSCALING"
+                title="Autoscaling"
+                description="Horizontal Pod Autoscalers across all namespaces."
+                action={
+                    <Button size="sm" variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create autoscaler
+                    </Button>
+                }
+            />
 
             <GlassCard className="p-0 overflow-hidden">
                 <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">

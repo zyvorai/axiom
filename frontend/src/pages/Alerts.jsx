@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
 import { AlertTriangle, ListChecks } from "lucide-react";
@@ -40,11 +41,12 @@ export default function Alerts() {
     const rules = d.rules || [];
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Alerts</h1>
-                <p className="text-sm text-muted-foreground">Active warnings and Prometheus alerting rule groups.</p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="ALERTS"
+                title="Alerts"
+                description="Active warnings and Prometheus alerting rule groups."
+            />
 
             <GlassCard className="p-0 overflow-hidden">
                 <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">

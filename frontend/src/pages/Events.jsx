@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -38,11 +39,12 @@ export default function Events() {
     }
 
     return (
-        <div data-testid={EVENTS.root} className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
-                <p className="text-sm text-muted-foreground">Kubernetes event stream, most recent first.</p>
-            </div>
+        <div data-testid={EVENTS.root} className="space-y-6">
+            <PageHeader
+                eyebrow="EVENTS"
+                title="Events"
+                description="Kubernetes event stream, most recent first."
+            />
 
             <GlassCard className="p-0 overflow-hidden">
                 <div className="max-h-[70vh] overflow-auto scrollbar-thin">

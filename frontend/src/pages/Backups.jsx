@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -217,21 +218,22 @@ export default function Backups() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Backups</h1>
-                    <p className="text-sm text-muted-foreground">VolumeSnapshots and Velero cluster backups.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl border-white/10 bg-white/[0.03]">
-                        <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Restore
-                    </Button>
-                    <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create snapshot
-                    </Button>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="BACKUPS"
+                title="Backups"
+                description="VolumeSnapshots and Velero cluster backups."
+                action={
+                    <>
+                        <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Restore
+                        </Button>
+                        <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Create snapshot
+                        </Button>
+                    </>
+                }
+            />
 
             <Section
                 title="Volume snapshots"

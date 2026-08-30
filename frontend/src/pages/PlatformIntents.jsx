@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
@@ -29,13 +30,12 @@ export default function PlatformIntents() {
     }
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Platform Intents</h1>
-                <p className="text-sm text-muted-foreground">
-                    Workloads requested via natural-language intent (Workloads → Run workload → Intent).
-                </p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="PLATFORM INTENTS"
+                title="Platform Intents"
+                description="Workloads requested via natural-language intent (Workloads → Run workload → Intent)."
+            />
 
             <GlassCard className="p-0 overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">

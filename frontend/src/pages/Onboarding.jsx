@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -152,13 +153,12 @@ export default function Onboarding() {
     const requiredDone = requiredSteps.filter((s) => s.done).length;
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Getting Started</h1>
-                <p className="text-sm text-muted-foreground">
-                    {user ? `Welcome, ${user.name}. ` : ""}What's configured on this Axiom instance, and what's left to wire up.
-                </p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="GETTING STARTED"
+                title="Getting Started"
+                description={`${user ? `Welcome, ${user.name}. ` : ""}What's configured on this Axiom instance, and what's left to wire up.`}
+            />
 
             <GlassCard className="p-5">
                 <div className="flex items-center justify-between">

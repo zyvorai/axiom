@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -47,13 +48,12 @@ export default function Ingresses() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Ingresses</h1>
-                    <p className="text-sm text-muted-foreground">External routes into cluster services, equivalent to OpenShift Routes.</p>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="INGRESSES"
+                title="Ingresses"
+                description="External routes into cluster services, equivalent to OpenShift Routes."
+            />
 
             <GlassCard className="p-3">
                 <div className="relative">

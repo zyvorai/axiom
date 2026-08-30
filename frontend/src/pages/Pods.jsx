@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -197,21 +198,22 @@ export default function Pods() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Pods</h1>
-                    <p className="text-sm text-muted-foreground">Every running pod across all namespaces.</p>
-                </div>
-                {selected.size > 0 && (
-                    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
-                        <span className="text-xs text-muted-foreground">{selected.size} selected</span>
-                        <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
-                            <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
-                        </Button>
-                    </div>
-                )}
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="PODS"
+                title="Pods"
+                description="Every running pod across all namespaces."
+                action={
+                    selected.size > 0 && (
+                        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                            <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                                <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
+                            </Button>
+                        </div>
+                    )
+                }
+            />
 
             <GlassCard className="p-3">
                 <div className="flex flex-wrap items-center gap-2">

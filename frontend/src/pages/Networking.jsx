@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -228,16 +229,13 @@ export default function Networking() {
     }
 
     return (
-        <div data-testid={NET.root} className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Networking</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Service graph across pods, services and endpoints.
-                    </p>
-                </div>
-                <div className="mono text-xs text-muted-foreground">namespace: {d.namespace}</div>
-            </div>
+        <div data-testid={NET.root} className="space-y-6">
+            <PageHeader
+                eyebrow="NETWORKING"
+                title="Networking"
+                description="Service graph across pods, services and endpoints."
+                action={<div className="mono text-xs text-muted-foreground">namespace: {d.namespace}</div>}
+            />
 
             <div className="grid gap-4 md:grid-cols-3">
                 {[

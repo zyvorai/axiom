@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -234,11 +235,12 @@ export default function Settings() {
     }
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-                <p className="text-sm text-muted-foreground">Configure single sign-on and platform integrations.</p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="SETTINGS"
+                title="Settings"
+                description="Configure single sign-on and platform integrations."
+            />
 
             <IntegrationCard
                 title="OIDC single sign-on"

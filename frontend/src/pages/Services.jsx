@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,13 +45,12 @@ export default function Services() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Services</h1>
-                    <p className="text-sm text-muted-foreground">ClusterIP, NodePort and LoadBalancer services across all namespaces.</p>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="SERVICES"
+                title="Services"
+                description="ClusterIP, NodePort and LoadBalancer services across all namespaces."
+            />
 
             <GlassCard className="p-3">
                 <div className="relative">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,13 +47,12 @@ export default function Storage() {
     }
 
     return (
-        <div data-testid={STORAGE.root} className="space-y-4">
-            <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Storage</h1>
-                <p className="text-sm text-muted-foreground">
-                    StorageClasses and PersistentVolumeClaims across all namespaces.
-                </p>
-            </div>
+        <div data-testid={STORAGE.root} className="space-y-6">
+            <PageHeader
+                eyebrow="STORAGE"
+                title="Storage"
+                description="StorageClasses and PersistentVolumeClaims across all namespaces."
+            />
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {classes.map((sc) => (

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, streamPodLogs } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,13 +90,12 @@ export default function Logs() {
     }
 
     return (
-        <div data-testid={LOGS.root} className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Pod Logs</h1>
-                    <p className="text-sm text-muted-foreground">Live streaming terminal via chunked HTTP.</p>
-                </div>
-            </div>
+        <div data-testid={LOGS.root} className="space-y-6">
+            <PageHeader
+                eyebrow="LOGS"
+                title="Pod Logs"
+                description="Live streaming terminal via chunked HTTP."
+            />
 
             <GlassCard className="flex flex-wrap items-center gap-3 p-3">
                 <div className="flex items-center gap-2">

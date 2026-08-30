@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Gauge, Ruler, ShieldHalf, ArrowUpDown } from "lucide-react";
@@ -78,13 +79,12 @@ export default function Quotas() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Quotas &amp; Limits</h1>
-                    <p className="text-sm text-muted-foreground">ResourceQuotas, LimitRanges, PodDisruptionBudgets, and PriorityClasses.</p>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="QUOTAS & LIMITS"
+                title="Quotas & Limits"
+                description="ResourceQuotas, LimitRanges, PodDisruptionBudgets, and PriorityClasses."
+            />
 
             <Section
                 title="Resource quotas"

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -50,16 +51,13 @@ export default function Nodes() {
     }
 
     return (
-        <div data-testid={NODES.root} className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Nodes</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Compute topology, allocatable capacity and kubelet status.
-                    </p>
-                </div>
-                <div className="text-xs text-muted-foreground">{nodes.length} nodes total</div>
-            </div>
+        <div data-testid={NODES.root} className="space-y-6">
+            <PageHeader
+                eyebrow="NODES"
+                title="Nodes"
+                description="Compute topology, allocatable capacity and kubelet status."
+                action={<div className="text-xs text-muted-foreground">{nodes.length} nodes total</div>}
+            />
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {nodes.map((n) => (

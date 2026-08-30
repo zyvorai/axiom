@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -345,16 +346,13 @@ export default function VirtualMachines() {
     }
 
     return (
-        <div data-testid={VMS.root} className="space-y-4">
-            <div className="flex items-end justify-between">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">Virtual Machines</h1>
-                    <p className="text-sm text-muted-foreground">
-                        KubeVirt-managed VMs — start, stop, live-migrate and console access.
-                    </p>
-                </div>
-                <div className="text-xs text-muted-foreground">{vms.length} VMs</div>
-            </div>
+        <div data-testid={VMS.root} className="space-y-6">
+            <PageHeader
+                eyebrow="VIRTUAL MACHINES"
+                title="Virtual Machines"
+                description="KubeVirt-managed VMs — start, stop, live-migrate and console access."
+                action={<div className="text-xs text-muted-foreground">{vms.length} VMs</div>}
+            />
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {vms.map((vm) => {
