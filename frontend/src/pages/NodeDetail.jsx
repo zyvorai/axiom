@@ -31,6 +31,7 @@ import {
     Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function MetricsPanel({ name }) {
     const [series, setSeries] = useState(null);
@@ -88,6 +89,7 @@ function MetricsPanel({ name }) {
 }
 
 function TaintsPanel({ name, taints, onChanged }) {
+    const confirm = useConfirm();
     const [key, setKey] = useState("");
     const [value, setValue] = useState("");
     const [effect, setEffect] = useState("NoSchedule");
@@ -110,6 +112,12 @@ function TaintsPanel({ name, taints, onChanged }) {
     };
 
     const remove = async (t) => {
+        const ok = await confirm({
+            title: `Remove taint ${t.key}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Remove",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/nodes/${encodeURIComponent(name)}/taints/${encodeURIComponent(t.key)}`, {
                 params: { effect: t.effect },

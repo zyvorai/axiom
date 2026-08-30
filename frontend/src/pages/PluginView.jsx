@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { resolveIcon } from "@/constants/navItems";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function fieldValue(row, path) {
     if (path === "name") return row?.metadata?.name ?? row?.name;
@@ -62,6 +63,7 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
 }
 
 export default function PluginView() {
+    const confirm = useConfirm();
     const { pluginId } = useParams();
     const [manifest, setManifest] = useState(null);
     const [notFound, setNotFound] = useState(false);
@@ -104,6 +106,12 @@ export default function PluginView() {
         const { group, version, plural } = manifest.target;
         const ns = fieldValue(row, "namespace");
         const name = fieldValue(row, "name");
+        const ok = await confirm({
+            title: `Delete ${name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/crds/${group}/${version}/${plural}/${encodeURIComponent(name)}`, {
                 params: ns ? { namespace: ns } : {},

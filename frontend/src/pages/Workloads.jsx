@@ -55,6 +55,7 @@ import {
     Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function RolloutDialog({ workload, onOpenChange }) {
     const [status, setStatus] = useState(null);
@@ -177,6 +178,7 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
 }
 
 function WorkloadActions({ w, onChanged, onScale, onRollout }) {
+    const confirm = useConfirm();
     const [busy, setBusy] = useState("");
     // A DaemonSet has no replica count in Kubernetes' own model — one Pod
     // per matching node, not a scalable target — so Start/Stop/Scale/
@@ -198,6 +200,12 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     };
 
     const remove = async () => {
+        const ok = await confirm({
+            title: `Delete ${w.kind} ${w.name}?`,
+            description: "This cannot be undone. Its pods will be removed too.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         setBusy("delete");
         try {
             await api.delete(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`);
@@ -452,6 +460,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
 }
 
 export default function Workloads() {
+    const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
     const [ns, setNs] = useState("all");
@@ -509,6 +518,14 @@ export default function Workloads() {
         // gap explicitly rather than silently acting on fewer items than
         // the user actually selected.
         const skipped = selected.size - targets.length;
+        if (action === "delete") {
+            const ok = await confirm({
+                title: `Delete ${targets.length} workload${targets.length === 1 ? "" : "s"}?`,
+                description: "This cannot be undone.",
+                confirmLabel: "Delete",
+            });
+            if (!ok) return;
+        }
         setBulkBusy(true);
         try {
             const results = await Promise.allSettled(

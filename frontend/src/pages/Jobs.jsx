@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CalendarClock, PlayCircle, Boxes, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
@@ -33,6 +34,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
 }
 
 export default function Jobs() {
+    const confirm = useConfirm();
     const [cronJobs, setCronJobs] = useState(null);
     const [jobs, setJobs] = useState(null);
 
@@ -74,6 +76,12 @@ export default function Jobs() {
     };
 
     const deleteCronJob = async (c) => {
+        const ok = await confirm({
+            title: `Delete CronJob ${c.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/cronjobs/${c.namespace}/${encodeURIComponent(c.name)}`);
             toast.success(`Deleted ${c.name}`);
@@ -84,6 +92,12 @@ export default function Jobs() {
     };
 
     const deleteJob = async (j) => {
+        const ok = await confirm({
+            title: `Delete job ${j.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/jobs/${j.namespace}/${encodeURIComponent(j.name)}`);
             toast.success(`Deleted ${j.name}`);

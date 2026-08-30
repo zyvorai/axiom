@@ -31,6 +31,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function ExecDialog({ pod, onOpenChange }) {
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
@@ -98,6 +99,7 @@ function ExecDialog({ pod, onOpenChange }) {
 }
 
 export default function Pods() {
+    const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
     const [ns, setNs] = useState("all");
@@ -130,6 +132,12 @@ export default function Pods() {
     }, [data, q, ns]);
 
     const evict = async (p) => {
+        const ok = await confirm({
+            title: `Evict pod ${p.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Evict",
+        });
+        if (!ok) return;
         try {
             await api.post(`/pods/${p.namespace}/${encodeURIComponent(p.name)}/evict`);
             toast.success(`Evicted ${p.name}`);
@@ -157,6 +165,12 @@ export default function Pods() {
         // elsewhere in that window. Surface the gap instead of silently
         // acting on fewer pods than the user actually selected.
         const skipped = selected.size - targets.length;
+        const ok = await confirm({
+            title: `Evict ${targets.length} pod${targets.length === 1 ? "" : "s"}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Evict",
+        });
+        if (!ok) return;
         setBulkBusy(true);
         try {
             const results = await Promise.allSettled(

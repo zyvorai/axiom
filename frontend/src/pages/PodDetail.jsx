@@ -40,6 +40,7 @@ import {
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
 import Sparkline from "@/components/Sparkline";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function ExecPanel({ namespace, name, containers }) {
     const [container, setContainer] = useState(containers[0] || "");
@@ -287,6 +288,7 @@ function TerminalSessions({ namespace, name, containers }) {
 export default function PodDetail() {
     const { namespace, name } = useParams();
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const [pods, setPods] = useState(null);
     const [events, setEvents] = useState(null);
     const [capabilities, setCapabilities] = useState(null);
@@ -350,6 +352,12 @@ export default function PodDetail() {
     const owner = (detail?.manifest?.metadata?.ownerReferences || [])[0];
 
     const evict = async () => {
+        const ok = await confirm({
+            title: `Evict pod ${name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Evict",
+        });
+        if (!ok) return;
         try {
             await api.post(`/pods/${namespace}/${encodeURIComponent(name)}/evict`);
             toast.success(`Evicted ${name}`);

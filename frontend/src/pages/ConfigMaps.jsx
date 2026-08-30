@@ -23,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { FileCog, Search, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
     const [namespace, setNamespace] = useState("default");
@@ -99,6 +100,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
 }
 
 export default function ConfigMaps() {
+    const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
@@ -119,6 +121,12 @@ export default function ConfigMaps() {
     );
 
     const remove = async (c) => {
+        const ok = await confirm({
+            title: `Delete ConfigMap ${c.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/configmaps/${c.namespace}/${encodeURIComponent(c.name)}`);
             toast.success(`Deleted ${c.name}`);

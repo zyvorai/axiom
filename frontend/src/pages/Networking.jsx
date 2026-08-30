@@ -15,6 +15,7 @@ import {
 import { Network, Boxes, ArrowRightLeft, Radar, ShieldHalf, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -31,6 +32,7 @@ spec:
 `;
 
 function NetworkPolicyPanel() {
+    const confirm = useConfirm();
     const [policies, setPolicies] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
 
@@ -45,6 +47,12 @@ function NetworkPolicyPanel() {
     }, []);
 
     const remove = async (p) => {
+        const ok = await confirm({
+            title: `Delete NetworkPolicy ${p.name}?`,
+            description: "This may remove traffic restrictions currently enforced by this policy. This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/networkpolicies/${p.namespace}/${encodeURIComponent(p.name)}`);
             toast.success(`Deleted ${p.name}`);

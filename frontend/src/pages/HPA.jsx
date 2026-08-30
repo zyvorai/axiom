@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Gauge, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
     const [form, setForm] = useState({ namespace: "", targetKind: "", targetName: "", minReplicas: 1, maxReplicas: 5, targetCpuPercent: 80 });
@@ -95,6 +96,7 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
 }
 
 export default function HPA() {
+    const confirm = useConfirm();
     const [hpas, setHpas] = useState(null);
     const [workloads, setWorkloads] = useState([]);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -114,6 +116,12 @@ export default function HPA() {
     }, []);
 
     const remove = async (h) => {
+        const ok = await confirm({
+            title: `Delete autoscaler ${h.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/hpas/${h.namespace}/${encodeURIComponent(h.name)}`);
             toast.success(`Deleted ${h.name}`);

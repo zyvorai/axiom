@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { Boxes, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export default function Namespaces() {
+    const confirm = useConfirm();
     const [items, setItems] = useState(null);
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
@@ -48,6 +50,12 @@ export default function Namespaces() {
     };
 
     const remove = async (n) => {
+        const ok = await confirm({
+            title: `Delete namespace ${n.name}?`,
+            description: "This deletes every resource in this namespace. This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/namespaces/${encodeURIComponent(n.name)}`);
             toast.success(`Deleted ${n.name}`);

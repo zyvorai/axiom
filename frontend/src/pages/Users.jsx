@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { UserPlus, Trash2, ShieldCheck, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function parseNamespaces(text) {
     return text
@@ -201,6 +202,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
 }
 
 export default function Users() {
+    const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -212,6 +214,12 @@ export default function Users() {
     }, []);
 
     const remove = async (u) => {
+        const ok = await confirm({
+            title: `Delete user ${u.username}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/users/${encodeURIComponent(u.username)}`);
             toast.success(`Deleted ${u.username}`);

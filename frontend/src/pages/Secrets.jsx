@@ -31,6 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const SECRET_TYPES = ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth"];
 
@@ -166,6 +167,7 @@ function ExternalSecretsSection() {
 }
 
 export default function Secrets() {
+    const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
@@ -186,6 +188,12 @@ export default function Secrets() {
     );
 
     const remove = async (s) => {
+        const ok = await confirm({
+            title: `Delete secret ${s.name}?`,
+            description: "This also removes all its keys. This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/secrets/${s.namespace}/${encodeURIComponent(s.name)}`);
             toast.success(`Deleted ${s.name}`);

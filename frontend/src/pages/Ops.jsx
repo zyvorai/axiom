@@ -19,6 +19,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const TABS = [
     { key: "helm", label: "Helm", icon: Anchor },
@@ -60,10 +61,17 @@ function Rows({ items, empty, render }) {
 }
 
 function HelmRow({ r, onChanged }) {
+    const confirm = useConfirm();
     const [revision, setRevision] = useState("");
     const [busy, setBusy] = useState("");
 
     const uninstall = async () => {
+        const ok = await confirm({
+            title: `Uninstall ${r.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Uninstall",
+        });
+        if (!ok) return;
         setBusy("uninstall");
         try {
             await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/uninstall`);
@@ -561,6 +569,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
 }
 
 function RbacTab() {
+    const confirm = useConfirm();
     const [refresh, setRefresh] = useState(0);
     const rbac = useEndpoint("/rbac", [refresh]);
     const [roleOpen, setRoleOpen] = useState(false);
@@ -570,6 +579,12 @@ function RbacTab() {
     if (!rbac) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
 
     const deleteRole = async (r) => {
+        const ok = await confirm({
+            title: `Delete role ${r.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/rbac/roles/${r.namespace}/${encodeURIComponent(r.name)}`);
             toast.success(`Deleted ${r.name}`);
@@ -579,6 +594,12 @@ function RbacTab() {
         }
     };
     const deleteRoleBinding = async (r) => {
+        const ok = await confirm({
+            title: `Delete role binding ${r.name}?`,
+            description: "This cannot be undone.",
+            confirmLabel: "Delete",
+        });
+        if (!ok) return;
         try {
             await api.delete(`/rbac/rolebindings/${r.namespace}/${encodeURIComponent(r.name)}`);
             toast.success(`Deleted ${r.name}`);
