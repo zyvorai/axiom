@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Lock, ShieldCheck, Globe2, Cpu, KeyRound } from "lucide-react";
+import { Loader2, Lock, ShieldCheck, Globe2, Cpu, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { SSO } from "@/constants/testIds";
@@ -45,10 +45,25 @@ export default function Login() {
     const [username, setUsername] = useState(defaultUsername || "");
     const [password, setPassword] = useState("");
     const [pending, setPending] = useState(false);
+    // Apple-style two-step sign-in: identity first, password second — the
+    // actual signInLocal() call still sends both together on step 2 submit,
+    // this only splits how they're collected.
+    const [step, setStep] = useState("identity");
 
     useEffect(() => {
         if (defaultUsername) setUsername((u) => u || defaultUsername);
     }, [defaultUsername]);
+
+    const handleContinue = (e) => {
+        e.preventDefault();
+        if (!username) return;
+        setStep("password");
+    };
+
+    const handleBack = () => {
+        setStep("identity");
+        setPassword("");
+    };
 
     const handleLocalSignIn = async (e) => {
         e.preventDefault();
@@ -60,6 +75,7 @@ export default function Login() {
             toast.success(`Welcome back, ${username}`, { description: "Session established." });
             navigate("/overview", { replace: true });
         } else {
+            setPassword("");
             toast.error("Sign in failed", { description: "Check your username and password." });
         }
     };
@@ -67,6 +83,7 @@ export default function Login() {
     const fillDemo = () => {
         setUsername("demo");
         setPassword("demo");
+        setStep("password");
     };
 
     const handleSSO = () => {
@@ -94,7 +111,7 @@ export default function Login() {
                 {/* Brand panel */}
                 <div className="hidden lg:block">
                     <div className="fade-up flex items-center gap-3" style={{ animationDelay: "0ms" }}>
-                        <div className="z-mark grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic via-[#f26b3a] to-[#c8452a] shadow-xl shadow-[#f26b3a]/40 ring-1 ring-white/15">
+                        <div className="z-mark grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic via-i17-cosmic to-i17-deep-blue shadow-xl shadow-i17-cosmic/40 ring-1 ring-white/15">
                             <svg width="24" height="24" viewBox="0 0 18 18" aria-hidden="true">
                                 <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                             </svg>
@@ -130,7 +147,7 @@ export default function Login() {
                 {/* Sign-in card */}
                 <div className="fade-up glass specular noise relative rounded-3xl p-8 sm:p-10" style={{ animationDelay: "140ms" }}>
                     <div className="mb-8 flex items-center gap-3 lg:hidden">
-                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic to-[#c8452a] ring-1 ring-white/15">
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic to-i17-deep-blue ring-1 ring-white/15">
                             <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true">
                                 <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
                             </svg>
@@ -138,83 +155,118 @@ export default function Login() {
                         <span className="text-base font-semibold lowercase">zyvor · Axiom</span>
                     </div>
 
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in to continue</h2>
-                    <p className="mt-1.5 text-sm text-muted-foreground">
-                        Single sign-on enforced by your Zyvor organization.
-                    </p>
+                    {step === "identity" ? (
+                        <div key="identity" className="fade-up">
+                            <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
+                            <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in to continue</h2>
+                            <p className="mt-1.5 text-sm text-muted-foreground">
+                                Single sign-on enforced by your Zyvor organization.
+                            </p>
 
-                    <div className="mt-8 space-y-3">
-                        {SSO_BUTTONS.map(({ id, label, Icon, testId }, i) => (
-                            <button
-                                key={id}
-                                data-testid={testId}
-                                onClick={handleSSO}
-                                className="sso-btn group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
-                                style={{ animationDelay: `${i * 60}ms` }}
-                            >
-                                <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
-                                    <Icon />
-                                </span>
-                                <span>{label}</span>
-                                <span className="ml-auto text-[10px] uppercase tracking-widest text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                                    SSO
-                                </span>
-                            </button>
-                        ))}
-                        {samlLoginUrl && (
-                            <a
-                                href={samlLoginUrl}
-                                className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
-                            >
-                                <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
-                                    <ShieldCheck className="h-4 w-4 text-i17-sage" />
-                                </span>
-                                <span>Continue with SAML</span>
-                            </a>
-                        )}
-                    </div>
+                            <div className="mt-8 space-y-3">
+                                {SSO_BUTTONS.map(({ id, label, Icon, testId }, i) => (
+                                    <button
+                                        key={id}
+                                        data-testid={testId}
+                                        onClick={handleSSO}
+                                        className="sso-btn group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
+                                        style={{ animationDelay: `${i * 60}ms` }}
+                                    >
+                                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
+                                            <Icon />
+                                        </span>
+                                        <span>{label}</span>
+                                        <span className="ml-auto text-[10px] uppercase tracking-widest text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                                            SSO
+                                        </span>
+                                    </button>
+                                ))}
+                                {samlLoginUrl && (
+                                    <a
+                                        href={samlLoginUrl}
+                                        className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
+                                    >
+                                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
+                                            <ShieldCheck className="h-4 w-4 text-i17-sage" />
+                                        </span>
+                                        <span>Continue with SAML</span>
+                                    </a>
+                                )}
+                            </div>
 
-                    <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
-                        <span className="h-px flex-1 bg-white/10" />
-                        or sign in with a local account
-                        <span className="h-px flex-1 bg-white/10" />
-                    </div>
+                            <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
+                                <span className="h-px flex-1 bg-white/10" />
+                                or sign in with a local account
+                                <span className="h-px flex-1 bg-white/10" />
+                            </div>
 
-                    <form className="space-y-3" onSubmit={handleLocalSignIn}>
-                        <Input
-                            autoFocus
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
-                        />
-                        <Input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
-                        />
-                        <button
-                            type="submit"
-                            disabled={pending || !username || !password}
-                            className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
-                        >
-                            {pending ? <Loader2 className="h-4 w-4 animate-spin text-i17-cosmic" /> : <KeyRound className="h-4 w-4" />}
-                            {pending ? "Signing in…" : "Sign in"}
-                        </button>
+                            <form className="space-y-3" onSubmit={handleContinue}>
+                                <Input
+                                    autoFocus
+                                    placeholder="Username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!username}
+                                    className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
+                                >
+                                    Continue
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
 
-                        {labHint && (
+                                {labHint && (
+                                    <button
+                                        type="button"
+                                        onClick={fillDemo}
+                                        className="w-full text-center text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+                                    >
+                                        Lab mode — fill {labHint}
+                                    </button>
+                                )}
+                            </form>
+                        </div>
+                    ) : (
+                        <div key="password" className="fade-up">
+                            <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
+                            <h2 className="mt-2 text-2xl font-semibold tracking-tight">Enter your password</h2>
+
                             <button
                                 type="button"
-                                onClick={fillDemo}
-                                className="w-full text-center text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+                                onClick={handleBack}
+                                className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left backdrop-blur-md transition-colors hover:bg-white/[0.07]"
                             >
-                                Lab mode — fill {labHint}
+                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-i17-cosmic to-i17-deep-blue text-xs font-semibold text-white">
+                                    {username.slice(0, 1).toUpperCase()}
+                                </span>
+                                <span className="min-w-0 flex-1 truncate text-sm font-medium">{username}</span>
+                                <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+                                    <ChevronLeft className="h-3.5 w-3.5" /> Not you?
+                                </span>
                             </button>
-                        )}
-                    </form>
+
+                            <form className="mt-6 space-y-3" onSubmit={handleLocalSignIn}>
+                                <Input
+                                    autoFocus
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={pending || !username || !password}
+                                    className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
+                                >
+                                    {pending ? <Loader2 className="h-4 w-4 animate-spin text-i17-cosmic" /> : <KeyRound className="h-4 w-4" />}
+                                    {pending ? "Signing in…" : "Sign in"}
+                                </button>
+                            </form>
+                        </div>
+                    )}
 
                     <div className="mt-8 flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5 text-[11px] text-muted-foreground">
                         <Lock className="h-3.5 w-3.5 text-i17-sage" />
