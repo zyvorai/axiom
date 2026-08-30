@@ -36,6 +36,7 @@ import {
     AlertTriangle,
     Plus,
     X,
+    ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
@@ -410,11 +411,12 @@ export default function PodDetail() {
                         )}
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Link to={`/logs?pod=${pod.namespace}/${encodeURIComponent(pod.name)}`}>
-                        <Button variant="outline" className="rounded-xl border-white/10 bg-white/[0.03]">
-                            <ScrollText className="mr-1.5 h-3.5 w-3.5" /> Logs
-                        </Button>
+                <div className="flex items-center gap-4">
+                    <Link
+                        to={`/logs?pod=${pod.namespace}/${encodeURIComponent(pod.name)}`}
+                        className="flex items-center gap-1 text-sm text-i17-sky hover:underline"
+                    >
+                        <ScrollText className="h-3.5 w-3.5" /> Logs <ArrowRight className="h-3 w-3" />
                     </Link>
                     <Button variant="outline" onClick={evict} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
                         <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Evict
