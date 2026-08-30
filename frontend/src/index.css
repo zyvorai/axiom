@@ -82,33 +82,33 @@
     }
 
     .dark {
-        --background: 0 0% 0%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 11%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 11%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 200 85% 52%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 0 0% 16%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14%;
-        --muted-foreground: 240 3% 54%;
-        --accent: 0 0% 16%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 63% 31%;
+        --background: 222 22% 8%;
+        --foreground: 210 20% 95%;
+        --card: 222 20% 12%;
+        --card-foreground: 210 20% 95%;
+        --popover: 222 20% 13%;
+        --popover-foreground: 210 20% 95%;
+        --primary: 199 89% 58%;
+        --primary-foreground: 222 30% 9%;
+        --secondary: 222 16% 17%;
+        --secondary-foreground: 210 20% 92%;
+        --muted: 222 16% 15%;
+        --muted-foreground: 215 14% 63%;
+        --accent: 222 18% 19%;
+        --accent-foreground: 210 20% 96%;
+        --destructive: 0 65% 48%;
         --destructive-foreground: 0 0% 100%;
-        --success: 158 64% 52%;
-        --success-foreground: 158 64% 12%;
-        --warning: 43 96% 56%;
-        --warning-foreground: 43 96% 12%;
-        --info: 220 70% 58%;
-        --danger: 0 72% 51%;
-        --border: 0 0% 18%;
-        --input: 0 0% 18%;
-        --ring: 200 85% 52%;
-        --brand: 200 85% 52%;
-        --brand-hex: hsl(200 85% 52%);
+        --success: 158 55% 48%;
+        --success-foreground: 158 55% 12%;
+        --warning: 38 90% 58%;
+        --warning-foreground: 38 90% 12%;
+        --info: 217 70% 60%;
+        --danger: 0 70% 55%;
+        --border: 222 15% 21%;
+        --input: 222 15% 21%;
+        --ring: 199 89% 58%;
+        --brand: 199 89% 58%;
+        --brand-hex: hsl(199 89% 58%);
         --zeus: 187 92% 60%;
 
         --glass-bg: 255 255 255 / 0.04;
@@ -116,28 +116,28 @@
         --glass-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
         --grid-color: 255 255 255 / 0.05;
 
-        --k-ok: 158 73% 54%;
-        --k-warn: 43 96% 56%;
-        --k-err: 0 72% 51%;
-        --k-info: 200 85% 52%;
+        --k-ok: 158 55% 48%;
+        --k-warn: 38 90% 58%;
+        --k-err: 0 70% 55%;
+        --k-info: 199 89% 58%;
 
-        --chart-1: 200 85% 52%;
+        --chart-1: 199 89% 58%;
         --chart-2: 270 48% 68%;
-        --chart-3: 158 73% 54%;
-        --chart-4: 43 96% 56%;
-        --chart-5: 0 72% 51%;
+        --chart-3: 158 55% 48%;
+        --chart-4: 38 90% 58%;
+        --chart-5: 0 70% 55%;
 
         /* Brand accents (aliases kept for the 34 files already using
            `i17-*`/`brand-*` classes — only the values change) */
-        --i17-cosmic: hsl(200 85% 52%);
-        --i17-deep-blue: hsl(200 85% 28%);
-        --i17-sky-blue: hsl(200 85% 64%);
+        --i17-cosmic: hsl(199 89% 58%);
+        --i17-deep-blue: hsl(199 89% 30%);
+        --i17-sky-blue: hsl(199 89% 70%);
         --i17-lavender: hsl(270 48% 68%);
-        --i17-sage: hsl(158 73% 54%);
+        --i17-sage: hsl(158 55% 48%);
         --i17-mist: hsl(210 30% 65%);
         --i17-white: #f4efe6;
         --i17-silver: #d0d3d8;
-        --i17-gold: hsl(43 96% 56%);
+        --i17-gold: hsl(38 90% 58%);
 
         --fs-xs: 11px; --fs-sm: 13px; --fs-base: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px;
         --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
@@ -173,16 +173,16 @@
 @layer components {
     .glass {
         background: rgb(var(--glass-bg));
-        backdrop-filter: blur(24px) saturate(140%);
-        -webkit-backdrop-filter: blur(24px) saturate(140%);
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
         border: 1px solid rgb(var(--glass-border));
         box-shadow: var(--glass-shadow);
         border-radius: var(--radius);
     }
     .glass-inset {
         background: rgb(var(--glass-bg));
-        backdrop-filter: blur(16px) saturate(140%);
-        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        backdrop-filter: blur(12px) saturate(120%);
+        -webkit-backdrop-filter: blur(12px) saturate(120%);
         border: 1px solid rgb(var(--glass-border));
     }
     .specular {
@@ -208,10 +208,10 @@
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         pointer-events: none;
-        opacity: 0.65;
+        opacity: 0.4;
     }
     .dark .specular::before {
-        opacity: 0.35;
+        opacity: 0.18;
     }
     .grid-bg {
         background-image:

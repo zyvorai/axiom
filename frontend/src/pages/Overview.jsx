@@ -109,7 +109,7 @@ export default function Overview() {
                         <div className="text-[11px] uppercase tracking-[0.18em] text-i17-cosmic/90">
                             zyvor · Axiom · Kubernetes · {data.region}
                         </div>
-                        <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{data.cluster}</h1>
+                        <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">{data.cluster}</h1>
                         <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
                             <StatusBadge status={data.health} />
                             <span>·</span>

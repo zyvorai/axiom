@@ -61,7 +61,7 @@ export default function Sidebar() {
         <aside
             data-testid={NAV.sidebar}
             className={cn(
-                "glass specular hidden h-full shrink-0 flex-col p-3 transition-[width] duration-200 ease-out lg:flex",
+                "hidden h-full shrink-0 flex-col border-r border-border bg-background p-3 transition-[width] duration-200 ease-out lg:flex",
                 collapsed ? "w-[68px]" : "w-64"
             )}
         >
@@ -101,7 +101,7 @@ export default function Sidebar() {
                 {groups.map((group) => (
                     <div key={group.label}>
                         {collapsed ? (
-                            <div className="my-2 h-px bg-white/5" aria-hidden="true" />
+                            <div className="my-2 h-px bg-border" aria-hidden="true" />
                         ) : (
                             <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                                 {group.label}
@@ -116,11 +116,11 @@ export default function Sidebar() {
                                         title={collapsed ? label : undefined}
                                         className={({ isActive }) =>
                                             cn(
-                                                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-200",
+                                                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200",
                                                 collapsed && "justify-center px-2",
                                                 isActive
-                                                    ? "bg-white/10 text-foreground shadow-inner shadow-white/5"
-                                                    : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
+                                                    ? "bg-primary/12 text-foreground"
+                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                             )
                                         }
                                     >
@@ -129,12 +129,12 @@ export default function Sidebar() {
                                                 <Icon
                                                     className={cn(
                                                         "h-4 w-4 shrink-0 transition-colors",
-                                                        isActive ? "text-i17-cosmic" : "text-muted-foreground group-hover:text-foreground"
+                                                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                                                     )}
                                                 />
                                                 {!collapsed && <span className="truncate">{label}</span>}
                                                 {!collapsed && isActive && (
-                                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-i17-cosmic" />
+                                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
                                                 )}
                                             </>
                                         )}
@@ -147,7 +147,7 @@ export default function Sidebar() {
             </nav>
 
             {!collapsed && (
-                <div className="mt-2 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] px-3 py-2">
+                <div className="mt-2 flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-3 py-2">
                     <div className="text-xs text-muted-foreground">Appearance</div>
                     <ThemeToggle />
                 </div>
@@ -158,7 +158,7 @@ export default function Sidebar() {
                 onClick={toggleCollapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 className={cn(
-                    "mt-2 flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] py-2 text-xs text-muted-foreground transition-colors hover:bg-white/[0.05] hover:text-foreground",
+                    "mt-2 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                     collapsed ? "px-2" : "px-3"
                 )}
             >
