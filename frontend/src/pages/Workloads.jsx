@@ -34,7 +34,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import Stepper from "@/components/Stepper";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -290,6 +291,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
     const [validation, setValidation] = useState(null);
     const [applyOpen, setApplyOpen] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [step, setStep] = useState("form");
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
     const launchForm = async () => {
@@ -350,12 +352,17 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                 <DialogHeader>
                     <DialogTitle>Run workload</DialogTitle>
                 </DialogHeader>
-                <Tabs defaultValue="form">
-                    <TabsList className="bg-white/[0.03] p-1">
-                        <TabsTrigger value="form">Form</TabsTrigger>
-                        <TabsTrigger value="intent">Intent</TabsTrigger>
-                        <TabsTrigger value="yaml">Validate YAML</TabsTrigger>
-                    </TabsList>
+                <Tabs value={step} onValueChange={setStep}>
+                    <Stepper
+                        className="mb-1"
+                        active={step}
+                        onSelect={setStep}
+                        steps={[
+                            { key: "form", label: "Form" },
+                            { key: "intent", label: "Intent" },
+                            { key: "yaml", label: "Validate YAML" },
+                        ]}
+                    />
 
                     <TabsContent value="form" className="mt-4 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
