@@ -272,6 +272,21 @@
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
 }
 
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.shimmer {
+    background-image: linear-gradient(
+        100deg,
+        rgb(var(--glass-bg)) 30%,
+        rgb(255 255 255 / 0.08) 50%,
+        rgb(var(--glass-bg)) 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+}
+
 @keyframes floatOrb {
     0%,100% { transform: translate3d(0,0,0) scale(1); }
     50% { transform: translate3d(20px,-30px,0) scale(1.08); }
