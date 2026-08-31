@@ -76,7 +76,10 @@
         --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
         --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        --font-display: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        /* Apple system font first (renders as genuine SF Pro on macOS/iOS/Safari,
+           matching apple.com's own stack) — "Inter Variable" is the fallback
+           everywhere else, close enough in metrics that nothing reflows. */
+        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter Variable", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
         --font-mono: "JetBrains Mono Variable", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Roboto Mono", monospace;
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
@@ -93,7 +96,11 @@
         --secondary: 222 16% 17%;
         --secondary-foreground: 210 20% 92%;
         --muted: 222 16% 15%;
-        --muted-foreground: 215 14% 63%;
+        /* Was 215 14% 63% — bumped lightness for apple.com-level legibility
+           on secondary/label text against the 8%-lightness dark background
+           (matches Apple's own ~#a1a1a6 secondary-text convention on dark
+           surfaces more closely than the previous, noticeably dimmer gray). */
+        --muted-foreground: 216 15% 72%;
         --accent: 222 18% 19%;
         --accent-foreground: 210 20% 96%;
         --destructive: 0 65% 48%;
@@ -145,7 +152,7 @@
         --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
         --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        --font-display: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter Variable", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
         --font-mono: "JetBrains Mono Variable", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Roboto Mono", monospace;
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Lock, ShieldCheck, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { Input } from "@/components/ui/input";
 import { SSO } from "@/constants/testIds";
 import { toast } from "sonner";
+import "../axiom-login.css";
 
 const GoogleIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -39,6 +39,7 @@ export default function Login() {
     const [username, setUsername] = useState(defaultUsername || "");
     const [password, setPassword] = useState("");
     const [pending, setPending] = useState(false);
+    const [shake, setShake] = useState(false);
     // Apple-style two-step sign-in: identity first, password second — the
     // actual signInLocal() call still sends both together on step 2 submit,
     // this only splits how they're collected.
@@ -70,6 +71,8 @@ export default function Login() {
             navigate("/overview", { replace: true });
         } else {
             setPassword("");
+            setShake(true);
+            setTimeout(() => setShake(false), 450);
             toast.error("Sign in failed", { description: "Check your username and password." });
         }
     };
@@ -93,140 +96,119 @@ export default function Login() {
     };
 
     return (
-        <div data-testid={SSO.page} className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-16">
-            <div className="fade-up w-full max-w-sm">
-                <div className="mb-8 flex flex-col items-center gap-3 text-center">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-i17-cosmic to-i17-deep-blue ring-1 ring-white/10">
-                        <svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true">
-                            <path d="M2 2h14L6.6 16H16" fill="none" stroke="white" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
-                        </svg>
-                    </div>
-                    <span className="text-sm font-semibold lowercase tracking-tight text-muted-foreground">zyvor · axiom</span>
-                </div>
+        <div data-testid={SSO.page} className="axiom-login-page">
+            <div className="axiom-login-brand">
+                <p className="axiom-login-wordmark">zyvor · axiom</p>
+                <h1 className="axiom-login-hero-title">Sign in to continue.</h1>
+                <p className="axiom-login-tagline">
+                    Single sign-on enforced by your Zyvor organization.
+                </p>
+            </div>
 
-                {/* Sign-in card */}
-                <div className="glass specular noise relative rounded-3xl p-8">
-                    {step === "identity" ? (
-                        <div key="identity" className="fade-up">
-                            <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
-                            <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in to continue</h2>
-                            <p className="mt-1.5 text-sm text-muted-foreground">
-                                Single sign-on enforced by your Zyvor organization.
-                            </p>
+            <div className={`axiom-login-card${shake ? " axiom-login-shake" : ""}`}>
+                {step === "identity" ? (
+                    <div key="identity">
+                        <div className="axiom-login-eyebrow">Axiom Console</div>
+                        <h2 className="axiom-login-form-heading">Welcome back</h2>
 
-                            <div className="mt-8 space-y-3">
-                                {SSO_BUTTONS.map(({ id, label, Icon, testId }, i) => (
-                                    <button
-                                        key={id}
-                                        data-testid={testId}
-                                        onClick={handleSSO}
-                                        className="sso-btn group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
-                                        style={{ animationDelay: `${i * 60}ms` }}
-                                    >
-                                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
-                                            <Icon />
-                                        </span>
-                                        <span>{label}</span>
-                                        <span className="ml-auto text-[10px] uppercase tracking-widest text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                                            SSO
-                                        </span>
-                                    </button>
-                                ))}
-                                {samlLoginUrl && (
-                                    <a
-                                        href={samlLoginUrl}
-                                        className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.09]"
-                                    >
-                                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/[0.06] ring-1 ring-white/10">
-                                            <ShieldCheck className="h-4 w-4 text-i17-sage" />
-                                        </span>
-                                        <span>Continue with SAML</span>
-                                    </a>
-                                )}
-                            </div>
-
-                            <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
-                                <span className="h-px flex-1 bg-white/10" />
-                                or sign in with a local account
-                                <span className="h-px flex-1 bg-white/10" />
-                            </div>
-
-                            <form className="space-y-3" onSubmit={handleContinue}>
-                                <Input
-                                    autoFocus
-                                    placeholder="Username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
-                                />
+                        <div className="mt-6 space-y-2.5">
+                            {SSO_BUTTONS.map(({ id, label, Icon, testId }) => (
                                 <button
-                                    type="submit"
-                                    disabled={!username}
-                                    className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
+                                    key={id}
+                                    data-testid={testId}
+                                    onClick={handleSSO}
+                                    className="axiom-login-btn-secondary"
                                 >
-                                    Continue
-                                    <ArrowRight className="h-4 w-4" />
+                                    <span className="axiom-login-icon-chip">
+                                        <Icon />
+                                    </span>
+                                    <span>{label}</span>
                                 </button>
-
-                                {labHint && (
-                                    <button
-                                        type="button"
-                                        onClick={fillDemo}
-                                        className="w-full text-center text-[11px] text-muted-foreground underline-offset-2 hover:underline"
-                                    >
-                                        Lab mode — fill {labHint}
-                                    </button>
-                                )}
-                            </form>
+                            ))}
+                            {samlLoginUrl && (
+                                <a href={samlLoginUrl} className="axiom-login-btn-secondary">
+                                    <span className="axiom-login-icon-chip">
+                                        <ShieldCheck className="h-4 w-4" style={{ color: "hsl(211 100% 45%)" }} />
+                                    </span>
+                                    <span>Continue with SAML</span>
+                                </a>
+                            )}
                         </div>
-                    ) : (
-                        <div key="password" className="fade-up">
-                            <div className="text-[11px] uppercase tracking-[0.24em] text-i17-cosmic/90">Axiom Console</div>
-                            <h2 className="mt-2 text-2xl font-semibold tracking-tight">Enter your password</h2>
 
-                            <button
-                                type="button"
-                                onClick={handleBack}
-                                className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left backdrop-blur-md transition-colors hover:bg-white/[0.07]"
-                            >
-                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-i17-cosmic to-i17-deep-blue text-xs font-semibold text-white">
-                                    {username.slice(0, 1).toUpperCase()}
-                                </span>
-                                <span className="min-w-0 flex-1 truncate text-sm font-medium">{username}</span>
-                                <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
-                                    <ChevronLeft className="h-3.5 w-3.5" /> Not you?
-                                </span>
+                        <div className="axiom-login-divider">
+                            <span>or sign in with a local account</span>
+                        </div>
+
+                        <form onSubmit={handleContinue}>
+                            <input
+                                autoFocus
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="axiom-login-input"
+                            />
+                            <button type="submit" disabled={!username} className="axiom-login-btn-primary">
+                                Continue
+                                <ArrowRight className="h-4 w-4" />
                             </button>
 
-                            <form className="mt-6 space-y-3" onSubmit={handleLocalSignIn}>
-                                <Input
-                                    autoFocus
-                                    type="password"
-                                    placeholder="Password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="h-11 rounded-2xl border-white/10 bg-white/[0.04] px-4 backdrop-blur-md"
-                                />
+                            {labHint && (
                                 <button
-                                    type="submit"
-                                    disabled={pending || !username || !password}
-                                    className="sso-btn group flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3.5 text-sm font-medium backdrop-blur-md transition-colors hover:bg-white/[0.11] disabled:opacity-60"
+                                    type="button"
+                                    onClick={fillDemo}
+                                    className="axiom-login-hint mt-3 w-full underline-offset-2 hover:underline"
                                 >
-                                    {pending ? <Loader2 className="h-4 w-4 animate-spin text-i17-cosmic" /> : <KeyRound className="h-4 w-4" />}
-                                    {pending ? "Signing in…" : "Sign in"}
+                                    Lab mode — fill {labHint}
                                 </button>
-                            </form>
-                        </div>
-                    )}
-
-                    <div className="mt-8 flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5 text-[11px] text-muted-foreground">
-                        <Lock className="h-3.5 w-3.5 text-i17-sage" />
-                        Sessions are scoped per device and expire automatically.
+                            )}
+                        </form>
                     </div>
-                </div>
+                ) : (
+                    <div key="password">
+                        <div className="axiom-login-eyebrow">Axiom Console</div>
+                        <h2 className="axiom-login-form-heading">Enter your password</h2>
 
-                <p className="mt-6 text-center text-[11px] text-muted-foreground/60">Axiom by Zyvor · zyvor.dev</p>
+                        <button type="button" onClick={handleBack} className="axiom-login-btn-secondary mt-4">
+                            <span
+                                className="axiom-login-icon-chip"
+                                style={{ background: "hsl(211 100% 45%)", border: "none", color: "#fff", fontWeight: 600, fontSize: "0.75rem" }}
+                            >
+                                {username.slice(0, 1).toUpperCase()}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate">{username}</span>
+                            <span className="axiom-login-hint flex shrink-0 items-center gap-1">
+                                <ChevronLeft className="h-3.5 w-3.5" /> Not you?
+                            </span>
+                        </button>
+
+                        <form className="mt-4" onSubmit={handleLocalSignIn}>
+                            <input
+                                autoFocus
+                                type="password"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="axiom-login-input"
+                            />
+                            <button
+                                type="submit"
+                                disabled={pending || !username || !password}
+                                className="axiom-login-btn-primary"
+                            >
+                                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                                {pending ? "Signing in…" : "Sign in"}
+                            </button>
+                        </form>
+                    </div>
+                )}
+
+                <div className="axiom-login-security-note">
+                    <Lock className="h-3.5 w-3.5" style={{ color: "hsl(211 100% 45%)" }} />
+                    Sessions are scoped per device and expire automatically.
+                </div>
             </div>
+
+            <p className="axiom-login-footer">Axiom by Zyvor · zyvor.dev</p>
         </div>
     );
 }

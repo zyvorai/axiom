@@ -1,0 +1,239 @@
+/*
+ * Apple Store–style login gate — ported from
+ * ../zeus-os/ui/src/zyvor-premium-login.css (same wordmark → hero title →
+ * tagline → elevated white card → Apple-blue pill CTA pattern, same
+ * hsl(240 6% 10%) near-black / hsl(0 0% 100%) white / hsl(211 100% 45%)
+ * Apple Action Blue values). Scoped under `axiom-login-*` classes and kept
+ * always-light regardless of the app's dark-mode token, matching how
+ * Apple's own account sign-in stays light independent of system theme.
+ */
+
+@keyframes axiom-login-fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes axiom-login-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.axiom-login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: hsl(0 0% 100%);
+  color: hsl(240 6% 10%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter Variable", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.axiom-login-brand {
+  animation: axiom-login-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.axiom-login-wordmark {
+  margin: 0;
+  font-size: clamp(1.375rem, 3vw, 1.625rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: hsl(240 3% 46%);
+}
+
+.axiom-login-hero-title {
+  margin: 0.5rem 0 0.75rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: hsl(240 6% 10%);
+  text-wrap: balance;
+}
+
+.axiom-login-tagline {
+  margin: 0 0 2.25rem;
+  color: hsl(240 3% 46%);
+  font-size: clamp(0.9375rem, 2vw, 1.0625rem);
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+}
+
+.axiom-login-card {
+  animation: axiom-login-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+  width: 100%;
+  max-width: 380px;
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(240 6% 10% / 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 24px 48px -24px rgba(0, 0, 0, 0.12);
+  text-align: left;
+}
+
+.axiom-login-card.axiom-login-shake {
+  animation: axiom-login-shake 0.45s ease-out;
+}
+
+.axiom-login-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: hsl(211 100% 45%);
+}
+
+.axiom-login-form-heading {
+  margin: 0.35rem 0 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: hsl(240 6% 10%);
+}
+
+.axiom-login-form-hint {
+  margin: 0.375rem 0 0;
+  font-size: 0.875rem;
+  color: hsl(240 3% 46%);
+}
+
+.axiom-login-input {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: hsl(240 6% 10%);
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(240 6% 10% / 0.14);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.axiom-login-input::placeholder {
+  color: hsl(240 3% 55%);
+}
+.axiom-login-input:focus {
+  outline: none;
+  border-color: hsl(211 100% 45%);
+  box-shadow: 0 0 0 3px hsl(211 100% 45% / 0.18);
+}
+.axiom-login-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.axiom-login-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.8125rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-family: inherit;
+  color: hsl(0 0% 100%);
+  border-radius: 980px;
+  border: none;
+  /* Apple Action Blue #0071e3 */
+  background: hsl(211 100% 45%);
+  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+}
+.axiom-login-btn-primary:hover:not(:disabled) {
+  background: hsl(211 100% 40%);
+}
+.axiom-login-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.axiom-login-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.axiom-login-btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: hsl(240 6% 10%);
+  border-radius: 16px;
+  border: 1px solid hsl(240 6% 10% / 0.12);
+  background: hsl(240 6% 10% / 0.02);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.axiom-login-btn-secondary:hover {
+  background: hsl(240 6% 10% / 0.05);
+  border-color: hsl(240 6% 10% / 0.18);
+}
+
+.axiom-login-icon-chip {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: hsl(240 6% 10% / 0.05);
+  border: 1px solid hsl(240 6% 10% / 0.08);
+}
+
+.axiom-login-divider {
+  position: relative;
+  margin: 1.5rem 0 0.75rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: hsl(240 3% 55%);
+}
+.axiom-login-divider span {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.75rem;
+  background: hsl(0 0% 100%);
+}
+.axiom-login-divider::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  border-top: 1px solid hsl(240 6% 10% / 0.1);
+}
+
+.axiom-login-security-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid hsl(240 6% 10% / 0.08);
+  background: hsl(240 6% 10% / 0.02);
+  font-size: 0.6875rem;
+  color: hsl(240 3% 46%);
+}
+
+.axiom-login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: hsl(240 3% 55%);
+}
