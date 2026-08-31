@@ -323,6 +323,68 @@ if $WITH_ATLAS; then
   fi
 fi
 
+# ── Auto-wire an already-deployed Atlas / PacketWolf (no --with-atlas needed) ──
+# --with-atlas above only knows how to deploy+wire Atlas's own fake/demo image
+# path (namespace zyvor-system, port 30510, via ../atlas/scripts/deploy-remote.sh).
+# A *real*-Ceph Atlas gateway — the one ../hypercluster's `storage apply` deploys
+# via ../atlas/scripts/deploy-ceph-gateway-remote.sh, which is what actually backs
+# production Ceph clusters — lives in namespace rook-ceph on port 30511 instead,
+# and --with-atlas has no idea it exists. Found live (2026-08-31) redeploying to a
+# host that already had exactly this: Atlas and PacketWolf were both fully healthy
+# on the cluster, yet Axiom's own Settings → Integrations showed neither wired,
+# because the only wiring path assumed a namespace/port this deployment never
+# used. Auto-detect both on every deploy, unconditionally and idempotently —
+# harmless to re-check when already wired, and this is the only way an axiom
+# instance actually finds sibling services that ../hypercluster (not this script)
+# deployed. --with-atlas above still takes priority when explicitly requested.
+if [ "$ATLAS_WIRED" != "1" ]; then
+  AXIOM_AUTH_B64=$(printf '%s:%s' "$AXIOM_USERNAME" "$AXIOM_PASSWORD" | base64 | tr -d '\n')
+  _ALREADY_CONFIGURED=$(curl -sk --connect-timeout 5 -H "Authorization: Basic ${AXIOM_AUTH_B64}" \
+    "${BASE_URL}/api/v1/integrations" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("atlasConfigured", False))' 2>/dev/null || echo False)
+  if [ "$_ALREADY_CONFIGURED" != "True" ]; then
+    _REAL_CEPH_BOOT_TOKEN=$(_ssh "kubectl -n rook-ceph get secret atlas-gateway-auth -o jsonpath='{.data.bootstrap-admin-token}' 2>/dev/null | base64 -d" 2>/dev/null || true)
+    if [ -n "$_REAL_CEPH_BOOT_TOKEN" ]; then
+      _REAL_CEPH_ATLAS_URL="http://${HOST}:30511"
+      info "Detected a real-Ceph Atlas gateway (rook-ceph ns, not the --with-atlas path) — wiring ${_REAL_CEPH_ATLAS_URL}"
+      _REAL_CEPH_JWT=$(curl -fsS --connect-timeout 10 \
+        -H "Authorization: Bearer ${_REAL_CEPH_BOOT_TOKEN}" -H 'Content-Type: application/json' \
+        -d '{"subject":"axiom","role":"admin","ttl_secs":7776000}' \
+        "${_REAL_CEPH_ATLAS_URL}/api/atlas/v1/auth/tokens" 2>/dev/null \
+        | python3 -c 'import json,sys; print(json.load(sys.stdin).get("token",""))' 2>/dev/null || true)
+      if [ -n "$_REAL_CEPH_JWT" ]; then
+        if curl -fsSk --connect-timeout 10 -X PUT \
+            -H "Authorization: Basic ${AXIOM_AUTH_B64}" -H 'Content-Type: application/json' \
+            -d "{\"atlasUrl\":\"${_REAL_CEPH_ATLAS_URL}\",\"atlasToken\":\"${_REAL_CEPH_JWT}\"}" \
+            "${BASE_URL}/api/v1/integrations" >/dev/null 2>&1; then
+          info "Axiom ↔ Atlas (real-Ceph) wired: ${_REAL_CEPH_ATLAS_URL}"
+        else
+          warn "Real-Ceph Atlas token minted but PUT ${BASE_URL}/api/v1/integrations failed — wire manually: ${_REAL_CEPH_ATLAS_URL}"
+        fi
+      fi
+    fi
+  fi
+fi
+# PacketWolf integration is env-var only (AXIOM_PACKETWOLF_URL/_API_KEY, read at
+# request time — see internal/platform/packetwolf.go), not persisted via
+# Settings → Integrations like Atlas is. That means it must be re-applied on
+# every deploy (a bare `kubectl apply -f deployment.yaml`, which this script
+# always runs, resets the pod template's env to whatever's literally in the
+# manifest and would silently drop an imperative `kubectl set env` from a prior
+# run) — so this block is intentionally unconditional, not gated on "already
+# configured" the way the Atlas block above is.
+_PW_NS="${PACKETWOLF_K8S_NAMESPACE:-packetwolf}"
+if _ssh "kubectl -n ${_PW_NS} get svc packetwolf-api >/dev/null 2>&1"; then
+  _PW_KEY=$(_ssh "kubectl -n ${_PW_NS} get secret packetwolf-secret -o jsonpath='{.data.PACKETWOLF_ADMIN_API_KEY}' 2>/dev/null | base64 -d" 2>/dev/null || true)
+  if [ -n "$_PW_KEY" ]; then
+    info "Detected PacketWolf (ns ${_PW_NS}) — wiring AXIOM_PACKETWOLF_URL"
+    if _ssh "kubectl -n axiom-system set env deployment/zyvor-axiom AXIOM_PACKETWOLF_URL='http://packetwolf-api.${_PW_NS}.svc.cluster.local:9191' AXIOM_PACKETWOLF_API_KEY='${_PW_KEY}' >/dev/null 2>&1 && kubectl -n axiom-system rollout status deployment/zyvor-axiom --timeout=120s >/dev/null 2>&1"; then
+      info "Axiom ↔ PacketWolf wired: http://packetwolf-api.${_PW_NS}.svc.cluster.local:9191"
+    else
+      warn "Could not wire PacketWolf — wire manually: kubectl -n axiom-system set env deployment/zyvor-axiom AXIOM_PACKETWOLF_URL=http://packetwolf-api.${_PW_NS}.svc.cluster.local:9191"
+    fi
+  fi
+fi
+
 MODE_LABEL=$($SKIP_IMAGES && echo quick || echo full)
 axiom_save_deploy_last "$REPO_DIR" "$HOST" "$USER" "$MODE_LABEL" "$AXIOM_IMAGE_TAG"
 

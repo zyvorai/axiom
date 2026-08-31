@@ -70,6 +70,15 @@ spec:
               value: ""
             - name: AXIOM_OIDC_CLIENT_ID
               value: ""
+            # PacketWolf has no Settings → Integrations persistence (unlike Atlas
+            # above) — deploy-remote.sh's auto-wire step patches these live via
+            # `kubectl set env` after every deploy. Declared here so the manifest
+            # stays self-documenting; the empty defaults are what a fresh/manual
+            # `kubectl apply` leaves in place until that step runs.
+            - name: AXIOM_PACKETWOLF_URL
+              value: ""
+            - name: AXIOM_PACKETWOLF_API_KEY
+              value: ""
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:

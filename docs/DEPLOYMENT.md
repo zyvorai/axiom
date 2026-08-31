@@ -116,6 +116,19 @@ Also deploy [Atlas](../../atlas) (the separate storage control-plane service) to
 
 Requires a sibling `../atlas` checkout with its own `scripts/deploy-remote.sh` (override the path with `ATLAS_REPO=/path/to/atlas`, and its NodePort with `ATLAS_NODE_PORT` if not `30510`). If the wiring step fails (e.g. Axiom's own health check didn't pass yet), it prints the Atlas URL so you can finish it by hand in Settings → Integrations.
 
+**`--with-atlas` deploys Atlas's own fake/demo image** (namespace `zyvor-system`, port `30510`).
+A *real*-Ceph Atlas gateway — the one `../hypercluster`'s `storage apply` deploys via
+`../atlas/scripts/deploy-ceph-gateway-remote.sh` for a production Ceph cluster — lives in
+namespace `rook-ceph` on port `30511` instead, and `--with-atlas` doesn't know about it. Every
+deploy (no flag needed) now auto-detects and wires that path too if present and not already
+configured, plus auto-detects and wires a PacketWolf deployment (`AXIOM_PACKETWOLF_URL`/
+`AXIOM_PACKETWOLF_API_KEY`, read live from env — no Settings → Integrations persistence for
+PacketWolf, so unlike Atlas this re-wires on *every* deploy, not just once, since a bare
+`kubectl apply` would otherwise silently drop it on the next redeploy). Found live (2026-08-31):
+a cluster with a fully healthy real-Ceph Atlas gateway and PacketWolf deploy still showed neither
+wired in Axiom's own UI, because the only wiring path assumed a namespace/port this deployment
+mode never used.
+
 Check last target and health:
 
 ```bash
