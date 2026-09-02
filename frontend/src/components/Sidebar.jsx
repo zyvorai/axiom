@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
+import ZyvorMark from "@/components/ZyvorMark";
 import { NAV } from "@/constants/testIds";
 import { NAV_ITEMS, NAV_GROUP_ORDER, RAIL_PINNED_KEYS, resolveIcon } from "@/constants/navItems";
 import { api } from "@/lib/api";
@@ -68,18 +69,7 @@ export default function Sidebar() {
             )}
         >
             <div className={cn("flex items-center gap-2.5 px-2 pt-1 pb-3", collapsed && "justify-center px-0")}>
-                <div className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-i17-cosmic via-i17-cosmic to-i17-deep-blue shadow-lg shadow-i17-cosmic/30 ring-1 ring-white/10">
-                    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                        <path
-                            d="M2 2h14L6.6 16H16"
-                            fill="none"
-                            stroke="white"
-                            strokeWidth="2.6"
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                        />
-                    </svg>
-                </div>
+                <ZyvorMark size={36} idPrefix="axiom-sidebar" className="shrink-0" />
                 {!collapsed && (
                     <div className="min-w-0 leading-tight">
                         <div className="flex items-baseline gap-1.5">
