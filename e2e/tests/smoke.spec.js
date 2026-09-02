@@ -11,6 +11,7 @@ const PASSWORD = process.env.AXIOM_E2E_PASSWORD || "demo";
 async function signIn(page) {
   await page.goto("/");
   await page.getByPlaceholder("Username").fill(USERNAME);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByPlaceholder("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByTestId("sidebar-nav")).toBeVisible();
@@ -20,6 +21,8 @@ test("login page renders", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("login-page")).toBeVisible();
   await expect(page.getByPlaceholder("Username")).toBeVisible();
+  await page.getByPlaceholder("Username").fill(USERNAME);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.getByPlaceholder("Password")).toBeVisible();
 });
 
