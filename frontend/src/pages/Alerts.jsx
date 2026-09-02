@@ -50,7 +50,7 @@ export default function Alerts() {
                 description="Active warnings and Prometheus alerting rule groups."
             />
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <AlertTriangle className="h-4 w-4 text-amber-500" /> Active warnings
                 </div>
@@ -85,7 +85,7 @@ export default function Alerts() {
                 </div>
             </GlassCard>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <ListChecks className="h-4 w-4 text-i17-sage" /> Alerting rule groups
                 </div>

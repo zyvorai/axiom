@@ -29,7 +29,7 @@
   padding: 3rem 1.5rem;
   background: hsl(0 0% 100%);
   color: hsl(240 6% 10%);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter Variable", "Helvetica Neue", sans-serif;
+  font-family: var(--font-hero, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

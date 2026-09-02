@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
+import MacTerm from "@/components/MacTerm";
 import StatusBadge from "@/components/StatusBadge";
 import SegmentedProgress from "@/components/SegmentedProgress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,7 +107,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                                 ["Ready", status.ready],
                                 ["Available", status.available],
                             ].map(([label, value]) => (
-                                <div key={label} className="rounded-lg border bg-muted/30 p-2.5">
+                                <div key={label} className="border-y border-border p-2.5">
                                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
                                     <div className="mono mt-1 truncate text-sm">{value}</div>
                                 </div>
@@ -395,7 +396,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                                 <Input value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="bg-muted/30" />
                             </div>
                         </div>
-                        <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2.5">
+                        <div className="flex items-center justify-between border-y border-border px-3 py-2.5">
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Port</Label>
                                 <Input type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 bg-muted/30" />
@@ -413,16 +414,21 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                     </TabsContent>
 
                     <TabsContent value="intent" className="mt-4 space-y-3">
-                        <Textarea
-                            value={intent}
-                            onChange={(e) => setIntent(e.target.value)}
-                            placeholder="a small stateless api on 2 replicas running ghcr.io/zyvorai/checkout:v1 exposed on port 8080"
-                            className="min-h-[100px] bg-muted/30 mono text-xs"
-                        />
+                        <MacTerm title="intent.txt" bodyClassName="!p-0">
+                            <Textarea
+                                value={intent}
+                                onChange={(e) => setIntent(e.target.value)}
+                                placeholder="a small stateless api on 2 replicas running ghcr.io/zyvorai/checkout:v1 exposed on port 8080"
+                                className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
+                            />
+                        </MacTerm>
                         {intentPreview && (
-                            <pre className="mono max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[11px] text-muted-foreground">
+                            <MacTerm
+                                title="receipt"
+                                bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-4 py-3 text-[11px] leading-[1.55] text-[#9aedfe]"
+                            >
                                 {intentPreview.receipt}
-                            </pre>
+                            </MacTerm>
                         )}
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={parseIntent} disabled={busy || !intent} className="rounded-xl bg-muted/30">
@@ -435,12 +441,15 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                     </TabsContent>
 
                     <TabsContent value="yaml" className="mt-4 space-y-3">
-                        <Textarea
-                            value={manifest}
-                            onChange={(e) => setManifest(e.target.value)}
-                            placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
-                            className="min-h-[140px] bg-muted/30 mono text-xs"
-                        />
+                        <MacTerm title="manifest.yaml" bodyClassName="!p-0">
+                            <Textarea
+                                value={manifest}
+                                onChange={(e) => setManifest(e.target.value)}
+                                placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
+                                className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
+                                spellCheck={false}
+                            />
+                        </MacTerm>
                         {validation && (
                             <div className={`rounded-lg border px-3 py-2 text-xs ${validation.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>
                                 {validation.valid ? `Valid ${validation.kind || "manifest"}` : (validation.errors || [validation.message]).join(", ")}
@@ -581,7 +590,7 @@ export default function Workloads() {
                 action={
                     <>
                         {selected.size > 0 && (
-                            <div className="flex items-center gap-2 rounded-xl border bg-muted/30 px-3 py-1.5">
+                            <div className="flex items-center gap-2 border-y border-border px-3 py-1.5">
                                 <span className="text-xs text-muted-foreground">{selected.size} selected</span>
                                 <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg bg-muted/30 text-xs">
                                     <RotateCw className="mr-1 h-3 w-3" /> Restart
@@ -638,7 +647,7 @@ export default function Workloads() {
                 </div>
             </GlassCard>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">

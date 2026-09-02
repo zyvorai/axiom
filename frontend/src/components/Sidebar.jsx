@@ -68,7 +68,7 @@ export default function Sidebar() {
         <aside
             data-testid={NAV.sidebar}
             className={cn(
-                "hidden h-full shrink-0 flex-col border-r border-black/[0.06] bg-transparent py-5 transition-[width] duration-200 ease-out dark:border-white/[0.06] lg:flex",
+                "rail-apple hidden h-full shrink-0 flex-col border-r border-black/[0.06] bg-transparent py-5 transition-[width] duration-200 ease-out dark:border-white/[0.06] lg:flex",
                 collapsed ? "w-11 px-0" : "w-48 px-5"
             )}
         >
@@ -103,9 +103,7 @@ export default function Sidebar() {
                 ) : (
                     groups.map((group) => (
                         <div key={group.label}>
-                            <p className="mb-1.5 text-[11px] font-normal tracking-[-0.01em] text-[#86868b] dark:text-[#6e7681]">
-                                {group.label}
-                            </p>
+                            <p className="rail-apple-group mb-1.5 text-[#86868b] dark:text-[#6e7681]">{group.label}</p>
                             <ul className="space-y-0.5">
                                 {group.items.map(({ to, label, icon: Icon, key }) => (
                                     <li key={to}>
@@ -114,9 +112,9 @@ export default function Sidebar() {
                                             data-testid={NAV.link(key)}
                                             className={({ isActive }) =>
                                                 cn(
-                                                    "group flex items-center gap-2.5 py-1 text-[12px] font-normal tracking-[-0.01em] transition-colors duration-150",
+                                                    "rail-apple-link group flex items-center gap-2.5 py-1 transition-colors duration-150",
                                                     linkHover,
-                                                    isActive ? cn(linkActive, "font-medium") : linkIdle
+                                                    isActive ? cn(linkActive, "is-active") : linkIdle
                                                 )
                                             }
                                         >
@@ -137,7 +135,7 @@ export default function Sidebar() {
                 onClick={toggleCollapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 className={cn(
-                    "mt-4 flex items-center gap-1.5 py-1 text-[11px] transition-colors duration-150",
+                    "rail-apple-meta mt-4 flex items-center gap-1.5 py-1 transition-colors duration-150",
                     linkIdle,
                     linkHover,
                     collapsed && "justify-center"

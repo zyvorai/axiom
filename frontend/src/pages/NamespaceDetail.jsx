@@ -129,7 +129,7 @@ export default function NamespaceDetail() {
                 </TabsList>
 
                 <TabsContent value="pods" className="mt-4">
-                    <GlassCard className="overflow-hidden p-0">
+                    <GlassCard className="overflow-hidden">
                         {pods.length === 0 ? (
                             <Empty hint="No pods in this namespace." />
                         ) : (
@@ -166,7 +166,7 @@ export default function NamespaceDetail() {
                 </TabsContent>
 
                 <TabsContent value="workloads" className="mt-4">
-                    <GlassCard className="overflow-hidden p-0">
+                    <GlassCard className="overflow-hidden">
                         {workloads.length === 0 ? (
                             <Empty hint="No workloads in this namespace." />
                         ) : (
@@ -213,7 +213,7 @@ export default function NamespaceDetail() {
                 </TabsContent>
 
                 <TabsContent value="services" className="mt-4">
-                    <GlassCard className="overflow-hidden p-0">
+                    <GlassCard className="overflow-hidden">
                         {services.length === 0 ? (
                             <Empty hint="No services in this namespace." />
                         ) : (

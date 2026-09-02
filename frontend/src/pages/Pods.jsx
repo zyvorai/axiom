@@ -33,6 +33,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ConfirmDialog";
+import MacTerm from "@/components/MacTerm";
 
 function ExecDialog({ pod, onOpenChange }) {
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
@@ -90,9 +91,12 @@ function ExecDialog({ pod, onOpenChange }) {
                             {busy ? "Running…" : "Run"}
                         </Button>
                     </div>
-                    <pre className="mono h-64 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[12px] text-foreground/90">
-                        {output || "Output will appear here."}
-                    </pre>
+                    <MacTerm
+                        title={`exec — ${pod.name}`}
+                        bodyClassName="h-64 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                    >
+                        {output || <span className="text-white/40">Output will appear here.</span>}
+                    </MacTerm>
                 </div>
             </DialogContent>
         </Dialog>
@@ -205,7 +209,7 @@ export default function Pods() {
                 description="Every running pod across all namespaces."
                 action={
                     selected.size > 0 && (
-                        <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-3 py-1.5">
+                        <div className="flex items-center gap-3 border-y border-border px-3 py-1.5">
                             <span className="text-xs text-muted-foreground">{selected.size} selected</span>
                             <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
                                 <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
@@ -242,7 +246,7 @@ export default function Pods() {
                 </div>
             </GlassCard>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">

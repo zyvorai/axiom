@@ -14,6 +14,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-display)'],
+        hero: ['var(--font-hero)'],
         mono: ['var(--font-mono)'],
       },
       fontSize: {

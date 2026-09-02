@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import MacTerm from "@/components/MacTerm";
 import {
     Dialog,
     DialogContent,
@@ -183,7 +184,9 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Values YAML (optional)</Label>
-                        <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="min-h-[100px] bg-muted/30 mono text-xs" spellCheck={false} />
+                        <MacTerm title="values.yaml" bodyClassName="!p-0">
+                            <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                        </MacTerm>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
                         Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.
@@ -210,7 +213,7 @@ function HelmTab() {
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Install chart
                 </Button>
             </div>
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <Rows
                     items={releases}
                     empty="No Helm releases."
@@ -242,7 +245,7 @@ function GitOpsTab() {
     };
 
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <Rows
                 items={apps}
                 empty="No GitOps applications."
@@ -313,7 +316,7 @@ function AgentRunRow({ r, onChanged }) {
                 </div>
             </div>
             {r.plan?.summary && (
-                <div className="mt-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                <div className="mt-2 border-y border-border px-3 py-2 text-xs text-muted-foreground">
                     {r.plan.summary}
                 </div>
             )}
@@ -332,7 +335,7 @@ function AgentsTab() {
     const [reload, setReload] = useState(0);
     const runs = useEndpoint("/agent-runs", [reload]);
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <Rows
                 items={runs}
                 empty="No agent runs."
@@ -347,7 +350,7 @@ function IdentityTab() {
     if (!identity) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="space-y-4">
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Identity planes</div>
                 <Rows
                     items={identity.planes}
@@ -428,7 +431,7 @@ function AuditTab() {
                     <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
                 </Button>
             </div>
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <Rows
                     items={filtered}
                     empty={q ? "No audit entries match." : "No audit entries recorded yet."}
@@ -493,7 +496,9 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Rules (JSON array of PolicyRule)</Label>
-                        <Textarea value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="min-h-[140px] bg-muted/30 mono text-xs" spellCheck={false} />
+                        <MacTerm title="rules.json" bodyClassName="!p-0">
+                            <Textarea value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                        </MacTerm>
                     </div>
                 </div>
                 <DialogFooter>
@@ -557,7 +562,9 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Subjects (JSON array)</Label>
-                        <Textarea value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="min-h-[100px] bg-muted/30 mono text-xs" spellCheck={false} />
+                        <MacTerm title="subjects.json" bodyClassName="!p-0">
+                            <Textarea value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                        </MacTerm>
                     </div>
                 </div>
                 <DialogFooter>
@@ -620,7 +627,7 @@ function RbacTab() {
     return (
         <div className="grid gap-4 lg:grid-cols-2">
             {groups.map((g) => (
-                <GlassCard key={g.title} className="p-0 overflow-hidden">
+                <GlassCard key={g.title} className="overflow-hidden">
                     <div className="flex items-center justify-between border-b px-4 py-3">
                         <div className="text-sm font-medium">{g.title}</div>
                         {g.onCreate && (
@@ -670,7 +677,7 @@ function WebhooksTab() {
     return (
         <div className="grid gap-4 lg:grid-cols-2">
             {groups.map(([title, items]) => (
-                <GlassCard key={title} className="p-0 overflow-hidden">
+                <GlassCard key={title} className="overflow-hidden">
                     <div className="border-b px-4 py-3 text-sm font-medium">{title} webhooks</div>
                     <Rows
                         items={items}
@@ -722,7 +729,7 @@ function CostTab() {
                     }
                 />
             </div>
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">By namespace</div>
                 <Rows
                     items={cost.namespaces}
@@ -737,7 +744,7 @@ function CostTab() {
                     )}
                 />
             </GlassCard>
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">By workload</div>
                 <Rows
                     items={cost.workloads}
@@ -785,7 +792,7 @@ export default function Ops() {
             />
 
             <Tabs value={active} onValueChange={(v) => navigate(`/ops/${v}`)}>
-                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
+                <TabsList>
                     {TABS.map((t) => (
                         <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
                             <t.icon className="h-3.5 w-3.5" /> {t.label}

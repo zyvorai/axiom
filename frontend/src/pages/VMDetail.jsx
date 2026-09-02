@@ -34,7 +34,7 @@ function ConsolePanel({ vm }) {
     }, [vm]);
 
     if (info === null) return <Skeleton className="h-40 rounded-xl bg-muted" />;
-    if (info === false) return <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
+    if (info === false) return <div className="border-y border-border p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
 
     const copy = () => {
         navigator.clipboard?.writeText(info.virtctl);
@@ -43,7 +43,7 @@ function ConsolePanel({ vm }) {
     };
 
     return (
-        <div className="space-y-4 rounded-xl border border-border bg-muted p-6">
+        <div className="space-y-4 border-y border-border bg-muted p-6">
             <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
             <div>
                 <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>

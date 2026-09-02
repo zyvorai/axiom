@@ -8,10 +8,11 @@ import SpecTable from "@/components/SpecTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save } from "lucide-react";
 import { toast } from "sonner";
+import CodeEditor from "@/components/CodeEditor";
+import KvChip, { toneForKey } from "@/components/KvChip";
 
 export default function WorkloadDetail() {
     const { namespace, kind, name } = useParams();
@@ -82,7 +83,7 @@ export default function WorkloadDetail() {
             <DetailHeader eyebrow={kind} name={detail.name} meta={<span>{detail.namespace}</span>} />
 
             <Tabs defaultValue="overview">
-                <TabsList className="bg-muted p-1">
+                <TabsList>
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Tag className="h-3.5 w-3.5" /> Overview
                     </TabsTrigger>
@@ -98,13 +99,11 @@ export default function WorkloadDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
-                    <GlassCard className="p-5">
-                        <div className="mb-3 text-sm font-medium">Labels</div>
+                    <GlassCard className="glass-tint-lavender p-5">
+                        <div className="mb-3 text-sm font-medium text-violet-200">Labels</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (
-                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
-                                    {k}={v}
-                                </Badge>
+                                <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />
                             ))}
                             {Object.keys(detail.labels || {}).length === 0 && <span className="text-xs text-muted-foreground">No labels.</span>}
                         </div>
@@ -136,14 +135,7 @@ export default function WorkloadDetail() {
                 </TabsContent>
 
                 <TabsContent value="yaml" className="mt-4 space-y-3">
-                    <GlassCard className="p-0 overflow-hidden">
-                        <Textarea
-                            value={manifestText}
-                            onChange={(e) => setManifestText(e.target.value)}
-                            className="mono max-h-[65vh] min-h-[65vh] resize-none whitespace-pre rounded-none border-none bg-transparent p-4 text-[12px] text-foreground/90 focus-visible:ring-0"
-                            spellCheck={false}
-                        />
-                    </GlassCard>
+                    <CodeEditor value={manifestText} onChange={setManifestText} />
                     <div className="flex justify-end">
                         <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
                             <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
@@ -152,7 +144,7 @@ export default function WorkloadDetail() {
                 </TabsContent>
 
                 <TabsContent value="pods" className="mt-4">
-                    <GlassCard className="p-0 overflow-hidden">
+                    <GlassCard className="overflow-hidden">
                         {(detail.pods || []).length === 0 && (
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods found for this workload.</div>
                         )}
@@ -175,7 +167,7 @@ export default function WorkloadDetail() {
                 </TabsContent>
 
                 <TabsContent value="events" className="mt-4">
-                    <GlassCard className="p-0 overflow-hidden">
+                    <GlassCard className="overflow-hidden">
                         {(detail.relatedEvents || []).length === 0 && (
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No related events.</div>
                         )}

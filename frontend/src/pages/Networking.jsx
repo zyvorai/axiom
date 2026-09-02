@@ -18,6 +18,7 @@ import { Network, Boxes, ArrowRightLeft, Radar, ShieldHalf, Plus, Trash2 } from 
 import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
 import { useConfirm } from "@/components/ConfirmDialog";
+import CodeEditor from "@/components/CodeEditor";
 
 const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -67,7 +68,7 @@ function NetworkPolicyPanel() {
     if (!policies) return <Skeleton className="h-40 rounded-2xl bg-muted" />;
 
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <ShieldHalf className="h-4 w-4 text-i17-cosmic" /> NetworkPolicies
@@ -154,7 +155,7 @@ function PacketWolfPanel() {
     const items = flowItems(flows);
 
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Radar className="h-4 w-4 text-i17-cosmic" /> PacketWolf
@@ -196,9 +197,12 @@ function PacketWolfPanel() {
                         <div className="px-4 py-6 text-center text-sm text-muted-foreground">No flows in the current window.</div>
                     )}
                     {!flowsError && flows && !items && (
-                        <pre className="mono whitespace-pre-wrap px-4 py-3 text-[11px] text-muted-foreground">
-                            {JSON.stringify(flows, null, 2)}
-                        </pre>
+                        <CodeEditor
+                            value={JSON.stringify(flows, null, 2)}
+                            editable={false}
+                            title="flows.json"
+                            className="mx-4 mb-4 min-h-0 [&_.code-pane]:min-h-[28vh] [&_.code-pane]:max-h-[40vh]"
+                        />
                     )}
                 </div>
             )}

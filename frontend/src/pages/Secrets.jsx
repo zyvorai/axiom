@@ -139,7 +139,7 @@ function ExternalSecretsSection() {
     }, []);
 
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                 <Link2 className="h-4 w-4 text-i17-sky" /> External Secrets
             </div>
@@ -239,7 +239,7 @@ export default function Secrets() {
                 </div>
             </GlassCard>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">

@@ -12,6 +12,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Changed
 - Appearance theme toggle and cluster Healthy/activate moved from the left rail menu to **Settings**; sidebar is a thin flat rail (no card chrome).
+- Dark theme detail surfaces: colorful status chips, tinted metric tiles, syntax-highlighted manifests (Pod/Workload YAML + CRD/plugin JSON), and env/label chips. Secret-looking env values are masked in the Details tab.
+- Typography: apple.com **SF Pro** stack sitewide (dropped Inter); headlines use SF Pro Display; mono prefers SF Mono.
+- Surfaces: dropped card/box chrome sitewide — flat canvas with hairline dividers only (light and dark), apple.com-style underline tabs.
 - Appearance: dark theme is **GitHub Primer dark** (`#0d1117` / `#161b22` / `#30363d` / accent `#2f81f7`), not charcoal. Light stays Apple.com. Theme toggle restored (default dark).
 - Buttons / primary accent: dropped mist-blue, indigo, and the cosmic→sky gradient. `default` and `brand` are solid blue CTAs (Apple Action Blue in light, GitHub accent blue in dark).
 - Namespaces: clicking a namespace opens `/namespaces/{name}` with pods, workloads, and services for that namespace (rows drill into pod/workload/service detail).

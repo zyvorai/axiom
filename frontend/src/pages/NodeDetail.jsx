@@ -64,7 +64,7 @@ function MetricsPanel({ name }) {
 
     return (
         <div className="space-y-4">
-            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <div className="border-y border-border px-3 py-2 text-xs text-muted-foreground">
                 Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -134,7 +134,7 @@ function TaintsPanel({ name, taints, onChanged }) {
 
     return (
         <div className="space-y-4">
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Current taints</div>
                 {(taints || []).length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No taints on this node.</div>}
                 {(taints || []).map((t, i) => (
@@ -282,7 +282,7 @@ export default function NodeDetail() {
                         ]}
                     />
                     {(node.conditions || []).length > 0 && (
-                        <GlassCard className="p-0 overflow-hidden">
+                        <GlassCard className="overflow-hidden">
                             <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>
                             {node.conditions.map((c, i) => (
                                 <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">

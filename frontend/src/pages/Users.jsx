@@ -252,7 +252,7 @@ export default function Users() {
                 }
             />
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">

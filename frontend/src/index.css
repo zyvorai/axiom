@@ -2,12 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "@fontsource-variable/inter/wght.css";
+/* Mono only as fallback off Apple platforms — UI text is system SF Pro. */
 @import "@fontsource-variable/jetbrains-mono/wght.css";
 
 /* --------------------------------------------------------------------- */
 /* Light: Apple.com (#f5f5f7 / #1d1d1f / Action Blue #0071e3).             */
 /* Dark:  GitHub Primer dark (#0d1117 / #161b22 / #30363d / #2f81f7).     */
+/* Type: apple.com SF Pro stack everywhere (no Inter).                    */
 /* --------------------------------------------------------------------- */
 
 @layer base {
@@ -15,7 +16,8 @@
         /* Apple gray canvas (#f5f5f7) + white cards */
         --background: 240 5% 96%;
         --foreground: 240 6% 10%;
-        --card: 0 0% 100%;
+        /* Match canvas — no separate “card” surface */
+        --card: 240 5% 96%;
         --card-foreground: 240 6% 10%;
         --popover: 0 0% 100%;
         --popover-foreground: 240 6% 10%;
@@ -74,8 +76,9 @@
         --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
         --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter Variable", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        --font-mono: "JetBrains Mono Variable", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-hero: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "JetBrains Mono Variable", "Roboto Mono", monospace;
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 
@@ -84,7 +87,7 @@
     .dark {
         --background: 216 28% 7%;
         --foreground: 210 24% 93%;
-        --card: 215 21% 11%;
+        --card: 216 28% 7%;
         --card-foreground: 210 24% 93%;
         --popover: 215 21% 11%;
         --popover-foreground: 210 24% 93%;
@@ -128,12 +131,12 @@
         --i17-cosmic: hsl(212 92% 58%);
         --i17-deep-blue: hsl(212 80% 40%);
         --i17-sky-blue: hsl(212 100% 67%);
-        --i17-lavender: hsl(215 9% 58%);
-        --i17-sage: hsl(129 49% 49%);
+        --i17-lavender: hsl(263 70% 72%);
+        --i17-sage: hsl(129 55% 52%);
         --i17-mist: hsl(215 12% 35%);
         --i17-white: #e6edf3;
         --i17-silver: #8b949e;
-        --i17-gold: hsl(41 72% 48%);
+        --i17-gold: hsl(41 85% 55%);
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 }
@@ -151,26 +154,34 @@
     }
     body {
         font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: -0.016em;
+        line-height: 1.42859;
+        font-synthesis: none;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        letter-spacing: -0.015em;
+        text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3, .text-hero, .text-display, .text-title {
+        font-family: var(--font-hero);
     }
 }
 
 @layer components {
-    /* Flat panel + hairline — Apple light / GitHub dark surfaces */
+    /* Flat — no cards. Sections are open canvas; hairlines live on children. */
     .glass {
-        background: hsl(var(--card));
-        border: 1px solid hsl(var(--border));
-        border-radius: var(--radius);
-        box-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
     }
     .dark .glass {
         box-shadow: none;
     }
     .glass-inset {
-        background: hsl(var(--muted));
-        border: 1px solid hsl(var(--border));
+        background: transparent;
+        border: none;
     }
     .specular {
         position: relative;
@@ -204,6 +215,48 @@
         font-feature-settings: "ss01", "ss02", "cv01";
     }
 
+    /* apple.com type inherits global SF Pro; keep sizing helpers for the rail */
+    .rail-apple {
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        line-height: 1.33334;
+        -webkit-font-smoothing: antialiased;
+    }
+    .rail-apple-group {
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: -0.008em;
+        line-height: 1.36364;
+    }
+    .rail-apple-link {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        line-height: 1.33334;
+    }
+    .rail-apple-link[aria-current="page"],
+    .rail-apple-link.is-active {
+        font-weight: 500;
+    }
+    .rail-apple-meta {
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: -0.008em;
+        line-height: 1.36364;
+    }
+    .rail-apple-cluster {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.33334;
+    }
+
     .glow-green,
     .glow-yellow,
     .glow-red,
@@ -233,7 +286,7 @@
 }
 
 .glass {
-    transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+    transition: none;
 }
 
 @keyframes shimmer {
@@ -250,3 +303,67 @@
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
 }
+
+/* macOS Terminal window for manifests */
+.macos-term {
+    border-radius: 10px;
+    background: #1c1c1e;
+    box-shadow:
+        0 0 0 0.5px rgb(255 255 255 / 0.08),
+        0 12px 40px -12px rgb(0 0 0 / 0.45);
+    overflow: hidden;
+}
+.macos-term-chrome {
+    background: linear-gradient(180deg, #3a3a3c 0%, #2c2c2e 100%);
+    border-bottom: 0.5px solid rgb(0 0 0 / 0.45);
+}
+.macos-term-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
+}
+.macos-term-dot-close { background: #ff5f57; }
+.macos-term-dot-min { background: #febc2e; }
+.macos-term-dot-max { background: #28c840; }
+.macos-term-title {
+    color: rgb(255 255 255 / 0.55);
+    letter-spacing: -0.01em;
+}
+.macos-term-body {
+    background: #0d0d0f !important;
+    color: #f5f5f7 !important;
+    caret-color: #5af78e;
+}
+.macos-term-body:focus-visible {
+    outline: none;
+}
+.macos-term .xterm {
+    padding: 0;
+}
+.macos-term .xterm-viewport {
+    overflow-y: auto !important;
+}
+
+/* Colorful Terminal Pro–style JSON syntax */
+.code-pane .tok-key { color: #5af78e; }
+.code-pane .tok-str { color: #57c7ff; }
+.code-pane .tok-num { color: #f3f99d; }
+.code-pane .tok-kw { color: #ff6ac1; }
+.code-pane .tok-punct { color: #9aedfe; }
+.code-pane .tok-plain { color: #f1f1f0; }
+.code-pane .tok-ws { color: inherit; }
+
+.dark .glass-tint-sky,
+.dark .glass-tint-sage,
+.dark .glass-tint-gold,
+.dark .glass-tint-lavender,
+.glass-tint-sky,
+.glass-tint-sage,
+.glass-tint-gold,
+.glass-tint-lavender {
+    border: none;
+    background: transparent;
+}
+

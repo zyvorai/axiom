@@ -71,7 +71,7 @@ export default function Storage() {
                 ))}
             </div>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">PersistentVolumeClaims</div>
                 <div className="max-h-[60vh] overflow-auto scrollbar-thin">
                     {volumes.map((p) => (

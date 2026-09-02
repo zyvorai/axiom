@@ -179,7 +179,7 @@ export default function Onboarding() {
                 </div>
             </GlassCard>
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 {steps.map((s, i) => (
                     <Step key={s.title} index={i} {...s} />
                 ))}

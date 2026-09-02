@@ -301,8 +301,6 @@ export default function Login() {
                     Axiom sessions are scoped per device and expire automatically.
                 </div>
             </div>
-
-            </div>
             </section>
             </main>
 

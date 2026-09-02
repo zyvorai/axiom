@@ -209,7 +209,7 @@ export default function Atlas() {
                     <div className="mb-3 text-sm font-medium">StorageClasses</div>
                     <div className="flex flex-wrap gap-2">
                         {storageClasses.map((sc, i) => (
-                            <span key={i} className="mono rounded-lg border bg-muted/30 px-2.5 py-1 text-xs">
+                            <span key={i} className="mono border-y border-border px-2.5 py-1 text-xs">
                                 {sc.name ?? String(sc)}
                             </span>
                         ))}

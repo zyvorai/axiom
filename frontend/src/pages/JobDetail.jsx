@@ -116,7 +116,7 @@ export default function JobDetail() {
                 ]}
             />
 
-            <GlassCard className="overflow-hidden p-0">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Pods ({jobPods.length})</div>
                 {jobPods.length === 0 ? (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods found for this job.</div>

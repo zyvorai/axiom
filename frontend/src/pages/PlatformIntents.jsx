@@ -37,7 +37,7 @@ export default function PlatformIntents() {
                 description="Workloads requested via natural-language intent (Workloads → Run workload → Intent)."
             />
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     {items.length === 0 && (
                         <div className="flex flex-col items-center gap-2 px-4 py-16 text-center text-sm text-muted-foreground">

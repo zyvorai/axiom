@@ -64,7 +64,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
 
     if (columns && columns.length > 0) {
         return (
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="flex items-center justify-between border-b px-5 py-4">
                     <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                         <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
@@ -104,7 +104,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
     }
 
     return (
-        <GlassCard className="p-0 overflow-hidden">
+        <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-5 py-4">
                 <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}

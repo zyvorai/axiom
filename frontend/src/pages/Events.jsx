@@ -48,7 +48,7 @@ export default function Events() {
                 description="Kubernetes event stream, most recent first."
             />
 
-            <GlassCard className="p-0 overflow-hidden">
+            <GlassCard className="overflow-hidden">
                 <div className="max-h-[70vh] overflow-auto scrollbar-thin">
                     {events.map((e, i) => {
                         const href = resourceHref(e.namespace, e.object);

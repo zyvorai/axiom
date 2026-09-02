@@ -10,6 +10,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import MacTerm from "@/components/MacTerm";
 
 // Shared "apply a raw manifest" modal — used by the Workloads launch wizard
 // and the NetworkPolicy "create via YAML" flow. Hits the generic
@@ -49,12 +50,15 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <Textarea
-                    value={manifest}
-                    onChange={(e) => setManifest(e.target.value)}
-                    placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
-                    className="min-h-[220px] bg-muted/30 mono text-xs"
-                />
+                <MacTerm title="manifest.yaml" bodyClassName="!p-0">
+                    <Textarea
+                        value={manifest}
+                        onChange={(e) => setManifest(e.target.value)}
+                        placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
+                        className="macos-term-body mono min-h-[220px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
+                        spellCheck={false}
+                    />
+                </MacTerm>
                 {result && (
                     <div className={`rounded-lg border px-3 py-2 text-xs ${result.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>
                         {result.valid

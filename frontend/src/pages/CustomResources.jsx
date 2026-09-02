@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Search, Layers, Boxes } from "lucide-react";
+import CodeEditor from "@/components/CodeEditor";
 
 function InstanceDetail({ crd, instance, onOpenChange }) {
     if (!instance) return null;
@@ -25,9 +26,7 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
                         {crd.kind} · {name}
                     </DialogTitle>
                 </DialogHeader>
-                <pre className="mono max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[11px] text-foreground/90">
-                    {JSON.stringify(instance, null, 2)}
-                </pre>
+                <CodeEditor value={JSON.stringify(instance, null, 2)} editable={false} className="min-h-0 [&_.code-pane]:min-h-[50vh] [&_.code-pane]:max-h-[50vh]" />
             </DialogContent>
         </Dialog>
     );
@@ -100,7 +99,7 @@ export default function CustomResources() {
             />
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-                <GlassCard className="p-0 overflow-hidden">
+                <GlassCard className="overflow-hidden">
                     <div className="border-b p-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

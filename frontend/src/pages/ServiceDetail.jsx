@@ -120,7 +120,7 @@ export default function ServiceDetail() {
                 />
             )}
 
-            <GlassCard className="overflow-hidden p-0">
+            <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <Network className="h-4 w-4 text-i17-cosmic" /> Endpoints ({(svc.endpoints || []).length})
                 </div>
@@ -137,7 +137,7 @@ export default function ServiceDetail() {
                 )}
             </GlassCard>
 
-            <GlassCard className="overflow-hidden p-0">
+            <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Matching pods ({matchingPods.length})</div>
                 {matchingPods.length === 0 ? (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods match this selector.</div>

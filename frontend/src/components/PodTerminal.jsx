@@ -11,8 +11,33 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Plug, PlugZap } from "lucide-react";
+import MacTerm from "@/components/MacTerm";
 
 const SHELLS = ["/bin/sh", "/bin/bash", "/bin/ash"];
+
+const TERM_THEME = {
+    background: "#0d0d0f",
+    foreground: "#f1f1f0",
+    cursor: "#5af78e",
+    cursorAccent: "#0d0d0f",
+    selectionBackground: "#57c7ff44",
+    black: "#0d0d0f",
+    red: "#ff5f57",
+    green: "#5af78e",
+    yellow: "#f3f99d",
+    blue: "#57c7ff",
+    magenta: "#ff6ac1",
+    cyan: "#9aedfe",
+    white: "#f1f1f0",
+    brightBlack: "#686868",
+    brightRed: "#ff5f57",
+    brightGreen: "#5af78e",
+    brightYellow: "#f3f99d",
+    brightBlue: "#57c7ff",
+    brightMagenta: "#ff6ac1",
+    brightCyan: "#9aedfe",
+    brightWhite: "#f1f1f0",
+};
 
 export default function PodTerminal({ namespace, name, containers }) {
     const [container, setContainer] = useState(containers[0] || "");
@@ -33,13 +58,9 @@ export default function PodTerminal({ namespace, name, containers }) {
     useEffect(() => {
         const term = new XTerm({
             convertEol: true,
-            fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, monospace",
+            fontFamily: "'SF Mono', Menlo, Monaco, 'JetBrains Mono', monospace",
             fontSize: 13,
-            theme: {
-                background: "#0d1117",
-                foreground: "#e6edf3",
-                cursor: "#2f81f7",
-            },
+            theme: TERM_THEME,
             cursorBlink: true,
         });
         const fit = new FitAddon();
@@ -206,7 +227,18 @@ export default function PodTerminal({ namespace, name, containers }) {
                     The Axiom console image is distroless — it has no <span className="mono">/bin/sh</span>. Open a different pod (e.g. redis/nginx) for an interactive shell.
                 </p>
             )}
-            <div ref={containerRef} className="h-[420px] overflow-hidden rounded-lg border border-border bg-[#0d1117] p-2" />
+            <MacTerm
+                title={`${namespace}/${name} — ${shell}`}
+                actions={
+                    <span className="mono text-[10px] text-white/45">
+                        <span className={`status-dot mr-1.5 inline-block align-middle ${status === "connected" ? "ok animate-pulse" : status === "error" ? "err" : "info"}`} />
+                        {status}
+                    </span>
+                }
+                bodyClassName="!p-0 h-[420px] overflow-hidden"
+            >
+                <div ref={containerRef} className="h-full px-2 py-2" />
+            </MacTerm>
         </div>
     );
 }

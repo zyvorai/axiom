@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileCog } from "lucide-react";
+import MacTerm from "@/components/MacTerm";
 
 export default function ConfigMapDetail() {
     const { namespace, name } = useParams();
@@ -81,7 +82,7 @@ export default function ConfigMapDetail() {
                 />
             )}
 
-            <GlassCard className="overflow-hidden p-0">
+            <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <FileCog className="h-4 w-4 text-i17-sky" /> Data
                 </div>
@@ -95,9 +96,12 @@ export default function ConfigMapDetail() {
                                     {key}
                                 </Badge>
                             </div>
-                            <pre className="mono max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-[12px] text-foreground/90">
+                            <MacTerm
+                                title={key}
+                                bodyClassName="max-h-48 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                            >
                                 {value}
-                            </pre>
+                            </MacTerm>
                         </div>
                     ))
                 )}

@@ -16,6 +16,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { resolveIcon } from "@/constants/navItems";
 import { useConfirm } from "@/components/ConfirmDialog";
+import CodeEditor from "@/components/CodeEditor";
 
 function fieldValue(row, path) {
     if (path === "name") return row?.metadata?.name ?? row?.name;
@@ -46,18 +47,16 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
                     </DialogTitle>
                 </DialogHeader>
                 {manifest.columns && manifest.columns.length > 0 && (
-                    <div className="grid gap-2 rounded-lg border bg-muted/30 p-3 text-xs">
+                    <div className="grid gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs">
                         {manifest.columns.map((c) => (
                             <div key={c.path} className="flex justify-between gap-4">
-                                <span className="text-muted-foreground">{c.label}</span>
-                                <span className="mono truncate text-foreground">{displayFieldValue(instance, c)}</span>
+                                <span className="text-sky-300/80">{c.label}</span>
+                                <span className="mono truncate text-sky-100">{displayFieldValue(instance, c)}</span>
                             </div>
                         ))}
                     </div>
                 )}
-                <pre className="mono max-h-[40vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[11px] text-foreground/90">
-                    {JSON.stringify(instance, null, 2)}
-                </pre>
+                <CodeEditor value={JSON.stringify(instance, null, 2)} editable={false} className="min-h-0 [&_.code-pane]:min-h-[40vh] [&_.code-pane]:max-h-[40vh]" />
             </DialogContent>
         </Dialog>
     );

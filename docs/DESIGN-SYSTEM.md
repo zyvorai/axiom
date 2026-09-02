@@ -1,6 +1,6 @@
 # Axiom Design System (zeus-os)
 
-`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API. **Light** is Apple.com (`#f5f5f7` canvas, white cards, `#1d1d1f` ink, Action Blue `#0071e3` CTAs). **Dark** is GitHub Primer dark (`#0d1117` canvas, `#161b22` cards, `#30363d` borders, `#e6edf3` / `#8b949e` text, accent `#2f81f7`). Theme toggle lives under **Settings → Appearance**. Self-hosted Inter + JetBrains Mono with `-apple-system`/`BlinkMacSystemFont` first. Pill-shaped buttons, 0.9rem card radii.
+`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API. **Light** is Apple.com (`#f5f5f7` canvas, white cards, `#1d1d1f` ink, Action Blue `#0071e3` CTAs). **Dark** is GitHub Primer dark (`#0d1117` canvas, `#161b22` cards, `#30363d` borders, `#e6edf3` / `#8b949e` text, accent `#2f81f7`). Theme toggle lives under **Settings → Appearance**. Typography is apple.com **SF Pro** everywhere (`-apple-system` / `SF Pro Text` / `SF Pro Display`; mono prefers `SF Mono`). Pill-shaped buttons, 0.9rem card radii.
 
 ## Tokens
 
@@ -29,7 +29,7 @@ Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn 
 
 Light = Apple.com; dark = GitHub Primer. Spacing/type/motion tokens are shared.
 
-Fonts are self-hosted via `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono` (imported at the top of `frontend/src/index.css`) — no Google Fonts or other external font CDN dependency. `--font-display` and `--font-mono` point at the variable-font families, with system-font fallback stacks behind them.
+UI type is the apple.com **SF Pro** system stack (`--font-display` for body/UI, `--font-hero` for headlines). Mono prefers **SF Mono**, with JetBrains Mono Variable as a non-Apple fallback (still imported in `index.css`). Inter is no longer loaded. Content surfaces are **flat** (no card boxes) — hairline rules only, matching apple.com section rhythm.
 
 ### Brand accent & the i17 palette
 

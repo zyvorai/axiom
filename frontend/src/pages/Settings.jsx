@@ -276,7 +276,7 @@ export default function Settings() {
                 {clustersLoading && !clusters.length ? (
                     <Skeleton className="h-24 rounded-xl bg-muted" />
                 ) : (
-                    <div className="divide-y rounded-xl border border-border">
+                    <div className="divide-y border-y border-border">
                         {(clusters || []).map((c) => {
                             const isActive = c.name === active?.name || c.current;
                             return (
@@ -318,7 +318,7 @@ export default function Settings() {
                     <SunMoon className="h-4 w-4 text-i17-cosmic" />
                     <div className="text-sm font-medium">Appearance</div>
                 </div>
-                <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-4 border-y border-border px-3 py-2.5">
                     <div>
                         <div className="text-sm">Theme</div>
                         <div className="text-xs text-muted-foreground">
@@ -425,7 +425,7 @@ export default function Settings() {
                         placeholder="https://your-endpoint.example.com/hooks/axiom"
                     />
                 </div>
-                <div className="mt-3 flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2.5">
+                <div className="mt-3 flex items-center justify-between border-y border-border px-3 py-2.5">
                     <div>
                         <div className="text-sm">Forward Warning events automatically</div>
                         <div className="text-xs text-muted-foreground">Polls every 60s and pushes new cluster Warning events to the channels above.</div>

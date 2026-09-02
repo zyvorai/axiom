@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, streamPodLogs } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import MacTerm from "@/components/MacTerm";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -163,32 +164,30 @@ export default function Logs() {
                 </Button>
             </GlassCard>
 
-            <GlassCard className="p-0">
-                <div className="flex items-center justify-between border-b px-4 py-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className={`status-dot ${running ? "ok animate-pulse" : "info"}`} />
-                        <span className="mono">{running ? `streaming ${selected}` : "idle"}</span>
+            <MacTerm
+                title={running ? `logs — ${selected}` : `logs — idle`}
+                actions={
+                    <span className="mono text-[10px] text-white/45">
+                        <span className={`status-dot mr-1.5 inline-block align-middle ${running ? "ok animate-pulse" : "info"}`} />
+                        {lines.length} lines
+                    </span>
+                }
+                bodyRef={listRef}
+                bodyProps={{ "data-testid": LOGS.stream }}
+                bodyClassName="h-[60vh] overflow-auto scrollbar-thin whitespace-pre-wrap px-4 py-3 text-[12.5px] leading-[1.55]"
+            >
+                {lines.length === 0 && (
+                    <div className="text-white/40">
+                        Press <span className="text-[#5af78e]">Follow</span> to stream{" "}
+                        <span className="text-[#57c7ff]">{selected}</span>.
                     </div>
-                    <div className="mono text-[11px] text-muted-foreground">{lines.length} lines</div>
-                </div>
-                <div
-                    ref={listRef}
-                    data-testid={LOGS.stream}
-                    className="mono h-[60vh] overflow-auto scrollbar-thin whitespace-pre-wrap bg-muted p-4 text-[12.5px] leading-relaxed"
-                >
-                    {lines.length === 0 && (
-                        <div className="text-muted-foreground">
-                            Press <span className="text-foreground">Follow</span> to start streaming logs for{" "}
-                            <span className="text-i17-cosmic">{selected}</span>.
-                        </div>
-                    )}
-                    {lines.map((l, i) => (
-                        <div key={i} className="text-foreground/90">
-                            {l}
-                        </div>
-                    ))}
-                </div>
-            </GlassCard>
+                )}
+                {lines.map((l, i) => (
+                    <div key={i} className="text-[#f1f1f0]/
+                        {l}
+                    </div>
+                ))}
+            </MacTerm>
         </div>
     );
 }

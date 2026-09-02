@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
@@ -42,6 +41,10 @@ import PodTerminal from "@/components/PodTerminal";
 import Sparkline from "@/components/Sparkline";
 import FeatureTile from "@/components/FeatureTile";
 import SpecTable from "@/components/SpecTable";
+import CodeEditor from "@/components/CodeEditor";
+import MacTerm from "@/components/MacTerm";
+import KvChip, { toneForKey } from "@/components/KvChip";
+import { maskEnvDisplay } from "@/lib/sensitive";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 function ExecPanel({ namespace, name, containers }) {
@@ -90,9 +93,12 @@ function ExecPanel({ namespace, name, containers }) {
                     {busy ? "Running…" : "Run"}
                 </Button>
             </div>
-            <pre className="mono h-72 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[12px] text-foreground/90">
-                {output || "Output will appear here."}
-            </pre>
+            <MacTerm
+                title={`exec — ${command || "command"}`}
+                bodyClassName="h-72 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-[#f1f1f0]"
+            >
+                {output || <span className="text-white/40">Output will appear here.</span>}
+            </MacTerm>
         </GlassCard>
     );
 }
@@ -108,51 +114,54 @@ function probeSummary(p) {
 function ContainerSpecCard({ c }) {
     const resources = c.resources || {};
     return (
-        <GlassCard className="p-4">
-            <div className="flex items-center justify-between">
-                <div className="mono text-sm">{c.name}</div>
-                <div className="mono truncate text-[11px] text-muted-foreground">{c.image}</div>
+        <div className="border-t border-border py-5 first:border-t-0 first:pt-0">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className="mono text-sm font-medium tracking-[-0.01em]">{c.name}</div>
+                <div className="mono truncate text-[12px] text-muted-foreground">{c.image}</div>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+            <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3 text-xs md:grid-cols-4">
                 <div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">CPU req/lim</div>
-                    <div className="mono mt-0.5">
+                    <div className="text-[11px] tracking-[-0.01em] text-muted-foreground">CPU req/lim</div>
+                    <div className="mono mt-0.5 text-sm">
                         {resources.requests?.cpu || "—"} / {resources.limits?.cpu || "—"}
                     </div>
                 </div>
                 <div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Mem req/lim</div>
-                    <div className="mono mt-0.5">
+                    <div className="text-[11px] tracking-[-0.01em] text-muted-foreground">Mem req/lim</div>
+                    <div className="mono mt-0.5 text-sm">
                         {resources.requests?.memory || "—"} / {resources.limits?.memory || "—"}
                     </div>
                 </div>
                 <div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Liveness</div>
-                    <div className="mono mt-0.5 truncate">{probeSummary(c.livenessProbe) || "—"}</div>
+                    <div className="text-[11px] tracking-[-0.01em] text-muted-foreground">Liveness</div>
+                    <div className="mono mt-0.5 truncate text-sm">{probeSummary(c.livenessProbe) || "—"}</div>
                 </div>
                 <div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Readiness</div>
-                    <div className="mono mt-0.5 truncate">{probeSummary(c.readinessProbe) || "—"}</div>
+                    <div className="text-[11px] tracking-[-0.01em] text-muted-foreground">Readiness</div>
+                    <div className="mono mt-0.5 truncate text-sm">{probeSummary(c.readinessProbe) || "—"}</div>
                 </div>
             </div>
             {(c.env || []).length > 0 && (
-                <div className="mt-3 border-t pt-3">
-                    <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Environment</div>
-                    <div className="flex flex-wrap gap-1.5">
+                <div className="mt-4">
+                    <div className="mb-1.5 text-[11px] tracking-[-0.01em] text-muted-foreground">Environment</div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
                         {c.env.map((e, i) => (
-                            <Badge key={i} variant="outline" className="mono text-[10px] bg-muted/30">
-                                {e.name}={e.value ?? (e.valueFrom ? "<from ref>" : "")}
-                            </Badge>
+                            <KvChip
+                                key={i}
+                                name={e.name}
+                                value={maskEnvDisplay(e.name, e.value, e.valueFrom)}
+                                tone={toneForKey(e.name)}
+                            />
                         ))}
                     </div>
                 </div>
             )}
             {(c.volumeMounts || []).length > 0 && (
-                <div className="mt-3 border-t pt-3">
-                    <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Mounts</div>
+                <div className="mt-4">
+                    <div className="mb-1.5 text-[11px] tracking-[-0.01em] text-muted-foreground">Mounts</div>
                     <div className="space-y-1">
-                        {c.volumeMounts.map((m, i) => (
-                            <div key={i} className="mono text-[11px] text-muted-foreground">
+                        {(c.volumeMounts || []).map((m, i) => (
+                            <div key={i} className="mono text-[12px] text-muted-foreground">
                                 {m.name} → {m.mountPath}
                                 {m.readOnly ? " (ro)" : ""}
                             </div>
@@ -160,7 +169,7 @@ function ContainerSpecCard({ c }) {
                     </div>
                 </div>
             )}
-        </GlassCard>
+        </div>
     );
 }
 
@@ -192,7 +201,7 @@ function MetricsPanel({ namespace, name }) {
 
     return (
         <div className="space-y-4">
-            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <div className="border-y border-border px-3 py-2 text-xs text-muted-foreground">
                 Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -216,7 +225,7 @@ function MetricsPanel({ namespace, name }) {
                 </GlassCard>
             </div>
             {(series.containers || []).length > 0 && (
-                <GlassCard className="p-0 overflow-hidden">
+                <GlassCard className="overflow-hidden">
                     <div className="border-b px-4 py-3 text-sm font-medium">Per-container</div>
                     {series.containers.map((c) => (
                         <div key={c.name} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
@@ -256,7 +265,7 @@ function TerminalSessions({ namespace, name, containers }) {
     return (
         <Tabs value={active} onValueChange={setActive}>
             <div className="flex items-center gap-1">
-                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
+                <TabsList>
                     {sessions.map((s) => (
                         <TabsTrigger key={s.id} value={String(s.id)} className="gap-1.5">
                             Shell {s.id}
@@ -437,7 +446,7 @@ export default function PodDetail() {
                 </div>
             )}
             {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
-                <div className="flex items-start gap-3 rounded-2xl border bg-muted/30 px-4 py-3">
+                <div className="flex items-start gap-3 border-y border-border px-4 py-3">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
                         <div className="text-sm font-medium">{diagnosis.phase}</div>
@@ -447,19 +456,20 @@ export default function PodDetail() {
             )}
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <FeatureTile size="compact" mono label="Ready" value={pod.ready} />
+                <FeatureTile size="compact" mono className="glass-tint-sage" label="Ready" value={pod.ready} />
                 <FeatureTile
                     size="compact"
                     mono
+                    className="glass-tint-gold"
                     label="Restarts"
                     value={<span className={pod.restarts > 0 ? "text-amber-400" : ""}>{pod.restarts}</span>}
                 />
-                <FeatureTile size="compact" mono icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
-                <FeatureTile size="compact" mono icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
+                <FeatureTile size="compact" mono className="glass-tint-sky" icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
+                <FeatureTile size="compact" mono className="glass-tint-lavender" icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
+                <TabsList>
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>
@@ -509,16 +519,18 @@ export default function PodDetail() {
                             )}
 
                             {(spec.volumes || []).length > 0 && (
-                                <GlassCard className="p-0 overflow-hidden">
-                                    <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
+                                <GlassCard className="glass-tint-lavender overflow-hidden p-0">
+                                    <div className="flex items-center gap-2 border-b border-violet-500/20 px-4 py-3 text-sm font-medium text-violet-200">
                                         <HardDrive className="h-4 w-4 text-i17-lavender" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
                                         const kind = Object.keys(v).find((k) => k !== "name") || "—";
                                         return (
-                                            <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
-                                                <span className="mono">{v.name}</span>
-                                                <span className="text-muted-foreground">{kind}</span>
+                                            <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-xs last:border-none">
+                                                <span className="mono text-violet-100">{v.name}</span>
+                                                <Badge variant="outline" className="border-violet-500/30 bg-violet-500/10 text-[10px] text-violet-200">
+                                                    {kind}
+                                                </Badge>
                                             </div>
                                         );
                                     })}
@@ -526,11 +538,11 @@ export default function PodDetail() {
                             )}
 
                             {(status?.conditions || []).length > 0 && (
-                                <GlassCard className="p-0 overflow-hidden">
-                                    <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>
+                                <GlassCard className="glass-tint-sage overflow-hidden p-0">
+                                    <div className="border-b border-emerald-500/20 px-4 py-3 text-sm font-medium text-emerald-200">Conditions</div>
                                     {status.conditions.map((c, i) => (
-                                        <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
-                                            <span>{c.type}</span>
+                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-xs last:border-none">
+                                            <span className="text-foreground/90">{c.type}</span>
                                             <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
                                         </div>
                                     ))}
@@ -542,20 +554,18 @@ export default function PodDetail() {
                                     <div className="mb-2 text-sm font-medium">Node selector</div>
                                     <div className="flex flex-wrap gap-1.5">
                                         {Object.entries(spec.nodeSelector).map(([k, v]) => (
-                                            <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
-                                                {k}={v}
-                                            </Badge>
+                                            <KvChip key={k} name={k} value={v} tone="gold" />
                                         ))}
                                     </div>
                                 </GlassCard>
                             )}
 
                             {(spec.tolerations || []).length > 0 && (
-                                <GlassCard className="p-4">
-                                    <div className="mb-2 text-sm font-medium">Tolerations</div>
+                                <GlassCard className="glass-tint-gold p-4">
+                                    <div className="mb-2 text-sm font-medium text-amber-200">Tolerations</div>
                                     <div className="space-y-1 text-xs">
                                         {spec.tolerations.map((t, i) => (
-                                            <div key={i} className="mono text-muted-foreground">
+                                            <div key={i} className="mono text-amber-100/80">
                                                 {t.key || "*"}
                                                 {t.operator ? ` ${t.operator}` : ""}
                                                 {t.value ? ` ${t.value}` : ""} · {t.effect || "any"}
@@ -569,7 +579,7 @@ export default function PodDetail() {
                         <Skeleton className="h-64 rounded-2xl bg-muted" />
                     ) : (
                         <div className="space-y-4">
-                            <GlassCard className="p-0 overflow-hidden">
+                            <GlassCard className="overflow-hidden">
                                 <div className="border-b px-4 py-3 text-sm font-medium">Containers</div>
                                 {(pod.containerInfo || pod.containers || []).map((c, i) => {
                                     const info = typeof c === "string" ? { name: c } : c;
@@ -588,18 +598,18 @@ export default function PodDetail() {
                     )}
 
                     {(pod.ports || []).length > 0 && (
-                        <GlassCard className="p-0 overflow-hidden">
-                            <div className="border-b px-4 py-3 text-sm font-medium">Ports</div>
+                        <GlassCard className="glass-tint-sky overflow-hidden p-0">
+                            <div className="border-b border-sky-500/20 px-4 py-3 text-sm font-medium text-sky-200">Ports</div>
                             {pod.ports.map((p, i) => (
-                                <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
-                                    <div className="mono text-sm text-muted-foreground">
+                                <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
+                                    <div className="mono text-sm text-sky-100/90">
                                         {p.container} · {p.containerPort}/{p.protocol || "TCP"}
                                     </div>
                                     <a
                                         href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-1 rounded-lg border bg-muted/30 px-2.5 py-1 text-xs hover:bg-muted"
+                                        className="flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-xs text-sky-200 hover:bg-sky-500/20"
                                     >
                                         Open <ExternalLink className="h-3 w-3" />
                                     </a>
@@ -614,7 +624,7 @@ export default function PodDetail() {
                         <TerminalSessions namespace={pod.namespace} name={pod.name} containers={containers} />
                     ) : (
                         <div className="space-y-3">
-                            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                            <div className="border-y border-border px-3 py-2 text-xs text-muted-foreground">
                                 Interactive terminal requires a live Kubernetes connection. Running a one-shot command instead.
                             </div>
                             <ExecPanel namespace={pod.namespace} name={pod.name} containers={containers} />
@@ -623,20 +633,15 @@ export default function PodDetail() {
                 </TabsContent>
 
                 <TabsContent value="yaml" className="mt-4 space-y-3">
-                    <GlassCard className="p-0 overflow-hidden">
-                        {detail && detail.manifest ? (
-                            <Textarea
-                                value={manifestText}
-                                onChange={(e) => setManifestText(e.target.value)}
-                                className="mono max-h-[65vh] min-h-[65vh] resize-none whitespace-pre rounded-none border-none bg-transparent p-4 text-[12px] text-foreground/90 focus-visible:ring-0"
-                                spellCheck={false}
-                            />
-                        ) : (
+                    {detail && detail.manifest ? (
+                        <CodeEditor value={manifestText} onChange={setManifestText} />
+                    ) : (
+                        <GlassCard className="overflow-hidden">
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                                 {detail === false ? "Manifest unavailable in this mode." : "Loading…"}
                             </div>
-                        )}
-                    </GlassCard>
+                        </GlassCard>
+                    )}
                     {detail && detail.manifest && (
                         <div className="flex justify-end">
                             <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
@@ -651,7 +656,7 @@ export default function PodDetail() {
                 </TabsContent>
 
                 <TabsContent value="events" className="mt-4">
-                    <GlassCard className="p-0 overflow-hidden">
+                    <GlassCard className="overflow-hidden">
                         {podEvents.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No events for this pod.</div>}
                         {podEvents.map((e, i) => (
                             <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none">
@@ -666,12 +671,10 @@ export default function PodDetail() {
                 </TabsContent>
 
                 <TabsContent value="labels" className="mt-4">
-                    <GlassCard className="p-5">
+                    <GlassCard className="glass-tint-lavender p-5">
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(pod.labels || {}).map(([k, v]) => (
-                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
-                                    {k}={v}
-                                </Badge>
+                                <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />
                             ))}
                             {Object.keys(pod.labels || {}).length === 0 && <span className="text-xs text-muted-foreground">No labels.</span>}
                         </div>
