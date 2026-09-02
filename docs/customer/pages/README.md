@@ -46,7 +46,7 @@ Every route is also listed in the [complete page index](../PAGE_INDEX.md).
 | Page | What it covers |
 |------|----------------|
 | [Getting Started](console/getting-started.md) | Live setup checklist — integration status and first tasks after sign-in. |
-| [Overview](console/overview.md) | Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers. |
+| [Overview](console/overview.md) | Product home for the activated cluster — marketing-style hero, capacity, inventory, and utilization, with links into observe pages. |
 
 ## Networking
 

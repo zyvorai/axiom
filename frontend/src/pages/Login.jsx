@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Lock, ShieldCheck, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import ZyvorMark from "@/components/ZyvorMark";
 import { SSO } from "@/constants/testIds";
 import { toast } from "sonner";
 import "../axiom-login.css";
@@ -97,19 +98,25 @@ export default function Login() {
 
     return (
         <div data-testid={SSO.page} className="axiom-login-page">
+            {/* Apple Account–style product gate: mark → product name →
+                "Sign in to {Product}." so the destination is unambiguous
+                before the form. */}
             <div className="axiom-login-brand">
-                <p className="axiom-login-wordmark">zyvor · axiom</p>
-                <h1 className="axiom-login-hero-title">Sign in to continue.</h1>
+                <ZyvorMark size={56} idPrefix="axiom-login" className="axiom-login-mark" />
+                <p className="axiom-login-product">Axiom</p>
+                <p className="axiom-login-product-by">by Zyvor</p>
+                <h1 className="axiom-login-hero-title">Sign in to Axiom.</h1>
                 <p className="axiom-login-tagline">
-                    Single sign-on enforced by your Zyvor organization.
+                    Your Kubernetes-native private cloud console.
                 </p>
             </div>
 
             <div className={`axiom-login-card${shake ? " axiom-login-shake" : ""}`}>
                 {step === "identity" ? (
                     <div key="identity">
-                        <div className="axiom-login-eyebrow">Axiom Console</div>
-                        <h2 className="axiom-login-form-heading">Welcome back</h2>
+                        <div className="axiom-login-eyebrow">Axiom account</div>
+                        <h2 className="axiom-login-form-heading">Choose how to sign in</h2>
+                        <p className="axiom-login-form-hint">Use SSO from your organization, or a local Axiom account.</p>
 
                         <div className="mt-6 space-y-2.5">
                             {SSO_BUTTONS.map(({ id, label, Icon, testId }) => (
@@ -136,7 +143,7 @@ export default function Login() {
                         </div>
 
                         <div className="axiom-login-divider">
-                            <span>or sign in with a local account</span>
+                            <span>or use an Axiom account</span>
                         </div>
 
                         <form onSubmit={handleContinue}>
@@ -165,8 +172,9 @@ export default function Login() {
                     </div>
                 ) : (
                     <div key="password">
-                        <div className="axiom-login-eyebrow">Axiom Console</div>
+                        <div className="axiom-login-eyebrow">Axiom account</div>
                         <h2 className="axiom-login-form-heading">Enter your password</h2>
+                        <p className="axiom-login-form-hint">Signing in to Axiom as {username}.</p>
 
                         <button type="button" onClick={handleBack} className="axiom-login-btn-secondary mt-4">
                             <span
@@ -196,7 +204,7 @@ export default function Login() {
                                 className="axiom-login-btn-primary"
                             >
                                 {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
-                                {pending ? "Signing in…" : "Sign in"}
+                                {pending ? "Signing in…" : "Sign in to Axiom"}
                             </button>
                         </form>
                     </div>
@@ -204,7 +212,7 @@ export default function Login() {
 
                 <div className="axiom-login-security-note">
                     <Lock className="h-3.5 w-3.5" style={{ color: "hsl(211 100% 45%)" }} />
-                    Sessions are scoped per device and expire automatically.
+                    Axiom sessions are scoped per device and expire automatically.
                 </div>
             </div>
 

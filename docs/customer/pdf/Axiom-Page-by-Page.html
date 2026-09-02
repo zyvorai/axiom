@@ -24,7 +24,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <section class="cover"><div class="kicker">ZyvorAI Labs · Customer Documentation</div>
 <h1>Ax<span>iom</span></h1>
 <div class="sub">Page-by-Page Product Manual</div>
-<div class="badge">2026-08-30</div>
+<div class="badge">2026-09-02</div>
 <div class="foot">zyvor.dev · Confidential — for licensed customers</div></section>
 <main><h2>Page-by-page guides</h2>
 <p>Each guide follows: Purpose → When to use it → How to get there → Operate from the console (UX) → Related pages.</p>
@@ -136,7 +136,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 </tr>
 <tr>
 <td><a href="console/overview.md">Overview</a></td>
-<td>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</td>
+<td>Product home for the activated cluster — marketing-style hero, capacity, inventory, and utilization, with links into observe pages.</td>
 </tr>
 </tbody></table>
 <h3>Networking</h3>
@@ -361,8 +361,8 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 </ul>
 <h3>Operate from the console (UX)</h3>
 <ol>
-<li>Open <code>https://&lt;host&gt;:30590/</code> and accept the self-signed certificate once if needed.</li>
-<li>Sign-in is two steps: enter a username and <strong>Continue</strong>, then enter the password and <strong>Sign in</strong>. Use <strong>Not you?</strong> on the password screen to go back and change the username.</li>
+<li>Open <code>https://&lt;host&gt;:30590/</code> and accept the self-signed certificate once if needed. Confirm the gate shows the Zyvor mark and <strong>Sign in to Axiom.</strong> so you know you are on the Axiom console.</li>
+<li>Sign-in is two steps: enter a username and <strong>Continue</strong>, then enter the password and <strong>Sign in to Axiom</strong>. Use <strong>Not you?</strong> on the password screen to go back and change the username.</li>
 <li>When SSO is off, click <strong>Lab mode — fill demo</strong> to fill both fields and jump straight to the password screen (lab default <code>demo</code> / <code>demo</code>).</li>
 <li>Or enter operator credentials from Secret <code>zyvor-axiom-auth</code> / <code>AXIOM_USERNAME</code>+<code>AXIOM_PASSWORD</code>.</li>
 <li>When SSO is configured, use the OIDC/SAML buttons (public client + PKCE) on the first screen instead.</li>
@@ -656,7 +656,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <hr>
 <h2>Overview</h2>
 <h3>Purpose</h3>
-<p>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</p>
+<p>Product home for the activated cluster — marketing-style hero, capacity, inventory, and utilization, with links into observe pages.</p>
 <h3>When to use it</h3>
 <ul>
 <li>Operate <strong>Overview</strong> when your job matches this page</li>
@@ -666,16 +666,17 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <h3>How to get there</h3>
 <ul>
 <li>Route: <code>/overview</code></li>
-<li>Nav: <strong>Sidebar → Overview (default after login)</strong></li>
+<li>Nav: <strong>Top bar brand (Axiom) or Sidebar → Overview (default after login)</strong></li>
 </ul>
 <h3>Operate from the console (UX)</h3>
 <ol>
-<li>Land on <code>/overview</code> after sign-in (or click Overview).</li>
-<li>Confirm cluster name/metrics and recent activity load.</li>
+<li>Land on <code>/overview</code> after sign-in (or click Overview / the Axiom wordmark).</li>
+<li>Read the hero (cluster name, health line, CTAs), then scroll capacity rings, inventory counts, and utilization charts.</li>
+<li>Use <strong>Stay informed</strong> links for Alerts, Events, and Logs — Overview does not dump alert/activity lists on the home screen.</li>
 <li>Use the sidebar cluster switcher when multiple clusters are configured (demo mode ships three).</li>
-<li>Jump to Nodes / Workloads / Alerts from shortcuts or ⌘K.</li>
+<li>Jump elsewhere via sidebar or ⌘K (compact Search in the top bar).</li>
 <li><strong>Empty / fail:</strong> Metrics blank → API unreachable or wrong activated cluster; re-login.</li>
-<li><strong>Success:</strong> Cluster headline + cards match <code>kubectl</code> reality (or demo fixtures).</li>
+<li><strong>Success:</strong> Hero + capacity/inventory match <code>kubectl</code> reality (or demo fixtures).</li>
 </ol>
 <p>Console: <code>https://&lt;host&gt;:30590/</code> (NodePort HTTPS; override with <code>AXIOM_NODE_PORT</code>). Local demo: <code>http://&lt;host&gt;:5090</code> when <code>AXIOM_MODE=demo</code>. Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
 <h3>Related pages</h3>
@@ -683,6 +684,8 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <li><a href="../cluster/nodes.md">Nodes</a></li>
 <li><a href="../workloads/workloads.md">Workloads</a></li>
 <li><a href="../observe/alerts.md">Alerts</a></li>
+<li><a href="../observe/events.md">Events</a></li>
+<li><a href="../observe/logs.md">Logs</a></li>
 <li><a href="getting-started.md">Getting Started</a></li>
 <li><a href="../../getting-started.md">Getting Started</a></li>
 <li><a href="../../PAGE_INDEX.md">Page index</a></li>
@@ -1186,7 +1189,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <hr>
 <h2>Axiom — Complete page index</h2>
 <p>Every primary navigable dashboard route.</p>
-<p><em>Generated: 2026-08-30 · 30 routes</em></p>
+<p><em>Generated: 2026-09-02 · 30 routes</em></p>
 <p>Regenerate: <code>node scripts/customer-docs/generate-page-index.mjs</code></p>
 <h3>AUTH</h3>
 <table>
@@ -1224,7 +1227,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <tr>
 <td>Overview</td>
 <td><code>/overview</code></td>
-<td>Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers.</td>
+<td>Product home — hero, capacity, inventory, utilization; links into Alerts / Events / Logs.</td>
 <td><a href="pages/console/overview.md">Open</a></td>
 </tr>
 </tbody></table>

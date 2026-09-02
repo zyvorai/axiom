@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import MetricRing from "@/components/MetricRing";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, Activity, Boxes, Server, MonitorSmartphone, ShieldCheck, Rocket, ArrowRight } from "lucide-react";
-import { formatDistanceToNowStrict } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import { OVERVIEW } from "@/constants/testIds";
 
 function SetupBanner() {
@@ -34,34 +32,27 @@ function SetupBanner() {
     return (
         <Link
             to="/getting-started"
-            className="flex items-center gap-3 rounded-2xl border border-i17-cosmic/25 bg-i17-cosmic/[0.06] px-4 py-3 transition-colors hover:bg-i17-cosmic/[0.1]"
+            className="mx-auto flex max-w-xl items-center justify-center gap-2 px-1 py-3 text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-i17-cosmic/15 text-i17-cosmic">
-                <Rocket className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">This instance still has setup steps to finish</div>
-                <div className="text-xs text-muted-foreground">SSO, storage and networking integrations aren't fully wired up yet.</div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1 text-xs font-medium text-i17-cosmic">
-                View checklist <ArrowRight className="h-3 w-3" />
-            </div>
+            Finish setup for this instance
+            <ArrowRight className="h-3.5 w-3.5 text-i17-cosmic" />
         </Link>
     );
 }
 
-function relTime(iso) {
-    try {
-        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
-    } catch {
-        return iso;
-    }
+/** Centered apple.com section intro — one title, one sentence. */
+function SectionIntro({ title, copy, className = "" }) {
+    return (
+        <div className={`mx-auto max-w-3xl text-center ${className}`}>
+            <h2 className="text-display font-bold tracking-tight text-foreground text-balance">{title}</h2>
+            {copy && <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl">{copy}</p>}
+        </div>
+    );
 }
 
 export default function Overview() {
     const [data, setData] = useState(null);
-    const [alerts, setAlerts] = useState([]);
-    const [activity, setActivity] = useState([]);
+    const [alertCount, setAlertCount] = useState(0);
 
     useEffect(() => {
         let alive = true;
@@ -69,12 +60,10 @@ export default function Overview() {
             Promise.all([
                 api.get("/overview"),
                 api.get("/alerts").catch(() => ({ data: { warnings: [] } })),
-                api.get("/events").catch(() => ({ data: [] })),
-            ]).then(([o, a, e]) => {
+            ]).then(([o, a]) => {
                 if (!alive) return;
                 setData(o.data);
-                setAlerts(a.data.warnings || []);
-                setActivity((e.data || []).slice(0, 4));
+                setAlertCount((a.data.warnings || []).length);
             });
         load();
         const t = setInterval(load, 6000);
@@ -86,10 +75,18 @@ export default function Overview() {
 
     if (!data) {
         return (
-            <div data-testid={OVERVIEW.root} className="grid gap-4 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-40 rounded-2xl bg-muted" />
-                ))}
+            <div data-testid={OVERVIEW.root} className="space-y-24 pb-24">
+                <div className="flex flex-col items-center gap-5 pt-16 pb-8">
+                    <Skeleton className="h-3 w-40 rounded bg-muted" />
+                    <Skeleton className="h-20 w-72 max-w-full rounded-2xl bg-muted" />
+                    <Skeleton className="h-5 w-64 rounded bg-muted" />
+                    <Skeleton className="mt-4 h-11 w-40 rounded-full bg-muted" />
+                </div>
+                <div className="flex justify-center gap-16">
+                    {[...Array(3)].map((_, i) => (
+                        <Skeleton key={i} className="h-40 w-36 rounded-2xl bg-muted" />
+                    ))}
+                </div>
             </div>
         );
     }
@@ -100,140 +97,142 @@ export default function Overview() {
         ? Math.round((data.storageUsedBytes / data.storageCapacityBytes) * 100)
         : 0;
 
+    const inventory = [
+        { key: "nodes", label: "Nodes", value: `${data.readyNodes}/${data.nodes}` },
+        { key: "pods", label: "Pods", value: `${data.runningPods}/${data.pods}` },
+        { key: "workloads", label: "Workloads", value: data.workloads },
+        { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}` },
+    ];
+
     return (
-        <div data-testid={OVERVIEW.root} className="space-y-8">
+        <div data-testid={OVERVIEW.root} className="pb-28">
             <SetupBanner />
-            {/* Hero */}
-            <GlassCard className="p-8 md:p-10">
-                <div className="flex flex-wrap items-end justify-between gap-8">
-                    <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-i17-cosmic/90">
-                            zyvor · Axiom · Kubernetes · {data.region}
+
+            {/* ── Hero ── */}
+            <section className="fade-up mx-auto max-w-4xl px-4 pb-24 pt-16 text-center sm:pt-20">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-i17-cosmic">Axiom</p>
+                <h1 className="mt-5 text-hero font-bold text-foreground text-balance">{data.cluster}</h1>
+                <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground text-pretty sm:text-xl">
+                    Your Kubernetes-native private cloud — one console from k3s to production.
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+                    <StatusBadge status={data.health} />
+                    <span className="text-foreground/25">·</span>
+                    <span>{data.region}</span>
+                </div>
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                    <Button asChild variant="brand" className="rounded-full px-6">
+                        <Link to="/workloads">
+                            Explore workloads <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
+                        <Link to="/nodes">View nodes</Link>
+                    </Button>
+                </div>
+            </section>
+
+            {/* ── Capacity ── */}
+            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "60ms" }}>
+                <SectionIntro title="Built for the load." copy="Live CPU, memory, and storage against what this cluster can allocate." />
+                <div className="mt-16 flex flex-wrap items-start justify-center gap-x-16 gap-y-14 sm:gap-x-20">
+                    <MetricRing
+                        layout="stack"
+                        size={128}
+                        stroke={11}
+                        value={Math.round(data.cpuPercent)}
+                        label="CPU"
+                        color="var(--i17-cosmic)"
+                        sublabel="of allocatable"
+                    />
+                    <MetricRing
+                        layout="stack"
+                        size={128}
+                        stroke={11}
+                        value={Math.round(data.memoryPercent)}
+                        label="Memory"
+                        color="var(--i17-sage)"
+                        sublabel="of allocatable"
+                    />
+                    <MetricRing
+                        layout="stack"
+                        size={128}
+                        stroke={11}
+                        value={storagePct}
+                        label="Storage"
+                        color="var(--i17-lavender)"
+                        sublabel="of provisioned"
+                    />
+                </div>
+            </section>
+
+            {/* ── Inventory ── */}
+            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "120ms" }}>
+                <SectionIntro title="At a glance." copy="Everything running on this cluster, right now." />
+                <div className="mx-auto mt-16 grid max-w-5xl gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                    {inventory.map((c) => (
+                        <div key={c.key} data-testid={OVERVIEW.metric(c.key)} className="text-center">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{c.label}</div>
+                            <div className="mt-4 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground sm:text-6xl">
+                                {c.value}
+                            </div>
                         </div>
-                        <h1 className="mt-2 text-hero font-bold text-foreground">{data.cluster}</h1>
-                        <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
-                            <StatusBadge status={data.health} />
-                            <span>·</span>
-                            <span>{data.workloads} workloads</span>
-                            <span>·</span>
-                            <span>{data.vms} VMs</span>
+                    ))}
+                </div>
+                <p className="mt-14 text-center text-sm text-muted-foreground">
+                    {data.storageUsedTb} of {data.storageCapacityTb} TB storage provisioned
+                </p>
+            </section>
+
+            {/* ── Utilization ── */}
+            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "180ms" }}>
+                <SectionIntro title="Utilization." copy="How hard the cluster has been working." />
+                <div className="mx-auto mt-16 grid max-w-5xl gap-16 lg:grid-cols-2 lg:gap-20">
+                    <div className="text-center lg:text-left">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Cluster CPU</div>
+                        <div className="mt-3 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground">
+                            {Math.round(data.cpuPercent)}%
+                        </div>
+                        <div className="mt-8">
+                            <Sparkline data={cpuSeries} color="var(--i17-cosmic)" height={140} />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-                        <MetricRing value={Math.round(data.cpuPercent)} label="CPU" color="var(--i17-cosmic)" sublabel="of allocatable" />
-                        <MetricRing value={Math.round(data.memoryPercent)} label="Memory" color="var(--i17-sage)" sublabel="of allocatable" />
-                        <MetricRing value={storagePct} label="Storage" color="var(--i17-lavender)" sublabel="of provisioned" />
+                    <div className="text-center lg:text-left">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Cluster Memory</div>
+                        <div className="mt-3 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground">
+                            {Math.round(data.memoryPercent)}%
+                        </div>
+                        <div className="mt-8">
+                            <Sparkline data={memSeries} color="var(--i17-sage)" height={140} />
+                        </div>
                     </div>
                 </div>
-            </GlassCard>
+            </section>
 
-            {/* Counters */}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {[
-                    { key: "nodes", label: "Nodes", value: `${data.readyNodes}/${data.nodes}`, icon: Server, color: "var(--i17-cosmic)", series: cpuSeries },
-                    { key: "pods", label: "Pods", value: `${data.runningPods}/${data.pods}`, icon: Boxes, color: "var(--i17-sage)", series: memSeries },
-                    { key: "workloads", label: "Workloads", value: data.workloads, icon: Activity, color: "var(--i17-gold)", series: cpuSeries },
-                    { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}`, icon: MonitorSmartphone, color: "var(--i17-sky-blue)", series: memSeries },
-                ].map((c) => (
-                    <FeatureTile
-                        key={c.key}
-                        data-testid={OVERVIEW.metric(c.key)}
-                        label={c.label}
-                        value={c.value}
-                        icon={c.icon}
-                        color={c.color}
-                        series={c.series}
-                    />
-                ))}
-            </div>
-
-            {/* CPU / Memory big charts */}
-            <div className="grid gap-4 lg:grid-cols-2">
-                <GlassCard className="p-5">
-                    <div className="mb-3 flex items-center justify-between">
-                        <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster CPU</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">Recent utilisation</div>
-                        </div>
-                        <span className="mono text-xs text-muted-foreground">{Math.round(data.cpuPercent)}%</span>
-                    </div>
-                    <Sparkline data={cpuSeries} color="var(--i17-cosmic)" />
-                </GlassCard>
-                <GlassCard className="p-5">
-                    <div className="mb-3 flex items-center justify-between">
-                        <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster Memory</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">Recent utilisation</div>
-                        </div>
-                        <span className="mono text-xs text-muted-foreground">{Math.round(data.memoryPercent)}%</span>
-                    </div>
-                    <Sparkline data={memSeries} color="var(--i17-sage)" />
-                </GlassCard>
-            </div>
-
-            {/* Health + Alerts + Activity */}
-            <div className="grid gap-4 lg:grid-cols-3">
-                <GlassCard className="p-5">
-                    <div className="mb-3 flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-i17-sage" />
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster health</div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        {[
-                            ["Status", data.health],
-                            ["Region", data.region],
-                            ["Storage used", `${data.storageUsedTb} / ${data.storageCapacityTb} TB`],
-                            ["Mode", "Kubernetes"],
-                        ].map(([k, v]) => (
-                            <div key={k} className="flex items-center justify-between">
-                                <span className="text-muted-foreground">{k}</span>
-                                <span className="mono text-xs">{v}</span>
-                            </div>
-                        ))}
-                    </div>
-                </GlassCard>
-
-                <GlassCard className="p-5">
-                    <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Alerts</div>
-                    <div className="space-y-2">
-                        {alerts.length === 0 && <p className="text-sm text-muted-foreground">No active warnings.</p>}
-                        {alerts.map((a, i) => (
-                            <div
-                                key={i}
-                                data-testid={OVERVIEW.alert(i)}
-                                className="flex items-start gap-3 rounded-xl border bg-muted/30 p-3"
-                            >
-                                <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-500" />
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-sm">
-                                        {a.reason}: {a.message}
-                                    </div>
-                                    <div className="mt-0.5 text-xs text-muted-foreground">{relTime(a.time)}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </GlassCard>
-
-                <GlassCard className="p-5">
-                    <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Activity</div>
-                    <div className="space-y-3">
-                        {activity.length === 0 && <p className="text-sm text-muted-foreground">No recent activity.</p>}
-                        {activity.map((a, i) => (
-                            <div key={i} data-testid={OVERVIEW.activity(i)} className="text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className={`status-dot ${a.type === "Warning" ? "warn" : "info"}`} />
-                                    <span className="mono text-xs text-i17-sky">
-                                        {a.namespace}/{a.object}
-                                    </span>
-                                    <span className="ml-auto text-[11px] text-muted-foreground">{relTime(a.time)}</span>
-                                </div>
-                                <div className="mt-1 text-muted-foreground">{a.message}</div>
-                            </div>
-                        ))}
-                    </div>
-                </GlassCard>
-            </div>
+            {/* ── Observe: links only — logs live on Alerts / Events / Pod Logs ── */}
+            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "240ms" }}>
+                <SectionIntro
+                    title="Stay informed."
+                    copy="Warnings, cluster events, and pod streams live on their own pages — not on the home screen."
+                />
+                <div className="mx-auto mt-12 flex max-w-2xl flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
+                        <Link to="/alerts">
+                            Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
+                        <Link to="/events">
+                            Events <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
+                        <Link to="/logs">
+                            Pod logs <ArrowRight className="ml-1.5 h-4 w-4" />
+                        </Link>
+                    </Button>
+                </div>
+            </section>
         </div>
     );
 }

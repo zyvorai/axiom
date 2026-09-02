@@ -2,7 +2,7 @@
 
 Every primary navigable dashboard route.
 
-_Generated: 2026-08-30 · 30 routes_
+_Generated: 2026-09-02 · 30 routes_
 
 Regenerate: `node scripts/customer-docs/generate-page-index.mjs`
 
@@ -17,7 +17,7 @@ Regenerate: `node scripts/customer-docs/generate-page-index.mjs`
 | Page | Route | Purpose | Guide |
 |------|-------|---------|-------|
 | Getting Started | `/getting-started` | Live setup checklist — integration status and first tasks after sign-in. | [Open](pages/console/getting-started.md) |
-| Overview | `/overview` | Cluster pulse — capacity metrics, activity, and shortcuts into day-2 centers. | [Open](pages/console/overview.md) |
+| Overview | `/overview` | Product home — hero, capacity, inventory, utilization; links into Alerts / Events / Logs. | [Open](pages/console/overview.md) |
 
 ## CLUSTER
 

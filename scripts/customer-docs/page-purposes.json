@@ -1,7 +1,7 @@
 {
   "/login": "Sign in to the Axiom console \u2014 local Basic auth, SSO (OIDC/SAML), or lab demo helper.",
   "/getting-started": "Live setup checklist \u2014 integration status and first tasks after sign-in.",
-  "/overview": "Cluster pulse \u2014 capacity metrics, activity, and shortcuts into day-2 centers.",
+  "/overview": "Product home \u2014 hero, capacity, inventory, utilization; links into Alerts / Events / Logs.",
   "/nodes": "Kubernetes node inventory \u2014 Ready state, capacity, and entry into node detail.",
   "/nodes/:name": "Single-node conditions, capacity, taints, and related workloads.",
   "/workloads": "Deployments, StatefulSets, DaemonSets \u2014 scale, restart, seal, rollout, and Run workload wizard.",

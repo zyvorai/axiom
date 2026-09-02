@@ -39,7 +39,7 @@ Use **Lab mode — fill demo** on the login screen's username step when SSO is o
 
 ## 3. Orient yourself (UX)
 
-1. **Overview** — cluster pulse and shortcuts.
+1. **Overview** — product home (capacity, inventory, utilization) and links into day-2 pages.
 2. **Getting Started** — live integration checklist.
 3. Sidebar + command palette (⌘K) — Workloads, Pods, Networking, Atlas, Ops, Settings.
 4. Cluster switcher — real multi-cluster activate; demo mode ships three clusters.

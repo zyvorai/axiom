@@ -7,11 +7,11 @@ import {
     YAxis,
 } from "recharts";
 
-export default function Sparkline({ data, color = "#0A84FF", formatter, domain }) {
+export default function Sparkline({ data, color = "#0A84FF", formatter, domain, height = 80 }) {
     const rows = (data || []).map((v, i) => ({ i, v }));
     const fmt = formatter || ((v) => `${v}%`);
     return (
-        <ResponsiveContainer width="100%" height={80}>
+        <ResponsiveContainer width="100%" height={height}>
             <AreaChart data={rows} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                     <linearGradient id={`sp-${color}`} x1="0" y1="0" x2="0" y2="1">

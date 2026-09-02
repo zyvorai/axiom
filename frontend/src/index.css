@@ -85,24 +85,23 @@
     }
 
     .dark {
-        --background: 222 22% 8%;
-        --foreground: 210 20% 95%;
-        --card: 222 20% 12%;
-        --card-foreground: 210 20% 95%;
-        --popover: 222 20% 13%;
-        --popover-foreground: 210 20% 95%;
+        /* Soft charcoal (≈ Apple macOS dark), not near-black — lifted from
+           8%/12% so Overview and chrome don't read as a void. */
+        --background: 222 16% 14%;
+        --foreground: 210 20% 96%;
+        --card: 222 14% 18%;
+        --card-foreground: 210 20% 96%;
+        --popover: 222 14% 19%;
+        --popover-foreground: 210 20% 96%;
         --primary: 199 89% 58%;
-        --primary-foreground: 222 30% 9%;
-        --secondary: 222 16% 17%;
-        --secondary-foreground: 210 20% 92%;
-        --muted: 222 16% 15%;
-        /* Was 215 14% 63% — bumped lightness for apple.com-level legibility
-           on secondary/label text against the 8%-lightness dark background
-           (matches Apple's own ~#a1a1a6 secondary-text convention on dark
-           surfaces more closely than the previous, noticeably dimmer gray). */
-        --muted-foreground: 216 15% 72%;
-        --accent: 222 18% 19%;
-        --accent-foreground: 210 20% 96%;
+        --primary-foreground: 222 30% 10%;
+        --secondary: 222 12% 22%;
+        --secondary-foreground: 210 18% 94%;
+        --muted: 222 12% 20%;
+        /* Secondary labels stay apple.com-legible on the lifted charcoal. */
+        --muted-foreground: 216 12% 74%;
+        --accent: 222 12% 24%;
+        --accent-foreground: 210 20% 97%;
         --destructive: 0 65% 48%;
         --destructive-foreground: 0 0% 100%;
         --success: 158 55% 48%;
@@ -111,17 +110,17 @@
         --warning-foreground: 38 90% 12%;
         --info: 217 70% 60%;
         --danger: 0 70% 55%;
-        --border: 222 15% 21%;
-        --input: 222 15% 21%;
+        --border: 222 10% 28%;
+        --input: 222 10% 28%;
         --ring: 199 89% 58%;
         --brand: 199 89% 58%;
         --brand-hex: hsl(199 89% 58%);
         --zeus: 187 92% 60%;
 
-        --glass-bg: 255 255 255 / 0.04;
-        --glass-border: 255 255 255 / 0.10;
-        --glass-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
-        --grid-color: 255 255 255 / 0.05;
+        --glass-bg: 255 255 255 / 0.06;
+        --glass-border: 255 255 255 / 0.12;
+        --glass-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.45);
+        --grid-color: 255 255 255 / 0.06;
 
         --k-ok: 158 55% 48%;
         --k-warn: 38 90% 58%;

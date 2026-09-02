@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
-import ZyvorMark from "@/components/ZyvorMark";
 import { NAV } from "@/constants/testIds";
 import { NAV_ITEMS, NAV_GROUP_ORDER, RAIL_PINNED_KEYS, resolveIcon } from "@/constants/navItems";
 import { api } from "@/lib/api";
@@ -68,27 +67,17 @@ export default function Sidebar() {
                 collapsed ? "w-[68px]" : "w-64"
             )}
         >
-            <div className={cn("flex items-center gap-2.5 px-2 pt-1 pb-3", collapsed && "justify-center px-0")}>
-                <ZyvorMark size={36} idPrefix="axiom-sidebar" className="shrink-0" />
-                {!collapsed && (
-                    <div className="min-w-0 leading-tight">
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-[15px] font-semibold tracking-[-0.02em] lowercase">zyvor</span>
-                            <span className="text-[10px] uppercase tracking-[0.22em] text-i17-cosmic/90">Axiom</span>
-                        </div>
-                        <div className="truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                            Multi-cluster Console
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {!collapsed && <ClusterSwitcher />}
+            {/* Brand lives in TopBar — sidebar starts with cluster / nav. */}
+            {!collapsed && (
+                <div className="px-1 pb-2">
+                    <ClusterSwitcher />
+                </div>
+            )}
 
             <nav
                 id="axiom-primary-nav"
                 aria-label="Primary"
-                className={cn("scrollbar-thin mt-4 flex-1 overflow-y-auto", collapsed ? "space-y-0.5" : "space-y-3")}
+                className={cn("scrollbar-thin flex-1 overflow-y-auto", collapsed ? "space-y-0.5" : "mt-1 space-y-3")}
             >
                 {collapsed ? (
                     // Collapsed rail: a plain flat list of a few pinned, one-per-domain

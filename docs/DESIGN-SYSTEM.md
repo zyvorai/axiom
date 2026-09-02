@@ -1,6 +1,6 @@
 # Axiom Design System (zeus-os)
 
-`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API, but the visual design system layered on top of that structure has since been fully replaced to match **zeus-os** (`../zeus-os`'s "WebShell" sidebar+content mode) — Axiom no longer uses kube-cockpit's original "Liquid Glass" iPhone-17 orange/coral palette. Pure-black dark theme with a mist-blue primary accent, an indigo/plasma "Daylight" light theme, self-hosted Inter + JetBrains Mono variable fonts (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), pill-shaped buttons, 0.9rem card radii.
+`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API, but the visual design system layered on top of that structure has since been fully replaced to match **zeus-os** (`../zeus-os`'s "WebShell" sidebar+content mode) — Axiom no longer uses kube-cockpit's original "Liquid Glass" iPhone-17 orange/coral palette. Soft charcoal dark theme (mist-blue primary accent, not pure black), an indigo/plasma "Daylight" light theme, self-hosted Inter + JetBrains Mono variable fonts (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), pill-shaped buttons, 0.9rem card radii.
 
 ## Tokens
 
@@ -67,7 +67,7 @@ Sidebar order:
 | UI | Route | Notes |
 |----|-------|-------|
 | Getting Started | `/getting-started` | Live setup checklist |
-| Overview | `/overview` | Cluster hero, metric rings, sparklines, alerts, activity |
+| Overview | `/overview` | apple.com-style marketing home: hero, capacity rings, inventory, utilization; observe links only |
 | Nodes | `/nodes` | Cordon/uncordon/drain; each card links to `/nodes/:name` for metrics + taint management |
 | Workloads | `/workloads` | Full action menu + Run workload wizard + bulk restart/delete |
 | Jobs & CronJobs | `/jobs` | Run-now/suspend-resume/delete CronJobs, delete Jobs |
@@ -97,10 +97,10 @@ Not in the sidebar but routable: `/workloads/:ns/:kind/:name` (workload detail),
 
 ## Auth
 
-The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card centered on a flat background (no side marketing panel, no animated background glow — matching Apple's actual sign-in page look rather than Axiom's earlier two-column marketing-style layout), holding a two-step sign-in flow modeled on Apple ID's pattern:
+The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card centered on a flat background (no side marketing panel, no animated background glow — matching Apple's actual sign-in page look rather than Axiom's earlier two-column marketing-style layout), holding a two-step sign-in flow modeled on Apple ID's pattern. Above the card, an Apple Account–style product gate makes the destination unambiguous: the Zyvor orange mark (`ZyvorMark`), **Axiom** / “by Zyvor”, hero **Sign in to Axiom.**, and a one-line product tagline.
 
 - **Step 1 (identity)**: three SSO-styled buttons (Google/GitHub/Okta icons, matching the reference 1:1 visually) **all pointing at the same real OIDC login redirect** — Axiom has one generic OIDC provider slot, not per-vendor integrations, so the buttons are a visual choice, not three distinct backends — plus a username-only field with a "Continue" action.
-- **Step 2 (password)**: an editable identity chip ("`{username}` · Not you?" — click to go back and change it) and just the password field. Submitting step 2 is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`); the two-step split is purely client-side UI state — there's no backend endpoint to check account existence before the password is entered, so both values still travel together in one `signInLocal(username, password)` call.
+- **Step 2 (password)**: an editable identity chip ("`{username}` · Not you?" — click to go back and change it) and just the password field. CTA reads **Sign in to Axiom**. Submitting step 2 is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`); the two-step split is purely client-side UI state — there's no backend endpoint to check account existence before the password is entered, so both values still travel together in one `signInLocal(username, password)` call.
 
 - `GET /api/v1/auth/providers` drives everything: `oidc.enabled`/`saml.enabled` show/hide the SSO buttons and a SAML link; `lab.operator_login: true` + `lab.hint` shows a "fill demo / demo" one-click helper under the local form
 - Clicking an SSO button when OIDC isn't configured shows a toast pointing at Settings instead of doing nothing
@@ -112,9 +112,9 @@ The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card cente
 `AppShell.jsx` matches zeus-os's WebShell structure: a full-width sticky header spans the top, above a `[Sidebar, content]` row — not the earlier layout where the header sat inside the same centered column as the sidebar.
 
 - Fixed ambient backdrop (grid + orbs)
-- Glass sidebar: brand, cluster switcher, grouped/collapsible nav (see Navigation above), theme pill toggle, collapse toggle
-- Full-width sticky header (`TopBar.jsx`, `h-14`, `border-b`, `bg-background/95 backdrop-blur` — no longer a floating glass pill): ⌘K search, Connect kubeconfig (shows local dev instructions), user menu. No breadcrumbs here.
-- `Breadcrumbs.jsx` renders inside the content area, above each page's body (`Clusters / {cluster} / {page}`) — matching zeus-os's placement rather than the header-inline breadcrumb this used to be.
+- Flat sidebar (no brand mark — brand lives in the top bar): cluster switcher, grouped/collapsible nav (see Navigation above), theme pill toggle, collapse toggle
+- Full-width sticky header (`TopBar.jsx`, `h-12`, `border-b`, `bg-background/95 backdrop-blur`): **Zyvor mark + Axiom wordmark flush left** (links to `/overview`); compact Search chip + Connect + user menu flush right. Search opens the command palette (⌘K) — not a wide centered field.
+- `Breadcrumbs.jsx` renders inside the content area, above each page's body (`Clusters / {cluster} / {page}`) — matching zeus-os's placement rather than the header-inline breadcrumb this used to be. **Hidden on `/overview`** so the product home reads as a marketing first viewport.
 - Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive label instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
 
 ## Command palette
@@ -237,7 +237,7 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 
 ## Appearance
 
-Default is the zeus-os dark theme (pure black + mist blue). Theme toggle in sidebar footer switches dark/light (`html.dark` toggled via `lib/theme.js`, persisted to `localStorage` under `kubecloud.theme`) between it and the "Daylight" light theme.
+Default is the zeus-os dark theme (soft charcoal ≈14% lightness + mist blue — lifted off near-black so Overview and chrome don't read as a void). Theme toggle in sidebar footer switches dark/light (`html.dark` toggled via `lib/theme.js`, persisted to `localStorage` under `kubecloud.theme`) between it and the "Daylight" light theme.
 
 ## Page headers
 
@@ -247,9 +247,10 @@ Every top-level page uses a shared `PageHeader` component (`components/PageHeade
 
 A further pass pushed the app closer to apple.com/ipad's actual product-page rhythm, mapped per page type rather than one template copied everywhere:
 
-- **`Overview.jsx`** (the app's homepage) now consumes the previously-unused `text-hero` Tailwind token (`clamp(2.75rem, 5vw + 1rem, 5.5rem)`) for its cluster-name hero title, with roomier hero padding and looser page rhythm (`space-y-8`); its three bottom section labels ("Cluster health"/"Alerts"/"Activity") adopt the same eyebrow-caps micro-heading style `PageHeader` uses.
-- **`components/FeatureTile.jsx`** (new) — an apple.com homepage-grid style stat tile (icon chip, tracked-caps label, oversized value, optional sparkline/sublabel), with a `size="compact"` variant matching the smaller inline icon+label+mono-value blocks already used on resource cards. Replaces the previously hand-rolled counter/stat blocks on Overview, Nodes, NodeDetail, PodDetail, Namespaces, VirtualMachines, Atlas, Networking, and Ops' Cost tab. Wraps `GlassCard` and forwards `...rest` (so `data-testid` keeps working), matching `GlassCard`'s own passthrough convention.
-- **`components/SpecTable.jsx`** (new) — an apple.com "Tech Specs" style label/value table (optional two-column split with a vertical hairline divider), replacing the scattered small metadata `GlassCard`s on `NodeDetail.jsx` (System section) and used for `PodDetail.jsx`'s pod-spec fields and `WorkloadDetail.jsx`'s annotations.
+- **`Overview.jsx`** (the app's homepage) is a true marketing composition: centered hero (product eyebrow **Axiom**, `text-hero` cluster name, one supporting sentence, health line, CTAs), then hairline-separated sections — **Built for the load** (stacked `MetricRing`s), **At a glance** (oversized inventory numbers), **Utilization** (large % + tall sparklines, uncarded), and **Stay informed** (links only to `/alerts`, `/events`, `/logs` — alert/event log dumps no longer live on the home screen). Breadcrumbs are suppressed on `/overview`.
+- **`components/FeatureTile.jsx`** — an apple.com homepage-grid style stat tile (icon chip, tracked-caps label, oversized value, optional sparkline/sublabel), with a `size="compact"` variant matching the smaller inline icon+label+mono-value blocks already used on resource cards. Used on Nodes, NodeDetail, PodDetail, Namespaces, VirtualMachines, Atlas, Networking, and Ops' Cost tab (Overview inventory is plain typography, not FeatureTiles). Wraps `GlassCard` and forwards `...rest` (so `data-testid` keeps working), matching `GlassCard`'s own passthrough convention.
+- **`components/MetricRing.jsx`** — optional `layout="stack"` centers the ring above its label for Overview's capacity band; default stays horizontal for denser pages.
+- **`components/SpecTable.jsx`** — an apple.com "Tech Specs" style label/value table (optional two-column split with a vertical hairline divider), replacing the scattered small metadata `GlassCard`s on `NodeDetail.jsx` (System section) and used for `PodDetail.jsx`'s pod-spec fields and `WorkloadDetail.jsx`'s annotations.
 - **`Onboarding.jsx`**'s step list now reads as an Apple "setup guide": each step gets a large numeral badge (`01`/`02`/…, replaced by a check mark once done) instead of a plain check/circle icon, and its per-step CTA is a real pill `Button` instead of a styled `<Link>`.
 - **`components/AutoTable.jsx`** — the shared table renderer behind ~15+ list pages (Atlas, CustomResources, Storage, Quotas, Ingresses, ConfigMaps, Secrets, Backups, Autoscaling, Jobs, Events, Networking's NetworkPolicy list, Ops sub-tabs) got roomier row padding and eyebrow-caps section-header typography, cascading the look to every consumer without per-page edits.
-- Login (`Login.jsx`/`axiom-login.css`) was intentionally left untouched — it was already fully apple.com-styled from the earlier port, and its exact Apple Action Blue / pill-radius / card-radius values remain scoped to that page rather than promoted into shared tokens, since doing so would recolor the app's brand identity rather than just its layout.
+- Login (`Login.jsx`/`axiom-login.css`) keeps Apple Action Blue / pill-radius / card-radius values scoped to that page (not promoted into shared app tokens). The product gate above the card (Zyvor mark + **Sign in to Axiom.**) is the marketing-page brand signal.

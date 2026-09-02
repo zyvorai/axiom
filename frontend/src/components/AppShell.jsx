@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import AmbientBackdrop from "@/components/AmbientBackdrop";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
@@ -12,6 +12,11 @@ import { ConfirmProvider } from "@/components/ConfirmDialog";
 // old layout where everything (including the header) lived inside one
 // centered max-width row.
 export default function AppShell() {
+    const { pathname } = useLocation();
+    // Overview is the product home — hide breadcrumbs so the first viewport
+    // reads as an apple.com-style marketing band rather than an ops trail.
+    const showBreadcrumbs = pathname !== "/overview" && pathname !== "/";
+
     return (
         <ConfirmProvider>
             <div className="relative flex h-screen min-h-screen flex-col overflow-hidden bg-background">
@@ -23,7 +28,7 @@ export default function AppShell() {
                     <main className="scrollbar-thin min-w-0 flex-1 overflow-y-auto">
                         <div className="mx-auto w-full max-w-[1600px] space-y-4">
                             <ViewerBanner />
-                            <Breadcrumbs />
+                            {showBreadcrumbs && <Breadcrumbs />}
                             <Outlet />
                         </div>
                     </main>

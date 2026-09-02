@@ -28,7 +28,7 @@ export default function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     data-testid={USER_MENU.trigger}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-i17-lavender via-i17-sky to-i17-deepblue text-xs font-semibold text-white ring-1 ring-white/20 transition-transform hover:scale-105"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-i17-lavender via-i17-sky to-i17-deepblue text-[11px] font-semibold text-white ring-1 ring-white/20 transition-transform hover:scale-105"
                 >
                     {user.initials}
                 </button>

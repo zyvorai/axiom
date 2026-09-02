@@ -4,13 +4,20 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Changed
+- Overview: apple.com-style marketing home — centered hero (no stats strip), capacity rings, oversized inventory, utilization charts, and **Stay informed** links to Alerts / Events / Logs. Alert and activity log dumps no longer appear on `/overview`; breadcrumbs are hidden on that route.
+- Shell: Zyvor mark + Axiom wordmark move to the top bar (left); compact Search chip (⌘K) sits with Connect and the user menu on the right. Brand mark removed from the sidebar (cluster switcher is the first chrome there). Header height tightened to `h-12`.
+- Dark theme: soft charcoal (~14% lightness) instead of near-pure black so Overview and chrome do not read as a void.
+- Login: Apple Account–style product gate above the card (Zyvor mark, **Axiom**, hero **Sign in to Axiom.**) so the destination product is unambiguous; password-step CTA matches.
+- `MetricRing` gains optional `layout="stack"`; `Sparkline` accepts a `height` prop for Overview’s taller charts.
+
 ### Fixed
 - Login page: two hardcoded orange hex literals in the brand-mark gradient survived the zeus-os design port (they were never wired to the `i17-cosmic` token, unlike the rest of the mark) — the sign-in page kept showing the old orange mark. Retinted to match.
 
 ### Changed
 - Login page: sign-in is now a two-step flow matching Apple ID's pattern — enter your username first (step 1, alongside the SSO buttons), then a second screen shows an editable identity chip ("demo · Not you?") and just the password field. The underlying auth call is unchanged; this only changes how the two values are collected.
 - Login page: replaced the two-column marketing layout (brand/stats panel + animated aurora glow) with a single minimal centered card on a flat background — closer to how appleid.apple.com's actual sign-in page looks.
-- Design system: replaced the "Liquid Glass" iPhone-17 palette with zeus-os's design system and WebShell sidebar+content layout — new color tokens (pure-black dark theme, indigo/plasma light theme, `success`/`warning`/`info`/`danger` semantics), self-hosted Inter/JetBrains Mono variable fonts, pill-shaped buttons, and a restructured shell: a full-width sticky header, a collapsible grouped sidebar (persisted across reloads), and breadcrumbs rendered in the content area. Every page kept working unchanged since they consume shared `PageHeader`/`DetailHeader`/`GlassCard`/`Button` primitives rather than owning their own styling.
+- Design system: replaced the "Liquid Glass" iPhone-17 palette with zeus-os's design system and WebShell sidebar+content layout — new color tokens (soft-charcoal dark theme, indigo/plasma light theme, `success`/`warning`/`info`/`danger` semantics), self-hosted Inter/JetBrains Mono variable fonts, pill-shaped buttons, and a restructured shell: a full-width sticky header, a collapsible grouped sidebar (persisted across reloads), and breadcrumbs rendered in the content area. Every page kept working unchanged since they consume shared `PageHeader`/`DetailHeader`/`GlassCard`/`Button` primitives rather than owning their own styling.
 
 ### Fixed
 - Demo mode (`AXIOM_MODE=demo`): ~17 mutating actions across node cordon/drain/taint, namespace create, VM lifecycle (start/stop/snapshot/clone/export/restore), rollout pause/resume/restart/undo, Helm install/uninstall/rollback, backup restore, GitOps sync, and CRD instance delete previously returned a success response without persisting the change — the paired list/get endpoint read from a static fixture or an untouched field, so the action silently reverted on the next page load. All now persist for the lifetime of the process.

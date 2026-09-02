@@ -13,13 +13,14 @@ async function signIn(page) {
   await page.getByPlaceholder("Username").fill(USERNAME);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByPlaceholder("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Sign in to Axiom" }).click();
   await expect(page.getByTestId("sidebar-nav")).toBeVisible();
 }
 
 test("login page renders", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("login-page")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in to Axiom." })).toBeVisible();
   await expect(page.getByPlaceholder("Username")).toBeVisible();
   await page.getByPlaceholder("Username").fill(USERNAME);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
