@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -367,19 +368,9 @@ export default function VirtualMachines() {
                                 <StatusBadge status={vm.status} />
                             </div>
 
-                            <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                                <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                        <Cpu className="h-3 w-3" /> vCPU
-                                    </div>
-                                    <div className="mono mt-1 text-sm">{vm.cpu}</div>
-                                </div>
-                                <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                        <MemoryStick className="h-3 w-3" /> RAM
-                                    </div>
-                                    <div className="mono mt-1 text-sm">{vm.memory}</div>
-                                </div>
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <FeatureTile size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                                <FeatureTile size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory} className="border border-white/5 bg-white/[0.02] p-2.5" />
                             </div>
 
                             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">

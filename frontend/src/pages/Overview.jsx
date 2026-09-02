@@ -5,6 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import MetricRing from "@/components/MetricRing";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, Activity, Boxes, Server, MonitorSmartphone, ShieldCheck, Rocket, ArrowRight } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -100,17 +101,17 @@ export default function Overview() {
         : 0;
 
     return (
-        <div data-testid={OVERVIEW.root} className="space-y-4">
+        <div data-testid={OVERVIEW.root} className="space-y-8">
             <SetupBanner />
             {/* Hero */}
-            <GlassCard className="p-6">
-                <div className="flex flex-wrap items-end justify-between gap-4">
+            <GlassCard className="p-8 md:p-10">
+                <div className="flex flex-wrap items-end justify-between gap-8">
                     <div>
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-i17-cosmic/90">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-i17-cosmic/90">
                             zyvor · Axiom · Kubernetes · {data.region}
                         </div>
-                        <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">{data.cluster}</h1>
-                        <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
+                        <h1 className="mt-2 text-hero font-bold text-foreground">{data.cluster}</h1>
+                        <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
                             <StatusBadge status={data.health} />
                             <span>·</span>
                             <span>{data.workloads} workloads</span>
@@ -134,16 +135,15 @@ export default function Overview() {
                     { key: "workloads", label: "Workloads", value: data.workloads, icon: Activity, color: "var(--i17-gold)", series: cpuSeries },
                     { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}`, icon: MonitorSmartphone, color: "var(--i17-sky-blue)", series: memSeries },
                 ].map((c) => (
-                    <GlassCard key={c.key} data-testid={OVERVIEW.metric(c.key)} className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</div>
-                            <c.icon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="mt-2 text-3xl font-semibold tabular-nums">{c.value}</div>
-                        <div className="mt-2">
-                            <Sparkline data={c.series} color={c.color} />
-                        </div>
-                    </GlassCard>
+                    <FeatureTile
+                        key={c.key}
+                        data-testid={OVERVIEW.metric(c.key)}
+                        label={c.label}
+                        value={c.value}
+                        icon={c.icon}
+                        color={c.color}
+                        series={c.series}
+                    />
                 ))}
             </div>
 
@@ -152,8 +152,8 @@ export default function Overview() {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div>
-                            <div className="text-sm font-medium">Cluster CPU</div>
-                            <div className="text-xs text-muted-foreground">Recent utilisation</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster CPU</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">Recent utilisation</div>
                         </div>
                         <span className="mono text-xs text-muted-foreground">{Math.round(data.cpuPercent)}%</span>
                     </div>
@@ -162,8 +162,8 @@ export default function Overview() {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div>
-                            <div className="text-sm font-medium">Cluster Memory</div>
-                            <div className="text-xs text-muted-foreground">Recent utilisation</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster Memory</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">Recent utilisation</div>
                         </div>
                         <span className="mono text-xs text-muted-foreground">{Math.round(data.memoryPercent)}%</span>
                     </div>
@@ -176,7 +176,7 @@ export default function Overview() {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center gap-2">
                         <ShieldCheck className="h-4 w-4 text-i17-sage" />
-                        <div className="text-sm font-medium">Cluster health</div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Cluster health</div>
                     </div>
                     <div className="space-y-2 text-sm">
                         {[
@@ -194,7 +194,7 @@ export default function Overview() {
                 </GlassCard>
 
                 <GlassCard className="p-5">
-                    <div className="mb-3 text-sm font-medium">Alerts</div>
+                    <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Alerts</div>
                     <div className="space-y-2">
                         {alerts.length === 0 && <p className="text-sm text-muted-foreground">No active warnings.</p>}
                         {alerts.map((a, i) => (
@@ -216,7 +216,7 @@ export default function Overview() {
                 </GlassCard>
 
                 <GlassCard className="p-5">
-                    <div className="mb-3 text-sm font-medium">Activity</div>
+                    <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Activity</div>
                     <div className="space-y-3">
                         {activity.length === 0 && <p className="text-sm text-muted-foreground">No recent activity.</p>}
                         {activity.map((a, i) => (

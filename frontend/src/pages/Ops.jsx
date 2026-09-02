@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -701,18 +702,25 @@ function CostTab() {
     return (
         <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
-                <GlassCard className="p-4">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Total monthly cost</div>
-                    <div className="mt-2 text-3xl font-semibold tabular-nums">${cost.totalMonthlyUsd}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">CPU rate</div>
-                    <div className="mt-2 text-3xl font-semibold tabular-nums">${cost.cpuRatePerCore}<span className="text-sm text-muted-foreground">/core</span></div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Memory rate</div>
-                    <div className="mt-2 text-3xl font-semibold tabular-nums">${cost.memoryRatePerGi}<span className="text-sm text-muted-foreground">/GiB</span></div>
-                </GlassCard>
+                <FeatureTile label="Total monthly cost" value={`$${cost.totalMonthlyUsd}`} />
+                <FeatureTile
+                    label="CPU rate"
+                    value={
+                        <>
+                            ${cost.cpuRatePerCore}
+                            <span className="text-sm text-muted-foreground">/core</span>
+                        </>
+                    }
+                />
+                <FeatureTile
+                    label="Memory rate"
+                    value={
+                        <>
+                            ${cost.memoryRatePerGi}
+                            <span className="text-sm text-muted-foreground">/GiB</span>
+                        </>
+                    }
+                />
             </div>
             <GlassCard className="p-0 overflow-hidden">
                 <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">By namespace</div>

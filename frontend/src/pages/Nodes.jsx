@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Cpu, MemoryStick, Boxes, Server, Ban, CheckCircle2, LogOut } from "lucide-react";
@@ -74,33 +75,11 @@ export default function Nodes() {
                             <StatusBadge status={n.status} />
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <Cpu className="h-3 w-3" /> CPU
-                                </div>
-                                <div className="mono mt-1 text-sm">{n.allocatableCpu}</div>
-                            </div>
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <MemoryStick className="h-3 w-3" /> Memory
-                                </div>
-                                <div className="mono mt-1 text-sm">{n.allocatableMemory}</div>
-                            </div>
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <Boxes className="h-3 w-3" /> Pods
-                                </div>
-                                <div className="mono mt-1 text-sm">
-                                    {n.pods}/{n.allocatablePods}
-                                </div>
-                            </div>
-                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                                <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                    <Server className="h-3 w-3" /> Version
-                                </div>
-                                <div className="mono mt-1 truncate text-sm">{n.version}</div>
-                            </div>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <FeatureTile size="compact" mono icon={Cpu} label="CPU" value={n.allocatableCpu} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile size="compact" mono icon={MemoryStick} label="Memory" value={n.allocatableMemory} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile size="compact" mono icon={Boxes} label="Pods" value={`${n.pods}/${n.allocatablePods}`} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile size="compact" mono icon={Server} label="Version" value={<span className="truncate">{n.version}</span>} className="border border-white/5 bg-white/[0.02] p-2.5" />
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/5 pt-3 text-xs text-muted-foreground">

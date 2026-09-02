@@ -5,6 +5,8 @@ import GlassCard from "@/components/GlassCard";
 import DetailHeader from "@/components/DetailHeader";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
+import FeatureTile from "@/components/FeatureTile";
+import SpecTable from "@/components/SpecTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -250,28 +252,10 @@ export default function NodeDetail() {
             />
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <GlassCard className="p-4">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Pods</div>
-                    <div className="mono mt-1 text-xl">
-                        {node.pods}/{node.allocatablePods}
-                    </div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                        <Cpu className="h-3 w-3" /> Allocatable CPU
-                    </div>
-                    <div className="mono mt-1 text-xl">{node.allocatableCpu}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                        <MemoryStick className="h-3 w-3" /> Allocatable Memory
-                    </div>
-                    <div className="mono mt-1 text-xl">{node.allocatableMemory}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Version</div>
-                    <div className="mono mt-1 truncate text-xl">{node.version}</div>
-                </GlassCard>
+                <FeatureTile size="compact" mono label="Pods" value={`${node.pods}/${node.allocatablePods}`} />
+                <FeatureTile size="compact" mono icon={Cpu} label="Allocatable CPU" value={node.allocatableCpu} />
+                <FeatureTile size="compact" mono icon={MemoryStick} label="Allocatable Memory" value={node.allocatableMemory} />
+                <FeatureTile size="compact" mono label="Version" value={<span className="truncate">{node.version}</span>} />
             </div>
 
             <Tabs defaultValue="overview">
@@ -288,20 +272,15 @@ export default function NodeDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <GlassCard className="p-4">
-                            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">OS image</div>
-                            <div className="mono mt-1 text-sm">{node.osImage || "—"}</div>
-                        </GlassCard>
-                        <GlassCard className="p-4">
-                            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Kernel</div>
-                            <div className="mono mt-1 text-sm">{node.kernelVersion || "—"}</div>
-                        </GlassCard>
-                        <GlassCard className="p-4 md:col-span-2">
-                            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Container runtime</div>
-                            <div className="mono mt-1 text-sm">{node.containerRuntime || "—"}</div>
-                        </GlassCard>
-                    </div>
+                    <SpecTable
+                        title="System"
+                        columns={2}
+                        rows={[
+                            { label: "OS image", value: node.osImage || "—", mono: true },
+                            { label: "Kernel", value: node.kernelVersion || "—", mono: true },
+                            { label: "Container runtime", value: node.containerRuntime || "—", mono: true },
+                        ]}
+                    />
                     {(node.conditions || []).length > 0 && (
                         <GlassCard className="p-0 overflow-hidden">
                             <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Conditions</div>

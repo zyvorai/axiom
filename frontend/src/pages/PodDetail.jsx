@@ -30,8 +30,6 @@ import {
     Box,
     FileJson,
     HardDrive,
-    ShieldCheck,
-    UserCog,
     Save,
     Activity,
     AlertTriangle,
@@ -42,6 +40,8 @@ import {
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
 import Sparkline from "@/components/Sparkline";
+import FeatureTile from "@/components/FeatureTile";
+import SpecTable from "@/components/SpecTable";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 function ExecPanel({ namespace, name, containers }) {
@@ -447,26 +447,15 @@ export default function PodDetail() {
             )}
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <GlassCard className="p-4">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Ready</div>
-                    <div className="mono mt-1 text-xl">{pod.ready}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Restarts</div>
-                    <div className={`mono mt-1 text-xl ${pod.restarts > 0 ? "text-amber-400" : ""}`}>{pod.restarts}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                        <Cpu className="h-3 w-3" /> CPU limit
-                    </div>
-                    <div className="mono mt-1 text-xl">{pod.cpuLimit || "—"}</div>
-                </GlassCard>
-                <GlassCard className="p-4">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                        <MemoryStick className="h-3 w-3" /> Memory limit
-                    </div>
-                    <div className="mono mt-1 text-xl">{pod.memLimit || "—"}</div>
-                </GlassCard>
+                <FeatureTile size="compact" mono label="Ready" value={pod.ready} />
+                <FeatureTile
+                    size="compact"
+                    mono
+                    label="Restarts"
+                    value={<span className={pod.restarts > 0 ? "text-amber-400" : ""}>{pod.restarts}</span>}
+                />
+                <FeatureTile size="compact" mono icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
+                <FeatureTile size="compact" mono icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
             </div>
 
             <Tabs defaultValue="overview">
@@ -494,20 +483,14 @@ export default function PodDetail() {
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     {spec ? (
                         <>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <GlassCard className="p-4">
-                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                        <UserCog className="h-3 w-3" /> Service account
-                                    </div>
-                                    <div className="mono mt-1 text-sm">{spec.serviceAccountName || "default"}</div>
-                                </GlassCard>
-                                <GlassCard className="p-4">
-                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                                        <ShieldCheck className="h-3 w-3" /> Restart policy
-                                    </div>
-                                    <div className="mono mt-1 text-sm">{spec.restartPolicy || "Always"}</div>
-                                </GlassCard>
-                            </div>
+                            <SpecTable
+                                title="Pod spec"
+                                columns={2}
+                                rows={[
+                                    { label: "Service account", value: spec.serviceAccountName || "default", mono: true },
+                                    { label: "Restart policy", value: spec.restartPolicy || "Always", mono: true },
+                                ]}
+                            />
 
                             <div className="space-y-3">
                                 <div className="text-sm font-medium">Containers</div>

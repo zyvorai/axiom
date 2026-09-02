@@ -65,22 +65,22 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
     if (columns && columns.length > 0) {
         return (
             <GlassCard className="p-0 overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                         <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                     </div>
                     <span className="text-xs text-muted-foreground">{rows ? rows.length : 0}</span>
                 </div>
                 <div className="max-h-[420px] overflow-auto scrollbar-thin">
                     {(!rows || rows.length === 0) && (
-                        <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>
+                        <div className="px-5 py-10 text-center text-sm text-muted-foreground">{emptyHint}</div>
                     )}
                     {rows &&
                         rows.map((row, i) => (
                             <div
                                 key={getPath(row, "name") ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
+                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
                             >
                                 {columns.map((col, ci) => (
                                     <div
@@ -105,15 +105,15 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
+            <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
                 <span className="text-xs text-muted-foreground">{rows ? rows.length : 0}</span>
             </div>
             <div className="max-h-[420px] overflow-auto scrollbar-thin">
                 {(!rows || rows.length === 0) && (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>
+                    <div className="px-5 py-10 text-center text-sm text-muted-foreground">{emptyHint}</div>
                 )}
                 {rows &&
                     rows.map((row, i) => {
@@ -127,7 +127,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                             <div
                                 key={row.id ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
+                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
                             >
                                 <div className="mono min-w-[160px] flex-1 truncate text-sm">{String(name)}</div>
                                 {fields.slice(0, 5).map(([k, v]) => (

@@ -6,6 +6,7 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
     ShieldCheck,
     Cloudy,
@@ -14,7 +15,6 @@ import {
     Database,
     Activity,
     CheckCircle2,
-    Circle,
     ArrowRight,
 } from "lucide-react";
 
@@ -38,18 +38,20 @@ function useSetupStatus() {
     return data;
 }
 
-function Step({ done, required, icon: Icon, title, description, to, cta }) {
+function Step({ index, done, required, icon: Icon, title, description, to, cta }) {
     return (
-        <div className="flex items-start gap-4 border-b border-white/5 px-5 py-4 last:border-none">
-            <div className="mt-0.5 shrink-0">
-                {done ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <Circle className="h-5 w-5 text-muted-foreground" />}
-            </div>
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.04]">
-                <Icon className="h-4 w-4 text-i17-cosmic" />
+        <div className="flex items-start gap-5 border-b border-white/5 px-6 py-6 last:border-none">
+            <div
+                className={`mono grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold ${
+                    done ? "bg-emerald-500/15 text-emerald-300" : "bg-foreground/[0.06] text-muted-foreground"
+                }`}
+            >
+                {done ? <CheckCircle2 className="h-5 w-5" /> : String(index + 1).padStart(2, "0")}
             </div>
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium">{title}</div>
+                    <Icon className="h-4 w-4 shrink-0 text-i17-cosmic" />
+                    <div className="text-base font-semibold tracking-tight">{title}</div>
                     {!required && (
                         <Badge variant="outline" className="border-white/10 bg-white/[0.03] text-[10px] text-muted-foreground">
                             optional
@@ -61,15 +63,14 @@ function Step({ done, required, icon: Icon, title, description, to, cta }) {
                         </Badge>
                     )}
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">{description}</p>
             </div>
             {!done && to && (
-                <Link
-                    to={to}
-                    className="mt-0.5 flex shrink-0 items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium hover:bg-white/[0.08]"
-                >
-                    {cta || "Configure"} <ArrowRight className="h-3 w-3" />
-                </Link>
+                <Button asChild variant="outline" size="sm" className="mt-0.5 shrink-0 rounded-full border-white/10 bg-white/[0.03]">
+                    <Link to={to}>
+                        {cta || "Configure"} <ArrowRight className="ml-1 h-3 w-3" />
+                    </Link>
+                </Button>
             )}
         </div>
     );
@@ -160,7 +161,7 @@ export default function Onboarding() {
                 description={`${user ? `Welcome, ${user.name}. ` : ""}What's configured on this Axiom instance, and what's left to wire up.`}
             />
 
-            <GlassCard className="p-5">
+            <GlassCard className="p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="text-sm font-medium">Setup progress</div>
@@ -168,9 +169,9 @@ export default function Onboarding() {
                             {requiredDone}/{requiredSteps.length} required · {doneCount}/{steps.length} total
                         </div>
                     </div>
-                    <div className="text-2xl font-semibold tabular-nums">{Math.round((doneCount / steps.length) * 100)}%</div>
+                    <div className="text-3xl font-bold tabular-nums">{Math.round((doneCount / steps.length) * 100)}%</div>
                 </div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                     <div
                         className="h-full rounded-full bg-gradient-to-r from-i17-cosmic to-i17-sky transition-all"
                         style={{ width: `${(doneCount / steps.length) * 100}%` }}
@@ -179,8 +180,8 @@ export default function Onboarding() {
             </GlassCard>
 
             <GlassCard className="p-0 overflow-hidden">
-                {steps.map((s) => (
-                    <Step key={s.title} {...s} />
+                {steps.map((s, i) => (
+                    <Step key={s.title} index={i} {...s} />
                 ))}
             </GlassCard>
 

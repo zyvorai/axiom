@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,16 +177,17 @@ export default function Atlas() {
                         { label: "Used", value: metrics.used_capacity_bytes, icon: HardDrive },
                         { label: "Available", value: metrics.available_capacity_bytes, icon: Database },
                     ].map((c) => (
-                        <GlassCard key={c.label} className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</div>
-                                <c.icon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="mt-2 text-2xl font-semibold tabular-nums">
-                                {typeof c.value === "number" ? (c.value / 1024 ** 3).toFixed(1) : "—"}
-                                <span className="text-sm text-muted-foreground"> GiB</span>
-                            </div>
-                        </GlassCard>
+                        <FeatureTile
+                            key={c.label}
+                            label={c.label}
+                            icon={c.icon}
+                            value={
+                                <>
+                                    {typeof c.value === "number" ? (c.value / 1024 ** 3).toFixed(1) : "—"}
+                                    <span className="text-sm text-muted-foreground"> GiB</span>
+                                </>
+                            }
+                        />
                     ))}
                 </div>
             )}

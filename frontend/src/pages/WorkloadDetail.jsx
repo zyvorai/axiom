@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import DetailHeader from "@/components/DetailHeader";
 import StatusBadge from "@/components/StatusBadge";
+import SpecTable from "@/components/SpecTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,17 +109,17 @@ export default function WorkloadDetail() {
                             {Object.keys(detail.labels || {}).length === 0 && <span className="text-xs text-muted-foreground">No labels.</span>}
                         </div>
                     </GlassCard>
-                    <GlassCard className="p-5">
-                        <div className="mb-3 text-sm font-medium">Annotations</div>
-                        <div className="space-y-1.5">
-                            {Object.entries(detail.annotations || {}).map(([k, v]) => (
-                                <div key={k} className="mono text-xs">
-                                    <span className="text-muted-foreground">{k}:</span> <span className="truncate">{String(v)}</span>
-                                </div>
-                            ))}
-                            {Object.keys(detail.annotations || {}).length === 0 && <span className="text-xs text-muted-foreground">No annotations.</span>}
-                        </div>
-                    </GlassCard>
+                    {Object.keys(detail.annotations || {}).length > 0 ? (
+                        <SpecTable
+                            title="Annotations"
+                            rows={Object.entries(detail.annotations).map(([k, v]) => ({ label: k, value: String(v), mono: true }))}
+                        />
+                    ) : (
+                        <GlassCard className="p-5">
+                            <div className="mb-1 text-sm font-medium">Annotations</div>
+                            <span className="text-xs text-muted-foreground">No annotations.</span>
+                        </GlassCard>
+                    )}
                     {(detail.containerPorts || []).length > 0 && (
                         <GlassCard className="p-5">
                             <div className="mb-3 text-sm font-medium">Container ports</div>

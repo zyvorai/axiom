@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,15 +99,9 @@ export default function Namespaces() {
                             </div>
                             <StatusBadge status={n.status} />
                         </div>
-                        <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                            <div>
-                                <div className="text-[10px] uppercase tracking-widest">Pods</div>
-                                <div className="mono mt-0.5 text-foreground">{n.pods}</div>
-                            </div>
-                            <div>
-                                <div className="text-[10px] uppercase tracking-widest">Services</div>
-                                <div className="mono mt-0.5 text-foreground">{n.services}</div>
-                            </div>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <FeatureTile size="compact" mono label="Pods" value={n.pods} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile size="compact" mono label="Services" value={n.services} className="border border-white/5 bg-white/[0.02] p-2.5" />
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
                             <span className="text-xs text-muted-foreground">{n.age}</span>

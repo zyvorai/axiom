@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
+import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -248,13 +249,7 @@ export default function Networking() {
                         tone: "text-i17-cosmic",
                     },
                 ].map((c) => (
-                    <GlassCard key={c.label} className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</div>
-                            <c.icon className={`h-4 w-4 ${c.tone}`} />
-                        </div>
-                        <div className="mt-2 text-2xl font-semibold tabular-nums">{c.value}</div>
-                    </GlassCard>
+                    <FeatureTile key={c.label} label={c.label} icon={c.icon} iconClassName={c.tone} value={c.value} />
                 ))}
             </div>
 

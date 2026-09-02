@@ -108,7 +108,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                             ].map(([label, value]) => (
                                 <div key={label} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
                                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
-                                    <div className="mono mt-1 text-sm">{value}</div>
+                                    <div className="mono mt-1 truncate text-sm">{value}</div>
                                 </div>
                             ))}
                         </div>
