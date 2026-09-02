@@ -43,7 +43,7 @@ function renderColumnValue(row, col) {
     if (col.type === "status") return <StatusBadge status={String(raw ?? "unknown")} />;
     if (col.type === "badge") {
         return (
-            <Badge variant="outline" className="border-white/10 bg-white/[0.03] text-[10px]">
+            <Badge variant="outline" className="text-[10px]">
                 {formatValue(raw)}
             </Badge>
         );
@@ -65,7 +65,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
     if (columns && columns.length > 0) {
         return (
             <GlassCard className="p-0 overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+                <div className="flex items-center justify-between border-b px-5 py-4">
                     <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                         <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                     </div>
@@ -80,7 +80,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                             <div
                                 key={getPath(row, "name") ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
+                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
                             >
                                 {columns.map((col, ci) => (
                                     <div
@@ -105,7 +105,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+            <div className="flex items-center justify-between border-b px-5 py-4">
                 <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
@@ -127,7 +127,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                             <div
                                 key={row.id ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-white/5 px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
+                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
                             >
                                 <div className="mono min-w-[160px] flex-1 truncate text-sm">{String(name)}</div>
                                 {fields.slice(0, 5).map(([k, v]) => (

@@ -57,7 +57,7 @@ function useEndpoint(path, deps = []) {
 }
 
 function Rows({ items, empty, render }) {
-    if (!items) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (items.length === 0) return <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>;
     return <div className="max-h-[520px] overflow-auto scrollbar-thin">{items.map(render)}</div>;
 }
@@ -102,7 +102,7 @@ function HelmRow({ r, onChanged }) {
     };
 
     return (
-        <div className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+        <div className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
             <div className="col-span-3 min-w-0">
                 <div className="mono truncate text-sm">{r.name}</div>
                 <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
@@ -118,9 +118,9 @@ function HelmRow({ r, onChanged }) {
                     value={revision}
                     onChange={(e) => setRevision(e.target.value)}
                     placeholder="rev"
-                    className="h-7 w-14 border-white/10 bg-white/[0.03] px-2 text-xs"
+                    className="h-7 w-14 bg-muted/30 px-2 text-xs"
                 />
-                <Button size="sm" variant="outline" disabled={!!busy} onClick={rollback} className="h-7 rounded-lg border-white/10 bg-white/[0.03] px-2">
+                <Button size="sm" variant="outline" disabled={!!busy} onClick={rollback} className="h-7 rounded-lg bg-muted/30 px-2">
                     <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
                 <Button size="sm" variant="outline" disabled={!!busy} onClick={uninstall} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 px-2 text-rose-300 hover:bg-rose-500/20">
@@ -152,7 +152,7 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Install chart</DialogTitle>
                 </DialogHeader>
@@ -160,30 +160,30 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Release name</Label>
-                            <Input value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Chart repo URL</Label>
-                        <Input value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="border-white/10 bg-white/[0.03]" />
+                        <Input value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="bg-muted/30" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Chart name</Label>
-                            <Input value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Version (optional)</Label>
-                            <Input value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Values YAML (optional)</Label>
-                        <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="min-h-[100px] border-white/10 bg-white/[0.03] mono text-xs" spellCheck={false} />
+                        <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="min-h-[100px] bg-muted/30 mono text-xs" spellCheck={false} />
                     </div>
                     <p className="text-[11px] text-muted-foreground">
                         Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.
@@ -247,7 +247,7 @@ function GitOpsTab() {
                 items={apps}
                 empty="No GitOps applications."
                 render={(a) => (
-                    <div key={`${a.namespace}/${a.name}`} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                    <div key={`${a.namespace}/${a.name}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                         <div className="col-span-4 min-w-0">
                             <div className="mono truncate text-sm">{a.name}</div>
                             <div className="text-[11px] text-muted-foreground">{a.kind} · {a.namespace}</div>
@@ -292,7 +292,7 @@ function AgentRunRow({ r, onChanged }) {
     };
 
     return (
-        <div className="border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+        <div className="border-b px-4 py-3 last:border-none hover:bg-muted">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <div className="mono truncate text-sm">{r.name}</div>
@@ -313,7 +313,7 @@ function AgentRunRow({ r, onChanged }) {
                 </div>
             </div>
             {r.plan?.summary && (
-                <div className="mt-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                <div className="mt-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                     {r.plan.summary}
                 </div>
             )}
@@ -344,16 +344,16 @@ function AgentsTab() {
 
 function IdentityTab() {
     const identity = useEndpoint("/haven/identity");
-    if (!identity) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    if (!identity) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="space-y-4">
             <GlassCard className="p-0 overflow-hidden">
-                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Identity planes</div>
+                <div className="border-b px-4 py-3 text-sm font-medium">Identity planes</div>
                 <Rows
                     items={identity.planes}
                     empty="No identity planes."
                     render={(p) => (
-                        <div key={`${p.namespace}/${p.name}`} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={`${p.namespace}/${p.name}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-4 min-w-0">
                                 <div className="mono truncate text-sm">{p.name}</div>
                                 <div className="text-[11px] text-muted-foreground">{p.namespace} · {p.profile}</div>
@@ -421,10 +421,10 @@ function AuditTab() {
                         placeholder="Search action, target, detail, or user"
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        className="border-white/10 bg-white/[0.03] pl-9"
+                        className="bg-muted/30 pl-9"
                     />
                 </div>
-                <Button size="sm" variant="outline" onClick={exportCSV} disabled={!filtered || filtered.length === 0} className="rounded-xl border-white/10 bg-white/[0.03]">
+                <Button size="sm" variant="outline" onClick={exportCSV} disabled={!filtered || filtered.length === 0} className="rounded-xl bg-muted/30">
                     <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
                 </Button>
             </div>
@@ -433,7 +433,7 @@ function AuditTab() {
                     items={filtered}
                     empty={q ? "No audit entries match." : "No audit entries recorded yet."}
                     render={(e, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-2 mono text-xs text-sky-300">{e.action}</div>
                             <div className="col-span-5 mono truncate text-xs text-foreground/90">{e.target}</div>
                             <div className="col-span-3 truncate text-xs text-muted-foreground">{e.detail}</div>
@@ -476,7 +476,7 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle>New Role</DialogTitle>
                 </DialogHeader>
@@ -484,16 +484,16 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Rules (JSON array of PolicyRule)</Label>
-                        <Textarea value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="min-h-[140px] border-white/10 bg-white/[0.03] mono text-xs" spellCheck={false} />
+                        <Textarea value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="min-h-[140px] bg-muted/30 mono text-xs" spellCheck={false} />
                     </div>
                 </div>
                 <DialogFooter>
@@ -536,7 +536,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle>New RoleBinding</DialogTitle>
                 </DialogHeader>
@@ -544,20 +544,20 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor-binding" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor-binding" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Role name</Label>
-                            <Input value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="app-editor" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Subjects (JSON array)</Label>
-                        <Textarea value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="min-h-[100px] border-white/10 bg-white/[0.03] mono text-xs" spellCheck={false} />
+                        <Textarea value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="min-h-[100px] bg-muted/30 mono text-xs" spellCheck={false} />
                     </div>
                 </div>
                 <DialogFooter>
@@ -578,7 +578,7 @@ function RbacTab() {
     const [bindingOpen, setBindingOpen] = useState(false);
     const reload = () => setRefresh((n) => n + 1);
 
-    if (!rbac) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    if (!rbac) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
 
     const deleteRole = async (r) => {
         const ok = await confirm({
@@ -621,10 +621,10 @@ function RbacTab() {
         <div className="grid gap-4 lg:grid-cols-2">
             {groups.map((g) => (
                 <GlassCard key={g.title} className="p-0 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                    <div className="flex items-center justify-between border-b px-4 py-3">
                         <div className="text-sm font-medium">{g.title}</div>
                         {g.onCreate && (
-                            <Button size="sm" variant="outline" onClick={g.onCreate} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                            <Button size="sm" variant="outline" onClick={g.onCreate} className="h-7 rounded-lg bg-muted/30 text-xs">
                                 <Plus className="mr-1 h-3 w-3" /> {g.createLabel}
                             </Button>
                         )}
@@ -633,7 +633,7 @@ function RbacTab() {
                         items={g.items}
                         empty="None found."
                         render={(r, i) => (
-                            <div key={i} className="flex items-center justify-between gap-3 border-b border-white/5 px-4 py-2.5 last:border-none hover:bg-white/[0.03]">
+                            <div key={i} className="flex items-center justify-between gap-3 border-b px-4 py-2.5 last:border-none hover:bg-muted">
                                 <div className="min-w-0">
                                     <div className="mono truncate text-sm">{r.name}</div>
                                     {r.namespace && <div className="text-[11px] text-muted-foreground">{r.namespace}</div>}
@@ -662,7 +662,7 @@ function RbacTab() {
 
 function WebhooksTab() {
     const webhooks = useEndpoint("/admission-webhooks");
-    if (!webhooks) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    if (!webhooks) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     const groups = [
         ["Validating", webhooks.filter((w) => w.type === "Validating")],
         ["Mutating", webhooks.filter((w) => w.type === "Mutating")],
@@ -671,12 +671,12 @@ function WebhooksTab() {
         <div className="grid gap-4 lg:grid-cols-2">
             {groups.map(([title, items]) => (
                 <GlassCard key={title} className="p-0 overflow-hidden">
-                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">{title} webhooks</div>
+                    <div className="border-b px-4 py-3 text-sm font-medium">{title} webhooks</div>
                     <Rows
                         items={items}
                         empty="None found."
                         render={(w, i) => (
-                            <div key={i} className="border-b border-white/5 px-4 py-2.5 last:border-none hover:bg-white/[0.03]">
+                            <div key={i} className="border-b px-4 py-2.5 last:border-none hover:bg-muted">
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="mono truncate text-sm">{w.webhookName}</div>
                                     <span className={`text-[11px] ${w.failurePolicy === "Fail" ? "text-amber-400" : "text-muted-foreground"}`}>
@@ -698,7 +698,7 @@ function WebhooksTab() {
 
 function CostTab() {
     const cost = useEndpoint("/cost");
-    if (!cost) return <Skeleton className="h-48 rounded-2xl bg-white/[0.04]" />;
+    if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
@@ -723,12 +723,12 @@ function CostTab() {
                 />
             </div>
             <GlassCard className="p-0 overflow-hidden">
-                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">By namespace</div>
+                <div className="border-b px-4 py-3 text-sm font-medium">By namespace</div>
                 <Rows
                     items={cost.namespaces}
                     empty="No namespace cost data."
                     render={(n) => (
-                        <div key={n.namespace} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={n.namespace} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-4 mono text-sm">{n.namespace}</div>
                             <div className="col-span-3 text-xs text-muted-foreground">{n.cpuCores} cores</div>
                             <div className="col-span-3 text-xs text-muted-foreground">{n.memoryGi} GiB</div>
@@ -738,12 +738,12 @@ function CostTab() {
                 />
             </GlassCard>
             <GlassCard className="p-0 overflow-hidden">
-                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">By workload</div>
+                <div className="border-b px-4 py-3 text-sm font-medium">By workload</div>
                 <Rows
                     items={cost.workloads}
                     empty="No workload cost data."
                     render={(w) => (
-                        <div key={`${w.namespace}/${w.workload}`} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={`${w.namespace}/${w.workload}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-4 min-w-0">
                                 <div className="mono truncate text-sm">{w.workload}</div>
                                 <div className="text-[11px] text-muted-foreground">{w.namespace} · {w.kind}</div>
@@ -785,7 +785,7 @@ export default function Ops() {
             />
 
             <Tabs value={active} onValueChange={(v) => navigate(`/ops/${v}`)}>
-                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
+                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
                     {TABS.map((t) => (
                         <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
                             <t.icon className="h-3.5 w-3.5" /> {t.label}

@@ -96,7 +96,7 @@ export default function PodTerminal({ namespace, name, containers }) {
             <div className="flex flex-wrap items-center gap-2">
                 {containers.length > 1 && (
                     <Select value={container} onValueChange={setContainer} disabled={status === "connected"}>
-                        <SelectTrigger className="w-40 border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-40">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -109,7 +109,7 @@ export default function PodTerminal({ namespace, name, containers }) {
                     </Select>
                 )}
                 <Select value={shell} onValueChange={setShell} disabled={status === "connected"}>
-                    <SelectTrigger className="w-32 border-white/10 bg-white/[0.03]">
+                    <SelectTrigger className="w-32">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

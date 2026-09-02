@@ -40,7 +40,7 @@ function useSetupStatus() {
 
 function Step({ index, done, required, icon: Icon, title, description, to, cta }) {
     return (
-        <div className="flex items-start gap-5 border-b border-white/5 px-6 py-6 last:border-none">
+        <div className="flex items-start gap-5 border-b px-6 py-6 last:border-none">
             <div
                 className={`mono grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold ${
                     done ? "bg-emerald-500/15 text-emerald-300" : "bg-foreground/[0.06] text-muted-foreground"
@@ -53,7 +53,7 @@ function Step({ index, done, required, icon: Icon, title, description, to, cta }
                     <Icon className="h-4 w-4 shrink-0 text-i17-cosmic" />
                     <div className="text-base font-semibold tracking-tight">{title}</div>
                     {!required && (
-                        <Badge variant="outline" className="border-white/10 bg-white/[0.03] text-[10px] text-muted-foreground">
+                        <Badge variant="outline" className="bg-muted/30 text-[10px] text-muted-foreground">
                             optional
                         </Badge>
                     )}
@@ -66,7 +66,7 @@ function Step({ index, done, required, icon: Icon, title, description, to, cta }
                 <p className="mt-1 max-w-xl text-sm text-muted-foreground">{description}</p>
             </div>
             {!done && to && (
-                <Button asChild variant="outline" size="sm" className="mt-0.5 shrink-0 rounded-full border-white/10 bg-white/[0.03]">
+                <Button asChild variant="outline" size="sm" className="mt-0.5 shrink-0 rounded-full bg-muted/30">
                     <Link to={to}>
                         {cta || "Configure"} <ArrowRight className="ml-1 h-3 w-3" />
                     </Link>
@@ -80,7 +80,7 @@ export default function Onboarding() {
     const status = useSetupStatus();
     const { user } = useAuth();
 
-    if (!status) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
+    if (!status) return <Skeleton className="h-96 rounded-2xl bg-muted" />;
 
     const { integrations, packetwolf, providers, session } = status;
     const ssoConfigured = !!(providers?.oidc?.enabled || providers?.saml?.enabled);
@@ -171,7 +171,7 @@ export default function Onboarding() {
                     </div>
                     <div className="text-3xl font-bold tabular-nums">{Math.round((doneCount / steps.length) * 100)}%</div>
                 </div>
-                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
                         className="h-full rounded-full bg-gradient-to-r from-i17-cosmic to-i17-sky transition-all"
                         style={{ width: `${(doneCount / steps.length) * 100}%` }}

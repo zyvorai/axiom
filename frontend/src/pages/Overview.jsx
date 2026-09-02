@@ -88,7 +88,7 @@ export default function Overview() {
         return (
             <div data-testid={OVERVIEW.root} className="grid gap-4 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-40 rounded-2xl bg-white/[0.04]" />
+                    <Skeleton key={i} className="h-40 rounded-2xl bg-muted" />
                 ))}
             </div>
         );
@@ -201,7 +201,7 @@ export default function Overview() {
                             <div
                                 key={i}
                                 data-testid={OVERVIEW.alert(i)}
-                                className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3"
+                                className="flex items-start gap-3 rounded-xl border bg-muted/30 p-3"
                             >
                                 <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-500" />
                                 <div className="min-w-0 flex-1">

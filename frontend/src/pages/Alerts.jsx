@@ -31,8 +31,8 @@ export default function Alerts() {
     if (!d) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -49,13 +49,13 @@ export default function Alerts() {
             />
 
             <GlassCard className="p-0 overflow-hidden">
-                <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
+                <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <AlertTriangle className="h-4 w-4 text-amber-500" /> Active warnings
                 </div>
                 <div className="max-h-[400px] overflow-auto scrollbar-thin">
                     {warnings.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No active warnings.</div>}
                     {warnings.map((w, i) => (
-                        <div key={i} className="flex items-start gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={i} className="flex items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                             <div className="min-w-0 flex-1">
                                 <div className="text-sm">
@@ -72,13 +72,13 @@ export default function Alerts() {
             </GlassCard>
 
             <GlassCard className="p-0 overflow-hidden">
-                <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
+                <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <ListChecks className="h-4 w-4 text-i17-sage" /> Alerting rule groups
                 </div>
                 <div className="max-h-[300px] overflow-auto scrollbar-thin">
                     {rules.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No alerting rules configured.</div>}
                     {rules.map((r, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-6 min-w-0">
                                 <div className="mono truncate text-sm">{r.name}</div>
                                 <div className="text-[11px] text-muted-foreground">{r.namespace}</div>

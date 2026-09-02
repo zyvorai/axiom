@@ -20,7 +20,7 @@ import { toast } from "sonner";
 function Section({ title, icon: Icon, rows, columns, empty, action }) {
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
@@ -29,7 +29,7 @@ function Section({ title, icon: Icon, rows, columns, empty, action }) {
             <div className="max-h-[360px] overflow-auto scrollbar-thin">
                 {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>}
                 {rows.map((r, i) => (
-                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                         {columns.map((c) => (
                             <div key={c.key} className={`${c.span || "col-span-3"} min-w-0 text-xs`}>
                                 {c.render ? c.render(r) : <span className="mono truncate text-foreground">{r[c.key]}</span>}
@@ -46,7 +46,7 @@ function Field({ label, ...props }) {
     return (
         <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">{label}</Label>
-            <Input className="border-white/10 bg-white/[0.03]" {...props} />
+            <Input className="bg-muted/30" {...props} />
         </div>
     );
 }
@@ -72,7 +72,7 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create volume snapshot</DialogTitle>
                 </DialogHeader>
@@ -118,7 +118,7 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Restore from snapshot</DialogTitle>
                 </DialogHeader>
@@ -163,7 +163,7 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>New Velero schedule</DialogTitle>
                 </DialogHeader>
@@ -211,8 +211,8 @@ export default function Backups() {
     if (!snapshots) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -225,7 +225,7 @@ export default function Backups() {
                 description="VolumeSnapshots and Velero cluster backups."
                 action={
                     <>
-                        <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl border-white/10 bg-white/[0.03]">
+                        <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl bg-muted/30">
                             <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Restore
                         </Button>
                         <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
@@ -267,7 +267,7 @@ export default function Backups() {
                 rows={veleroSchedules || []}
                 empty="No Velero schedules."
                 action={
-                    <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                    <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)} className="h-7 rounded-lg bg-muted/30 text-xs">
                         <Plus className="mr-1 h-3 w-3" /> New schedule
                     </Button>
                 }

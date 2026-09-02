@@ -51,7 +51,7 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create autoscaler</DialogTitle>
                 </DialogHeader>
@@ -59,7 +59,7 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Target workload</Label>
                         <Select onValueChange={pickTarget}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue placeholder="Select a workload" />
                             </SelectTrigger>
                             <SelectContent>
@@ -74,15 +74,15 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Min replicas</Label>
-                            <Input type="number" min={1} value={form.minReplicas} onChange={(e) => set({ minReplicas: Number(e.target.value) })} className="border-white/10 bg-white/[0.03]" />
+                            <Input type="number" min={1} value={form.minReplicas} onChange={(e) => set({ minReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Max replicas</Label>
-                            <Input type="number" min={1} value={form.maxReplicas} onChange={(e) => set({ maxReplicas: Number(e.target.value) })} className="border-white/10 bg-white/[0.03]" />
+                            <Input type="number" min={1} value={form.maxReplicas} onChange={(e) => set({ maxReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Target CPU %</Label>
-                            <Input type="number" min={1} max={100} value={form.targetCpuPercent} onChange={(e) => set({ targetCpuPercent: Number(e.target.value) })} className="border-white/10 bg-white/[0.03]" />
+                            <Input type="number" min={1} max={100} value={form.targetCpuPercent} onChange={(e) => set({ targetCpuPercent: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                     </div>
                 </div>
@@ -135,8 +135,8 @@ export default function HPA() {
     if (!hpas) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -155,7 +155,7 @@ export default function HPA() {
             />
 
             <GlassCard className="p-0 overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                <div className="flex items-center justify-between border-b px-4 py-3">
                     <div className="flex items-center gap-2 text-sm font-medium">
                         <Gauge className="h-4 w-4 text-i17-cosmic" /> HorizontalPodAutoscalers
                     </div>
@@ -164,7 +164,7 @@ export default function HPA() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     {hpas.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No HorizontalPodAutoscalers configured.</div>}
                     {hpas.map((h, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-3 min-w-0">
                                 <div className="mono truncate text-sm">{h.name}</div>
                                 <div className="text-[11px] text-muted-foreground">{h.namespace}</div>

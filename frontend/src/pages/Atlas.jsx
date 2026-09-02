@@ -50,19 +50,19 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create volume</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Name</Label>
-                        <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="billing-db-root" className="border-white/10 bg-white/[0.03]" />
+                        <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="billing-db-root" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Policy</Label>
                         <Select value={form.policy} onValueChange={(v) => set({ policy: v })}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -77,11 +77,11 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Size (GiB)</Label>
-                            <Input type="number" min={1} value={form.size_gi} onChange={(e) => set({ size_gi: Number(e.target.value) })} className="border-white/10 bg-white/[0.03]" />
+                            <Input type="number" min={1} value={form.size_gi} onChange={(e) => set({ size_gi: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                     </div>
                 </div>
@@ -112,7 +112,7 @@ export default function Atlas() {
         };
     }, []);
 
-    if (!data) return <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />;
+    if (!data) return <Skeleton className="h-64 rounded-2xl bg-muted" />;
 
     if (!data.available) {
         return (
@@ -131,7 +131,7 @@ export default function Atlas() {
                         <div className="mt-0.5 text-xs text-muted-foreground">{data.reason || "Configure the Atlas gateway URL."}</div>
                     </div>
                     <Link to="/settings" className="ml-auto">
-                        <Button variant="outline" className="rounded-xl border-white/10 bg-white/[0.03]">
+                        <Button variant="outline" className="rounded-xl bg-muted/30">
                             Open Settings
                         </Button>
                     </Link>
@@ -158,7 +158,7 @@ export default function Atlas() {
                     <>
                         {data.consoleURL && (
                             <a href={data.consoleURL} target="_blank" rel="noreferrer">
-                                <Button variant="outline" className="rounded-xl border-white/10 bg-white/[0.03]">
+                                <Button variant="outline" className="rounded-xl bg-muted/30">
                                     <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Console
                                 </Button>
                             </a>
@@ -209,7 +209,7 @@ export default function Atlas() {
                     <div className="mb-3 text-sm font-medium">StorageClasses</div>
                     <div className="flex flex-wrap gap-2">
                         {storageClasses.map((sc, i) => (
-                            <span key={i} className="mono rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs">
+                            <span key={i} className="mono rounded-lg border bg-muted/30 px-2.5 py-1 text-xs">
                                 {sc.name ?? String(sc)}
                             </span>
                         ))}

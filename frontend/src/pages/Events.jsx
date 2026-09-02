@@ -32,8 +32,8 @@ export default function Events() {
     if (!events) {
         return (
             <div data-testid={EVENTS.root} className="space-y-4">
-                <Skeleton className="h-8 w-64 rounded-lg bg-white/[0.04]" />
-                <Skeleton className="h-[70vh] rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-8 w-64 rounded-lg bg-muted" />
+                <Skeleton className="h-[70vh] rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -52,7 +52,7 @@ export default function Events() {
                         <div
                             key={i}
                             data-testid={EVENTS.row(i)}
-                            className="grid grid-cols-12 items-start gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                            className="grid grid-cols-12 items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                         >
                             <div className="col-span-2">
                                 <StatusBadge status={e.type} />

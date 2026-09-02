@@ -40,8 +40,8 @@ export default function Storage() {
     if (!volumes) {
         return (
             <div data-testid={STORAGE.root} className="space-y-4">
-                <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-80 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-40 rounded-2xl bg-muted" />
+                <Skeleton className="h-80 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -72,13 +72,13 @@ export default function Storage() {
             </div>
 
             <GlassCard className="p-0 overflow-hidden">
-                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">PersistentVolumeClaims</div>
+                <div className="border-b px-4 py-3 text-sm font-medium">PersistentVolumeClaims</div>
                 <div className="max-h-[60vh] overflow-auto scrollbar-thin">
                     {volumes.map((p) => (
                         <div
                             key={`${p.namespace}/${p.name}`}
                             data-testid={STORAGE.pvcRow(p.name)}
-                            className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                            className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                         >
                             <div className="col-span-4 flex items-center gap-3 min-w-0">
                                 <HardDrive className="h-4 w-4 text-i17-lavender shrink-0" />

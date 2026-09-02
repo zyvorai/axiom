@@ -45,7 +45,7 @@ export default function Nodes() {
         return (
             <div data-testid={NODES.root} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-48 rounded-2xl bg-white/[0.04]" />
+                    <Skeleton key={i} className="h-48 rounded-2xl bg-muted" />
                 ))}
             </div>
         );
@@ -76,13 +76,13 @@ export default function Nodes() {
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-3">
-                            <FeatureTile size="compact" mono icon={Cpu} label="CPU" value={n.allocatableCpu} className="border border-white/5 bg-white/[0.02] p-2.5" />
-                            <FeatureTile size="compact" mono icon={MemoryStick} label="Memory" value={n.allocatableMemory} className="border border-white/5 bg-white/[0.02] p-2.5" />
-                            <FeatureTile size="compact" mono icon={Boxes} label="Pods" value={`${n.pods}/${n.allocatablePods}`} className="border border-white/5 bg-white/[0.02] p-2.5" />
-                            <FeatureTile size="compact" mono icon={Server} label="Version" value={<span className="truncate">{n.version}</span>} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile nested size="compact" mono icon={Cpu} label="CPU" value={n.allocatableCpu} className="p-2.5" />
+                            <FeatureTile nested size="compact" mono icon={MemoryStick} label="Memory" value={n.allocatableMemory} className="p-2.5" />
+                            <FeatureTile nested size="compact" mono icon={Boxes} label="Pods" value={`${n.pods}/${n.allocatablePods}`} className="p-2.5" />
+                            <FeatureTile nested size="compact" mono icon={Server} label="Version" value={<span className="truncate">{n.version}</span>} className="p-2.5" />
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/5 pt-3 text-xs text-muted-foreground">
+                        <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
                             <div>
                                 <div className="text-[10px] uppercase tracking-widest">OS</div>
                                 <div className="mt-0.5 text-foreground">{n.osImage}</div>
@@ -97,14 +97,14 @@ export default function Nodes() {
                             </div>
                         </div>
 
-                        <div className="mt-4 flex gap-2 border-t border-white/5 pt-3">
+                        <div className="mt-4 flex gap-2 border-t pt-3">
                             {n.status === "SchedulingDisabled" ? (
                                 <Button
                                     size="sm"
                                     variant="outline"
                                     disabled={busy === `${n.name}:uncordon`}
                                     onClick={() => act(n.name, "uncordon", "uncordon")}
-                                    className="flex-1 rounded-xl border-white/10 bg-white/[0.03]"
+                                    className="flex-1 rounded-xl bg-muted/30"
                                 >
                                     <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
                                 </Button>
@@ -114,7 +114,7 @@ export default function Nodes() {
                                     variant="outline"
                                     disabled={busy === `${n.name}:cordon`}
                                     onClick={() => act(n.name, "cordon", "cordon")}
-                                    className="flex-1 rounded-xl border-white/10 bg-white/[0.03]"
+                                    className="flex-1 rounded-xl bg-muted/30"
                                 >
                                     <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
                                 </Button>

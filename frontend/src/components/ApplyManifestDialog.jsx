@@ -45,7 +45,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
@@ -53,7 +53,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                     value={manifest}
                     onChange={(e) => setManifest(e.target.value)}
                     placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
-                    className="min-h-[220px] border-white/10 bg-white/[0.03] mono text-xs"
+                    className="min-h-[220px] bg-muted/30 mono text-xs"
                 />
                 {result && (
                     <div className={`rounded-lg border px-3 py-2 text-xs ${result.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>

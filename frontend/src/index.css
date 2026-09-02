@@ -178,47 +178,31 @@
 }
 
 @layer components {
+    /* Flat, Apple-support-guide style panel: a solid surface + hairline
+       border, no backdrop-blur/translucency/heavy shadow — the previous
+       frosted-glass treatment (blur + translucent bg + large diffuse
+       shadow) is what read as "heavy" in both themes, just tuned
+       differently per theme rather than actually looking clean in either. */
     .glass {
-        background: rgb(var(--glass-bg));
-        backdrop-filter: blur(16px) saturate(120%);
-        -webkit-backdrop-filter: blur(16px) saturate(120%);
-        border: 1px solid rgb(var(--glass-border));
-        box-shadow: var(--glass-shadow);
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
         border-radius: var(--radius);
+        box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
     }
     .glass-inset {
-        background: rgb(var(--glass-bg));
-        backdrop-filter: blur(12px) saturate(120%);
-        -webkit-backdrop-filter: blur(12px) saturate(120%);
-        border: 1px solid rgb(var(--glass-border));
+        background: hsl(var(--muted) / 0.4);
+        border: 1px solid hsl(var(--border));
     }
+    /* Disabled: the fake glass-edge gradient highlight has no place on a
+       flat panel. `content: none` fully no-ops the pseudo-element without
+       touching the handful of JSX files that still reference the
+       `specular` class name. */
     .specular {
         position: relative;
         isolation: isolate;
     }
     .specular::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        padding: 1px;
-        background: linear-gradient(
-            135deg,
-            rgb(255 255 255 / 0.55),
-            rgb(255 255 255 / 0) 40%,
-            rgb(255 255 255 / 0) 60%,
-            rgb(255 255 255 / 0.25)
-        );
-        -webkit-mask:
-            linear-gradient(#000 0 0) content-box,
-            linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        pointer-events: none;
-        opacity: 0.4;
-    }
-    .dark .specular::before {
-        opacity: 0.18;
+        content: none;
     }
     .grid-bg {
         background-image:

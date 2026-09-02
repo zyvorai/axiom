@@ -64,22 +64,22 @@ function NetworkPolicyPanel() {
         }
     };
 
-    if (!policies) return <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />;
+    if (!policies) return <Skeleton className="h-40 rounded-2xl bg-muted" />;
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <ShieldHalf className="h-4 w-4 text-i17-cosmic" /> NetworkPolicies
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)} className="h-7 rounded-lg bg-muted/30 text-xs">
                     <Plus className="mr-1 h-3 w-3" /> Create via YAML
                 </Button>
             </div>
             <div className="max-h-[360px] overflow-auto scrollbar-thin">
                 {policies.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No NetworkPolicies configured.</div>}
                 {policies.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                    <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none hover:bg-muted">
                         <div className="min-w-0 flex-1">
                             <div className="mono truncate text-sm">{p.name}</div>
                             <div className="text-[11px] text-muted-foreground">
@@ -147,7 +147,7 @@ function PacketWolfPanel() {
         };
     }, [status?.reachable]);
 
-    if (!status) return <Skeleton className="h-24 rounded-2xl bg-white/[0.04]" />;
+    if (!status) return <Skeleton className="h-24 rounded-2xl bg-muted" />;
 
     const tone = status.reachable ? "ok" : status.configured ? "warn" : "info";
     const label = status.reachable ? "Connected" : status.configured ? "Unreachable" : "Not configured";
@@ -155,7 +155,7 @@ function PacketWolfPanel() {
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Radar className="h-4 w-4 text-i17-cosmic" /> PacketWolf
                 </div>
@@ -168,12 +168,12 @@ function PacketWolfPanel() {
                 {status.message || status.baseUrl || "eBPF flow visibility via the PacketWolf integration."}
             </div>
             {status.reachable && (
-                <div className="max-h-[360px] overflow-auto scrollbar-thin border-t border-white/5">
+                <div className="max-h-[360px] overflow-auto scrollbar-thin border-t">
                     {flowsError && <div className="px-4 py-6 text-center text-sm text-muted-foreground">{flowsError}</div>}
                     {!flowsError && items && items.length > 0 && (
                         <Table>
                             <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                                <TableRow className="border-white/5 hover:bg-transparent">
+                                <TableRow className="hover:bg-transparent">
                                     <TableHead>Source</TableHead>
                                     <TableHead>Destination</TableHead>
                                     <TableHead>Proto</TableHead>
@@ -182,7 +182,7 @@ function PacketWolfPanel() {
                             </TableHeader>
                             <TableBody>
                                 {items.slice(0, 25).map((f, i) => (
-                                    <TableRow key={i} className="border-white/5 hover:bg-white/[0.03]">
+                                    <TableRow key={i} className="hover:bg-muted">
                                         <TableCell className="mono text-xs">{String(f.source ?? f.src ?? f.from ?? "—")}</TableCell>
                                         <TableCell className="mono text-xs">{String(f.destination ?? f.dst ?? f.to ?? "—")}</TableCell>
                                         <TableCell className="text-xs">{String(f.protocol ?? f.proto ?? "—")}</TableCell>
@@ -223,8 +223,8 @@ export default function Networking() {
     if (!d) {
         return (
             <div data-testid={NET.root} className="space-y-4">
-                <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-40 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -255,12 +255,12 @@ export default function Networking() {
 
             <div className="grid gap-4 xl:grid-cols-5">
                 <GlassCard className="p-0 overflow-hidden xl:col-span-2">
-                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Graph nodes</div>
+                    <div className="border-b px-4 py-3 text-sm font-medium">Graph nodes</div>
                     <div className="max-h-[520px] overflow-auto scrollbar-thin">
                         {d.nodes.map((n) => (
                             <div
                                 key={n.id}
-                                className="flex items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                                className="flex items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                             >
                                 <Network className="h-4 w-4 text-i17-sage" />
                                 <div className="min-w-0 flex-1">
@@ -279,7 +279,7 @@ export default function Networking() {
                 </GlassCard>
 
                 <GlassCard className="p-0 overflow-hidden xl:col-span-3">
-                    <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+                    <div className="flex items-center justify-between border-b px-4 py-3">
                         <div className="text-sm font-medium">Connections</div>
                         <span className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="status-dot ok animate-pulse" /> live
@@ -289,7 +289,7 @@ export default function Networking() {
                         {d.edges.map((e, i) => (
                             <div
                                 key={i}
-                                className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-2.5 text-xs last:border-none hover:bg-white/[0.03]"
+                                className="grid grid-cols-12 items-center gap-3 border-b px-4 py-2.5 text-xs last:border-none hover:bg-muted"
                             >
                                 <div className="col-span-5 mono truncate text-foreground">{e.from}</div>
                                 <div className="col-span-1 text-center text-muted-foreground">→</div>

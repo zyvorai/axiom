@@ -13,7 +13,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
@@ -21,7 +21,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
             <div className="max-h-[420px] overflow-auto scrollbar-thin">
                 {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>}
                 {rows.map((r, i) => (
-                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                         {columns.map((c) => (
                             <div key={c.key} className={`${c.span || "col-span-3"} min-w-0 text-xs`}>
                                 {c.render ? c.render(r) : <span className="mono truncate text-foreground">{r[c.key]}</span>}
@@ -111,8 +111,8 @@ export default function Jobs() {
     if (!cronJobs) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }

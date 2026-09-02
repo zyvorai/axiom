@@ -11,7 +11,7 @@ export default function SegmentedProgress({ segments, className }) {
 
     return (
         <div className={cn("space-y-2", className)}>
-            <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
+            <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
                 {segments.map((s) => {
                     const pct = (Math.max(0, s.value) / total) * 100;
                     if (pct <= 0) return null;
@@ -33,7 +33,7 @@ export default function SegmentedProgress({ segments, className }) {
                             className={cn(
                                 "h-full first:rounded-l-full last:rounded-r-full",
                                 s.tone === "done" && "bg-i17-cosmic",
-                                s.tone === "pending" && "bg-white/10"
+                                s.tone === "pending" && "bg-muted-foreground/20"
                             )}
                             title={`${s.label}: ${s.value}`}
                         />
@@ -48,7 +48,7 @@ export default function SegmentedProgress({ segments, className }) {
                                 "h-2 w-2 rounded-full",
                                 s.tone === "done" && "bg-i17-cosmic",
                                 s.tone === "active" && "bg-i17-cosmic/50",
-                                s.tone === "pending" && "bg-white/15"
+                                s.tone === "pending" && "bg-muted-foreground/30"
                             )}
                         />
                         {s.label} · {s.value}

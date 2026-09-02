@@ -54,7 +54,7 @@ function MetricsPanel({ name }) {
         };
     }, [name]);
 
-    if (series === null) return <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />;
+    if (series === null) return <Skeleton className="h-40 rounded-2xl" />;
     if (series === false) {
         return <GlassCard className="p-6 text-center text-sm text-muted-foreground">Metrics unavailable — requires metrics-server on the cluster.</GlassCard>;
     }
@@ -64,7 +64,7 @@ function MetricsPanel({ name }) {
 
     return (
         <div className="space-y-4">
-            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                 Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -135,11 +135,11 @@ function TaintsPanel({ name, taints, onChanged }) {
     return (
         <div className="space-y-4">
             <GlassCard className="p-0 overflow-hidden">
-                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Current taints</div>
+                <div className="border-b px-4 py-3 text-sm font-medium">Current taints</div>
                 {(taints || []).length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No taints on this node.</div>}
                 {(taints || []).map((t, i) => (
-                    <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
-                        <Badge variant="outline" className="mono border-white/10 bg-white/[0.03] text-xs">
+                    <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
+                        <Badge variant="outline" className="mono text-xs">
                             {t.key}
                             {t.value ? `=${t.value}` : ""}:{t.effect}
                         </Badge>
@@ -154,16 +154,16 @@ function TaintsPanel({ name, taints, onChanged }) {
                 <div className="grid grid-cols-4 gap-3">
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Key</Label>
-                        <Input value={key} onChange={(e) => setKey(e.target.value)} placeholder="dedicated" className="border-white/10 bg-white/[0.03]" />
+                        <Input value={key} onChange={(e) => setKey(e.target.value)} placeholder="dedicated" />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Value</Label>
-                        <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder="gpu" className="border-white/10 bg-white/[0.03]" />
+                        <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder="gpu" />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Effect</Label>
                         <Select value={effect} onValueChange={setEffect}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -213,7 +213,7 @@ export default function NodeDetail() {
         }
     };
 
-    if (!node) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
+    if (!node) return <Skeleton className="h-96 rounded-2xl" />;
 
     return (
         <div className="space-y-6">
@@ -236,11 +236,11 @@ export default function NodeDetail() {
                 action={
                     <>
                         {node.status === "SchedulingDisabled" ? (
-                            <Button variant="outline" disabled={busy === "uncordon"} onClick={() => act("uncordon", "uncordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <Button variant="outline" disabled={busy === "uncordon"} onClick={() => act("uncordon", "uncordon")} className="rounded-xl">
                                 <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
                             </Button>
                         ) : (
-                            <Button variant="outline" disabled={busy === "cordon"} onClick={() => act("cordon", "cordon")} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <Button variant="outline" disabled={busy === "cordon"} onClick={() => act("cordon", "cordon")} className="rounded-xl">
                                 <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
                             </Button>
                         )}
@@ -259,7 +259,7 @@ export default function NodeDetail() {
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
+                <TabsList className="h-auto flex-wrap gap-1 p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>
@@ -283,9 +283,9 @@ export default function NodeDetail() {
                     />
                     {(node.conditions || []).length > 0 && (
                         <GlassCard className="p-0 overflow-hidden">
-                            <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Conditions</div>
+                            <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>
                             {node.conditions.map((c, i) => (
-                                <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                                <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
                                     <span>{c.type}</span>
                                     <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
                                 </div>

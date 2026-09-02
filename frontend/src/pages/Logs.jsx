@@ -83,8 +83,8 @@ export default function Logs() {
     if (!pods) {
         return (
             <div data-testid={LOGS.root} className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-[60vh] rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-[60vh] rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -109,7 +109,7 @@ export default function Logs() {
                         setSelected(v);
                     }}
                 >
-                    <SelectTrigger data-testid={LOGS.podSelect} className="w-[300px] border-white/10 bg-white/[0.03]">
+                    <SelectTrigger data-testid={LOGS.podSelect} className="w-[300px] bg-muted/30">
                         <SelectValue placeholder="Choose pod" />
                     </SelectTrigger>
                     <SelectContent>
@@ -122,7 +122,7 @@ export default function Logs() {
                 </Select>
                 {containerOptions.length > 1 && (
                     <Select value={container} onValueChange={setContainer}>
-                        <SelectTrigger className="w-[160px] border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-[160px] bg-muted/30">
                             <SelectValue placeholder="Container" />
                         </SelectTrigger>
                         <SelectContent>
@@ -164,7 +164,7 @@ export default function Logs() {
             </GlassCard>
 
             <GlassCard className="p-0">
-                <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
+                <div className="flex items-center justify-between border-b px-4 py-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className={`status-dot ${running ? "ok animate-pulse" : "info"}`} />
                         <span className="mono">{running ? `streaming ${selected}` : "idle"}</span>

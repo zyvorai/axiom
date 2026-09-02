@@ -41,8 +41,8 @@ export default function Ingresses() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -58,7 +58,7 @@ export default function Ingresses() {
             <GlassCard className="p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search by name or host" value={q} onChange={(e) => setQ(e.target.value)} className="border-white/10 bg-white/[0.03] pl-9" />
+                    <Input placeholder="Search by name or host" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
                 </div>
             </GlassCard>
 
@@ -66,7 +66,7 @@ export default function Ingresses() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Class</TableHead>
@@ -78,7 +78,7 @@ export default function Ingresses() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((i) => (
-                                <TableRow key={`${i.namespace}/${i.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                <TableRow key={`${i.namespace}/${i.name}`} className="hover:bg-muted">
                                     <TableCell className="flex items-center gap-2 font-medium">
                                         <Waypoints className="h-3.5 w-3.5 text-i17-sky" /> {i.name}
                                     </TableCell>
@@ -87,7 +87,7 @@ export default function Ingresses() {
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {(i.hosts || []).map((h) => (
-                                                <Badge key={h} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                <Badge key={h} variant="outline" className="mono text-[10px] bg-muted/30">
                                                     {h}
                                                 </Badge>
                                             ))}

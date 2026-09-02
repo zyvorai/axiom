@@ -59,14 +59,14 @@ function ExecDialog({ pod, onOpenChange }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Exec · {pod.name}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     {containers.length > 1 && (
                         <Select value={container} onValueChange={setContainer}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -83,14 +83,14 @@ function ExecDialog({ pod, onOpenChange }) {
                             value={command}
                             onChange={(e) => setCommand(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && run()}
-                            className="mono border-white/10 bg-white/[0.03]"
+                            className="mono bg-muted/30"
                             placeholder="ls -la"
                         />
                         <Button variant="brand" onClick={run} disabled={busy} className="shrink-0 rounded-xl">
                             {busy ? "Running…" : "Run"}
                         </Button>
                     </div>
-                    <pre className="mono h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/40 p-3 text-[12px] text-foreground/90">
+                    <pre className="mono h-64 overflow-auto whitespace-pre-wrap rounded-lg border bg-black/40 p-3 text-[12px] text-foreground/90">
                         {output || "Output will appear here."}
                     </pre>
                 </div>
@@ -191,8 +191,8 @@ export default function Pods() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -205,7 +205,7 @@ export default function Pods() {
                 description="Every running pod across all namespaces."
                 action={
                     selected.size > 0 && (
-                        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                        <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-3 py-1.5">
                             <span className="text-xs text-muted-foreground">{selected.size} selected</span>
                             <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
                                 <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
@@ -223,11 +223,11 @@ export default function Pods() {
                             placeholder="Search pod name"
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
-                            className="border-white/10 bg-white/[0.03] pl-9"
+                            className="bg-muted/30 pl-9"
                         />
                     </div>
                     <Select value={ns} onValueChange={setNs}>
-                        <SelectTrigger className="w-[180px] border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-[180px] bg-muted/30">
                             <SelectValue placeholder="Namespace" />
                         </SelectTrigger>
                         <SelectContent>
@@ -246,7 +246,7 @@ export default function Pods() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-10">
                                     <Checkbox
                                         checked={rows.length > 0 && selected.size === rows.length}
@@ -266,7 +266,7 @@ export default function Pods() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((p) => (
-                                <TableRow key={`${p.namespace}/${p.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                <TableRow key={`${p.namespace}/${p.name}`} className="hover:bg-muted">
                                     <TableCell>
                                         <Checkbox checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
                                     </TableCell>

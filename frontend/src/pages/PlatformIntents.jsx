@@ -23,8 +23,8 @@ export default function PlatformIntents() {
     if (!items) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -48,7 +48,7 @@ export default function PlatformIntents() {
                     {items.map((it, i) => (
                         <div
                             key={i}
-                            className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                            className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                         >
                             <div className="col-span-3 min-w-0">
                                 <div className="mono truncate text-sm">{it.name}</div>

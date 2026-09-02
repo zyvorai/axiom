@@ -9,6 +9,12 @@ import Sparkline from "@/components/Sparkline";
 // already used on Nodes/NodeDetail/PodDetail so those can adopt the same
 // component without a layout regression. Wraps GlassCard and forwards
 // ...rest (data-testid included) exactly like GlassCard does.
+//
+// `nested` renders a plain bordered div instead of GlassCard. Use it when
+// the tile sits inside another GlassCard (e.g. a per-resource card on
+// Nodes/Namespaces/VirtualMachines) — stacking two `.glass` layers doubles
+// up backdrop-blur + border + shadow + specular highlight, which reads as
+// visibly "heavier"/muddier in dark mode than a single glass layer.
 export default function FeatureTile({
     icon: Icon,
     iconClassName,
@@ -19,23 +25,27 @@ export default function FeatureTile({
     color = "var(--i17-cosmic)",
     mono = false,
     size = "default",
+    nested = false,
     className,
     ...rest
 }) {
+    const Wrapper = nested ? "div" : GlassCard;
+    const nestedClass = nested && "rounded-lg border bg-muted/30";
+
     if (size === "compact") {
         return (
-            <GlassCard className={cn("p-4", className)} {...rest}>
+            <Wrapper className={cn("p-4", nestedClass, className)} {...rest}>
                 <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
                     {Icon && <Icon className={cn("h-3 w-3", iconClassName)} />} {label}
                 </div>
                 <div className={cn("mt-1 text-xl", mono && "mono")}>{value}</div>
                 {sublabel && <div className="mt-0.5 text-xs text-muted-foreground">{sublabel}</div>}
-            </GlassCard>
+            </Wrapper>
         );
     }
 
     return (
-        <GlassCard className={cn("p-5", className)} {...rest}>
+        <Wrapper className={cn("p-5", nestedClass, className)} {...rest}>
             <div className="flex items-center justify-between">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
                 {Icon && (
@@ -51,6 +61,6 @@ export default function FeatureTile({
                     <Sparkline data={series} color={color} />
                 </div>
             )}
-        </GlassCard>
+        </Wrapper>
     );
 }

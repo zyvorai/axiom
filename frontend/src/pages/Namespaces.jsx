@@ -70,8 +70,8 @@ export default function Namespaces() {
     if (!items) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -100,10 +100,10 @@ export default function Namespaces() {
                             <StatusBadge status={n.status} />
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-3">
-                            <FeatureTile size="compact" mono label="Pods" value={n.pods} className="border border-white/5 bg-white/[0.02] p-2.5" />
-                            <FeatureTile size="compact" mono label="Services" value={n.services} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                            <FeatureTile nested size="compact" mono label="Pods" value={n.pods} className="p-2.5" />
+                            <FeatureTile nested size="compact" mono label="Services" value={n.services} className="p-2.5" />
                         </div>
-                        <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
+                        <div className="mt-4 flex items-center justify-between border-t pt-3">
                             <span className="text-xs text-muted-foreground">{n.age}</span>
                             <Button size="sm" variant="ghost" onClick={() => remove(n)} className="text-muted-foreground hover:text-rose-400">
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -114,11 +114,11 @@ export default function Namespaces() {
             </div>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="glass max-w-sm border-white/10">
+                <DialogContent className="glass max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Create namespace</DialogTitle>
                     </DialogHeader>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="tenant-b" className="border-white/10 bg-white/[0.03]" />
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="tenant-b" className="bg-muted/30" />
                     <DialogFooter>
                         <Button variant="brand" onClick={create} disabled={busy || !name} className="rounded-xl">
                             {busy ? "Creating…" : "Create"}

@@ -91,11 +91,11 @@ function RolloutDialog({ workload, onOpenChange }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Rollout · {workload.name}</DialogTitle>
                 </DialogHeader>
-                {status === null && <Skeleton className="h-40 rounded-xl bg-white/[0.04]" />}
+                {status === null && <Skeleton className="h-40 rounded-xl bg-muted" />}
                 {status === false && <div className="py-8 text-center text-sm text-muted-foreground">Rollout not supported for {workload.kind}.</div>}
                 {status && (
                     <div className="space-y-4">
@@ -106,7 +106,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                                 ["Ready", status.ready],
                                 ["Available", status.available],
                             ].map(([label, value]) => (
-                                <div key={label} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                                <div key={label} className="rounded-lg border bg-muted/30 p-2.5">
                                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
                                     <div className="mono mt-1 truncate text-sm">{value}</div>
                                 </div>
@@ -120,9 +120,9 @@ function RolloutDialog({ workload, onOpenChange }) {
                             ]}
                         />
                         {(status.history || []).length > 0 && (
-                            <div className="rounded-xl border border-white/5">
+                            <div className="rounded-xl border">
                                 {status.history.map((h) => (
-                                    <div key={h.revision} className="flex items-center justify-between border-b border-white/5 px-3 py-2 text-xs last:border-none">
+                                    <div key={h.revision} className="flex items-center justify-between border-b px-3 py-2 text-xs last:border-none">
                                         <span className="mono">rev {h.revision}</span>
                                         <span className="text-muted-foreground">{h.status}</span>
                                         <span className="mono text-muted-foreground">{h.age}</span>
@@ -138,7 +138,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                                     variant="outline"
                                     disabled={!!busy}
                                     onClick={() => act(a)}
-                                    className="rounded-xl border-white/10 bg-white/[0.03] capitalize"
+                                    className="rounded-xl bg-muted/30 capitalize"
                                 >
                                     {a}
                                 </Button>
@@ -173,11 +173,11 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-xs border-white/10">
+            <DialogContent className="glass max-w-xs">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Scale · {workload.name}</DialogTitle>
                 </DialogHeader>
-                <Input type="number" min={0} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                <Input type="number" min={0} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="bg-muted/30" />
                 <DialogFooter>
                     <Button onClick={submit} disabled={busy} className="rounded-xl">
                         {busy ? "Scaling…" : "Scale"}
@@ -350,7 +350,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg border-white/10">
+            <DialogContent className="glass max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Run workload</DialogTitle>
                 </DialogHeader>
@@ -370,35 +370,35 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Namespace</Label>
-                                <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                                <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Name</Label>
-                                <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" className="border-white/10 bg-white/[0.03]" />
+                                <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" className="bg-muted/30" />
                             </div>
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Image</Label>
-                            <Input value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="ghcr.io/zyvorai/checkout:v1" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="ghcr.io/zyvorai/checkout:v1" className="bg-muted/30" />
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Replicas</Label>
-                                <Input type="number" min={1} value={form.replicas} onChange={(e) => set({ replicas: Number(e.target.value) })} className="border-white/10 bg-white/[0.03]" />
+                                <Input type="number" min={1} value={form.replicas} onChange={(e) => set({ replicas: Number(e.target.value) })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">CPU</Label>
-                                <Input value={form.cpu} onChange={(e) => set({ cpu: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                                <Input value={form.cpu} onChange={(e) => set({ cpu: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Memory</Label>
-                                <Input value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="border-white/10 bg-white/[0.03]" />
+                                <Input value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="bg-muted/30" />
                             </div>
                         </div>
-                        <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+                        <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2.5">
                             <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Port</Label>
-                                <Input type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 border-white/10 bg-white/[0.03]" />
+                                <Input type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 bg-muted/30" />
                             </div>
                             <div className="flex items-center gap-2">
                                 <Label className="text-xs text-muted-foreground">Expose service</Label>
@@ -417,15 +417,15 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             value={intent}
                             onChange={(e) => setIntent(e.target.value)}
                             placeholder="a small stateless api on 2 replicas running ghcr.io/zyvorai/checkout:v1 exposed on port 8080"
-                            className="min-h-[100px] border-white/10 bg-white/[0.03] mono text-xs"
+                            className="min-h-[100px] bg-muted/30 mono text-xs"
                         />
                         {intentPreview && (
-                            <pre className="mono max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] text-muted-foreground">
+                            <pre className="mono max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-black/30 p-3 text-[11px] text-muted-foreground">
                                 {intentPreview.receipt}
                             </pre>
                         )}
                         <DialogFooter className="gap-2">
-                            <Button variant="outline" onClick={parseIntent} disabled={busy || !intent} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <Button variant="outline" onClick={parseIntent} disabled={busy || !intent} className="rounded-xl bg-muted/30">
                                 Preview
                             </Button>
                             <Button onClick={placeIntent} disabled={busy || !intent} className="rounded-xl">
@@ -439,7 +439,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             value={manifest}
                             onChange={(e) => setManifest(e.target.value)}
                             placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
-                            className="min-h-[140px] border-white/10 bg-white/[0.03] mono text-xs"
+                            className="min-h-[140px] bg-muted/30 mono text-xs"
                         />
                         {validation && (
                             <div className={`rounded-lg border px-3 py-2 text-xs ${validation.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>
@@ -447,7 +447,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             </div>
                         )}
                         <DialogFooter className="gap-2">
-                            <Button variant="outline" onClick={validate} disabled={busy || !manifest} className="rounded-xl border-white/10 bg-white/[0.03]">
+                            <Button variant="outline" onClick={validate} disabled={busy || !manifest} className="rounded-xl bg-muted/30">
                                 Validate
                             </Button>
                             <Button
@@ -566,8 +566,8 @@ export default function Workloads() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -581,9 +581,9 @@ export default function Workloads() {
                 action={
                     <>
                         {selected.size > 0 && (
-                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                            <div className="flex items-center gap-2 rounded-xl border bg-muted/30 px-3 py-1.5">
                                 <span className="text-xs text-muted-foreground">{selected.size} selected</span>
-                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg border-white/10 bg-white/[0.03] text-xs">
+                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg bg-muted/30 text-xs">
                                     <RotateCw className="mr-1 h-3 w-3" /> Restart
                                 </Button>
                                 <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
@@ -606,11 +606,11 @@ export default function Workloads() {
                             placeholder="Search name or image"
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
-                            className="border-white/10 bg-white/[0.03] pl-9"
+                            className="bg-muted/30 pl-9"
                         />
                     </div>
                     <Select value={ns} onValueChange={setNs}>
-                        <SelectTrigger className="w-[180px] border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-[180px] bg-muted/30">
                             <SelectValue placeholder="Namespace" />
                         </SelectTrigger>
                         <SelectContent>
@@ -623,7 +623,7 @@ export default function Workloads() {
                         </SelectContent>
                     </Select>
                     <Select value={kind} onValueChange={setKind}>
-                        <SelectTrigger className="w-[160px] border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-[160px] bg-muted/30">
                             <SelectValue placeholder="Kind" />
                         </SelectTrigger>
                         <SelectContent>
@@ -642,7 +642,7 @@ export default function Workloads() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-10">
                                     <Checkbox
                                         checked={rows.length > 0 && selected.size === rows.length}
@@ -664,7 +664,7 @@ export default function Workloads() {
                             {rows.map((w) => (
                                 <TableRow
                                     key={`${w.namespace}/${w.name}`}
-                                    className="border-white/5 hover:bg-white/[0.03]"
+                                    className="hover:bg-muted"
                                 >
                                     <TableCell>
                                         <Checkbox checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
@@ -702,7 +702,7 @@ export default function Workloads() {
                                 <TableRow>
                                     <TableCell colSpan={10} className="py-16">
                                         <div className="flex flex-col items-center gap-3 text-center">
-                                            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/[0.04]">
+                                            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-muted">
                                                 <Boxes className="h-5 w-5 text-muted-foreground" />
                                             </div>
                                             <div>

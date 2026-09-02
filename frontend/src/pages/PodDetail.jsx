@@ -68,7 +68,7 @@ function ExecPanel({ namespace, name, containers }) {
             <div className="flex gap-2">
                 {containers.length > 1 && (
                     <Select value={container} onValueChange={setContainer}>
-                        <SelectTrigger className="w-40 border-white/10 bg-white/[0.03]">
+                        <SelectTrigger className="w-40 bg-muted/30">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -84,13 +84,13 @@ function ExecPanel({ namespace, name, containers }) {
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && run()}
-                    className="mono border-white/10 bg-white/[0.03]"
+                    className="mono bg-muted/30"
                 />
                 <Button variant="brand" onClick={run} disabled={busy} className="shrink-0 rounded-xl">
                     {busy ? "Running…" : "Run"}
                 </Button>
             </div>
-            <pre className="mono h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/40 p-3 text-[12px] text-foreground/90">
+            <pre className="mono h-72 overflow-auto whitespace-pre-wrap rounded-lg border bg-black/40 p-3 text-[12px] text-foreground/90">
                 {output || "Output will appear here."}
             </pre>
         </GlassCard>
@@ -136,11 +136,11 @@ function ContainerSpecCard({ c }) {
                 </div>
             </div>
             {(c.env || []).length > 0 && (
-                <div className="mt-3 border-t border-white/5 pt-3">
+                <div className="mt-3 border-t pt-3">
                     <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Environment</div>
                     <div className="flex flex-wrap gap-1.5">
                         {c.env.map((e, i) => (
-                            <Badge key={i} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                            <Badge key={i} variant="outline" className="mono text-[10px] bg-muted/30">
                                 {e.name}={e.value ?? (e.valueFrom ? "<from ref>" : "")}
                             </Badge>
                         ))}
@@ -148,7 +148,7 @@ function ContainerSpecCard({ c }) {
                 </div>
             )}
             {(c.volumeMounts || []).length > 0 && (
-                <div className="mt-3 border-t border-white/5 pt-3">
+                <div className="mt-3 border-t pt-3">
                     <div className="mb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Mounts</div>
                     <div className="space-y-1">
                         {c.volumeMounts.map((m, i) => (
@@ -182,7 +182,7 @@ function MetricsPanel({ namespace, name }) {
         };
     }, [namespace, name]);
 
-    if (series === null) return <Skeleton className="h-40 rounded-2xl bg-white/[0.04]" />;
+    if (series === null) return <Skeleton className="h-40 rounded-2xl bg-muted" />;
     if (series === false) {
         return <GlassCard className="p-6 text-center text-sm text-muted-foreground">Metrics unavailable — requires metrics-server on the cluster.</GlassCard>;
     }
@@ -192,7 +192,7 @@ function MetricsPanel({ namespace, name }) {
 
     return (
         <div className="space-y-4">
-            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                 Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -217,9 +217,9 @@ function MetricsPanel({ namespace, name }) {
             </div>
             {(series.containers || []).length > 0 && (
                 <GlassCard className="p-0 overflow-hidden">
-                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Per-container</div>
+                    <div className="border-b px-4 py-3 text-sm font-medium">Per-container</div>
                     {series.containers.map((c) => (
-                        <div key={c.name} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                        <div key={c.name} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
                             <span className="mono">{c.name}</span>
                             <span className="mono text-muted-foreground">
                                 {c.cpuMillicores}m · {(c.memoryBytes / (1024 * 1024)).toFixed(0)} MiB
@@ -256,7 +256,7 @@ function TerminalSessions({ namespace, name, containers }) {
     return (
         <Tabs value={active} onValueChange={setActive}>
             <div className="flex items-center gap-1">
-                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
+                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
                     {sessions.map((s) => (
                         <TabsTrigger key={s.id} value={String(s.id)} className="gap-1.5">
                             Shell {s.id}
@@ -266,7 +266,7 @@ function TerminalSessions({ namespace, name, containers }) {
                                         e.stopPropagation();
                                         closeSession(s.id);
                                     }}
-                                    className="ml-1 rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-white/10"
+                                    className="ml-1 rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-muted"
                                 >
                                     <X className="h-3 w-3" />
                                 </span>
@@ -369,7 +369,7 @@ export default function PodDetail() {
         }
     };
 
-    if (pods === null) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
+    if (pods === null) return <Skeleton className="h-96 rounded-2xl bg-muted" />;
 
     if (!pod) {
         return (
@@ -437,7 +437,7 @@ export default function PodDetail() {
                 </div>
             )}
             {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
-                <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                <div className="flex items-start gap-3 rounded-2xl border bg-muted/30 px-4 py-3">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
                         <div className="text-sm font-medium">{diagnosis.phase}</div>
@@ -459,7 +459,7 @@ export default function PodDetail() {
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList className="h-auto flex-wrap gap-1 bg-white/[0.03] p-1">
+                <TabsList className="h-auto flex-wrap gap-1 bg-muted p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>
@@ -510,13 +510,13 @@ export default function PodDetail() {
 
                             {(spec.volumes || []).length > 0 && (
                                 <GlassCard className="p-0 overflow-hidden">
-                                    <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
+                                    <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                                         <HardDrive className="h-4 w-4 text-i17-lavender" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
                                         const kind = Object.keys(v).find((k) => k !== "name") || "—";
                                         return (
-                                            <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                                            <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
                                                 <span className="mono">{v.name}</span>
                                                 <span className="text-muted-foreground">{kind}</span>
                                             </div>
@@ -527,9 +527,9 @@ export default function PodDetail() {
 
                             {(status?.conditions || []).length > 0 && (
                                 <GlassCard className="p-0 overflow-hidden">
-                                    <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Conditions</div>
+                                    <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>
                                     {status.conditions.map((c, i) => (
-                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none text-xs">
+                                        <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
                                             <span>{c.type}</span>
                                             <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
                                         </div>
@@ -542,7 +542,7 @@ export default function PodDetail() {
                                     <div className="mb-2 text-sm font-medium">Node selector</div>
                                     <div className="flex flex-wrap gap-1.5">
                                         {Object.entries(spec.nodeSelector).map(([k, v]) => (
-                                            <Badge key={k} variant="outline" className="mono text-[11px] border-white/10 bg-white/[0.03]">
+                                            <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
                                                 {k}={v}
                                             </Badge>
                                         ))}
@@ -566,18 +566,18 @@ export default function PodDetail() {
                             )}
                         </>
                     ) : detail === null ? (
-                        <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                        <Skeleton className="h-64 rounded-2xl bg-muted" />
                     ) : (
                         <div className="space-y-4">
                             <GlassCard className="p-0 overflow-hidden">
-                                <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Containers</div>
+                                <div className="border-b px-4 py-3 text-sm font-medium">Containers</div>
                                 {(pod.containerInfo || pod.containers || []).map((c, i) => {
                                     const info = typeof c === "string" ? { name: c } : c;
                                     return (
-                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
+                                        <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
                                             <div className="mono text-sm">
                                                 {info.name}
-                                                {info.init && <Badge variant="outline" className="ml-2 border-white/10 bg-white/[0.03] text-[10px]">init</Badge>}
+                                                {info.init && <Badge variant="outline" className="ml-2 bg-muted/30 text-[10px]">init</Badge>}
                                             </div>
                                             {info.state && <StatusBadge status={info.ready ? "Running" : info.state} />}
                                         </div>
@@ -589,9 +589,9 @@ export default function PodDetail() {
 
                     {(pod.ports || []).length > 0 && (
                         <GlassCard className="p-0 overflow-hidden">
-                            <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">Ports</div>
+                            <div className="border-b px-4 py-3 text-sm font-medium">Ports</div>
                             {pod.ports.map((p, i) => (
-                                <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
+                                <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
                                     <div className="mono text-sm text-muted-foreground">
                                         {p.container} · {p.containerPort}/{p.protocol || "TCP"}
                                     </div>
@@ -599,7 +599,7 @@ export default function PodDetail() {
                                         href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs hover:bg-white/[0.08]"
+                                        className="flex items-center gap-1 rounded-lg border bg-muted/30 px-2.5 py-1 text-xs hover:bg-muted"
                                     >
                                         Open <ExternalLink className="h-3 w-3" />
                                     </a>
@@ -614,7 +614,7 @@ export default function PodDetail() {
                         <TerminalSessions namespace={pod.namespace} name={pod.name} containers={containers} />
                     ) : (
                         <div className="space-y-3">
-                            <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                                 Interactive terminal requires a live Kubernetes connection. Running a one-shot command instead.
                             </div>
                             <ExecPanel namespace={pod.namespace} name={pod.name} containers={containers} />
@@ -654,7 +654,7 @@ export default function PodDetail() {
                     <GlassCard className="p-0 overflow-hidden">
                         {podEvents.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No events for this pod.</div>}
                         {podEvents.map((e, i) => (
-                            <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none">
+                            <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none">
                                 <div className="col-span-2">
                                     <StatusBadge status={e.type} />
                                 </div>
@@ -669,7 +669,7 @@ export default function PodDetail() {
                     <GlassCard className="p-5">
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(pod.labels || {}).map(([k, v]) => (
-                                <Badge key={k} variant="outline" className="mono text-[11px] border-white/10 bg-white/[0.03]">
+                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
                                     {k}={v}
                                 </Badge>
                             ))}

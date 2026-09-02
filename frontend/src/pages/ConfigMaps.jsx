@@ -57,7 +57,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create ConfigMap</DialogTitle>
                 </DialogHeader>
@@ -65,11 +65,11 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
@@ -77,8 +77,8 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                         <div className="space-y-2">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="border-white/10 bg-white/[0.03]" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="border-white/10 bg-white/[0.03]" />
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
                                     <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-rose-400">
                                         <X className="h-4 w-4" />
                                     </button>
@@ -140,8 +140,8 @@ export default function ConfigMaps() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -162,7 +162,7 @@ export default function ConfigMaps() {
             <GlassCard className="p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search ConfigMap name" value={q} onChange={(e) => setQ(e.target.value)} className="border-white/10 bg-white/[0.03] pl-9" />
+                    <Input placeholder="Search ConfigMap name" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
                 </div>
             </GlassCard>
 
@@ -170,7 +170,7 @@ export default function ConfigMaps() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Keys</TableHead>
@@ -180,7 +180,7 @@ export default function ConfigMaps() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((c) => (
-                                <TableRow key={`${c.namespace}/${c.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                <TableRow key={`${c.namespace}/${c.name}`} className="hover:bg-muted">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
                                         <FileCog className="h-3.5 w-3.5 shrink-0 text-i17-sky" />
                                         <span className="min-w-0 truncate" title={c.name}>{c.name}</span>
@@ -189,7 +189,7 @@ export default function ConfigMaps() {
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {(c.keys || []).map((k) => (
-                                                <Badge key={k} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
                                                     {k}
                                                 </Badge>
                                             ))}

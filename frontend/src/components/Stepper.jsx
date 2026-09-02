@@ -18,8 +18,8 @@ export default function Stepper({ steps, active, onSelect, className }) {
                         onClick={onSelect ? () => onSelect(s.key) : undefined}
                         className={cn(
                             "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
-                            onSelect && "cursor-pointer hover:bg-white/[0.04]",
-                            isActive ? "bg-white/[0.06] text-foreground" : "text-muted-foreground"
+                            onSelect && "cursor-pointer hover:bg-muted",
+                            isActive ? "bg-muted text-foreground" : "text-muted-foreground"
                         )}
                     >
                         <span

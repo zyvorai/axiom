@@ -39,14 +39,14 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
     const name = fieldValue(instance, "name") || "—";
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-2xl border-white/10">
+            <DialogContent className="glass max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">
                         {manifest.target.kind} · {name}
                     </DialogTitle>
                 </DialogHeader>
                 {manifest.columns && manifest.columns.length > 0 && (
-                    <div className="grid gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs">
+                    <div className="grid gap-2 rounded-lg border bg-muted/30 p-3 text-xs">
                         {manifest.columns.map((c) => (
                             <div key={c.path} className="flex justify-between gap-4">
                                 <span className="text-muted-foreground">{c.label}</span>
@@ -55,7 +55,7 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
                         ))}
                     </div>
                 )}
-                <pre className="mono max-h-[40vh] overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] text-foreground/90">
+                <pre className="mono max-h-[40vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-black/30 p-3 text-[11px] text-foreground/90">
                     {JSON.stringify(instance, null, 2)}
                 </pre>
             </DialogContent>
@@ -135,8 +135,8 @@ export default function PluginView() {
     if (!manifest) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }

@@ -108,7 +108,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
                 </div>
@@ -117,7 +117,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                 </Button>
             </div>
             <div className="max-h-[360px] overflow-auto scrollbar-thin">
-                {!items && <Skeleton className="m-4 h-24 rounded-xl bg-white/[0.04]" />}
+                {!items && <Skeleton className="m-4 h-24 rounded-xl" />}
                 {items && items.length === 0 && (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>
                 )}
@@ -125,7 +125,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                     items.map((it, i) => (
                         <div
                             key={i}
-                            className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                            className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                         >
                             {columns.map((c) => (
                                 <div key={c.key} className={c.span || "col-span-3"}>
@@ -137,7 +137,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
             </div>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="glass max-w-md border-white/10">
+                <DialogContent className="glass max-w-md">
                     <DialogHeader>
                         <DialogTitle>New {title.replace(/s$/, "")}</DialogTitle>
                     </DialogHeader>
@@ -149,7 +149,6 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                                     value={form[f.key] || ""}
                                     onChange={(e) => set({ [f.key]: e.target.value })}
                                     placeholder={f.placeholder}
-                                    className="border-white/10 bg-white/[0.03]"
                                 />
                             </div>
                         ))}
@@ -168,7 +167,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
 function VmProtection() {
     return (
         <Tabs defaultValue="snapshots">
-            <TabsList className="bg-white/[0.03] p-1">
+            <TabsList className="p-1">
                 <TabsTrigger value="snapshots" className="gap-1.5">
                     <Camera className="h-3.5 w-3.5" /> Snapshots
                 </TabsTrigger>
@@ -340,7 +339,7 @@ export default function VirtualMachines() {
         return (
             <div data-testid={VMS.root} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-64 rounded-2xl bg-white/[0.04]" />
+                    <Skeleton key={i} className="h-64 rounded-2xl" />
                 ))}
             </div>
         );
@@ -369,8 +368,8 @@ export default function VirtualMachines() {
                             </div>
 
                             <div className="mt-4 grid grid-cols-2 gap-3">
-                                <FeatureTile size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu} className="border border-white/5 bg-white/[0.02] p-2.5" />
-                                <FeatureTile size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory} className="border border-white/5 bg-white/[0.02] p-2.5" />
+                                <FeatureTile nested size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu} className="p-2.5" />
+                                <FeatureTile nested size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory} className="p-2.5" />
                             </div>
 
                             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
@@ -385,7 +384,7 @@ export default function VirtualMachines() {
                                         variant="outline"
                                         disabled={busy === `${vm.namespace}/${vm.name}:stop`}
                                         onClick={() => act(vm, "stop", "stop")}
-                                        className="rounded-xl border-white/10 bg-white/[0.03]"
+                                        className="rounded-xl"
                                     >
                                         <Square className="mr-1 h-3.5 w-3.5" /> Stop
                                     </Button>
@@ -395,7 +394,7 @@ export default function VirtualMachines() {
                                         variant="outline"
                                         disabled={busy === `${vm.namespace}/${vm.name}:start`}
                                         onClick={() => act(vm, "start", "start")}
-                                        className="rounded-xl border-white/10 bg-white/[0.03]"
+                                        className="rounded-xl"
                                     >
                                         <Play className="mr-1 h-3.5 w-3.5" /> Start
                                     </Button>
@@ -405,7 +404,7 @@ export default function VirtualMachines() {
                                     variant="outline"
                                     disabled={!running || busy === `${vm.namespace}/${vm.name}:migrate`}
                                     onClick={() => act(vm, "migrate", "migrate")}
-                                    className="rounded-xl border-white/10 bg-white/[0.03]"
+                                    className="rounded-xl"
                                 >
                                     <ArrowRightLeft className="mr-1 h-3.5 w-3.5" /> Migrate
                                 </Button>

@@ -15,10 +15,10 @@ export default function SpecTable({ title, rows = [], columns = 1, className, ..
     const groups = columns === 2 ? splitRows(rows) : [rows];
     return (
         <GlassCard className={cn("overflow-hidden p-0", className)} {...rest}>
-            {title && <div className="border-b border-white/5 px-4 py-3 text-sm font-medium">{title}</div>}
-            <div className={cn("grid", columns === 2 && "md:grid-cols-2 md:divide-x md:divide-white/5")}>
+            {title && <div className="border-b px-4 py-3 text-sm font-medium">{title}</div>}
+            <div className={cn("grid", columns === 2 && "md:grid-cols-2 md:divide-x")}>
                 {groups.map((group, gi) => (
-                    <div key={gi} className="divide-y divide-white/5">
+                    <div key={gi} className="divide-y">
                         {group.map((r, i) => (
                             <div key={r.label ?? i} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
                                 <span className="text-muted-foreground">{r.label}</span>

@@ -68,7 +68,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create secret</DialogTitle>
                 </DialogHeader>
@@ -76,17 +76,17 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="border-white/10 bg-white/[0.03]" />
+                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Type</Label>
                         <Select value={type} onValueChange={setType}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -103,8 +103,8 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
                         <div className="space-y-2">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="border-white/10 bg-white/[0.03]" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="border-white/10 bg-white/[0.03]" />
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
                                     <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-rose-400">
                                         <X className="h-4 w-4" />
                                     </button>
@@ -139,17 +139,17 @@ function ExternalSecretsSection() {
 
     return (
         <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-sm font-medium">
+            <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                 <Link2 className="h-4 w-4 text-i17-sky" /> External Secrets
             </div>
             <div className="max-h-[300px] overflow-auto scrollbar-thin">
-                {!items && <Skeleton className="m-4 h-16 rounded-xl bg-white/[0.04]" />}
+                {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
                 {items && items.length === 0 && (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">No ExternalSecret resources found.</div>
                 )}
                 {items &&
                     items.map((s, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]">
+                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
                             <div className="col-span-5 min-w-0">
                                 <div className="mono truncate text-sm">{s.name}</div>
                                 <div className="text-[11px] text-muted-foreground">{s.namespace}</div>
@@ -207,8 +207,8 @@ export default function Secrets() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -221,7 +221,7 @@ export default function Secrets() {
                 description="Opaque, TLS and registry secrets across all namespaces."
                 action={
                     <>
-                        <Button size="sm" variant="outline" onClick={load} className="rounded-xl border-white/10 bg-white/[0.03]">
+                        <Button size="sm" variant="outline" onClick={load} className="rounded-xl bg-muted/30">
                             <RefreshCcw className="mr-1.5 h-3.5 w-3.5" /> Refresh
                         </Button>
                         <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
@@ -234,7 +234,7 @@ export default function Secrets() {
             <GlassCard className="p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search secret name" value={q} onChange={(e) => setQ(e.target.value)} className="border-white/10 bg-white/[0.03] pl-9" />
+                    <Input placeholder="Search secret name" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
                 </div>
             </GlassCard>
 
@@ -242,7 +242,7 @@ export default function Secrets() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Type</TableHead>
@@ -253,7 +253,7 @@ export default function Secrets() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((s) => (
-                                <TableRow key={`${s.namespace}/${s.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                <TableRow key={`${s.namespace}/${s.name}`} className="hover:bg-muted">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
                                         <KeySquare className="h-3.5 w-3.5 shrink-0 text-i17-lavender" />
                                         <span className="min-w-0 truncate" title={s.name}>{s.name}</span>
@@ -263,7 +263,7 @@ export default function Secrets() {
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {(s.keys || []).map((k) => (
-                                                <Badge key={k} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
                                                     {k}
                                                 </Badge>
                                             ))}

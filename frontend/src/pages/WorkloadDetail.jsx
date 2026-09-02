@@ -71,7 +71,7 @@ export default function WorkloadDetail() {
         );
     }
 
-    if (!detail) return <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />;
+    if (!detail) return <Skeleton className="h-96 rounded-2xl bg-muted" />;
 
     return (
         <div className="space-y-6">
@@ -82,7 +82,7 @@ export default function WorkloadDetail() {
             <DetailHeader eyebrow={kind} name={detail.name} meta={<span>{detail.namespace}</span>} />
 
             <Tabs defaultValue="overview">
-                <TabsList className="bg-white/[0.03] p-1">
+                <TabsList className="bg-muted p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Tag className="h-3.5 w-3.5" /> Overview
                     </TabsTrigger>
@@ -102,7 +102,7 @@ export default function WorkloadDetail() {
                         <div className="mb-3 text-sm font-medium">Labels</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (
-                                <Badge key={k} variant="outline" className="mono text-[11px] border-white/10 bg-white/[0.03]">
+                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
                                     {k}={v}
                                 </Badge>
                             ))}
@@ -125,7 +125,7 @@ export default function WorkloadDetail() {
                             <div className="mb-3 text-sm font-medium">Container ports</div>
                             <div className="flex flex-wrap gap-1.5">
                                 {detail.containerPorts.map((p, i) => (
-                                    <Badge key={i} variant="outline" className="mono text-[11px] border-white/10 bg-white/[0.03]">
+                                    <Badge key={i} variant="outline" className="mono text-[11px] bg-muted/30">
                                         {p.name ? `${p.name}: ` : ""}
                                         {p.containerPort}/{p.protocol || "TCP"}
                                     </Badge>
@@ -160,7 +160,7 @@ export default function WorkloadDetail() {
                             <Link
                                 key={p.name}
                                 to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`}
-                                className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none hover:bg-white/[0.03]"
+                                className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
                             >
                                 <div className="col-span-4 mono truncate text-sm">{p.name}</div>
                                 <div className="col-span-2 mono text-xs text-muted-foreground">{p.node}</div>
@@ -180,7 +180,7 @@ export default function WorkloadDetail() {
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No related events.</div>
                         )}
                         {(detail.relatedEvents || []).map((e, i) => (
-                            <div key={i} className="grid grid-cols-12 items-center gap-3 border-b border-white/5 px-4 py-3 last:border-none">
+                            <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none">
                                 <div className="col-span-2">
                                     <StatusBadge status={e.type} />
                                 </div>

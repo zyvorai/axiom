@@ -72,23 +72,23 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Add user</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Username</Label>
-                        <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" className="border-white/10 bg-white/[0.03]" />
+                        <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Password (min 8 characters)</Label>
-                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="border-white/10 bg-white/[0.03]" />
+                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Role</Label>
                         <Select value={role} onValueChange={setRole}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -104,7 +104,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
                                 placeholder="team-a, team-b"
-                                className="border-white/10 bg-white/[0.03]"
+                                className="bg-muted/30"
                             />
                         </div>
                     )}
@@ -159,7 +159,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
 
     return (
         <Dialog open={!!user} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md border-white/10">
+            <DialogContent className="glass max-w-md">
                 <DialogHeader>
                     <DialogTitle>Edit {user?.username}</DialogTitle>
                 </DialogHeader>
@@ -167,7 +167,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Role</Label>
                         <Select value={role} onValueChange={setRole}>
-                            <SelectTrigger className="border-white/10 bg-white/[0.03]">
+                            <SelectTrigger className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -183,13 +183,13 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
                                 placeholder="team-a, team-b"
-                                className="border-white/10 bg-white/[0.03]"
+                                className="bg-muted/30"
                             />
                         </div>
                     )}
                     <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">New password (leave blank to keep current)</Label>
-                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="border-white/10 bg-white/[0.03]" />
+                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="bg-muted/30" />
                     </div>
                 </div>
                 <DialogFooter>
@@ -233,8 +233,8 @@ export default function Users() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -255,7 +255,7 @@ export default function Users() {
             <GlassCard className="p-0 overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="border-white/5 hover:bg-transparent">
+                        <TableRow className="hover:bg-transparent">
                             <TableHead>Username</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead>Namespaces</TableHead>
@@ -265,7 +265,7 @@ export default function Users() {
                     </TableHeader>
                     <TableBody>
                         {data.map((u) => (
-                            <TableRow key={u.username} className="border-white/5 hover:bg-white/[0.03]">
+                            <TableRow key={u.username} className="hover:bg-muted">
                                 <TableCell className="font-medium">{u.username}</TableCell>
                                 <TableCell>
                                     <Badge
@@ -273,7 +273,7 @@ export default function Users() {
                                         className={
                                             u.role === "admin"
                                                 ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage"
-                                                : "border-white/10 bg-white/[0.03] text-muted-foreground"
+                                                : "bg-muted/30 text-muted-foreground"
                                         }
                                     >
                                         {u.role === "admin" ? (
@@ -288,7 +288,7 @@ export default function Users() {
                                     {u.namespaces && u.namespaces.length > 0 ? (
                                         <div className="flex flex-wrap gap-1">
                                             {u.namespaces.map((ns) => (
-                                                <Badge key={ns} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                <Badge key={ns} variant="outline" className="mono text-[10px] bg-muted/30">
                                                     {ns}
                                                 </Badge>
                                             ))}

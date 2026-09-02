@@ -38,8 +38,8 @@ export default function Services() {
     if (!data) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -55,7 +55,7 @@ export default function Services() {
             <GlassCard className="p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search service name" value={q} onChange={(e) => setQ(e.target.value)} className="border-white/10 bg-white/[0.03] pl-9" />
+                    <Input placeholder="Search service name" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
                 </div>
             </GlassCard>
 
@@ -63,7 +63,7 @@ export default function Services() {
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableRow className="hover:bg-transparent">
                                 <TableHead>Name</TableHead>
                                 <TableHead>Namespace</TableHead>
                                 <TableHead>Type</TableHead>
@@ -75,7 +75,7 @@ export default function Services() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((s) => (
-                                <TableRow key={`${s.namespace}/${s.name}`} className="border-white/5 hover:bg-white/[0.03]">
+                                <TableRow key={`${s.namespace}/${s.name}`} className="hover:bg-muted">
                                     <TableCell className="font-medium">{s.name}</TableCell>
                                     <TableCell className="mono text-xs">{s.namespace}</TableCell>
                                     <TableCell className="text-xs">{s.type}</TableCell>
@@ -83,7 +83,7 @@ export default function Services() {
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {(s.ports || []).map((p, i) => (
-                                                <Badge key={i} variant="outline" className="mono text-[10px] border-white/10 bg-white/[0.03]">
+                                                <Badge key={i} variant="outline" className="mono text-[10px] bg-muted/30">
                                                     {p.port}
                                                     {p.targetPort ? `→${p.targetPort}` : ""}/{p.protocol || "TCP"}
                                                 </Badge>

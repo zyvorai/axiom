@@ -33,16 +33,16 @@ export default function UserMenu() {
                     {user.initials}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass w-60 rounded-2xl border-white/10 p-2">
+            <DropdownMenuContent align="end" className="glass w-60 rounded-2xl p-2">
                 <DropdownMenuLabel className="px-2 py-1.5">
                     <div className="text-sm font-medium">{user.name}</div>
                     <div className="text-xs font-normal text-muted-foreground">{user.role}</div>
                 </DropdownMenuLabel>
-                <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
                     <ShieldCheck className="h-3 w-3 text-i17-sage" />
                     {user.authMethod === "oidc" ? "SSO" : "Local"} · {user.mode}
                 </div>
-                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuSeparator className="bg-muted" />
                 <DropdownMenuItem
                     data-testid={USER_MENU.signOut}
                     onClick={handleSignOut}

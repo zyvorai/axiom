@@ -19,13 +19,13 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
     const name = instance.metadata?.name || instance.name || "—";
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-2xl border-white/10">
+            <DialogContent className="glass max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">
                         {crd.kind} · {name}
                     </DialogTitle>
                 </DialogHeader>
-                <pre className="mono max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] text-foreground/90">
+                <pre className="mono max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-black/30 p-3 text-[11px] text-foreground/90">
                     {JSON.stringify(instance, null, 2)}
                 </pre>
             </DialogContent>
@@ -85,8 +85,8 @@ export default function CustomResources() {
     if (!crds) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-96 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -101,14 +101,14 @@ export default function CustomResources() {
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
                 <GlassCard className="p-0 overflow-hidden">
-                    <div className="border-b border-white/5 p-3">
+                    <div className="border-b p-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search CRDs"
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
-                                className="border-white/10 bg-white/[0.03] pl-9"
+                                className="bg-muted/30 pl-9"
                             />
                         </div>
                     </div>
@@ -123,7 +123,7 @@ export default function CustomResources() {
                                         setSelected(c);
                                         setDetail(null);
                                     }}
-                                    className={`flex w-full items-center gap-3 border-b border-white/5 px-4 py-3 text-left last:border-none hover:bg-white/[0.03] ${active ? "bg-white/[0.06]" : ""}`}
+                                    className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left last:border-none hover:bg-muted ${active ? "bg-muted" : ""}`}
                                 >
                                     <Layers className="h-4 w-4 shrink-0 text-i17-lavender" />
                                     <div className="min-w-0 flex-1">
@@ -132,7 +132,7 @@ export default function CustomResources() {
                                             {c.group}/{c.version}
                                         </div>
                                     </div>
-                                    <Badge variant="outline" className="border-white/10 bg-white/[0.03] text-[10px]">
+                                    <Badge variant="outline" className="bg-muted/30 text-[10px]">
                                         {c.scope}
                                     </Badge>
                                 </button>

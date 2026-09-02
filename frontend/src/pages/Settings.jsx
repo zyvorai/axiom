@@ -15,7 +15,7 @@ function Field({ label, ...props }) {
     return (
         <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">{label}</Label>
-            <Input className="border-white/10 bg-white/[0.03]" {...props} />
+            <Input className="bg-muted/30" {...props} />
         </div>
     );
 }
@@ -32,7 +32,7 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
                     className={
                         configured
                             ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage hover:bg-i17-sage/10"
-                            : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.03]"
+                            : "bg-muted/30 text-muted-foreground hover:bg-muted"
                     }
                 >
                     {configured ? "configured" : "not configured"}
@@ -44,7 +44,7 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
                     <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
                 </Button>
                 {onTest && (
-                    <Button size="sm" variant="outline" onClick={onTest} disabled={testing} className="rounded-xl border-white/10 bg-white/[0.03]">
+                    <Button size="sm" variant="outline" onClick={onTest} disabled={testing} className="rounded-xl bg-muted/30">
                         <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {testing ? "Testing…" : "Test connection"}
                     </Button>
                 )}
@@ -228,8 +228,8 @@ export default function Settings() {
     if (!data || !form) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
-                <Skeleton className="h-64 rounded-2xl bg-white/[0.04]" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
@@ -316,7 +316,7 @@ export default function Settings() {
                         className={
                             data.notifyConfigured
                                 ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage hover:bg-i17-sage/10"
-                                : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.03]"
+                                : "bg-muted/30 text-muted-foreground hover:bg-muted"
                         }
                     >
                         {data.notifyConfigured ? "configured" : "not configured"}
@@ -338,7 +338,7 @@ export default function Settings() {
                         placeholder="https://your-endpoint.example.com/hooks/axiom"
                     />
                 </div>
-                <div className="mt-3 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5">
+                <div className="mt-3 flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2.5">
                     <div>
                         <div className="text-sm">Forward Warning events automatically</div>
                         <div className="text-xs text-muted-foreground">Polls every 60s and pushes new cluster Warning events to the channels above.</div>
@@ -349,10 +349,10 @@ export default function Settings() {
                     <Button size="sm" onClick={saveNotify} disabled={busy === "notify-save"} className="rounded-xl">
                         <Save className="mr-1.5 h-3.5 w-3.5" /> {busy === "notify-save" ? "Saving…" : "Save"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={testSlack} disabled={busy === "slack-test"} className="rounded-xl border-white/10 bg-white/[0.03]">
+                    <Button size="sm" variant="outline" onClick={testSlack} disabled={busy === "slack-test"} className="rounded-xl bg-muted/30">
                         <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {busy === "slack-test" ? "Testing…" : "Test Slack"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={testWebhook} disabled={busy === "webhook-test"} className="rounded-xl border-white/10 bg-white/[0.03]">
+                    <Button size="sm" variant="outline" onClick={testWebhook} disabled={busy === "webhook-test"} className="rounded-xl bg-muted/30">
                         <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {busy === "webhook-test" ? "Testing…" : "Test webhook"}
                     </Button>
                 </div>
