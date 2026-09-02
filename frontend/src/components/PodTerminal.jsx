@@ -68,6 +68,11 @@ export default function PodTerminal({ namespace, name, containers }) {
         term.reset();
         term.writeln(`\x1b[90mConnecting to ${namespace}/${name} (${shell})…\x1b[0m`);
         setStatus("connecting");
+
+        let sawOpen = false;
+        let sawPayload = false;
+        let explained = false;
+
         const token = sessionStorage.getItem("axiom.basicAuth");
         const proto = window.location.protocol === "https:" ? "wss" : "ws";
         const params = new URLSearchParams({ shell });
@@ -79,7 +84,17 @@ export default function PodTerminal({ namespace, name, containers }) {
         ws.binaryType = "arraybuffer";
         wsRef.current = ws;
 
+        const notePayload = (text) => {
+            if (!text) return;
+            sawPayload = true;
+            const lower = text.toLowerCase();
+            if (lower.includes("exec failed") || lower.includes("no such file") || lower.includes("distroless") || lower.includes("no shell")) {
+                explained = true;
+            }
+        };
+
         ws.onopen = () => {
+            sawOpen = true;
             setStatus("connected");
             const { cols, rows } = term;
             ws.send(`__resize__:${cols}x${rows}`);
@@ -89,28 +104,41 @@ export default function PodTerminal({ namespace, name, containers }) {
         };
         ws.onmessage = (e) => {
             if (e.data instanceof ArrayBuffer) {
-                term.write(new Uint8Array(e.data));
+                const bytes = new Uint8Array(e.data);
+                try {
+                    notePayload(new TextDecoder().decode(bytes));
+                } catch {
+                    sawPayload = true;
+                }
+                term.write(bytes);
             } else {
+                notePayload(String(e.data));
                 term.write(e.data);
             }
         };
         ws.onerror = () => {
+            // Browsers often fire onerror before onclose even when the server
+            // already streamed an exec failure — don't blame TLS in that case.
+            if (sawOpen || sawPayload || explained) return;
             setStatus("error");
             term.writeln(
-                "\r\n\x1b[31mWebSocket error.\x1b[0m If this site uses a self-signed cert, open the page over HTTPS once and accept the certificate, then retry Connect."
+                "\r\n\x1b[31mCould not open the terminal WebSocket.\x1b[0m If this site uses a self-signed cert, open the page over HTTPS once and accept the certificate, then retry Connect."
             );
         };
         ws.onclose = (ev) => {
             setStatus("closed");
             dataDispRef.current?.dispose();
             dataDispRef.current = null;
-            if (ev.code !== 1000 && ev.code !== 1001) {
-                const reason = ev.reason || `code ${ev.code}`;
-                term.writeln(`\r\n\x1b[33mSession closed (${reason}).\x1b[0m`);
-                term.writeln(
-                    "\x1b[90mTip: pick /bin/sh (or ash). Distroless images have no shell — try a workload like redis/nginx.\x1b[0m"
-                );
+            if (ev.code === 1000 || ev.code === 1001) return;
+            if (explained) return;
+            if (!sawOpen && !sawPayload) {
+                term.writeln("\r\n\x1b[33mConnection closed before a session started.\x1b[0m");
+                return;
             }
+            term.writeln(`\r\n\x1b[33mSession ended.\x1b[0m`);
+            term.writeln(
+                "\x1b[90mIf the shell binary is missing, this image is likely distroless — try a redis/nginx/busybox pod, or one-shot exec with a binary that exists.\x1b[0m"
+            );
         };
     };
 
@@ -173,6 +201,11 @@ export default function PodTerminal({ namespace, name, containers }) {
                     {status}
                 </span>
             </div>
+            {(namespace === "axiom-system" || (name || "").startsWith("zyvor-axiom")) && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                    The Axiom console image is distroless — it has no <span className="mono">/bin/sh</span>. Open a different pod (e.g. redis/nginx) for an interactive shell.
+                </p>
+            )}
             <div ref={containerRef} className="h-[420px] overflow-hidden rounded-lg border border-border bg-[#0d1117] p-2" />
         </div>
     );
