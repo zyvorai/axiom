@@ -18,9 +18,9 @@ Integrations, clusters, theme, and console configuration.
 ## Operate from the console (UX)
 
 1. Open `/settings`.
-2. Integrations: Atlas URL/token → Save → Test connection; OIDC/SAML; PacketWolf.
-3. Clusters: review activated cluster label (`AXIOM_CLUSTER_NAME`).
-4. Theme toggle via shell control.
+2. **Clusters:** review Healthy / NotReady, activate another kubeconfig when multi-cluster is configured. Sidebar shows the active name and links here.
+3. **Appearance:** toggle light / dark theme (stored in this browser). Also available via ⌘K → Toggle theme.
+4. Integrations: Atlas URL/token → Save → Test connection; OIDC/SAML; PacketWolf.
 5. **Empty / fail:** Test connection failed → network/token; OIDC redirect URI must be `https://<host>:30590/api/v1/auth/oidc/callback`.
 6. **Success:** Integration cards healthy; Atlas/Networking panels populate.
 

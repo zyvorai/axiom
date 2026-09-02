@@ -420,7 +420,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             className="min-h-[100px] bg-muted/30 mono text-xs"
                         />
                         {intentPreview && (
-                            <pre className="mono max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-black/30 p-3 text-[11px] text-muted-foreground">
+                            <pre className="mono max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[11px] text-muted-foreground">
                                 {intentPreview.receipt}
                             </pre>
                         )}

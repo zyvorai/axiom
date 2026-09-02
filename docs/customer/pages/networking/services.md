@@ -13,14 +13,16 @@ Kubernetes Service inventory and endpoints overview.
 ## How to get there
 
 - Route: `/services`
+- Detail: `/services/{namespace}/{name}`
 - Nav: **Sidebar → Services**
 
 ## Operate from the console (UX)
 
-1. Open `/services`; filter by namespace.
-2. Open a row for ports/selectors; correlate with Ingresses and Pods.
-3. **Empty / fail:** No services → deploy a workload first.
-4. **Success:** ClusterIP/NodePort/LB entries listed.
+1. Open `/services`; search by name.
+2. Click a row to open service detail (type, ClusterIP, ports, endpoints, selector-matched pods).
+3. From a pod row on the detail page, open pod detail.
+4. **Empty / fail:** No services → deploy a workload first.
+5. **Success:** ClusterIP/NodePort/LB entries listed; detail endpoints match the service.
 
 Console: `https://<host>:30590/` (NodePort HTTPS; override with `AXIOM_NODE_PORT`). Local demo: `http://<host>:5090` when `AXIOM_MODE=demo`. Never publish lab IPs — use `<host>`.
 

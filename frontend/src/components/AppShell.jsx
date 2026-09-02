@@ -23,9 +23,9 @@ export default function AppShell() {
                 <AmbientBackdrop />
                 <CommandPalette />
                 <TopBar />
-                <div className="flex min-h-0 flex-1 gap-4 p-4">
+                <div className="flex min-h-0 flex-1 gap-0 px-0 pt-0 lg:gap-0">
                     <Sidebar />
-                    <main className="scrollbar-thin min-w-0 flex-1 overflow-y-auto">
+                    <main className="scrollbar-thin min-w-0 flex-1 overflow-y-auto px-4 py-4 lg:px-6">
                         <div className="mx-auto w-full max-w-[1600px] space-y-4">
                             <ViewerBanner />
                             {showBreadcrumbs && <Breadcrumbs />}

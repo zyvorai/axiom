@@ -1,46 +1,41 @@
 # Axiom Design System (zeus-os)
 
-`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API, but the visual design system layered on top of that structure has since been fully replaced to match **zeus-os** (`../zeus-os`'s "WebShell" sidebar+content mode) — Axiom no longer uses kube-cockpit's original "Liquid Glass" iPhone-17 orange/coral palette. Soft charcoal dark theme (mist-blue primary accent, not pure black), an indigo/plasma "Daylight" light theme, self-hosted Inter + JetBrains Mono variable fonts (with `-apple-system`/`BlinkMacSystemFont` ahead of Inter in the stack, so Mac/iOS/Safari render real San Francisco), pill-shaped buttons, 0.9rem card radii.
+`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API. **Light** is Apple.com (`#f5f5f7` canvas, white cards, `#1d1d1f` ink, Action Blue `#0071e3` CTAs). **Dark** is GitHub Primer dark (`#0d1117` canvas, `#161b22` cards, `#30363d` borders, `#e6edf3` / `#8b949e` text, accent `#2f81f7`). Theme toggle lives under **Settings → Appearance**. Self-hosted Inter + JetBrains Mono with `-apple-system`/`BlinkMacSystemFont` first. Pill-shaped buttons, 0.9rem card radii.
 
 ## Tokens
 
 Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn convention), registered as Tailwind color/radius tokens in `frontend/tailwind.config.js`:
 
 ```css
-.dark {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 98%;
-  --primary: 200 85% 52%;       /* mist blue */
-  --radius: 0.9rem;
-  --brand-hex: hsl(200 85% 52%);
-  --success: 158 64% 52%;
-  --warning: 43 96% 56%;
-  --info: 220 70% 58%;
-  --danger: 0 72% 51%;
-  --glass-bg: 255 255 255 / 0.04;
-  --glass-border: 255 255 255 / 0.10;
-  --grid-color: 255 255 255 / 0.05;
-  --k-ok: 158 73% 54%;
-  --k-warn: 43 96% 56%;
-  --k-err: 0 72% 51%;
-  --k-info: 200 85% 52%;
-  --chart-1..5: /* five distinct series hues, sourced from the accent set below */
-  --fs-xs..2xl, --fw-regular..bold, --lh-tight/normal: /* zeus-os type scale */
-  --sp-1..8: /* zeus-os spacing scale, 4px-64px */
-  --dur-fast/base/slow, --ease-out: /* motion tokens */
-  --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+:root { /* Apple light */
+  --background: 240 5% 96%;     /* #f5f5f7 */
+  --foreground: 240 6% 10%;     /* #1d1d1f */
+  --card: 0 0% 100%;
+  --primary: 211 100% 45%;      /* Action Blue #0071e3 */
+  --brand-hex: hsl(211 100% 45%);
+  /* … */
+}
+.dark { /* GitHub Primer dark */
+  --background: 216 28% 7%;     /* #0d1117 */
+  --foreground: 210 24% 93%;    /* #e6edf3 */
+  --card: 215 21% 11%;          /* #161b22 */
+  --border: 215 12% 21%;        /* #30363d */
+  --muted-foreground: 215 9% 58%; /* #8b949e */
+  --primary: 212 92% 58%;       /* #2f81f7 */
+  --brand-hex: hsl(212 92% 58%);
+  /* … */
 }
 ```
 
-`:root` (light mode) carries the "Daylight" palette instead — `--background: 220 20% 94%`, `--primary: 246 65% 54%` (indigo/plasma), same token names throughout. Both blocks define the full spacing/type-scale/motion tokens shown above; they're mode-agnostic values, not overridden per theme.
+Light = Apple.com; dark = GitHub Primer. Spacing/type/motion tokens are shared.
 
 Fonts are self-hosted via `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono` (imported at the top of `frontend/src/index.css`) — no Google Fonts or other external font CDN dependency. `--font-display` and `--font-mono` point at the variable-font families, with system-font fallback stacks behind them.
 
 ### Brand accent & the i17 palette
 
-`index.css` also defines a fuller accent palette under the legacy `--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold` variable names (kept because ~34 files already reference `i17-*`/`brand-*` Tailwind classes — retinting the CSS variable values in place, rather than renaming every call site, is what made the zeus-os port a token-only change almost everywhere). `--i17-cosmic` is the primary brand accent (≡ `--brand-hex`, mist-blue in dark mode / indigo-plasma in light mode), `--i17-sage` ≡ zeus-os's emerald "accent-live" (success/healthy), `--i17-lavender` ≡ its violet "accent-alt", `--i17-gold` ≡ its amber warning hue. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.) and as a `brand` variant on `components/ui/button.jsx` (`bg-gradient-to-r from-brand-cosmic to-brand-sky`).
+`index.css` also defines a fuller accent palette under the legacy `--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold` variable names (kept because ~34 files already reference `i17-*`/`brand-*` Tailwind classes — retinting the CSS variable values in place, rather than renaming every call site, is what made the zeus-os port a token-only change almost everywhere). `--i17-cosmic` is the primary brand accent (≡ `--brand-hex`, Apple Action Blue in both themes), `--i17-sage` ≡ zeus-os's emerald "accent-live" (success/healthy), `--i17-lavender` ≡ its violet "accent-alt", `--i17-gold` ≡ its amber warning hue. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.).
 
-**Convention**: the brand gradient (`variant="brand"`) is reserved for the single most prominent action on a page or dialog (the one thing a user came there to do — "Run workload," "Create X," "Install," "Save"). Every other button — secondary actions, row-level operations, less-frequent dialog confirms — uses the plain `default` or `outline` variant instead. This is deliberate: the gradient is a rare, confident accent, not a default button style.
+**Buttons**: `default` and `brand` are the same solid Apple Action Blue fill (white label, inset highlight, darken on hover) — matching login and apple.com CTAs. No cosmic→sky gradients. `variant="brand"` remains the semantic “primary action on this page” marker; `outline` / `secondary` / `ghost` stay neutral; only `destructive` keeps a non-blue hue.
 
 ## Glass utilities
 
@@ -56,11 +51,11 @@ Fonts are self-hosted via `@fontsource-variable/inter` and `@fontsource-variable
 | `.status-dot` | Health indicator (ok/warn/err/info), driven by `<StatusBadge>` |
 | `.glow-green/yellow/red/blue` | Box-shadow glow keyed to the same ok/warn/err/info hues |
 
-Buttons (`components/ui/button.jsx`) are pill-shaped (`rounded-full`) with an inset-highlight + brightness/lift hover on the `default`/`brand` variants, focus-visible outlined via the `--focus-ring` token rather than a plain ring utility.
+Buttons (`components/ui/button.jsx`) are pill-shaped (`rounded-full`) with a solid Apple Action Blue fill + inset highlight + darken-on-hover on the `default`/`brand` variants, focus-visible outlined via the `--focus-ring` token rather than a plain ring utility.
 
 ## Navigation
 
-`frontend/src/components/Sidebar.jsx` groups `constants/navItems.js`'s routes into sections (**Core**, **Cluster**, **Network**, **Storage**, **Config**, **Observe**, **Admin**, plus an **Extensions** group for dynamically-registered plugins), each rendered under an uppercase group-header label — mirroring zeus-os's own sidebar grouping convention. The sidebar is collapsible: a footer toggle switches between a full `w-64` expanded state (group labels + text labels) and a `w-[68px]` icon-only rail (group boundaries shown as thin dividers instead), persisted to `localStorage` (`axiom:sidebar-collapsed`) so the choice survives a reload.
+`frontend/src/components/Sidebar.jsx` groups `constants/navItems.js`'s routes into sections (**Core**, **Cluster**, **Network**, **Storage**, **Config**, **Observe**, **Admin**, plus an **Extensions** group for dynamically-registered plugins). The rail is apple.com-flat: same canvas as the page, hairline divider, text-color-only hover/active (no pills or card chrome). Expanded `w-48`, collapsed `w-11` icon rail; collapse choice persists in `localStorage` (`axiom:sidebar-collapsed`).
 
 Sidebar order:
 
@@ -112,7 +107,7 @@ The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card cente
 `AppShell.jsx` matches zeus-os's WebShell structure: a full-width sticky header spans the top, above a `[Sidebar, content]` row — not the earlier layout where the header sat inside the same centered column as the sidebar.
 
 - Fixed ambient backdrop (grid + orbs)
-- Flat sidebar (no brand mark — brand lives in the top bar): cluster switcher, grouped/collapsible nav (see Navigation above), theme pill toggle, collapse toggle
+- Flat sidebar (no brand mark — brand lives in the top bar): cluster switcher, grouped/collapsible thin rail, collapse toggle. Theme lives in Settings.
 - Full-width sticky header (`TopBar.jsx`, `h-12`, `border-b`, `bg-background/95 backdrop-blur`): **Zyvor mark + Axiom wordmark flush left** (links to `/overview`); compact Search chip + Connect + user menu flush right. Search opens the command palette (⌘K) — not a wide centered field.
 - `Breadcrumbs.jsx` renders inside the content area, above each page's body (`Clusters / {cluster} / {page}`) — matching zeus-os's placement rather than the header-inline breadcrumb this used to be. **Hidden on `/overview`** so the product home reads as a marketing first viewport.
 - Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive label instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
@@ -237,7 +232,12 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 
 ## Appearance
 
-Default is the zeus-os dark theme (soft charcoal ≈14% lightness + mist blue — lifted off near-black so Overview and chrome don't read as a void). Theme toggle in sidebar footer switches dark/light (`html.dark` toggled via `lib/theme.js`, persisted to `localStorage` under `kubecloud.theme`) between it and the "Daylight" light theme.
+Two themes via **Settings → Appearance** (`lib/theme.js`, `localStorage` key `kubecloud.theme`); also ⌘K → Toggle theme:
+
+- **Light** — Apple.com (`#f5f5f7` / white / Action Blue `#0071e3`)
+- **Dark** — GitHub Primer dark (`#0d1117` / `#161b22` / `#30363d` / accent `#2f81f7`)
+
+Default is dark. ⌘K → “Toggle light/dark mode” also switches.
 
 ## Page headers
 
@@ -253,4 +253,4 @@ A further pass pushed the app closer to apple.com/ipad's actual product-page rhy
 - **`components/SpecTable.jsx`** — an apple.com "Tech Specs" style label/value table (optional two-column split with a vertical hairline divider), replacing the scattered small metadata `GlassCard`s on `NodeDetail.jsx` (System section) and used for `PodDetail.jsx`'s pod-spec fields and `WorkloadDetail.jsx`'s annotations.
 - **`Onboarding.jsx`**'s step list now reads as an Apple "setup guide": each step gets a large numeral badge (`01`/`02`/…, replaced by a check mark once done) instead of a plain check/circle icon, and its per-step CTA is a real pill `Button` instead of a styled `<Link>`.
 - **`components/AutoTable.jsx`** — the shared table renderer behind ~15+ list pages (Atlas, CustomResources, Storage, Quotas, Ingresses, ConfigMaps, Secrets, Backups, Autoscaling, Jobs, Events, Networking's NetworkPolicy list, Ops sub-tabs) got roomier row padding and eyebrow-caps section-header typography, cascading the look to every consumer without per-page edits.
-- Login (`Login.jsx`/`axiom-login.css`) keeps Apple Action Blue / pill-radius / card-radius values scoped to that page (not promoted into shared app tokens). The product gate above the card (Zyvor mark + **Sign in to Axiom.**) is the marketing-page brand signal.
+- Login (`Login.jsx`/`axiom-login.css`) uses the same Apple Action Blue solid CTA as the shared `Button` (`default`/`brand`). The product gate above the card (Zyvor mark + **Sign in to Axiom.**) is the marketing-page brand signal.

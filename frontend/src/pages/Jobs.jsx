@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -131,7 +132,14 @@ export default function Jobs() {
                 rows={cronJobs}
                 empty="No CronJobs configured."
                 columns={[
-                    { key: "name", span: "col-span-3", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                    { key: "name", span: "col-span-3", render: (r) => (
+                        <>
+                            <Link to={`/cronjobs/${encodeURIComponent(r.namespace)}/${encodeURIComponent(r.name)}`} className="mono truncate text-primary hover:underline">
+                                {r.name}
+                            </Link>
+                            <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
+                        </>
+                    ) },
                     { key: "schedule", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.schedule}</span> },
                     { key: "status", span: "col-span-2", render: (r) => <StatusBadge status={r.suspend ? "Paused" : "Running"} /> },
                     { key: "lastSchedule", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.lastSchedule || "—"}</span> },
@@ -160,7 +168,14 @@ export default function Jobs() {
                 rows={jobs || []}
                 empty="No Jobs found."
                 columns={[
-                    { key: "name", span: "col-span-4", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}{r.ownerCronJob ? ` · from ${r.ownerCronJob}` : ""}</div></> },
+                    { key: "name", span: "col-span-4", render: (r) => (
+                        <>
+                            <Link to={`/jobs/${encodeURIComponent(r.namespace)}/${encodeURIComponent(r.name)}`} className="mono truncate text-primary hover:underline">
+                                {r.name}
+                            </Link>
+                            <div className="text-[11px] text-muted-foreground">{r.namespace}{r.ownerCronJob ? ` · from ${r.ownerCronJob}` : ""}</div>
+                        </>
+                    ) },
                     { key: "status", span: "col-span-2", render: (r) => <StatusBadge status={r.status} /> },
                     { key: "completions", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.completions}</span> },
                     { key: "duration", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.duration || "—"}</span> },

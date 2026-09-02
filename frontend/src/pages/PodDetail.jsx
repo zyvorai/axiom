@@ -90,7 +90,7 @@ function ExecPanel({ namespace, name, containers }) {
                     {busy ? "Running…" : "Run"}
                 </Button>
             </div>
-            <pre className="mono h-72 overflow-auto whitespace-pre-wrap rounded-lg border bg-black/40 p-3 text-[12px] text-foreground/90">
+            <pre className="mono h-72 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[12px] text-foreground/90">
                 {output || "Output will appear here."}
             </pre>
         </GlassCard>

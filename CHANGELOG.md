@@ -4,6 +4,18 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added
+- List → detail drill-downs for ConfigMaps, Secrets, Services, VMs, Jobs, and CronJobs (plus namespace services tab links). Command palette, Alerts, and Events deep-link to known object kinds. Breadcrumbs cover multi-segment detail paths.
+
+### Fixed
+- Pod interactive terminal: WebSocket upgrade always failed with 500 ("closed" in the UI) because the metrics `statusRecorder` wrapper did not implement `http.Hijacker`/`http.Flusher`, so gorilla/websocket could not hijack the connection. One-shot exec kept working; only the Terminal tab was broken.
+
+### Changed
+- Appearance theme toggle and cluster Healthy/activate moved from the left rail menu to **Settings**; sidebar is a thin flat rail (no card chrome).
+- Appearance: dark theme is **GitHub Primer dark** (`#0d1117` / `#161b22` / `#30363d` / accent `#2f81f7`), not charcoal. Light stays Apple.com. Theme toggle restored (default dark).
+- Buttons / primary accent: dropped mist-blue, indigo, and the cosmic→sky gradient. `default` and `brand` are solid blue CTAs (Apple Action Blue in light, GitHub accent blue in dark).
+- Namespaces: clicking a namespace opens `/namespaces/{name}` with pods, workloads, and services for that namespace (rows drill into pod/workload/service detail).
+
 ### Changed
 - Overview: apple.com-style marketing home — centered hero (no stats strip), capacity rings, oversized inventory, utilization charts, and **Stay informed** links to Alerts / Events / Logs. Alert and activity log dumps no longer appear on `/overview`; breadcrumbs are hidden on that route.
 - Shell: Zyvor mark + Axiom wordmark move to the top bar (left); compact Search chip (⌘K) sits with Connect and the user menu on the right. Brand mark removed from the sidebar (cluster switcher is the first chrome there). Header height tightened to `h-12`.

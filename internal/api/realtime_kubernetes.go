@@ -18,8 +18,8 @@ func RegisterRealtime(mux *http.ServeMux, provider platform.Provider) {
 			fail(w, 500, errors.New("interactive terminal requires Kubernetes provider"))
 			return
 		}
-		if err := p.ExecWS(r.Context(), w, r, r.PathValue("namespace"), r.PathValue("name"), r.URL.Query().Get("container"), r.URL.Query().Get("shell")); err != nil {
-			return
-		}
+		// ExecWS upgrades the connection; errors before upgrade leave no body,
+		// errors after upgrade are already on the wire / close the socket.
+		_ = p.ExecWS(r.Context(), w, r, r.PathValue("namespace"), r.PathValue("name"), r.URL.Query().Get("container"), r.URL.Query().Get("shell"))
 	})
 }

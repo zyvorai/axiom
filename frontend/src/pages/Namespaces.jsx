@@ -14,9 +14,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Boxes, Plus, Trash2 } from "lucide-react";
+import { Boxes, Plus, Trash2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { Link } from "react-router-dom";
 
 export default function Namespaces() {
     const confirm = useConfirm();
@@ -91,23 +92,46 @@ export default function Namespaces() {
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((n) => (
-                    <GlassCard key={n.name} className="p-5">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <Boxes className="h-4 w-4 shrink-0 text-i17-sky" />
-                                <div className="mono truncate text-sm">{n.name}</div>
+                    <GlassCard key={n.name} className="p-5 transition-colors hover:bg-muted/20">
+                        <Link
+                            to={`/namespaces/${encodeURIComponent(n.name)}`}
+                            className="block outline-none"
+                            data-testid={`namespace-card-${n.name}`}
+                        >
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <Boxes className="h-4 w-4 shrink-0 text-i17-sky" />
+                                    <div className="mono truncate text-sm">{n.name}</div>
+                                </div>
+                                <StatusBadge status={n.status} />
                             </div>
-                            <StatusBadge status={n.status} />
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <FeatureTile nested size="compact" mono label="Pods" value={n.pods} className="p-2.5" />
-                            <FeatureTile nested size="compact" mono label="Services" value={n.services} className="p-2.5" />
-                        </div>
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <FeatureTile nested size="compact" mono label="Pods" value={n.pods} className="p-2.5" />
+                                <FeatureTile nested size="compact" mono label="Services" value={n.services} className="p-2.5" />
+                            </div>
+                        </Link>
                         <div className="mt-4 flex items-center justify-between border-t pt-3">
-                            <span className="text-xs text-muted-foreground">{n.age}</span>
-                            <Button size="sm" variant="ghost" onClick={() => remove(n)} className="text-muted-foreground hover:text-rose-400">
-                                <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <Link
+                                to={`/namespaces/${encodeURIComponent(n.name)}`}
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                            >
+                                Open <ChevronRight className="h-3 w-3" />
+                            </Link>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">{n.age}</span>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        remove(n);
+                                    }}
+                                    className="text-muted-foreground hover:text-rose-400"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                            </div>
                         </div>
                     </GlassCard>
                 ))}

@@ -9,8 +9,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Apple Action Blue solid fill (#0071e3) — no gradients / alternate hues
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:brightness-110",
+          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.18)] hover:brightness-[0.92]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
@@ -20,7 +21,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-foreground/[0.06]",
         link: "text-primary underline-offset-4 hover:underline",
         brand:
-          "bg-gradient-to-r from-brand-cosmic to-brand-sky text-white shadow-sm hover:brightness-110",
+          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.18)] hover:brightness-[0.92]",
       },
       size: {
         default: "h-9 px-4 py-2",

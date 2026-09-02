@@ -1,0 +1,174 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { api } from "@/lib/api";
+import GlassCard from "@/components/GlassCard";
+import DetailHeader from "@/components/DetailHeader";
+import SpecTable from "@/components/SpecTable";
+import StatusBadge from "@/components/StatusBadge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, PlayCircle } from "lucide-react";
+import { toast } from "sonner";
+
+export default function CronJobDetail() {
+    const { namespace, name } = useParams();
+    const navigate = useNavigate();
+    const ns = decodeURIComponent(namespace || "");
+    const nm = decodeURIComponent(name || "");
+    const [cron, setCron] = useState(null);
+    const [jobs, setJobs] = useState([]);
+    const [busy, setBusy] = useState(false);
+
+    const load = () => {
+        const q = `?namespace=${encodeURIComponent(ns)}`;
+        return Promise.all([
+            api.get(`/cronjobs${q}`).catch(() => ({ data: [] })),
+            api.get(`/jobs${q}`).catch(() => ({ data: [] })),
+        ]).then(([cRes, jRes]) => {
+            const found = (cRes.data || []).find((c) => c.name === nm);
+            setCron(found || false);
+            setJobs(jRes.data || []);
+        });
+    };
+
+    useEffect(() => {
+        let alive = true;
+        const q = `?namespace=${encodeURIComponent(ns)}`;
+        Promise.all([
+            api.get(`/cronjobs${q}`).catch(() => ({ data: [] })),
+            api.get(`/jobs${q}`).catch(() => ({ data: [] })),
+        ]).then(([cRes, jRes]) => {
+            if (!alive) return;
+            const found = (cRes.data || []).find((c) => c.name === nm);
+            setCron(found || false);
+            setJobs(jRes.data || []);
+        });
+        return () => {
+            alive = false;
+        };
+    }, [ns, nm]);
+
+    const ownedJobs = useMemo(
+        () => (jobs || []).filter((j) => j.ownerCronJob === nm || (j.name || "").startsWith(`${nm}-`)),
+        [jobs, nm]
+    );
+
+    const trigger = async () => {
+        setBusy(true);
+        try {
+            await api.post(`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}/trigger`);
+            toast.success(`Triggered ${nm}`);
+            await load();
+        } catch (e) {
+            toast.error("Trigger failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    if (cron === null) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-20 rounded-2xl bg-muted" />
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
+            </div>
+        );
+    }
+
+    if (cron === false) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" size="sm" onClick={() => navigate("/jobs")} className="gap-1.5">
+                    <ArrowLeft className="h-3.5 w-3.5" /> Jobs
+                </Button>
+                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                    CronJob <span className="mono text-foreground">{ns}/{nm}</span> was not found.
+                </GlassCard>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <DetailHeader
+                eyebrow="CronJob"
+                name={nm}
+                meta={
+                    <>
+                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-primary hover:underline">
+                            {ns}
+                        </Link>
+                        <span>·</span>
+                        <StatusBadge status={cron.suspend ? "Paused" : "Running"} />
+                        <span>·</span>
+                        <span className="mono">{cron.schedule}</span>
+                        <span>·</span>
+                        <span>{cron.age || "—"}</span>
+                    </>
+                }
+                action={
+                    <div className="flex gap-2">
+                        <Button size="sm" variant="outline" disabled={busy} onClick={trigger} className="rounded-xl gap-1.5">
+                            <PlayCircle className="h-3.5 w-3.5" /> {busy ? "Triggering…" : "Run now"}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => navigate("/jobs")} className="rounded-xl gap-1.5">
+                            <ArrowLeft className="h-3.5 w-3.5" /> All jobs
+                        </Button>
+                    </div>
+                }
+            />
+
+            <SpecTable
+                title="Schedule"
+                rows={[
+                    { label: "Cron", value: cron.schedule || "—", mono: true },
+                    { label: "Suspended", value: cron.suspend ? "Yes" : "No" },
+                    { label: "Active jobs", value: String(cron.active ?? 0), mono: true },
+                    { label: "Last schedule", value: cron.lastSchedule || "—", mono: true },
+                ]}
+            />
+
+            <GlassCard className="overflow-hidden p-0">
+                <div className="border-b px-4 py-3 text-sm font-medium">Recent jobs ({ownedJobs.length})</div>
+                {ownedJobs.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No jobs from this CronJob yet.</div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Completions</TableHead>
+                                <TableHead>Age</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {ownedJobs.map((j) => (
+                                <TableRow
+                                    key={j.name}
+                                    className="cursor-pointer hover:bg-muted"
+                                    onClick={() => navigate(`/jobs/${encodeURIComponent(ns)}/${encodeURIComponent(j.name)}`)}
+                                >
+                                    <TableCell className="mono text-sm">{j.name}</TableCell>
+                                    <TableCell>
+                                        <StatusBadge status={j.status} />
+                                    </TableCell>
+                                    <TableCell className="mono text-xs text-muted-foreground">{j.completions || "—"}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{j.age || "—"}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </GlassCard>
+        </div>
+    );
+}

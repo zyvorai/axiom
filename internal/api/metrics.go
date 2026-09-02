@@ -1,7 +1,9 @@
 package api
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -82,6 +84,11 @@ func (m *metricsRegistry) writeTo(w *strings.Builder) {
 
 // statusRecorder wraps http.ResponseWriter to capture the status code for
 // metrics — the stdlib interface has no way to read it back otherwise.
+//
+// It must forward Hijacker and Flusher: the pod terminal WebSocket upgrade
+// and chunked log/SSE streams type-assert those interfaces on the writer
+// that reaches the handler. Without them, gorilla/websocket returns 500
+// ("response does not implement http.Hijacker") and the UI shows "closed".
 type statusRecorder struct {
 	http.ResponseWriter
 	status int
@@ -91,6 +98,22 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.status = code
 	r.ResponseWriter.WriteHeader(code)
 }
+
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	h, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("response does not implement http.Hijacker")
+	}
+	return h.Hijack()
+}
+
+func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
 
 func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
 	var b strings.Builder

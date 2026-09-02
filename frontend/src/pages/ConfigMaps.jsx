@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -183,7 +184,13 @@ export default function ConfigMaps() {
                                 <TableRow key={`${c.namespace}/${c.name}`} className="hover:bg-muted">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
                                         <FileCog className="h-3.5 w-3.5 shrink-0 text-i17-sky" />
-                                        <span className="min-w-0 truncate" title={c.name}>{c.name}</span>
+                                        <Link
+                                            to={`/configmaps/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`}
+                                            className="min-w-0 truncate text-primary hover:underline"
+                                            title={c.name}
+                                        >
+                                            {c.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{c.namespace}</TableCell>
                                     <TableCell>

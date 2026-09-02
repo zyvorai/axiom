@@ -174,7 +174,7 @@ export default function Logs() {
                 <div
                     ref={listRef}
                     data-testid={LOGS.stream}
-                    className="mono h-[60vh] overflow-auto scrollbar-thin whitespace-pre-wrap bg-black/40 p-4 text-[12.5px] leading-relaxed"
+                    className="mono h-[60vh] overflow-auto scrollbar-thin whitespace-pre-wrap bg-muted p-4 text-[12.5px] leading-relaxed"
                 >
                     {lines.length === 0 && (
                         <div className="text-muted-foreground">

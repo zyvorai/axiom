@@ -854,6 +854,14 @@ func (k *KubernetesProvider) ExecCommand(ctx context.Context, ns, pod, container
 	if len(command) == 0 {
 		return "", errors.New("command is required")
 	}
+	// Bound hang risk when the runtime never starts the process (common with
+	// stuck CRI / network-policy edge cases). Callers can still pass a shorter
+	// deadline via ctx.
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 45*time.Second)
+		defer cancel()
+	}
 	if container == "" {
 		p, err := k.client.CoreV1().Pods(ns).Get(ctx, pod, metav1.GetOptions{})
 		if err != nil {
@@ -886,16 +894,20 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 	if container == "" {
 		p, err := k.client.CoreV1().Pods(ns).Get(ctx, pod, metav1.GetOptions{})
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return err
 		}
 		if len(p.Spec.Containers) == 0 {
-			return errors.New("pod has no containers")
+			err := errors.New("pod has no containers")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return err
 		}
 		container = p.Spec.Containers[0].Name
 	}
 	req := k.client.CoreV1().RESTClient().Post().Resource("pods").Name(pod).Namespace(ns).SubResource("exec").VersionedParams(&corev1.PodExecOptions{Container: container, Command: []string{shell}, Stdin: true, Stdout: true, Stderr: true, TTY: true}, scheme.ParameterCodec)
 	executor, err := remotecommand.NewSPDYExecutor(k.config, http.MethodPost, req.URL())
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
 		return err
 	}
 	conn, err := wsUpgrader.Upgrade(w, r, nil)
@@ -912,12 +924,18 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 	defer close(resize.ch)
 	var writeMu sync.Mutex
 	out := lockedWSWriter{mu: &writeMu, conn: conn}
+	// Detach from the HTTP request context: some middleware cancel it when
+	// headers flush / the handler's surrounding stack thinks the request is
+	// done, which would kill an otherwise healthy PTY mid-session.
+	streamCtx, streamCancel := context.WithCancel(context.Background())
+	defer streamCancel()
 	readErr := make(chan error, 1)
 	go func() {
 		for {
 			typ, msg, err := conn.ReadMessage()
 			if err != nil {
 				readErr <- err
+				streamCancel()
 				return
 			}
 			if typ != websocket.TextMessage && typ != websocket.BinaryMessage {
@@ -937,21 +955,29 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 			}
 			if _, err := stdinW.Write(msg); err != nil {
 				readErr <- err
+				streamCancel()
 				return
 			}
 		}
 	}()
 	execErr := make(chan error, 1)
 	go func() {
-		execErr <- executor.StreamWithContext(ctx, remotecommand.StreamOptions{Stdin: stdinR, Stdout: out, Stderr: out, Tty: true, TerminalSizeQueue: resize})
+		execErr <- executor.StreamWithContext(streamCtx, remotecommand.StreamOptions{Stdin: stdinR, Stdout: out, Stderr: out, Tty: true, TerminalSizeQueue: resize})
 	}()
 	select {
 	case err := <-execErr:
+		if err != nil {
+			msg := fmt.Sprintf("\r\n\x1b[31mexec failed:\x1b[0m %s\r\n", err.Error())
+			if strings.Contains(err.Error(), "no such file") || strings.Contains(err.Error(), "executable file not found") {
+				msg += "\x1b[33mThis container has no shell (distroless/scratch). Try a different pod or container, or use one-shot exec with a binary that exists.\x1b[0m\r\n"
+			}
+			writeMu.Lock()
+			_ = conn.WriteMessage(websocket.TextMessage, []byte(msg))
+			writeMu.Unlock()
+		}
 		return err
 	case <-readErr:
 		return nil
-	case <-ctx.Done():
-		return ctx.Err()
 	}
 }
 

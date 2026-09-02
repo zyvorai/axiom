@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -16,6 +17,7 @@ import {
 import { Search } from "lucide-react";
 
 export default function Services() {
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
 
@@ -75,8 +77,20 @@ export default function Services() {
                         </TableHeader>
                         <TableBody>
                             {rows.map((s) => (
-                                <TableRow key={`${s.namespace}/${s.name}`} className="hover:bg-muted">
-                                    <TableCell className="font-medium">{s.name}</TableCell>
+                                <TableRow
+                                    key={`${s.namespace}/${s.name}`}
+                                    className="cursor-pointer hover:bg-muted"
+                                    onClick={() => navigate(`/services/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`)}
+                                >
+                                    <TableCell className="font-medium">
+                                        <Link
+                                            to={`/services/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
+                                            className="text-primary hover:underline"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {s.name}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell className="mono text-xs">{s.namespace}</TableCell>
                                     <TableCell className="text-xs">{s.type}</TableCell>
                                     <TableCell className="mono text-xs">{s.clusterIP}</TableCell>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -8,8 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, PlugZap, Save, Database, Activity, BellRing } from "lucide-react";
+import { ShieldCheck, PlugZap, Save, Database, Activity, BellRing, SunMoon, Cloud, Check } from "lucide-react";
 import { toast } from "sonner";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/theme";
+import { useCluster } from "@/lib/cluster";
+import StatusBadge from "@/components/StatusBadge";
+import { NAV } from "@/constants/testIds";
 
 function Field({ label, ...props }) {
     return (
@@ -54,6 +60,9 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
 }
 
 export default function Settings() {
+    const { hash } = useLocation();
+    const { theme } = useTheme();
+    const { clusters, active, activate, loading: clustersLoading, refresh: refreshClusters } = useCluster();
     const [data, setData] = useState(null);
     const [form, setForm] = useState(null);
     const [busy, setBusy] = useState("");
@@ -69,6 +78,14 @@ export default function Settings() {
             alive = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (hash !== "#clusters") return;
+        const t = requestAnimationFrame(() => {
+            document.getElementById("clusters")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return () => cancelAnimationFrame(t);
+    }, [hash, data]);
 
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -239,8 +256,78 @@ export default function Settings() {
             <PageHeader
                 eyebrow="SETTINGS"
                 title="Settings"
-                description="Configure single sign-on and platform integrations."
+                description="Clusters, appearance, single sign-on, and platform integrations."
             />
+
+            <GlassCard id="clusters" className="scroll-mt-4 p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <Cloud className="h-4 w-4 text-i17-cosmic" />
+                        <div className="text-sm font-medium">Clusters</div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={refreshClusters} disabled={clustersLoading} className="rounded-xl">
+                        Refresh
+                    </Button>
+                </div>
+                <p className="mb-3 text-xs text-muted-foreground">
+                    Health and activation for kubeconfigs wired into Axiom. Active cluster:{" "}
+                    <span className="mono text-foreground">{active?.label || active?.name || "—"}</span>
+                </p>
+                {clustersLoading && !clusters.length ? (
+                    <Skeleton className="h-24 rounded-xl bg-muted" />
+                ) : (
+                    <div className="divide-y rounded-xl border border-border">
+                        {(clusters || []).map((c) => {
+                            const isActive = c.name === active?.name || c.current;
+                            return (
+                                <div
+                                    key={c.name}
+                                    data-testid={NAV.clusterOption(c.name)}
+                                    className="flex items-center gap-3 px-3 py-3"
+                                >
+                                    <Check className={`h-4 w-4 shrink-0 ${isActive ? "opacity-100 text-primary" : "opacity-0"}`} />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="truncate text-sm font-medium">{c.label || c.name}</span>
+                                            <StatusBadge status={c.healthy ? "Healthy" : "NotReady"} />
+                                            {isActive && (
+                                                <Badge variant="secondary" className="text-[10px]">
+                                                    active
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <div className="mt-0.5 truncate text-xs text-muted-foreground">{c.server || c.name}</div>
+                                    </div>
+                                    {!isActive && (
+                                        <Button size="sm" variant="outline" onClick={() => activate(c.name)} className="rounded-xl shrink-0">
+                                            Activate
+                                        </Button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {(clusters || []).length === 0 && (
+                            <div className="px-3 py-8 text-center text-sm text-muted-foreground">No clusters configured.</div>
+                        )}
+                    </div>
+                )}
+            </GlassCard>
+
+            <GlassCard className="p-5">
+                <div className="mb-4 flex items-center gap-2">
+                    <SunMoon className="h-4 w-4 text-i17-cosmic" />
+                    <div className="text-sm font-medium">Appearance</div>
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-3 py-2.5">
+                    <div>
+                        <div className="text-sm">Theme</div>
+                        <div className="text-xs text-muted-foreground">
+                            {theme === "dark" ? "Dark (GitHub Primer)" : "Light (Apple)"} — stored in this browser.
+                        </div>
+                    </div>
+                    <ThemeToggle />
+                </div>
+            </GlassCard>
 
             <IntegrationCard
                 title="OIDC single sign-on"

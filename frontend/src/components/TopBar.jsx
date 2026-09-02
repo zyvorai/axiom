@@ -12,7 +12,7 @@ import ZyvorMark from "@/components/ZyvorMark";
 export default function TopBar() {
     const openPalette = () => window.dispatchEvent(new Event("axiom:palette"));
     return (
-        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl">
             <Link to="/overview" className="flex shrink-0 items-center gap-2" aria-label="Axiom home">
                 <ZyvorMark size={28} idPrefix="axiom-topbar" className="shrink-0" />
                 <span className="hidden text-[13px] font-semibold tracking-[-0.02em] sm:inline">

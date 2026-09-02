@@ -25,7 +25,7 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
                         {crd.kind} · {name}
                     </DialogTitle>
                 </DialogHeader>
-                <pre className="mono max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-black/30 p-3 text-[11px] text-foreground/90">
+                <pre className="mono max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-[11px] text-foreground/90">
                     {JSON.stringify(instance, null, 2)}
                 </pre>
             </DialogContent>

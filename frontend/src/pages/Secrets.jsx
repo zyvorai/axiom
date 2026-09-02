@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -256,7 +257,13 @@ export default function Secrets() {
                                 <TableRow key={`${s.namespace}/${s.name}`} className="hover:bg-muted">
                                     <TableCell className="flex max-w-xs items-center gap-2 font-medium">
                                         <KeySquare className="h-3.5 w-3.5 shrink-0 text-i17-lavender" />
-                                        <span className="min-w-0 truncate" title={s.name}>{s.name}</span>
+                                        <Link
+                                            to={`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
+                                            className="min-w-0 truncate text-primary hover:underline"
+                                            title={s.name}
+                                        >
+                                            {s.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="mono text-xs">{s.namespace}</TableCell>
                                     <TableCell className="mono text-xs">{s.type}</TableCell>

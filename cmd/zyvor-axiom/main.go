@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"log"
 	"net/http"
@@ -71,7 +72,15 @@ func main() {
 		OIDCViewerGroup: cfg.OIDCViewerGroup,
 	}))
 	mux.Handle("/", ui.Handler())
-	srv := &http.Server{Addr: cfg.Addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second}
+	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some
+	// browsers mishandle wss against an h2-advertising self-signed endpoint.
+	srv := &http.Server{
+		Addr:              cfg.Addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		TLSNextProto:      map[string]func(*http.Server, *tls.Conn, http.Handler){},
+	}
 	tlsEnabled := cfg.TLSCert != "" && cfg.TLSKey != ""
 	go func() {
 		log.Printf("Zyvor Axiom listening on %s mode=%s tls=%v", cfg.Addr, cfg.Mode, tlsEnabled)

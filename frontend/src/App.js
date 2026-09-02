@@ -14,12 +14,16 @@ import Workloads from "@/pages/Workloads";
 import Pods from "@/pages/Pods";
 import Networking from "@/pages/Networking";
 import VirtualMachines from "@/pages/VirtualMachines";
+import VMDetail from "@/pages/VMDetail";
 import Storage from "@/pages/Storage";
 import Atlas from "@/pages/Atlas";
 import Namespaces from "@/pages/Namespaces";
+import NamespaceDetail from "@/pages/NamespaceDetail";
 import Services from "@/pages/Services";
+import ServiceDetail from "@/pages/ServiceDetail";
 import Ingresses from "@/pages/Ingresses";
 import ConfigMaps from "@/pages/ConfigMaps";
+import ConfigMapDetail from "@/pages/ConfigMapDetail";
 import Quotas from "@/pages/Quotas";
 import HPA from "@/pages/HPA";
 import CustomResources from "@/pages/CustomResources";
@@ -30,7 +34,10 @@ import PodDetail from "@/pages/PodDetail";
 import Logs from "@/pages/Logs";
 import Events from "@/pages/Events";
 import Jobs from "@/pages/Jobs";
+import JobDetail from "@/pages/JobDetail";
+import CronJobDetail from "@/pages/CronJobDetail";
 import Secrets from "@/pages/Secrets";
+import SecretDetail from "@/pages/SecretDetail";
 import Backups from "@/pages/Backups";
 import Alerts from "@/pages/Alerts";
 import Ops from "@/pages/Ops";
@@ -78,20 +85,27 @@ export default function App() {
                                 <Route path="/platform-intents" element={<PlatformIntents />} />
                                 <Route path="/networking" element={<Networking />} />
                                 <Route path="/services" element={<Services />} />
+                                <Route path="/services/:namespace/:name" element={<ServiceDetail />} />
                                 <Route path="/ingresses" element={<Ingresses />} />
                                 <Route path="/configmaps" element={<ConfigMaps />} />
+                                <Route path="/configmaps/:namespace/:name" element={<ConfigMapDetail />} />
                                 <Route path="/quotas" element={<Quotas />} />
                                 <Route path="/autoscaling" element={<HPA />} />
                                 <Route path="/custom-resources" element={<CustomResources />} />
                                 <Route path="/plugins/:pluginId" element={<PluginView />} />
                                 <Route path="/namespaces" element={<Namespaces />} />
+                                <Route path="/namespaces/:name" element={<NamespaceDetail />} />
                                 <Route path="/vms" element={<VirtualMachines />} />
+                                <Route path="/vms/:namespace/:name" element={<VMDetail />} />
                                 <Route path="/storage" element={<Storage />} />
                                 <Route path="/atlas" element={<Atlas />} />
                                 <Route path="/logs" element={<Logs />} />
                                 <Route path="/events" element={<Events />} />
                                 <Route path="/jobs" element={<Jobs />} />
+                                <Route path="/jobs/:namespace/:name" element={<JobDetail />} />
+                                <Route path="/cronjobs/:namespace/:name" element={<CronJobDetail />} />
                                 <Route path="/secrets" element={<Secrets />} />
+                                <Route path="/secrets/:namespace/:name" element={<SecretDetail />} />
                                 <Route path="/backups" element={<Backups />} />
                                 <Route path="/alerts" element={<Alerts />} />
                                 <Route path="/ops" element={<Ops />} />

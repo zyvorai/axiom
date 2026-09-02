@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -45,7 +46,7 @@ function ConsolePanel({ vm }) {
     };
 
     return (
-        <div className="space-y-4 rounded-xl border border-white/10 bg-black/30 p-6">
+        <div className="space-y-4 rounded-xl border border-white/10 bg-muted p-6">
             <div className="flex items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06]">
                     <Terminal className="h-4 w-4 text-i17-sky" />
@@ -361,7 +362,12 @@ export default function VirtualMachines() {
                         <GlassCard key={`${vm.namespace}/${vm.name}`} data-testid={VMS.card(vm.name)} className="p-5">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <div className="mono truncate text-sm">{vm.name}</div>
+                                    <Link
+                                        to={`/vms/${encodeURIComponent(vm.namespace)}/${encodeURIComponent(vm.name)}`}
+                                        className="mono truncate text-sm text-primary hover:underline"
+                                    >
+                                        {vm.name}
+                                    </Link>
                                     <div className="mt-1 text-xs text-muted-foreground">{vm.os}</div>
                                 </div>
                                 <StatusBadge status={vm.status} />
@@ -426,7 +432,7 @@ export default function VirtualMachines() {
             <Dialog open={!!openVm} onOpenChange={(o) => !o && setOpenVm(null)}>
                 <DialogContent
                     data-testid={VMS.consoleModal}
-                    className="glass max-w-lg border-white/10 bg-black/70 p-4 backdrop-blur-2xl"
+                    className="glass max-w-lg border-border bg-card p-4 backdrop-blur-2xl"
                 >
                     <DialogHeader className="flex-row items-center justify-between">
                         <div>

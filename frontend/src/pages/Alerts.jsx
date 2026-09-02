@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
 import { AlertTriangle, ListChecks } from "lucide-react";
+import { resourceHref } from "@/lib/resourceHref";
 
 function relTime(iso) {
     try {
@@ -54,20 +56,32 @@ export default function Alerts() {
                 </div>
                 <div className="max-h-[400px] overflow-auto scrollbar-thin">
                     {warnings.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No active warnings.</div>}
-                    {warnings.map((w, i) => (
-                        <div key={i} className="flex items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                            <div className="min-w-0 flex-1">
-                                <div className="text-sm">
-                                    <span className="mono text-xs text-sky-300">{w.reason}</span> — {w.message}
+                    {warnings.map((w, i) => {
+                        const href = resourceHref(w.namespace, w.object);
+                        return (
+                            <div key={i} className="flex items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                                <div className="min-w-0 flex-1">
+                                    <div className="text-sm">
+                                        <span className="mono text-xs text-sky-300">{w.reason}</span> — {w.message}
+                                    </div>
+                                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                        {href ? (
+                                            <Link to={href} className="mono text-primary hover:underline">
+                                                {w.namespace}/{w.object}
+                                            </Link>
+                                        ) : (
+                                            <span className="mono">
+                                                {w.namespace}/{w.object}
+                                            </span>
+                                        )}{" "}
+                                        · ×{w.count}
+                                    </div>
                                 </div>
-                                <div className="mt-0.5 text-[11px] text-muted-foreground">
-                                    {w.namespace}/{w.object} · ×{w.count}
-                                </div>
+                                <div className="text-[11px] text-muted-foreground">{relTime(w.time)}</div>
                             </div>
-                            <div className="text-[11px] text-muted-foreground">{relTime(w.time)}</div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </GlassCard>
 
