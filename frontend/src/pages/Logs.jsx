@@ -183,7 +183,7 @@ export default function Logs() {
                     </div>
                 )}
                 {lines.map((l, i) => (
-                    <div key={i} className="text-[#f1f1f0]/
+                    <div key={i} style={{ color: "#f1f1f0" }}>
                         {l}
                     </div>
                 ))}
