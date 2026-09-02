@@ -80,3 +80,10 @@ export const NAV_ITEMS = [
 // Render order for the grouped sidebar; any item (e.g. a plugin) without
 // a matching group falls into "Extensions" at the end.
 export const NAV_GROUP_ORDER = ["Core", "Cluster", "Network", "Storage", "Config", "Observe", "Admin", "Extensions"];
+
+// Curated set for the collapsed "rail" sidebar — mirrors zeus-os's own rail
+// (RAIL_PINNED_ITEMS in its navigation config): a handful of top-level
+// destinations, one per domain, rendered as a plain flat icon list with no
+// group headers or dividers — instead of cramming every nav item into
+// icon-only form under 8 divided groups.
+export const RAIL_PINNED_KEYS = ["overview", "workloads", "networking", "storage", "ops", "settings"];

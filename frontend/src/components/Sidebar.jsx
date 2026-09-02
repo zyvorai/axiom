@@ -4,7 +4,7 @@ import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
 import { NAV } from "@/constants/testIds";
-import { NAV_ITEMS, NAV_GROUP_ORDER, resolveIcon } from "@/constants/navItems";
+import { NAV_ITEMS, NAV_GROUP_ORDER, RAIL_PINNED_KEYS, resolveIcon } from "@/constants/navItems";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +49,8 @@ export default function Sidebar() {
         label,
         items: ITEMS.filter((i) => (i.group || "Extensions") === label),
     })).filter((g) => g.items.length > 0);
+
+    const railItems = RAIL_PINNED_KEYS.map((key) => ITEMS.find((i) => i.key === key)).filter(Boolean);
 
     const toggleCollapsed = () => {
         setCollapsed((v) => {
@@ -96,54 +98,80 @@ export default function Sidebar() {
             <nav
                 id="axiom-primary-nav"
                 aria-label="Primary"
-                className="scrollbar-thin mt-4 flex-1 space-y-3 overflow-y-auto"
+                className={cn("scrollbar-thin mt-4 flex-1 overflow-y-auto", collapsed ? "space-y-0.5" : "space-y-3")}
             >
-                {groups.map((group) => (
-                    <div key={group.label}>
-                        {collapsed ? (
-                            <div className="my-2 h-px bg-border" aria-hidden="true" />
-                        ) : (
+                {collapsed ? (
+                    // Collapsed rail: a plain flat list of a few pinned, one-per-domain
+                    // destinations — no group headers or dividers — mirroring zeus-os's
+                    // own minimal rail instead of cramming every item into icon form.
+                    <ul className="space-y-0.5">
+                        {railItems.map(({ to, label, icon: Icon, key }) => (
+                            <li key={to}>
+                                <NavLink
+                                    to={to}
+                                    data-testid={NAV.link(key)}
+                                    title={label}
+                                    className={({ isActive }) =>
+                                        cn(
+                                            "group flex items-center justify-center rounded-xl px-2 py-2 text-sm font-medium transition-colors duration-200",
+                                            isActive
+                                                ? "bg-primary/12 text-foreground"
+                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        )
+                                    }
+                                >
+                                    {({ isActive }) => (
+                                        <Icon
+                                            className={cn(
+                                                "h-4 w-4 shrink-0 transition-colors",
+                                                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                            )}
+                                        />
+                                    )}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    groups.map((group) => (
+                        <div key={group.label}>
                             <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                                 {group.label}
                             </p>
-                        )}
-                        <ul className="space-y-0.5">
-                            {group.items.map(({ to, label, icon: Icon, key }) => (
-                                <li key={to}>
-                                    <NavLink
-                                        to={to}
-                                        data-testid={NAV.link(key)}
-                                        title={collapsed ? label : undefined}
-                                        className={({ isActive }) =>
-                                            cn(
-                                                "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200",
-                                                collapsed && "justify-center px-2",
-                                                isActive
-                                                    ? "bg-primary/12 text-foreground"
-                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                            )
-                                        }
-                                    >
-                                        {({ isActive }) => (
-                                            <>
-                                                <Icon
-                                                    className={cn(
-                                                        "h-4 w-4 shrink-0 transition-colors",
-                                                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                                                    )}
-                                                />
-                                                {!collapsed && <span className="truncate">{label}</span>}
-                                                {!collapsed && isActive && (
-                                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                                                )}
-                                            </>
-                                        )}
-                                    </NavLink>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
+                            <ul className="space-y-0.5">
+                                {group.items.map(({ to, label, icon: Icon, key }) => (
+                                    <li key={to}>
+                                        <NavLink
+                                            to={to}
+                                            data-testid={NAV.link(key)}
+                                            className={({ isActive }) =>
+                                                cn(
+                                                    "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200",
+                                                    isActive
+                                                        ? "bg-primary/12 text-foreground"
+                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                )
+                                            }
+                                        >
+                                            {({ isActive }) => (
+                                                <>
+                                                    <Icon
+                                                        className={cn(
+                                                            "h-4 w-4 shrink-0 transition-colors",
+                                                            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                                        )}
+                                                    />
+                                                    <span className="truncate">{label}</span>
+                                                    {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+                                                </>
+                                            )}
+                                        </NavLink>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))
+                )}
             </nav>
 
             {!collapsed && (
