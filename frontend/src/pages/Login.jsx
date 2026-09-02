@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Lock, ShieldCheck, KeyRound, ArrowRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -96,22 +96,108 @@ export default function Login() {
         });
     };
 
+    const loginDest = useMemo(() => {
+        if (typeof window === "undefined") return { host: "", origin: "", port: "", protocol: "" };
+        const { hostname, origin, port, protocol } = window.location;
+        return {
+            host: hostname || "localhost",
+            origin: origin || "",
+            port: port || (protocol === "https:" ? "443" : protocol === "http:" ? "80" : ""),
+            protocol: protocol.replace(":", "") || "https",
+        };
+    }, []);
+
+    useEffect(() => {
+        document.title = `Sign in · Axiom · ${loginDest.host || "cluster"}`;
+        return () => {
+            document.title = "Axiom";
+        };
+    }, [loginDest.host]);
+
+    const scrollToChapter = (id) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
     return (
-        <div data-testid={SSO.page} className="axiom-login-page">
-            {/* Apple Account–style product gate: mark → product name →
-                "Sign in to {Product}." so the destination is unambiguous
-                before the form. */}
-            <div className="axiom-login-brand">
+        <div data-testid={SSO.page} className="axiom-login-page login-page login-store-page">
+            <nav className="login-localnav" aria-label="Login chapters">
+                <a href="#login-product" onClick={(e) => { e.preventDefault(); scrollToChapter("login-product"); }}>Product</a>
+                <a href="#login-machine" onClick={(e) => { e.preventDefault(); scrollToChapter("login-machine"); }}>This machine</a>
+                <a href="#login-sign-in" onClick={(e) => { e.preventDefault(); scrollToChapter("login-sign-in"); }}>Sign in</a>
+                {loginDest.host ? (
+                    <span className="login-localnav-host" title={loginDest.origin}>{loginDest.host}</span>
+                ) : null}
+            </nav>
+
+            <main className="login-store-scroll" aria-label="Sign in">
+            <section id="login-product" className="login-chapter login-chapter-hero axiom-login-brand">
                 <ZyvorMark size={56} idPrefix="axiom-login" className="axiom-login-mark" />
                 <p className="axiom-login-product">Axiom</p>
                 <p className="axiom-login-product-by">by Zyvor</p>
                 <h1 className="axiom-login-hero-title">Sign in to Axiom.</h1>
                 <p className="axiom-login-tagline">
-                    Your Kubernetes-native private cloud console.
+                    {loginDest.host
+                        ? `Kubernetes-native private cloud on ${loginDest.host}. Confirm the machine below, then sign in.`
+                        : "Your Kubernetes-native private cloud console."}
                 </p>
-            </div>
+                <div className="login-cta" style={{ marginTop: "1.5rem" }}>
+                    <button type="button" className="login-cta-primary" onClick={() => scrollToChapter("login-machine")}>
+                        This machine
+                    </button>
+                    <button type="button" className="login-cta-secondary" onClick={() => scrollToChapter("login-sign-in")}>
+                        Sign in
+                    </button>
+                </div>
+            </section>
 
+            <section id="login-machine" className="login-chapter login-chapter-destination" aria-label="This machine">
+                <div className="login-chapter-inner">
+                    <p className="login-chapter-kicker">This machine</p>
+                    <h2 className="login-dest-title">{loginDest.host || "localhost"}.</h2>
+                    <p className="login-tagline">
+                        You are signing in to <strong style={{ color: "#fff", fontWeight: 600 }}>Axiom</strong> on
+                        this host — not a public cloud console.
+                    </p>
+                    <ul className="login-dest-facts">
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">Product</span>
+                            <span className="login-dest-fact-value is-display">Axiom</span>
+                        </li>
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">Host</span>
+                            <span className="login-dest-fact-value">{loginDest.host || "—"}</span>
+                        </li>
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">Origin</span>
+                            <span className="login-dest-fact-value">{loginDest.origin || "—"}</span>
+                        </li>
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">Protocol</span>
+                            <span className="login-dest-fact-value">
+                                {loginDest.protocol || "—"}
+                                {loginDest.port ? ` · ${loginDest.port}` : ""}
+                            </span>
+                        </li>
+                    </ul>
+                    <div className="login-cta">
+                        <button type="button" className="login-cta-primary" onClick={() => scrollToChapter("login-sign-in")}>
+                            Continue to sign in
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="login-sign-in" className="login-chapter login-chapter-sign-in">
             <div className={`axiom-login-card${shake ? " axiom-login-shake" : ""}`}>
+                <p className="login-sign-in-context">
+                    Signing in to <strong>Axiom</strong>
+                    {loginDest.host ? (
+                        <>
+                            {" "}
+                            on <span className="login-apple-host">{loginDest.host}</span>
+                        </>
+                    ) : null}
+                </p>
                 {step === "identity" ? (
                     <div key="identity">
                         <div className="axiom-login-eyebrow">Axiom account</div>
@@ -216,7 +302,12 @@ export default function Login() {
                 </div>
             </div>
 
+            </div>
+            </section>
+            </main>
+
             <p className="axiom-login-footer">Axiom by Zyvor · zyvor.dev</p>
         </div>
     );
 }
+
