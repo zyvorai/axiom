@@ -403,6 +403,11 @@
   font-size: 0.8125rem;
 }
 
+.login-sign-in-mode {
+  color: hsl(240 3% 46%);
+  font-weight: 500;
+}
+
 .login-chapter-destination .login-cta-secondary,
 .login-chapter-destination a.login-cta-secondary {
   border-color: hsl(0 0% 100% / 0.55);

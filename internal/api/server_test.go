@@ -71,3 +71,19 @@ func TestHealthDoesNotRequireAuth(t *testing.T) {
 		t.Fatalf("health expected 200 got %d: %s", w.Code, w.Body.String())
 	}
 }
+
+func TestAuthProvidersExposeKubectlContext(t *testing.T) {
+	h := New(platform.NewDemoSwitchableProvider(), "demo", "demo", "demo", "")
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/auth/providers", nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Fatalf("providers expected 200 got %d: %s", w.Code, w.Body.String())
+	}
+	body := w.Body.String()
+	for _, want := range []string{`"mode":"demo"`, `"context":"eu-west-1"`, `"server":"demo://eu-west-1"`, `"contexts":3`} {
+		if !bytes.Contains(w.Body.Bytes(), []byte(want)) {
+			t.Fatalf("providers missing %s in: %s", want, body)
+		}
+	}
+}

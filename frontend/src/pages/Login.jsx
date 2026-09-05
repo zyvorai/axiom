@@ -46,6 +46,8 @@ export default function Login() {
     // this only splits how they're collected.
     const [step, setStep] = useState("identity");
 
+    const clusterCtx = providers?.cluster || null;
+
     useEffect(() => {
         if (defaultUsername) setUsername((u) => u || defaultUsername);
     }, [defaultUsername]);
@@ -178,6 +180,29 @@ export default function Login() {
                                 {loginDest.port ? ` · ${loginDest.port}` : ""}
                             </span>
                         </li>
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">Mode</span>
+                            <span className="login-dest-fact-value">{clusterCtx?.mode || "—"}</span>
+                        </li>
+                        <li className="login-dest-fact">
+                            <span className="login-dest-fact-label">kubectl context</span>
+                            <span className="login-dest-fact-value" title={clusterCtx?.label || undefined}>
+                                {clusterCtx?.context || "—"}
+                                {clusterCtx?.contexts > 1 ? ` · ${clusterCtx.contexts} contexts` : ""}
+                            </span>
+                        </li>
+                        {clusterCtx?.server ? (
+                            <li className="login-dest-fact">
+                                <span className="login-dest-fact-label">API server</span>
+                                <span className="login-dest-fact-value">{clusterCtx.server}</span>
+                            </li>
+                        ) : null}
+                        {clusterCtx?.label && clusterCtx.label !== clusterCtx.context ? (
+                            <li className="login-dest-fact">
+                                <span className="login-dest-fact-label">Cluster label</span>
+                                <span className="login-dest-fact-value is-display">{clusterCtx.label}</span>
+                            </li>
+                        ) : null}
                     </ul>
                     <div className="login-cta">
                         <button type="button" className="login-cta-primary" onClick={() => scrollToChapter("login-sign-in")}>
@@ -195,6 +220,15 @@ export default function Login() {
                         <>
                             {" "}
                             on <span className="login-apple-host">{loginDest.host}</span>
+                        </>
+                    ) : null}
+                    {clusterCtx?.context ? (
+                        <>
+                            {" "}
+                            · context <span className="login-apple-host">{clusterCtx.context}</span>
+                            {clusterCtx.mode ? (
+                                <span className="login-sign-in-mode"> ({clusterCtx.mode})</span>
+                            ) : null}
                         </>
                     ) : null}
                 </p>

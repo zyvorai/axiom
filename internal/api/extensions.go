@@ -35,6 +35,10 @@ func (s *Server) authProviders(w http.ResponseWriter, r *http.Request) {
 			"operator_login": operatorLogin,
 			"hint":           "demo / demo",
 		},
+		// Public kubectl / cluster identity for the login "This machine"
+		// chapter — safe to expose before auth so operators can confirm
+		// which context they are about to sign into during lab testing.
+		"cluster": s.publicClusterContext(r),
 		"local": map[string]any{
 			"enabled":          true,
 			"default_username": s.username,
@@ -63,6 +67,43 @@ func (s *Server) authProviders(w http.ResponseWriter, r *http.Request) {
 			"note":    apiKeyNote(apiKeyEnabled),
 		},
 	})
+}
+
+// publicClusterContext returns the active kubectl-style context for the
+// unauthenticated login page. Names and API server URLs match what
+// `kubectl config get-contexts` would show for the wired kubeconfig.
+func (s *Server) publicClusterContext(r *http.Request) map[string]any {
+	out := map[string]any{
+		"mode": s.mode,
+	}
+	sp := s.switchable()
+	if sp == nil {
+		return out
+	}
+	clusters := sp.Clusters(r.Context())
+	out["contexts"] = len(clusters)
+	names := make([]string, 0, len(clusters))
+	for _, c := range clusters {
+		names = append(names, c.Name)
+		if !c.Current {
+			continue
+		}
+		out["context"] = c.Name
+		out["label"] = c.Label
+		out["server"] = c.Server
+		out["healthy"] = c.Healthy
+	}
+	if len(names) > 0 {
+		out["context_names"] = names
+	}
+	if _, ok := out["context"]; !ok && len(clusters) > 0 {
+		c := clusters[0]
+		out["context"] = c.Name
+		out["label"] = c.Label
+		out["server"] = c.Server
+		out["healthy"] = c.Healthy
+	}
+	return out
 }
 
 func (s *Server) samlLogin(w http.ResponseWriter, r *http.Request) {
