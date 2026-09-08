@@ -1,61 +1,68 @@
-# Axiom Design System (zeus-os)
+# Axiom Design System
 
-`frontend/` originated as a direct copy of the kube-cockpit reference (React 19 + CRACO + Tailwind + shadcn/ui) wired to Axiom's real Go API. **Light** is Apple.com (`#f5f5f7` canvas, white cards, `#1d1d1f` ink, Action Blue `#0071e3` CTAs). **Dark** is GitHub Primer dark (`#0d1117` canvas, `#161b22` cards, `#30363d` borders, `#e6edf3` / `#8b949e` text, accent `#2f81f7`). Theme toggle lives under **Settings → Appearance**. Typography is apple.com **SF Pro** everywhere (`-apple-system` / `SF Pro Text` / `SF Pro Display`; mono prefers `SF Mono`). Pill-shaped buttons, 0.9rem card radii.
+`frontend/` is a React 19 + CRACO + Tailwind + shadcn/ui app wired to Axiom's real Go API, restyled to a flat, dark **apple.com** visual language: a plain black `#000` canvas (dark) / white `#fff` canvas (light), `#1d1d1f` (dark) / `#f5f5f7` (light) panel surfaces, hairline borders, pill-shaped buttons and status badges — no glass panels, no ambient gradient washes, no glow rings. Theme toggle lives in the top bar and under **Settings → Appearance**. Typography is apple.com **SF Pro** everywhere (`-apple-system` / `SF Pro Text` / `SF Pro Display`; mono prefers `SF Mono`).
+
+Two stylesheets carry the system:
+
+- **`frontend/src/index.css`** — the shared Tailwind/shadcn design tokens (CSS custom properties, HSL-based, registered as Tailwind color/radius tokens in `frontend/tailwind.config.js`). Both light and dark now use the *same* apple.com-derived palette (previously light was Apple.com but dark was a mismatched GitHub-Primer-dark palette — that split is gone).
+- **`frontend/src/axiom-shell.css`** — the actual component vocabulary consumed by the app shell and every page: `.bar`/`.side`/`.item` (top bar/sidebar), `.head`/`.detail-head` (page/detail headers), `.card` (flat surface), `.pill` (status dot + label), `.tbl` (table), `.tile`/`.vm` (entity/VM card), `.tabs` (underline tabs), `.stat`/`.stats`/`.meter` (metric tiles), `.btn`/`.btn-fill`/`.btn-line`/`.btn-danger` (pill buttons), `.hero`/`.check`/`.notice`/`.section-h` (Overview/Getting-started patterns). Plain CSS classes, not Tailwind utility soup — same pattern as the login page's `axiom-login.css`.
 
 ## Tokens
-
-Defined in `frontend/src/index.css` as CSS custom properties (HSL-based, shadcn convention), registered as Tailwind color/radius tokens in `frontend/tailwind.config.js`:
 
 ```css
 :root { /* Apple light */
   --background: 240 5% 96%;     /* #f5f5f7 */
   --foreground: 240 6% 10%;     /* #1d1d1f */
-  --card: 0 0% 100%;
+  --card: 240 5% 96%;
   --primary: 211 100% 45%;      /* Action Blue #0071e3 */
-  --brand-hex: hsl(211 100% 45%);
+  --brand-hex: #0071e3;
   /* … */
 }
-.dark { /* GitHub Primer dark */
-  --background: 216 28% 7%;     /* #0d1117 */
-  --foreground: 210 24% 93%;    /* #e6edf3 */
-  --card: 215 21% 11%;          /* #161b22 */
-  --border: 215 12% 21%;        /* #30363d */
-  --muted-foreground: 215 9% 58%; /* #8b949e */
-  --primary: 212 92% 58%;       /* #2f81f7 */
-  --brand-hex: hsl(212 92% 58%);
+.dark { /* Flat apple.com dark */
+  --background: 0 0% 0%;        /* #000 */
+  --foreground: 240 9% 96%;     /* #f5f5f7 */
+  --card: 240 3% 12%;           /* #1d1d1f */
+  --border: 0 0% 100% / 0.1;    /* hairline */
+  --muted-foreground: 240 2% 65%;
+  --primary: 209 100% 58%;      /* system blue #2997ff */
+  --brand-hex: #2997ff;
   /* … */
 }
 ```
 
-Light = Apple.com; dark = GitHub Primer. Spacing/type/motion tokens are shared.
+Spacing/type/motion tokens are shared between themes.
 
-UI type is the apple.com **SF Pro** system stack (`--font-display` for body/UI, `--font-hero` for headlines). Mono prefers **SF Mono**, with JetBrains Mono Variable as a non-Apple fallback (still imported in `index.css`). Inter is no longer loaded. Content surfaces are **flat** (no card boxes) — hairline rules only, matching apple.com section rhythm.
+UI type is the apple.com **SF Pro** system stack (`--font-display` for body/UI, `--font-hero` for headlines). Mono prefers **SF Mono**, with JetBrains Mono Variable as a non-Apple fallback (still imported in `index.css`). Inter is no longer loaded.
 
 ### Brand accent & the i17 palette
 
-`index.css` also defines a fuller accent palette under the legacy `--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold` variable names (kept because ~34 files already reference `i17-*`/`brand-*` Tailwind classes — retinting the CSS variable values in place, rather than renaming every call site, is what made the zeus-os port a token-only change almost everywhere). `--i17-cosmic` is the primary brand accent (≡ `--brand-hex`, Apple Action Blue in both themes), `--i17-sage` ≡ zeus-os's emerald "accent-live" (success/healthy), `--i17-lavender` ≡ its violet "accent-alt", `--i17-gold` ≡ its amber warning hue. Exposed as Tailwind tokens (`brand-cosmic`, `brand-sky`, `i17-lavender`, etc.).
+`index.css` also defines a fuller accent palette under the legacy `--i17-cosmic/deep-blue/sky-blue/lavender/sage/mist/white/silver/gold` variable names (kept because dozens of files already reference `i17-*`/`brand-*` Tailwind classes — retinting the CSS variable values in place, rather than renaming every call site, is what makes a palette-wide change a token-only edit almost everywhere). `--i17-cosmic` is the primary brand accent (≡ `--brand-hex`, system blue in both themes), `--i17-sage` is the emerald "healthy" accent, `--i17-lavender` a violet accent, `--i17-gold` the amber warning hue.
 
-**Buttons**: `default` and `brand` are the same solid Apple Action Blue fill (white label, inset highlight, darken on hover) — matching login and apple.com CTAs. No cosmic→sky gradients. `variant="brand"` remains the semantic “primary action on this page” marker; `outline` / `secondary` / `ghost` stay neutral; only `destructive` keeps a non-blue hue.
+**Buttons**: `.btn-fill`/shadcn `default`/`brand` are the same solid blue pill fill (white label, inset highlight, darken on hover). `.btn-line`/`outline`/`secondary`/`ghost` stay neutral (flat, hairline or no border); `.btn-danger`/`destructive` is the only non-blue hue.
 
-## Glass utilities
+## App shell vocabulary (`axiom-shell.css`)
 
 | Class | Purpose |
 |-------|---------|
-| `.glass` | Frosted panel with blur (24px/140% saturate) + border |
-| `.glass-inset` | Inset variant (cluster switcher, inputs) |
-| `.specular` | Gradient border highlight |
-| `.grid-bg` | Background grid overlay |
-| `.aurora-a/b/c` | Ambient shell orbs (no longer used on Login, which dropped its aurora background — still available for other pages) |
-| `.orb` | Shell ambient orbs |
-| `.fade-up` | Entry animation |
-| `.status-dot` | Health indicator (ok/warn/err/info), driven by `<StatusBadge>` |
-| `.glow-green/yellow/red/blue` | Box-shadow glow keyed to the same ok/warn/err/info hues |
+| `.bar` | Sticky top bar (brand, cluster pill, breadcrumbs, search, alerts, theme toggle, user menu) |
+| `.side` / `.side.min` | Sidebar, expanded / collapsed-to-icons; `.side.open` is the mobile slide-in state |
+| `.item` | A sidebar nav link; `[aria-current="page"]` drives the active state |
+| `.card` | Flat panel surface (`GlassCard` renders this) |
+| `.pill` | Status dot + label (`StatusBadge` renders this); `.pill.soft` is a neutral outline variant |
+| `.tbl` | A real `<table>` — hover-row highlight and column typography built in |
+| `.tile` / `.vm` | An entity card (name/status header, a spec grid, an actions row) — used for Nodes/Namespaces/VM grids |
+| `.tabs` | Flat underline tabs, keyed off `[aria-selected="true"]` (works with Radix `Tabs`) |
+| `.head` / `.detail-head` | Page header / resource-detail header (`PageHeader` / `DetailHeader`) |
+| `.hero` / `.notice` / `.section-h` | Overview's marketing-style hero, setup banner, section intro |
+| `.check` | Getting Started's numbered checklist row |
+| `.form-section` / `.form-row` | Settings/Users form grouping |
+| `.status-dot` | Health indicator (ok/warn/err/info), still used by a few legacy call sites alongside `.pill` |
 
-Buttons (`components/ui/button.jsx`) are pill-shaped (`rounded-full`) with a solid Apple Action Blue fill + inset highlight + darken-on-hover on the `default`/`brand` variants, focus-visible outlined via the `--focus-ring` token rather than a plain ring utility.
+Buttons are pill-shaped (`border-radius: 980px`/`16px`) with a solid Action Blue fill + inset highlight + darken-on-hover on `.btn-fill`, focus-visible outlined via the `--focus-ring` token.
 
 ## Navigation
 
-`frontend/src/components/Sidebar.jsx` groups `constants/navItems.js`'s routes into sections (**Core**, **Cluster**, **Network**, **Storage**, **Config**, **Observe**, **Admin**, plus an **Extensions** group for dynamically-registered plugins). The rail is apple.com-flat: same canvas as the page, hairline divider, text-color-only hover/active (no pills or card chrome). Expanded `w-48`, collapsed `w-11` icon rail; collapse choice persists in `localStorage` (`axiom:sidebar-collapsed`).
+`frontend/src/components/Sidebar.jsx` groups `constants/navItems.js`'s routes into sections (**Core**, **Cluster**, **Network**, **Storage**, **Config**, **Observe**, **Admin**, plus an **Extensions** group for dynamically-registered plugins) using `.grp`/`.grp-h` (collapsible per group) and `.item` rows, with live workload/pod/alert counts next to the relevant items. Expanded `248px`, collapsed `64px` icon rail with hover tooltips (`.tip`); collapse choice persists in `localStorage` (`axiom:sidebar-collapsed`) and is shared with the top bar's toggle button. Below `900px` viewport width the sidebar becomes a `.side.open` fixed overlay with a backdrop, triggered by a `PanelLeft` button in the top bar.
 
 Sidebar order:
 
@@ -92,25 +99,23 @@ Not in the sidebar but routable: `/workloads/:ns/:kind/:name` (workload detail),
 
 ## Auth
 
-The login screen (`frontend/src/pages/Login.jsx`) is a single minimal card centered on a flat background (no side marketing panel, no animated background glow — matching Apple's actual sign-in page look rather than Axiom's earlier two-column marketing-style layout), holding a two-step sign-in flow modeled on Apple ID's pattern. Above the card, an Apple Account–style product gate makes the destination unambiguous: the Zyvor orange mark (`ZyvorMark`), **Axiom** / “by Zyvor”, hero **Sign in to Axiom.**, and a one-line product tagline.
+The login screen (`frontend/src/pages/Login.jsx` + `axiom-login.css`, via the shared `PremiumLoginShell` component) is an Apple Store–style two-chapter page: a full-bleed hero chapter (Zyvor mark, **AXIOM** wordmark, **Sign in to Axiom.**, a tagline, four domain pills, a single **Get started** CTA that scrolls down) and a "parchment" sign-in chapter below it holding a two-step flow modeled on Apple ID's pattern.
 
-- **Step 1 (identity)**: three SSO-styled buttons (Google/GitHub/Okta icons, matching the reference 1:1 visually) **all pointing at the same real OIDC login redirect** — Axiom has one generic OIDC provider slot, not per-vendor integrations, so the buttons are a visual choice, not three distinct backends — plus a username-only field with a "Continue" action.
-- **Step 2 (password)**: an editable identity chip ("`{username}` · Not you?" — click to go back and change it) and just the password field. CTA reads **Sign in to Axiom**. Submitting step 2 is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`); the two-step split is purely client-side UI state — there's no backend endpoint to check account existence before the password is entered, so both values still travel together in one `signInLocal(username, password)` call.
+- **Step 1 (identity)**: a username field with a **Continue** action. When SSO is configured, plain text links — **Sign in with SSO** (OIDC) and/or **Sign in with SAML** — sit under the password form instead of a row of per-provider icon buttons; Axiom has one generic OIDC provider slot and one SAML provider slot, not per-vendor integrations.
+- **Step 2 (password)**: a back chip showing the chosen username, the password field, a **Remember me on this device** checkbox (persists only the username to `localStorage`, never the password), and a **Sign in to Axiom** submit. Submitting is the real functioning sign-in path (`POST` is actually just HTTP Basic auth stored client-side, verified against `GET /api/v1/session`); the two-step split is purely client-side UI state — both values still travel together in one `signInLocal(username, password)` call. A failed attempt shows an inline red error banner (not a toast) and clears the password field.
 
-- `GET /api/v1/auth/providers` drives everything: `oidc.enabled`/`saml.enabled` show/hide the SSO buttons and a SAML link; `lab.operator_login: true` + `lab.hint` shows a "fill demo / demo" one-click helper under the local form
-- Clicking an SSO button when OIDC isn't configured shows a toast pointing at Settings instead of doing nothing
-- `AXIOM_LDAP_ENABLED`/`AXIOM_LDAP_DOMAIN`/`AXIOM_LDAP_URL` are surfaced in `GET /api/v1/auth/providers`'s `ldap` block, but there is no actual LDAP bind/authentication implementation behind them yet (`internal/auth` only implements Basic, OIDC and SAML-cookie checks) — a known gap, not a login option today
-- An OIDC login's role (admin vs. viewer) is resolved server-side from the ID token's group claim when `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` are configured — the frontend has no visibility into this beyond the `role` it gets back from `GET /api/v1/session`, same as a local account
+- `GET /api/v1/auth/providers` drives everything: `oidc.enabled`/`saml.enabled` show/hide the two SSO links; `lab.operator_login: true` + `lab.hint` shows a "Lab mode — Fill {hint}" inline action under the identity-step card
+- `AXIOM_LDAP_ENABLED`/`AXIOM_LDAP_DOMAIN`/`AXIOM_LDAP_URL` are surfaced in `GET /api/v1/auth/providers`'s `ldap` block and are now backed by a real LDAP simple-bind implementation (`internal/auth/ldap.go`) — the login form's username/password fields double as the LDAP form when `AXIOM_LDAP_URL` is set, there's no separate LDAP UI
+- An OIDC or SAML login's role (admin vs. viewer) is resolved server-side from the group claim/attribute when `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP` are configured — the frontend has no visibility into this beyond the `role` it gets back from `GET /api/v1/session`, same as a local account
 
 ## Shell
 
-`AppShell.jsx` matches zeus-os's WebShell structure: a full-width sticky header spans the top, above a `[Sidebar, content]` row — not the earlier layout where the header sat inside the same centered column as the sidebar.
+`AppShell.jsx` renders `.ax` → `.frame` (`[Sidebar, main]`) under a sticky `.bar` top bar — no ambient backdrop, no glass chrome.
 
-- Fixed ambient backdrop (grid + orbs)
-- Flat sidebar (no brand mark — brand lives in the top bar): cluster switcher, grouped/collapsible thin rail, collapse toggle. Theme lives in Settings.
-- Full-width sticky header (`TopBar.jsx`, `h-12`, `border-b`, `bg-background/95 backdrop-blur`): **Zyvor mark + Axiom wordmark flush left** (links to `/overview`); compact Search chip + Connect + user menu flush right. Search opens the command palette (⌘K) — not a wide centered field.
-- `Breadcrumbs.jsx` renders inside the content area, above each page's body (`Clusters / {cluster} / {page}`) — matching zeus-os's placement rather than the header-inline breadcrumb this used to be. **Hidden on `/overview`** so the product home reads as a marketing first viewport.
-- Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive label instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
+- Sidebar (`.side`): a `.cluster` pill at top (when a cluster is active), collapsible `.grp` groups of `.item` nav links with live workload/pod/alert counts, a collapse toggle at the bottom. Collapses to a `64px` icon rail (`.side.min`) with hover tooltips, or slides in as a mobile overlay (`.side.open`) below `900px`.
+- Top bar (`.bar`, `48px`, backdrop-blurred): a `PanelLeft` sidebar toggle, the Zyvor mark + **Axiom** wordmark (links to `/overview`), the cluster pill, `.crumbs` breadcrumbs, then on the right — a `.search` chip that opens the command palette (⌘K), a **Connect** pill, an alerts bell (red dot when there are unresolved alerts), an in-bar theme toggle, and the user avatar menu.
+- `Breadcrumbs.jsx` now renders as `.crumbs` inside the top bar itself (not in the content area) — `Clusters / {cluster} / {page}`, with a mono resource-name segment on detail pages. **Self-hides on `/overview`** so the product home reads as a marketing first viewport.
+- Cluster switcher (`frontend/src/components/ClusterSwitcher.jsx`, state in `frontend/src/lib/cluster.js`) is **real**: it's backed by `GET /api/v1/clusters` and `POST /api/v1/clusters/{name}/activate`. Selecting a cluster switches which one every API call hits, then reloads the page. A single-cluster deployment (the normal in-cluster case) renders the switcher as a static, non-interactive `.cluster` pill instead of a dropdown — there's nothing to switch to, so it doesn't pretend otherwise. Demo mode registers three clusters, so the dropdown and switching are both fully exercisable without a live kubeconfig.
 
 ## Command palette
 
@@ -232,25 +237,28 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 
 ## Appearance
 
-Two themes via **Settings → Appearance** (`lib/theme.js`, `localStorage` key `kubecloud.theme`); also ⌘K → Toggle theme:
+Two themes via the top-bar toggle or **Settings → Appearance** (`lib/theme.js`, `localStorage` key `kubecloud.theme` — unchanged name for backward compatibility with existing saved preferences). Setting a theme both toggles Tailwind's `dark` class on `<html>` and sets `<html data-theme="dark|light">`, the latter driving `axiom-shell.css`'s flat palette:
 
-- **Light** — Apple.com (`#f5f5f7` / white / Action Blue `#0071e3`)
-- **Dark** — GitHub Primer dark (`#0d1117` / `#161b22` / `#30363d` / accent `#2f81f7`)
+- **Light** — apple.com (`#fff` / `#f5f5f7` panels / Action Blue `#0071e3`)
+- **Dark** — flat apple.com dark (`#000` / `#1d1d1f` panels / system blue `#2997ff`) — no longer GitHub-Primer-derived
 
-Default is dark. ⌘K → “Toggle light/dark mode” also switches.
+Default is dark. ⌘K → "Toggle light/dark mode" also switches.
 
 ## Page headers
 
-Every top-level page uses a shared `PageHeader` component (`components/PageHeader.jsx`): a small tracked-caps eyebrow label above an oversized `clamp()`-scaled title, an optional description line, and an optional right-aligned `action` slot for the page's primary button(s). Resource-detail pages (Pod/Node/Workload) use the sibling `DetailHeader` component instead — the same eyebrow/title/meta shape, but with a mono-font resource-name title instead of a plain title, matching their identifier-header role rather than a page-title role. Both were rolled out to every page specifically so a sitewide visual change (like the zeus-os port) touches only these shared components, not each individual page file.
+Every top-level page uses a shared `PageHeader` component (`components/PageHeader.jsx`, rendering `.head`): a big title, an optional description line, an optional right-aligned `action` slot for the page's primary button(s), and an optional `tools` slot for a filter/search/segmented-control row beneath the title — no tracked-caps eyebrow label (apple.com's own pages never use one, so the prop was dropped). Resource-detail pages (Pod/Node/Workload/etc) use the sibling `DetailHeader` component instead (rendering `.detail-head`) — a small kind eyebrow, a big mono resource-name title, and a meta row, matching their identifier-header role rather than a page-title role. Both are consumed by every page specifically so a sitewide visual change touches only these shared components, not each individual page file.
 
-## Apple.com-scale pass (hero token, spec tables, feature tiles)
+## Flat redesign pass (app shell, all 37 pages)
 
-A further pass pushed the app closer to apple.com/ipad's actual product-page rhythm, mapped per page type rather than one template copied everywhere:
+The app was rebuilt end-to-end around the vocabulary above, mapped per page archetype rather than one template copied everywhere:
 
-- **`Overview.jsx`** (the app's homepage) is a true marketing composition: centered hero (product eyebrow **Axiom**, `text-hero` cluster name, one supporting sentence, health line, CTAs), then hairline-separated sections — **Built for the load** (stacked `MetricRing`s), **At a glance** (oversized inventory numbers), **Utilization** (large % + tall sparklines, uncarded), and **Stay informed** (links only to `/alerts`, `/events`, `/logs` — alert/event log dumps no longer live on the home screen). Breadcrumbs are suppressed on `/overview`.
-- **`components/FeatureTile.jsx`** — an apple.com homepage-grid style stat tile (icon chip, tracked-caps label, oversized value, optional sparkline/sublabel), with a `size="compact"` variant matching the smaller inline icon+label+mono-value blocks already used on resource cards. Used on Nodes, NodeDetail, PodDetail, Namespaces, VirtualMachines, Atlas, Networking, and Ops' Cost tab (Overview inventory is plain typography, not FeatureTiles). Wraps `GlassCard` and forwards `...rest` (so `data-testid` keeps working), matching `GlassCard`'s own passthrough convention.
-- **`components/MetricRing.jsx`** — optional `layout="stack"` centers the ring above its label for Overview's capacity band; default stays horizontal for denser pages.
-- **`components/SpecTable.jsx`** — an apple.com "Tech Specs" style label/value table (optional two-column split with a vertical hairline divider), replacing the scattered small metadata `GlassCard`s on `NodeDetail.jsx` (System section) and used for `PodDetail.jsx`'s pod-spec fields and `WorkloadDetail.jsx`'s annotations.
-- **`Onboarding.jsx`**'s step list now reads as an Apple "setup guide": each step gets a large numeral badge (`01`/`02`/…, replaced by a check mark once done) instead of a plain check/circle icon, and its per-step CTA is a real pill `Button` instead of a styled `<Link>`.
-- **`components/AutoTable.jsx`** — the shared table renderer behind ~15+ list pages (Atlas, CustomResources, Storage, Quotas, Ingresses, ConfigMaps, Secrets, Backups, Autoscaling, Jobs, Events, Networking's NetworkPolicy list, Ops sub-tabs) got roomier row padding and eyebrow-caps section-header typography, cascading the look to every consumer without per-page edits.
-- Login (`Login.jsx`/`axiom-login.css`) uses the same Apple Action Blue solid CTA as the shared `Button` (`default`/`brand`). The product gate above the card (Zyvor mark + **Sign in to Axiom.**) is the marketing-page brand signal.
+- **`Overview.jsx`** (the app's homepage) is a `.hero` composition: cluster name as the headline, a health pill + region line, dual CTAs, then hairline-separated `.stats` sections — **At a glance** (node/pod/workload/VM counts) and **Utilization** (CPU/memory/storage as `.stat` + `.meter` bars, replacing the old ring gauges) — plus a **Trend** section (the original CPU/memory `Sparkline` history, kept as a bonus beyond the reference layout) and **Stay informed** links to `/alerts`/`/events`/`/logs`. Breadcrumbs are suppressed on `/overview`.
+- **`components/MetricRing.jsx`** was removed — Overview's capacity band now uses `.stat`/`.meter` bars instead of ring gauges, and nothing else referenced the component.
+- **`components/FeatureTile.jsx`** — unchanged behavior, retinted via the token change; still used on PodDetail, NodeDetail, Atlas, Networking, and Ops' Cost tab.
+- **`components/SpecTable.jsx`** — unchanged behavior, an apple.com "Tech Specs" style label/value table, now sitting inside `.card` sections instead of glass boxes.
+- **Nodes/Namespaces** (`Nodes.jsx`/`Namespaces.jsx`) use a generic `.tile` entity card (name + status pill header, a spec grid, an actions row) — the same shape as the `.vm` card `VirtualMachines.jsx` uses for its VM grid (name/status header, vCPU/Memory/Node specs, Start-or-Stop/Migrate/Console actions).
+- **List pages** (Workloads, Pods, Jobs, Secrets, ConfigMaps, Events, Services, Ingresses, CustomResources, PluginView, HPA, Quotas, Backups, Atlas, Alerts, PlatformIntents, Networking) use `.head`'s `tools` slot for search/filter controls and a real `<table class="tbl">` for their list — never a `<div>`-styled fake table, since `e2e/tests/nikola-ux.spec.js` locates Workloads/Pods rows via `page.locator("tr")`.
+- **Detail pages** with tabs (PodDetail, WorkloadDetail, NodeDetail, NamespaceDetail) apply `.tabs` to their `TabsList`; tab names/roles are unchanged (PodDetail's Details/Terminal/YAML/Metrics/Events/Labels tabs are e2e-tested by exact name). Detail pages without tabs (ConfigMapDetail, SecretDetail, ServiceDetail, JobDetail, CronJobDetail, VMDetail) use `.detail-head` + stacked `.card` sections.
+- **`components/AutoTable.jsx`** — the shared table renderer behind Atlas, CustomResources, PluginView, Ingresses, Storage now emits a real `.tbl` table when given explicit `columns`, or `.card`/`.stack` rows when auto-guessing columns for arbitrary/varying-shape objects.
+- **Settings/Users** use `.form-section`/`.form-row` for grouped fields; **Ops** (the largest page — Helm/GitOps/Agents/Identity/Audit/Access/Webhooks/Cost) applies `.tabs` at the top level with `.tbl`/`.card`/`.stats` per tab's content shape. All dialogs and mutations across every page are unchanged — this was a markup/className pass, not a behavior change.
+- **`CodeEditor.jsx`**: the editable manifest tabs (PodDetail/WorkloadDetail's YAML tab) now open straight into edit mode instead of requiring an extra "Edit" click first — read-only viewers (CustomResources, PluginView, Networking's raw-JSON fallback) are unaffected since they pass `editable={false}`.

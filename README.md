@@ -6,7 +6,7 @@ This project intentionally contains **no Metal3 workload support**.
 
 ## UX
 
-The web UI is a React 19 + Tailwind + shadcn/ui single-page app (design system ported from zeus-os's WebShell — see [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)), built with CRACO and embedded inside the Go binary. Source lives in `frontend/`; `scripts/sync-ui.sh` builds it and copies the output into `internal/ui/dist/` (a generated, gitignored build artifact — never edit `internal/ui/dist/` directly).
+The web UI is a React 19 + Tailwind + shadcn/ui single-page app, restyled around a flat, dark apple.com-style visual language (plain black/`#1d1d1f` surfaces, hairline borders, pill buttons and badges — see [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)), built with CRACO and embedded inside the Go binary. Source lives in `frontend/`; `scripts/sync-ui.sh` builds it and copies the output into `internal/ui/dist/` (a generated, gitignored build artifact — never edit `internal/ui/dist/` directly).
 
 Pages:
 
@@ -220,7 +220,7 @@ Settings → Notifications configures a Slack incoming-webhook URL and/or a gene
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — runtime and provider design
 - [`docs/API.md`](docs/API.md) — complete HTTP API reference
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — k3s/Kubernetes deployment and hardening
-- [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) — Axiom's zeus-os-based UX system
+- [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) — Axiom's flat apple.com-dark UX system
 - [`docs/RENAMING.md`](docs/RENAMING.md) — full Aether → Axiom identity map
 - [`docs/BACKUP-RESTORE.md`](docs/BACKUP-RESTORE.md) — backing up Axiom's own runtime state (local accounts, integration settings, audit log)
 - [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — current security/compliance posture

@@ -4,6 +4,13 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Changed
+- Full frontend redesign: the app shell (top bar, sidebar) and all 37 pages rebuilt around a flat, dark apple.com visual language — plain black `#000`/`#1d1d1f` (dark) or white/`#f5f5f7` (light) surfaces, hairline borders, pill buttons and status badges, no glass panels, no ambient gradient washes, no glow rings. Dark theme is no longer GitHub-Primer-derived; light and dark now share one palette source. New `frontend/src/axiom-shell.css` carries the component vocabulary (`.bar`/`.side`/`.card`/`.pill`/`.tbl`/`.tile`/`.vm`/`.tabs`/etc); `PageHeader`/`DetailHeader`/`StatusBadge`/`GlassCard`/`AutoTable` were re-skinned once and cascade the look everywhere. Sidebar gained live workload/pod/alert counts, collapsible groups, and a mobile slide-in drawer; top bar gained an in-bar theme toggle and an alerts bell. `MetricRing.jsx` was removed (Overview's capacity band now uses meter bars). Every API call, mutation, dialog, and `data-testid` was preserved — this is a markup/styling pass, not a behavior change. See `docs/DESIGN-SYSTEM.md`.
+- Login page: SSO is now a plain "Sign in with SSO"/"Sign in with SAML" text link under the password form instead of per-provider (Google/GitHub/Okta) icon buttons; added a "Remember me on this device" checkbox (persists only the username) and an inline error banner on failed sign-in.
+
+### Fixed
+- `CodeEditor.jsx`'s editable manifest tabs (Pod/Workload detail YAML) now open straight into edit mode instead of requiring an extra "Edit" click first, matching their documented behavior as editable tabs.
+
 ### Added
 - Enterprise gap closure pass: real SAML ACS sessions, LDAP bind login, operator role, fleet cluster register/unregister from kubeconfig, HA Helm guard (`sessionSecret` required when `replicaCount > 1`), audit ring default 5000, ConfigMap/Secret update, Velero on-demand backup, VM create/delete + VNC WebSocket proxy path, PVC/Service/Ingress/Quota writes, Helm upgrade. See `docs/GAPS.md`.
 - List → detail drill-downs for ConfigMaps, Secrets, Services, VMs, Jobs, and CronJobs (plus namespace services tab links). Command palette, Alerts, and Events deep-link to known object kinds. Breadcrumbs cover multi-segment detail paths.
