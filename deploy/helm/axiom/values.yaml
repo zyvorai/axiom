@@ -10,6 +10,9 @@ image:
 
 replicaCount: 1
 
+# For HA set replicaCount: 2 (or more) AND auth.sessionSecret to a stable
+# random value so OIDC/SAML sessions validate on every replica.
+
 # Sets AXIOM_CLUSTER_NAME (the label shown in the sidebar cluster switcher
 # and Settings -> Clusters). Defaults to "in-cluster" if left blank.
 clusterName: ""
@@ -28,17 +31,29 @@ resources:
 auth:
   username: demo
   password: demo
-  # Signs OIDC session cookies/tokens. Leave blank to let Axiom generate a
-  # random per-process secret automatically (safe default — the only cost
-  # is that OIDC sessions won't survive a pod restart). Set this only if
-  # you need sessions to survive restarts or be valid across replicas.
+  # Signs OIDC/SAML session cookies/tokens. REQUIRED when replicaCount > 1
+  # so sessions validate on every replica. Generate with:
+  #   openssl rand -base64 32
   sessionSecret: ""
+  # Audit ring retention (default 5000). Maps to AXIOM_AUDIT_RING_SIZE.
+  auditRingSize: 5000
   # Set to a header name (e.g. "X-Forwarded-For") ONLY if Axiom sits behind
   # a reverse proxy that itself sets/overwrites that header — otherwise
   # leave blank. Enables the login rate limiter to key on the real client
   # IP instead of the proxy's, so one user's failed logins can't lock out
   # everyone else behind the same proxy.
   trustedProxyHeader: ""
+  # SAML (optional). ACS is always /api/v1/auth/saml/acs on this Service.
+  samlLoginURL: ""
+  samlEntityID: ""
+  samlAllowUnsigned: false
+  # LDAP (optional). When enabled, Basic-auth form binds against ldapURL.
+  ldapEnabled: false
+  ldapURL: ""
+  ldapDomain: ""
+  ldapBaseDN: ""
+  # OIDC default role when admin/viewer groups are unset (admin|viewer|operator).
+  oidcDefaultRole: admin
 
 tls:
   # If set, the chart uses this pre-existing TLS Secret (type: kubernetes.io/tls)

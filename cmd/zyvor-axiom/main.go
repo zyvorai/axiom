@@ -52,7 +52,12 @@ func main() {
 		log.Printf("local user accounts loaded: %d", n)
 	}
 
+	platform.SetAuditRingSize(cfg.AuditRingSize)
 	platform.SetAuditStore(platform.OpenAuditStore(cfg.Mode, provider))
+	platform.SetRemoteClusterStore(platform.OpenRemoteClusterStore(cfg.Mode, provider))
+	if sp, ok := provider.(*platform.SwitchableProvider); ok {
+		platform.LoadRemoteClustersInto(context.Background(), sp)
+	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
@@ -63,13 +68,21 @@ func main() {
 		OIDCIssuer:         firstNonEmpty(cur.OIDCIssuer, cfg.OIDCIssuer),
 		OIDCClient:         firstNonEmpty(cur.OIDCClientID, cfg.OIDCClient),
 		SAMLLogin:          cfg.SAMLLogin,
+		SAMLEntityID:       cfg.SAMLEntityID,
+		SAMLIDPCert:        cfg.SAMLIDPCert,
+		SAMLAllowUnsigned:  cfg.SAMLAllowUnsigned,
 		LDAPEnabled:        cfg.LDAPEnabled,
 		LDAPDomain:         cfg.LDAPDomain,
 		LDAPURL:            cfg.LDAPURL,
+		LDAPBaseDN:         cfg.LDAPBaseDN,
+		LDAPBindDN:         cfg.LDAPBindDN,
+		LDAPBindPW:         cfg.LDAPBindPW,
+		LDAPUserAttr:       cfg.LDAPUserAttr,
 
 		OIDCGroupsClaim: cfg.OIDCGroupsClaim,
 		OIDCAdminGroup:  cfg.OIDCAdminGroup,
 		OIDCViewerGroup: cfg.OIDCViewerGroup,
+		OIDCDefaultRole: cfg.OIDCDefaultRole,
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some

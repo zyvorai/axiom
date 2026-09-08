@@ -5,6 +5,7 @@ All notable changes to Zyvor Axiom are documented here.
 ## [Unreleased]
 
 ### Added
+- Enterprise gap closure pass: real SAML ACS sessions, LDAP bind login, operator role, fleet cluster register/unregister from kubeconfig, HA Helm guard (`sessionSecret` required when `replicaCount > 1`), audit ring default 5000, ConfigMap/Secret update, Velero on-demand backup, VM create/delete + VNC WebSocket proxy path, PVC/Service/Ingress/Quota writes, Helm upgrade. See `docs/GAPS.md`.
 - List → detail drill-downs for ConfigMaps, Secrets, Services, VMs, Jobs, and CronJobs (plus namespace services tab links). Command palette, Alerts, and Events deep-link to known object kinds. Breadcrumbs cover multi-segment detail paths.
 
 ### Fixed

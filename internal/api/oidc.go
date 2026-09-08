@@ -178,7 +178,7 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	if user == "" {
 		user = "oidc-user"
 	}
-	role := resolveOIDCRole(tok.IDToken, s.auth.OIDCGroupsClaim, s.auth.OIDCAdminGroup, s.auth.OIDCViewerGroup)
+	role := resolveOIDCRole(tok.IDToken, s.auth.OIDCGroupsClaim, s.auth.OIDCAdminGroup, s.auth.OIDCViewerGroup, s.auth.OIDCDefaultRole)
 	token, err := auth.SignSession(s.sessionSecret(), auth.Session{
 		User:   user,
 		Email:  email,
@@ -273,18 +273,21 @@ func oidcIdentity(idToken, accessToken, userinfoURL string, r *http.Request) (us
 	return user, email
 }
 
-// resolveOIDCRole maps an ID token's groups claim to viewer/admin. When
-// adminGroup and viewerGroup are both unset, every OIDC session stays
-// admin, matching Axiom's behavior before this mapping existed.
-func resolveOIDCRole(idToken, groupsClaim, adminGroup, viewerGroup string) string {
+// resolveOIDCRole maps an ID token's groups claim to viewer/admin/operator.
+// When adminGroup and viewerGroup are both unset, defaultRole is used
+// (AXIOM_OIDC_DEFAULT_ROLE, typically admin for backwards compatibility).
+func resolveOIDCRole(idToken, groupsClaim, adminGroup, viewerGroup, defaultRole string) string {
 	adminGroup = strings.TrimSpace(adminGroup)
 	viewerGroup = strings.TrimSpace(viewerGroup)
 	if adminGroup == "" && viewerGroup == "" {
-		return "admin"
+		return normalizeDefaultRole(defaultRole)
 	}
 	groups := decodeJWTClaimGroups(idToken, groupsClaim)
 	if adminGroup != "" && containsFold(groups, adminGroup) {
 		return "admin"
+	}
+	if containsFold(groups, "operator") || containsFold(groups, "axiom-operator") {
+		return "operator"
 	}
 	if viewerGroup != "" && containsFold(groups, viewerGroup) {
 		return "viewer"

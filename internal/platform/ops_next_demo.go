@@ -129,6 +129,11 @@ func (d *DemoProvider) ListVeleroBackups(ctx context.Context, ns string) ([]Vele
 	all := []VeleroBackup{
 		{Namespace: "velero", Name: "forge-backup-demo", Phase: "Completed", Namespaces: "forge,forge-system", Age: "3d"},
 	}
+	demoVeleroBackupMu.Lock()
+	for _, b := range demoVeleroBackupExtra {
+		all = append(all, b)
+	}
+	demoVeleroBackupMu.Unlock()
 	return filterNS(ns, all, func(b VeleroBackup) string { return b.Namespace }), nil
 }
 

@@ -193,16 +193,16 @@ func oidcNote(enabled bool) string {
 
 func samlNote(enabled bool) string {
 	if enabled {
-		return "Redirects to AXIOM_SAML_LOGIN_URL."
+		return "SAML ACS at /api/v1/auth/saml/acs — set AXIOM_SAML_IDP_CERT (or AXIOM_SAML_ALLOW_UNSIGNED=true for lab)."
 	}
-	return "Set AXIOM_SAML_LOGIN_URL to enable Sign in with SAML."
+	return "Set AXIOM_SAML_LOGIN_URL (and AXIOM_SAML_IDP_CERT) to enable Sign in with SAML."
 }
 
 func ldapNote(enabled bool) string {
 	if enabled {
-		return "Directory sign-in uses the local operator credentials bridge, or place Axiom behind an LDAP-aware proxy."
+		return "Directory sign-in: use the local username/password form — Axiom binds to AXIOM_LDAP_URL with those credentials."
 	}
-	return "Set AXIOM_LDAP_ENABLED=true (optional AXIOM_LDAP_DOMAIN / AXIOM_LDAP_URL) to surface Active Directory sign-in."
+	return "Set AXIOM_LDAP_ENABLED=true and AXIOM_LDAP_URL to enable Active Directory / LDAP bind sign-in."
 }
 
 func apiKeyNote(enabled bool) string {

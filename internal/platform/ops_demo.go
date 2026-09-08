@@ -476,6 +476,7 @@ func (d *DemoProvider) VMConsole(ctx context.Context, ns, name string) (VMConsol
 				Namespace: ns, Name: name, Ready: vm.Ready,
 				VNCPath: fmt.Sprintf("/apis/subresources.kubevirt.io/v1/namespaces/%s/virtualmachineinstances/%s/vnc", ns, name),
 				Virtctl: fmt.Sprintf("virtctl vnc %s -n %s", name, ns),
+				WsPath:  fmt.Sprintf("/api/v1/vms/%s/%s/vnc", ns, name),
 			}, nil
 		}
 	}

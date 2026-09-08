@@ -34,17 +34,25 @@ type AuthOptions struct {
 	OIDCIssuer         string
 	OIDCClient         string
 	SAMLLogin          string
+	SAMLEntityID       string
+	SAMLIDPCert        string
+	SAMLAllowUnsigned  bool
 	LDAPEnabled        bool
 	LDAPDomain         string
 	LDAPURL            string
+	LDAPBaseDN         string
+	LDAPBindDN         string
+	LDAPBindPW         string
+	LDAPUserAttr       string
 
 	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup map an ID token's groups
-	// claim to a viewer/admin role. When OIDCAdminGroup and OIDCViewerGroup
-	// are both unset (the default), every OIDC session stays admin — the
-	// same behavior as before this existed.
-	OIDCGroupsClaim string
-	OIDCAdminGroup  string
-	OIDCViewerGroup string
+	// claim to a viewer/admin/operator role. When OIDCAdminGroup and
+	// OIDCViewerGroup are both unset, OIDCDefaultRole is used (default admin
+	// for backwards compatibility — set to viewer for safer greenfield).
+	OIDCGroupsClaim  string
+	OIDCAdminGroup   string
+	OIDCViewerGroup  string
+	OIDCDefaultRole  string
 }
 
 type Server struct {
@@ -121,9 +129,13 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/exec", s.execCommand)
 	mux.HandleFunc("GET /api/v1/nodes", s.nodes)
 	mux.HandleFunc("GET /api/v1/vms", s.vms)
+	mux.HandleFunc("POST /api/v1/vms", s.createVM)
+	mux.HandleFunc("DELETE /api/v1/vms/{namespace}/{name}", s.deleteVM)
 	mux.HandleFunc("POST /api/v1/vms/{namespace}/{name}/start", s.startVM)
 	mux.HandleFunc("POST /api/v1/vms/{namespace}/{name}/stop", s.stopVM)
 	mux.HandleFunc("GET /api/v1/volumes", s.volumes)
+	mux.HandleFunc("POST /api/v1/volumes", s.createVolume)
+	mux.HandleFunc("DELETE /api/v1/volumes/{namespace}/{name}", s.deleteVolume)
 	mux.HandleFunc("GET /api/v1/metrics/utilization", s.utilization)
 	mux.HandleFunc("GET /api/v1/regions", s.regions)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/cordon", s.cordon)
@@ -137,6 +149,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/namespaces", s.createNamespace)
 	mux.HandleFunc("DELETE /api/v1/namespaces/{name}", s.deleteNamespace)
 	mux.HandleFunc("GET /api/v1/services", s.services)
+	mux.HandleFunc("POST /api/v1/services", s.createService)
+	mux.HandleFunc("DELETE /api/v1/services/{namespace}/{name}", s.deleteService)
 	mux.HandleFunc("GET /api/v1/network", s.network)
 	mux.HandleFunc("POST /api/v1/intent/parse", s.parseIntent)
 	mux.HandleFunc("POST /api/v1/intent/place", s.placeIntent)
@@ -149,6 +163,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/auth/oidc/callback", s.oidcCallback)
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authLogout)
 	mux.HandleFunc("GET /api/v1/auth/saml/login", s.samlLogin)
+	mux.HandleFunc("POST /api/v1/auth/saml/acs", s.samlACS)
+	mux.HandleFunc("GET /api/v1/auth/saml/acs", s.samlACS)
 	mux.HandleFunc("GET /api/v1/nodes/{name}", s.nodeDetail)
 	mux.HandleFunc("GET /api/v1/workloads/{namespace}/{kind}/{name}/rollout", s.rolloutStatus)
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/rollout/{action}", s.rolloutAction)
@@ -159,16 +175,24 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 
 	mux.HandleFunc("GET /api/v1/secrets", s.listSecrets)
 	mux.HandleFunc("POST /api/v1/secrets", s.createSecret)
+	mux.HandleFunc("PUT /api/v1/secrets/{namespace}/{name}", s.updateSecret)
 	mux.HandleFunc("GET /api/v1/secrets/{namespace}/{name}", s.getSecret)
 	mux.HandleFunc("DELETE /api/v1/secrets/{namespace}/{name}", s.deleteSecret)
 	mux.HandleFunc("GET /api/v1/configmaps", s.listConfigMaps)
 	mux.HandleFunc("POST /api/v1/configmaps", s.createConfigMap)
+	mux.HandleFunc("PUT /api/v1/configmaps/{namespace}/{name}", s.updateConfigMap)
 	mux.HandleFunc("GET /api/v1/configmaps/{namespace}/{name}", s.getConfigMap)
 	mux.HandleFunc("DELETE /api/v1/configmaps/{namespace}/{name}", s.deleteConfigMap)
 	mux.HandleFunc("GET /api/v1/resourcequotas", s.listResourceQuotas)
+	mux.HandleFunc("POST /api/v1/resourcequotas", s.createResourceQuota)
+	mux.HandleFunc("DELETE /api/v1/resourcequotas/{namespace}/{name}", s.deleteResourceQuota)
 	mux.HandleFunc("GET /api/v1/limitranges", s.listLimitRanges)
 	mux.HandleFunc("GET /api/v1/ingresses", s.listIngresses)
+	mux.HandleFunc("POST /api/v1/ingresses", s.createIngress)
+	mux.HandleFunc("DELETE /api/v1/ingresses/{namespace}/{name}", s.deleteIngress)
 	mux.HandleFunc("GET /api/v1/clusters", s.listClusters)
+	mux.HandleFunc("POST /api/v1/clusters", s.registerCluster)
+	mux.HandleFunc("DELETE /api/v1/clusters/{name}", s.unregisterCluster)
 	mux.HandleFunc("POST /api/v1/clusters/{name}/activate", s.activateCluster)
 	mux.HandleFunc("GET /api/v1/jobs", s.listJobs)
 	mux.HandleFunc("DELETE /api/v1/jobs/{namespace}/{name}", s.deleteJob)
@@ -202,6 +226,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/uninstall", s.helmUninstall)
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/rollback", s.helmRollback)
 	mux.HandleFunc("POST /api/v1/helm/install", s.helmInstall)
+	mux.HandleFunc("POST /api/v1/helm/upgrade", s.helmUpgrade)
 	mux.HandleFunc("GET /api/v1/external-secrets", s.externalSecrets)
 	mux.HandleFunc("GET /api/v1/vm-snapshots", s.vmSnapshots)
 	mux.HandleFunc("POST /api/v1/vm-snapshots", s.createVMSnapshot)
@@ -213,6 +238,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/vm-restores", s.vmRestores)
 	mux.HandleFunc("POST /api/v1/vm-restores", s.createVMRestore)
 	mux.HandleFunc("GET /api/v1/velero/backups", s.veleroBackups)
+	mux.HandleFunc("POST /api/v1/velero/backups", s.createVeleroBackup)
 	mux.HandleFunc("GET /api/v1/velero/schedules", s.veleroSchedules)
 	mux.HandleFunc("POST /api/v1/velero/schedules", s.createVeleroSchedule)
 	mux.HandleFunc("GET /api/v1/gitops", s.gitops)
@@ -227,6 +253,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/cost", s.cost)
 	mux.HandleFunc("POST /api/v1/validate", s.validateManifest)
 	mux.HandleFunc("GET /api/v1/vms/{namespace}/{name}/console", s.vmConsole)
+	mux.HandleFunc("GET /api/v1/vms/{namespace}/{name}/vnc", s.vmVNC)
 
 	mux.HandleFunc("GET /api/v1/agent-runs", s.listAgentRuns)
 	mux.HandleFunc("POST /api/v1/agent-runs", s.createAgentRun)
@@ -261,8 +288,17 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	if users != nil {
 		authenticator = users
 	}
+	guard := auth.Guard{
+		Username: username, Password: password, APIKey: opts.APIKey,
+		SessionSecret: opts.SessionSecret, Users: authenticator,
+		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
+		LDAP: auth.LDAPConfig{
+			Enabled: opts.LDAPEnabled, URL: opts.LDAPURL, Domain: opts.LDAPDomain,
+			BaseDN: opts.LDAPBaseDN, BindDN: opts.LDAPBindDN, BindPW: opts.LDAPBindPW, UserAttr: opts.LDAPUserAttr,
+		},
+	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
-	secured := auth.Guard{Username: username, Password: password, APIKey: opts.APIKey, SessionSecret: opts.SessionSecret, Users: authenticator, Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader}.Middleware(clusterSessionMiddleware(mux))
+	secured := guard.Middleware(clusterSessionMiddleware(mux))
 	return s.common(secured)
 }
 

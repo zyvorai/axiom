@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -27,17 +28,26 @@ type Config struct {
 	OIDCLogin          string
 	OIDCIssuer         string
 	OIDCClient         string
-	SAMLLogin          string
-	LDAPEnabled        bool
-	LDAPDomain         string
-	LDAPURL            string
-	AtlasURL           string
-	AtlasToken         string
-	ClusterName        string
+	SAMLLogin         string
+	SAMLEntityID      string
+	SAMLIDPCert       string
+	SAMLAllowUnsigned bool
+	LDAPEnabled       bool
+	LDAPDomain        string
+	LDAPURL           string
+	LDAPBaseDN        string
+	LDAPBindDN        string
+	LDAPBindPW        string
+	LDAPUserAttr      string
+	AtlasURL          string
+	AtlasToken        string
+	ClusterName       string
+	AuditRingSize     int
 
 	OIDCGroupsClaim string
 	OIDCAdminGroup  string
 	OIDCViewerGroup string
+	OIDCDefaultRole string
 }
 
 func FromEnv() Config {
@@ -57,17 +67,38 @@ func FromEnv() Config {
 		OIDCIssuer:         strings.TrimSpace(os.Getenv("AXIOM_OIDC_ISSUER")),
 		OIDCClient:         strings.TrimSpace(os.Getenv("AXIOM_OIDC_CLIENT_ID")),
 		SAMLLogin:          strings.TrimSpace(os.Getenv("AXIOM_SAML_LOGIN_URL")),
+		SAMLEntityID:       strings.TrimSpace(os.Getenv("AXIOM_SAML_ENTITY_ID")),
+		SAMLIDPCert:        strings.TrimSpace(os.Getenv("AXIOM_SAML_IDP_CERT")),
+		SAMLAllowUnsigned:  truthy(os.Getenv("AXIOM_SAML_ALLOW_UNSIGNED")),
 		LDAPEnabled:        truthy(os.Getenv("AXIOM_LDAP_ENABLED")),
 		LDAPDomain:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_DOMAIN")),
 		LDAPURL:            strings.TrimSpace(os.Getenv("AXIOM_LDAP_URL")),
+		LDAPBaseDN:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_BASE_DN")),
+		LDAPBindDN:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_BIND_DN")),
+		LDAPBindPW:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_BIND_PASSWORD")),
+		LDAPUserAttr:       strings.TrimSpace(os.Getenv("AXIOM_LDAP_USER_ATTR")),
 		AtlasURL:           strings.TrimSpace(os.Getenv("AXIOM_ATLAS_URL")),
 		AtlasToken:         strings.TrimSpace(os.Getenv("AXIOM_ATLAS_TOKEN")),
 		ClusterName:        strings.TrimSpace(os.Getenv("AXIOM_CLUSTER_NAME")),
+		AuditRingSize:      envInt("AXIOM_AUDIT_RING_SIZE", 5000),
 
 		OIDCGroupsClaim: env("AXIOM_OIDC_GROUPS_CLAIM", "groups"),
 		OIDCAdminGroup:  strings.TrimSpace(os.Getenv("AXIOM_OIDC_ADMIN_GROUP")),
 		OIDCViewerGroup: strings.TrimSpace(os.Getenv("AXIOM_OIDC_VIEWER_GROUP")),
+		OIDCDefaultRole: env("AXIOM_OIDC_DEFAULT_ROLE", "admin"),
 	}
+}
+
+func envInt(k string, fallback int) int {
+	v := strings.TrimSpace(os.Getenv(k))
+	if v == "" {
+		return fallback
+	}
+	var n int
+	if _, err := fmt.Sscanf(v, "%d", &n); err != nil || n <= 0 {
+		return fallback
+	}
+	return n
 }
 
 func env(k, fallback string) string {

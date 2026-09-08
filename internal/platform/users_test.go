@@ -89,9 +89,10 @@ func TestNormalizeRole(t *testing.T) {
 		"viewer": RoleViewer,
 		"Viewer": RoleViewer,
 		" VIEWER ": RoleViewer,
-		"admin":  RoleAdmin,
-		"":       RoleAdmin,
-		"bogus":  RoleAdmin,
+		"admin":    RoleAdmin,
+		"operator": RoleOperator,
+		"":         RoleAdmin,
+		"bogus":    RoleAdmin,
 	}
 	for in, want := range cases {
 		if got := NormalizeRole(in); got != want {

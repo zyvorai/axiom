@@ -21,9 +21,13 @@ type Provider interface {
 	EvictPod(context.Context, string, string) error
 	ListNodes(context.Context) ([]Node, error)
 	ListVirtualMachines(context.Context, string) ([]VirtualMachine, error)
+	CreateVirtualMachine(context.Context, CreateVMRequest) (VirtualMachine, error)
+	DeleteVirtualMachine(context.Context, string, string) error
 	StartVirtualMachine(context.Context, string, string) error
 	StopVirtualMachine(context.Context, string, string) error
 	ListVolumes(context.Context, string) ([]Volume, error)
+	CreateVolume(context.Context, CreateVolumeRequest) (Volume, error)
+	DeleteVolume(context.Context, string, string) error
 	Utilization(context.Context) (UtilizationSeries, error)
 	Cordon(context.Context, string, bool) error
 	Drain(context.Context, string) error
@@ -34,6 +38,8 @@ type Provider interface {
 	CreateNamespace(context.Context, string) (Namespace, error)
 	DeleteNamespace(context.Context, string) error
 	ListServices(context.Context, string) ([]Service, error)
+	CreateService(context.Context, CreateServiceRequest) (Service, error)
+	DeleteService(context.Context, string, string) error
 	NetworkMap(context.Context, string) (NetworkMap, error)
 	PodProxyTarget(context.Context, string, string, int32) (string, error)
 	GetNode(context.Context, string) (Node, error)
@@ -45,6 +51,7 @@ type Provider interface {
 	ListSecrets(context.Context, string) ([]SecretSummary, error)
 	GetSecret(context.Context, string, string, bool) (SecretDetail, error)
 	CreateSecret(context.Context, CreateSecretRequest) (SecretDetail, error)
+	UpdateSecret(context.Context, CreateSecretRequest) (SecretDetail, error)
 	DeleteSecret(context.Context, string, string) error
 	ListBackups(context.Context, string) ([]BackupSnapshot, error)
 	CreateBackup(context.Context, CreateBackupRequest) (BackupSnapshot, error)
@@ -88,10 +95,15 @@ type Provider interface {
 	ListConfigMaps(context.Context, string) ([]ConfigMapSummary, error)
 	GetConfigMap(context.Context, string, string) (ConfigMapDetail, error)
 	CreateConfigMap(context.Context, CreateConfigMapRequest) (ConfigMapDetail, error)
+	UpdateConfigMap(context.Context, CreateConfigMapRequest) (ConfigMapDetail, error)
 	DeleteConfigMap(context.Context, string, string) error
 	ListResourceQuotas(context.Context, string) ([]ResourceQuotaSummary, error)
+	CreateResourceQuota(context.Context, CreateResourceQuotaRequest) (ResourceQuotaSummary, error)
+	DeleteResourceQuota(context.Context, string, string) error
 	ListLimitRanges(context.Context, string) ([]LimitRangeSummary, error)
 	ListIngresses(context.Context, string) ([]IngressSummary, error)
+	CreateIngress(context.Context, CreateIngressRequest) (IngressSummary, error)
+	DeleteIngress(context.Context, string, string) error
 
 	ListJobs(context.Context, string) ([]JobSummary, error)
 	DeleteJob(context.Context, string, string) error
@@ -133,6 +145,7 @@ type Provider interface {
 	ListGateways(context.Context, string) ([]GatewaySummary, error)
 
 	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
+	CreateVeleroBackup(context.Context, CreateVeleroBackupRequest) (VeleroBackup, error)
 
 	DiagnosePod(context.Context, string, string) (PodDiagnosis, error)
 
@@ -144,4 +157,5 @@ type Provider interface {
 	TriggerGitOpsSync(context.Context, string, string, string) error
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
+	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 }

@@ -51,6 +51,12 @@ func (sp *SwitchableProvider) ListNodes(a0 context.Context) ([]Node, error) {
 func (sp *SwitchableProvider) ListVirtualMachines(a0 context.Context, a1 string) ([]VirtualMachine, error) {
 	return sp.current(a0).ListVirtualMachines(a0, a1)
 }
+func (sp *SwitchableProvider) CreateVirtualMachine(a0 context.Context, a1 CreateVMRequest) (VirtualMachine, error) {
+	return sp.current(a0).CreateVirtualMachine(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteVirtualMachine(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteVirtualMachine(a0, a1, a2)
+}
 func (sp *SwitchableProvider) StartVirtualMachine(a0 context.Context, a1 string, a2 string) error {
 	return sp.current(a0).StartVirtualMachine(a0, a1, a2)
 }
@@ -59,6 +65,12 @@ func (sp *SwitchableProvider) StopVirtualMachine(a0 context.Context, a1 string, 
 }
 func (sp *SwitchableProvider) ListVolumes(a0 context.Context, a1 string) ([]Volume, error) {
 	return sp.current(a0).ListVolumes(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVolume(a0 context.Context, a1 CreateVolumeRequest) (Volume, error) {
+	return sp.current(a0).CreateVolume(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteVolume(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteVolume(a0, a1, a2)
 }
 func (sp *SwitchableProvider) Utilization(a0 context.Context) (UtilizationSeries, error) {
 	return sp.current(a0).Utilization(a0)
@@ -90,6 +102,12 @@ func (sp *SwitchableProvider) DeleteNamespace(a0 context.Context, a1 string) err
 func (sp *SwitchableProvider) ListServices(a0 context.Context, a1 string) ([]Service, error) {
 	return sp.current(a0).ListServices(a0, a1)
 }
+func (sp *SwitchableProvider) CreateService(a0 context.Context, a1 CreateServiceRequest) (Service, error) {
+	return sp.current(a0).CreateService(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteService(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteService(a0, a1, a2)
+}
 func (sp *SwitchableProvider) NetworkMap(a0 context.Context, a1 string) (NetworkMap, error) {
 	return sp.current(a0).NetworkMap(a0, a1)
 }
@@ -119,6 +137,9 @@ func (sp *SwitchableProvider) GetSecret(a0 context.Context, a1 string, a2 string
 }
 func (sp *SwitchableProvider) CreateSecret(a0 context.Context, a1 CreateSecretRequest) (SecretDetail, error) {
 	return sp.current(a0).CreateSecret(a0, a1)
+}
+func (sp *SwitchableProvider) UpdateSecret(a0 context.Context, a1 CreateSecretRequest) (SecretDetail, error) {
+	return sp.current(a0).UpdateSecret(a0, a1)
 }
 func (sp *SwitchableProvider) DeleteSecret(a0 context.Context, a1 string, a2 string) error {
 	return sp.current(a0).DeleteSecret(a0, a1, a2)
@@ -240,17 +261,32 @@ func (sp *SwitchableProvider) GetConfigMap(a0 context.Context, a1 string, a2 str
 func (sp *SwitchableProvider) CreateConfigMap(a0 context.Context, a1 CreateConfigMapRequest) (ConfigMapDetail, error) {
 	return sp.current(a0).CreateConfigMap(a0, a1)
 }
+func (sp *SwitchableProvider) UpdateConfigMap(a0 context.Context, a1 CreateConfigMapRequest) (ConfigMapDetail, error) {
+	return sp.current(a0).UpdateConfigMap(a0, a1)
+}
 func (sp *SwitchableProvider) DeleteConfigMap(a0 context.Context, a1 string, a2 string) error {
 	return sp.current(a0).DeleteConfigMap(a0, a1, a2)
 }
 func (sp *SwitchableProvider) ListResourceQuotas(a0 context.Context, a1 string) ([]ResourceQuotaSummary, error) {
 	return sp.current(a0).ListResourceQuotas(a0, a1)
 }
+func (sp *SwitchableProvider) CreateResourceQuota(a0 context.Context, a1 CreateResourceQuotaRequest) (ResourceQuotaSummary, error) {
+	return sp.current(a0).CreateResourceQuota(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteResourceQuota(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteResourceQuota(a0, a1, a2)
+}
 func (sp *SwitchableProvider) ListLimitRanges(a0 context.Context, a1 string) ([]LimitRangeSummary, error) {
 	return sp.current(a0).ListLimitRanges(a0, a1)
 }
 func (sp *SwitchableProvider) ListIngresses(a0 context.Context, a1 string) ([]IngressSummary, error) {
 	return sp.current(a0).ListIngresses(a0, a1)
+}
+func (sp *SwitchableProvider) CreateIngress(a0 context.Context, a1 CreateIngressRequest) (IngressSummary, error) {
+	return sp.current(a0).CreateIngress(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteIngress(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteIngress(a0, a1, a2)
 }
 func (sp *SwitchableProvider) ListJobs(a0 context.Context, a1 string) ([]JobSummary, error) {
 	return sp.current(a0).ListJobs(a0, a1)
@@ -336,6 +372,9 @@ func (sp *SwitchableProvider) ListGateways(a0 context.Context, a1 string) ([]Gat
 func (sp *SwitchableProvider) CreateVeleroSchedule(a0 context.Context, a1 CreateVeleroScheduleRequest) (VeleroSchedule, error) {
 	return sp.current(a0).CreateVeleroSchedule(a0, a1)
 }
+func (sp *SwitchableProvider) CreateVeleroBackup(a0 context.Context, a1 CreateVeleroBackupRequest) (VeleroBackup, error) {
+	return sp.current(a0).CreateVeleroBackup(a0, a1)
+}
 func (sp *SwitchableProvider) DiagnosePod(a0 context.Context, a1 string, a2 string) (PodDiagnosis, error) {
 	return sp.current(a0).DiagnosePod(a0, a1, a2)
 }
@@ -356,4 +395,7 @@ func (sp *SwitchableProvider) TriggerGitOpsSync(a0 context.Context, a1 string, a
 }
 func (sp *SwitchableProvider) InstallHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
 	return sp.current(a0).InstallHelmChart(a0, a1)
+}
+func (sp *SwitchableProvider) UpgradeHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
+	return sp.current(a0).UpgradeHelmChart(a0, a1)
 }

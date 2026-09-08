@@ -23,6 +23,7 @@ type DemoProvider struct {
 	rollouts     map[string]*demoRolloutState
 	vmRunning    map[string]bool
 	extraVolumes []Volume
+	extraVMs     []VirtualMachine
 }
 
 func NewDemoProvider() *DemoProvider {

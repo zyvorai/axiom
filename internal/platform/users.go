@@ -11,17 +11,23 @@ import (
 )
 
 const (
-	RoleAdmin  = "admin"
-	RoleViewer = "viewer"
+	RoleAdmin    = "admin"
+	RoleOperator = "operator"
+	RoleViewer   = "viewer"
 )
 
-// NormalizeRole maps any input to a known role, defaulting to admin so a
-// typo never silently locks an operator into read-only.
+// NormalizeRole maps any input to a known role. Empty/unknown values become
+// admin so a typo never silently locks an operator into read-only (existing
+// Create User API behavior). Explicit "viewer" / "operator" are preserved.
 func NormalizeRole(r string) string {
-	if strings.EqualFold(strings.TrimSpace(r), RoleViewer) {
+	switch strings.ToLower(strings.TrimSpace(r)) {
+	case RoleViewer:
 		return RoleViewer
+	case RoleOperator:
+		return RoleOperator
+	default:
+		return RoleAdmin
 	}
-	return RoleAdmin
 }
 
 // User is a local Axiom account, distinct from the single env-configured
@@ -52,10 +58,10 @@ func (u User) View() UserView {
 	return UserView{Username: u.Username, Role: u.Role, Namespaces: u.Namespaces, CreatedAt: u.CreatedAt}
 }
 
-// normalizeNamespaces trims/dedupes and enforces that only viewers can be
-// namespace-restricted — an admin account always gets unrestricted (nil).
+// normalizeNamespaces trims/dedupes and enforces that only viewers/operators
+// can be namespace-restricted — an admin account always gets unrestricted (nil).
 func normalizeNamespaces(role string, namespaces []string) []string {
-	if role != RoleViewer {
+	if role == RoleAdmin {
 		return nil
 	}
 	seen := map[string]bool{}
@@ -260,8 +266,8 @@ func (h *UserHub) UpdateNamespaces(ctx context.Context, username string, namespa
 	if !ok {
 		return UserView{}, fmt.Errorf("user %q not found", username)
 	}
-	if u.Role != RoleViewer {
-		return UserView{}, fmt.Errorf("only viewer accounts can be namespace-restricted")
+	if u.Role != RoleViewer && u.Role != RoleOperator {
+		return UserView{}, fmt.Errorf("only viewer/operator accounts can be namespace-restricted")
 	}
 	u.Namespaces = normalizeNamespaces(u.Role, namespaces)
 	if err := h.store.Update(ctx, u); err != nil {

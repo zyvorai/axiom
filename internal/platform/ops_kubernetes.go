@@ -901,6 +901,7 @@ func (k *KubernetesProvider) VMConsole(ctx context.Context, ns, name string) (VM
 		Namespace: found.Namespace, Name: found.Name, Ready: found.Ready,
 		VNCPath: fmt.Sprintf("/apis/subresources.kubevirt.io/v1/namespaces/%s/virtualmachineinstances/%s/vnc", found.Namespace, found.Name),
 		Virtctl: fmt.Sprintf("virtctl vnc %s -n %s", found.Name, found.Namespace),
+		WsPath:  fmt.Sprintf("/api/v1/vms/%s/%s/vnc", found.Namespace, found.Name),
 	}, nil
 }
 

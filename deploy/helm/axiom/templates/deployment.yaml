@@ -51,9 +51,45 @@ spec:
                   name: zyvor-axiom-auth
                   key: sessionSecret
             {{- end }}
+            {{- if .Values.auth.auditRingSize }}
+            - name: AXIOM_AUDIT_RING_SIZE
+              value: {{ .Values.auth.auditRingSize | quote }}
+            {{- end }}
             {{- if .Values.auth.trustedProxyHeader }}
             - name: AXIOM_TRUSTED_PROXY_HEADER
               value: {{ .Values.auth.trustedProxyHeader | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlLoginURL }}
+            - name: AXIOM_SAML_LOGIN_URL
+              value: {{ .Values.auth.samlLoginURL | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlEntityID }}
+            - name: AXIOM_SAML_ENTITY_ID
+              value: {{ .Values.auth.samlEntityID | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlAllowUnsigned }}
+            - name: AXIOM_SAML_ALLOW_UNSIGNED
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.ldapEnabled }}
+            - name: AXIOM_LDAP_ENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.ldapURL }}
+            - name: AXIOM_LDAP_URL
+              value: {{ .Values.auth.ldapURL | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapDomain }}
+            - name: AXIOM_LDAP_DOMAIN
+              value: {{ .Values.auth.ldapDomain | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapBaseDN }}
+            - name: AXIOM_LDAP_BASE_DN
+              value: {{ .Values.auth.ldapBaseDN | quote }}
+            {{- end }}
+            {{- if .Values.auth.oidcDefaultRole }}
+            - name: AXIOM_OIDC_DEFAULT_ROLE
+              value: {{ .Values.auth.oidcDefaultRole | quote }}
             {{- end }}
             - name: AXIOM_ATLAS_URL
               value: {{ .Values.atlas.url | quote }}
@@ -78,6 +114,10 @@ spec:
               value: {{ .Values.oidc.viewerGroup | quote }}
             {{- end }}
             - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: AXIOM_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace

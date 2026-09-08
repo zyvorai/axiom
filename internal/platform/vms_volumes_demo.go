@@ -24,10 +24,23 @@ func demoVMExists(ns, name string) bool {
 	return false
 }
 
+func (d *DemoProvider) vmExistsLocked(ns, name string) bool {
+	if demoVMExists(ns, name) {
+		return true
+	}
+	for _, vm := range d.extraVMs {
+		if vm.Namespace == ns && vm.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 func (d *DemoProvider) ListVirtualMachines(ctx context.Context, ns string) ([]VirtualMachine, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	all := demoBaseVMs()
+	all = append(all, d.extraVMs...)
 	for i := range all {
 		vk := all[i].Namespace + "/" + all[i].Name
 		if running, ok := d.vmRunning[vk]; ok {
@@ -52,7 +65,7 @@ func (d *DemoProvider) ListVirtualMachines(ctx context.Context, ns string) ([]Vi
 func (d *DemoProvider) StartVirtualMachine(ctx context.Context, ns, name string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if !demoVMExists(ns, name) {
+	if !d.vmExistsLocked(ns, name) {
 		return fmt.Errorf("vm %s/%s not found", ns, name)
 	}
 	d.vmRunning[ns+"/"+name] = true
@@ -62,7 +75,7 @@ func (d *DemoProvider) StartVirtualMachine(ctx context.Context, ns, name string)
 func (d *DemoProvider) StopVirtualMachine(ctx context.Context, ns, name string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if !demoVMExists(ns, name) {
+	if !d.vmExistsLocked(ns, name) {
 		return fmt.Errorf("vm %s/%s not found", ns, name)
 	}
 	d.vmRunning[ns+"/"+name] = false

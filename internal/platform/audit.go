@@ -7,12 +7,13 @@ import (
 	"time"
 )
 
-const auditRingSize = 200
+const auditRingSizeDefault = 5000
 
 var (
 	auditMu    sync.RWMutex
 	auditRing  []AuditEntry
 	auditStore AuditStore
+	auditRingSize = auditRingSizeDefault
 	// auditDirty signals the single background persister (started once by
 	// SetAuditStore) that the ring changed. Buffered to 1: a burst of rapid
 	// RecordAxiomAudit calls coalesces into one pending signal rather than
@@ -40,6 +41,20 @@ var (
 type AuditStore interface {
 	Load(ctx context.Context) ([]AuditEntry, error)
 	Save(ctx context.Context, entries []AuditEntry) error
+}
+
+// SetAuditRingSize configures how many audit entries are retained in memory
+// and on the durable store. Call before SetAuditStore. Values <= 0 are ignored.
+func SetAuditRingSize(n int) {
+	if n <= 0 {
+		return
+	}
+	auditMu.Lock()
+	auditRingSize = n
+	if len(auditRing) > auditRingSize {
+		auditRing = auditRing[len(auditRing)-auditRingSize:]
+	}
+	auditMu.Unlock()
 }
 
 // SetAuditStore wires a persistent backing store, loads any entries it
@@ -92,9 +107,8 @@ func auditPersistLoop() {
 	}
 }
 
-// RecordAxiomAudit appends an entry to the in-memory ring (last 200) and,
-// when a persistent AuditStore is configured, signals the background
-// persister to save it so the trail survives a pod restart or redeploy.
+// RecordAxiomAudit appends an entry to the in-memory ring and, when a
+// persistent AuditStore is configured, signals the background persister.
 func RecordAxiomAudit(action, target, detail, user string) {
 	entry := AuditEntry{
 		Time:   time.Now().UTC(),

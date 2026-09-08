@@ -61,6 +61,9 @@ type Guard struct {
 	// Users resolves local multi-user accounts created under Settings → Users.
 	// Optional — nil means only the single env-configured account exists.
 	Users UserAuthenticator
+	// LDAP, when enabled, tries a directory simple-bind for Basic auth
+	// credentials before falling through to local users.
+	LDAP LDAPConfig
 	// Limiter throttles repeated failed logins per client IP. Optional — a
 	// fresh one is created automatically in Middleware when left nil.
 	Limiter *RateLimiter
@@ -133,6 +136,12 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
 			_, _ = w.Write([]byte(`{"error":"read-only user: this account cannot perform write actions"}`))
+			return
+		}
+		if id.Role == "operator" && isMutatingMethod(r.Method) && isAdminOnlyPath(r.URL.Path) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(`{"error":"operator role cannot manage users, integrations, or cluster registry"}`))
 			return
 		}
 		if id.namespaceRestricted() {
@@ -257,6 +266,9 @@ func isPublicPath(r *http.Request) bool {
 	if r.Method == http.MethodGet && (path == "/api/v1/auth/oidc/login" || path == "/api/v1/auth/oidc/callback" || path == "/api/v1/auth/saml/login") {
 		return true
 	}
+	if (r.Method == http.MethodPost || r.Method == http.MethodGet) && path == "/api/v1/auth/saml/acs" {
+		return true
+	}
 	if r.Method == http.MethodPost && path == "/api/v1/auth/logout" {
 		return true
 	}
@@ -301,12 +313,40 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
 		return Identity{User: g.Username, Role: "admin"}, true
 	}
+	if g.LDAP.Enabled || g.LDAP.URL != "" {
+		if ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
+			return Identity{User: u, Role: "operator"}, true
+		}
+	}
 	if g.Users != nil {
 		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
 			return Identity{User: u, Role: role, Namespaces: namespaces}, true
 		}
 	}
 	return Identity{}, false
+}
+
+// isAdminOnlyPath lists mutating API prefixes reserved for RoleAdmin.
+func isAdminOnlyPath(path string) bool {
+	if strings.HasPrefix(path, "/api/v1/users") {
+		return true
+	}
+	if path == "/api/v1/integrations" {
+		return true
+	}
+	if path == "/api/v1/clusters" && true {
+		// POST register — GET list is fine for operators; Guard only runs this
+		// on mutating methods, so GET /clusters stays allowed.
+		return true
+	}
+	if strings.HasPrefix(path, "/api/v1/clusters/") {
+		// activate is OK for operators; register/unregister need admin.
+		if strings.HasSuffix(path, "/activate") {
+			return false
+		}
+		return true
+	}
+	return false
 }
 
 // userMatches accepts the configured username, and when that is "demo"

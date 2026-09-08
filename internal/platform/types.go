@@ -364,6 +364,55 @@ type CreateConfigMapRequest struct {
 	Labels    map[string]string `json:"labels,omitempty"`
 }
 
+type CreateResourceQuotaRequest struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Hard      map[string]string `json:"hard"`
+}
+
+type CreateIngressRequest struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	Host      string `json:"host"`
+	Service   string `json:"service"`
+	Port      int32  `json:"port"`
+	Class     string `json:"class,omitempty"`
+	TLSSecret string `json:"tlsSecret,omitempty"`
+}
+
+type CreateServiceRequest struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Type      string            `json:"type"`
+	Port      int32             `json:"port"`
+	TargetPort int32            `json:"targetPort"`
+	Selector  map[string]string `json:"selector"`
+}
+
+type CreateVolumeRequest struct {
+	Namespace    string `json:"namespace"`
+	Name         string `json:"name"`
+	Size         string `json:"size"`
+	StorageClass string `json:"storageClass,omitempty"`
+	AccessMode   string `json:"accessMode,omitempty"`
+}
+
+type CreateVMRequest struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	CPU       string `json:"cpu"`
+	Memory    string `json:"memory"`
+	Image     string `json:"image"`
+	Running   bool   `json:"running"`
+}
+
+type CreateVeleroBackupRequest struct {
+	Namespace          string   `json:"namespace"`
+	Name               string   `json:"name"`
+	IncludedNamespaces []string `json:"includedNamespaces,omitempty"`
+	TTL                string   `json:"ttl,omitempty"`
+}
+
 type ResourceQuotaSummary struct {
 	Namespace string            `json:"namespace"`
 	Name      string            `json:"name"`
@@ -640,6 +689,8 @@ type VMConsoleInfo struct {
 	Ready     bool   `json:"ready"`
 	VNCPath   string `json:"vncPath"`
 	Virtctl   string `json:"virtctl"`
+	// WsPath is the Axiom-proxied WebSocket path for in-browser VNC.
+	WsPath string `json:"wsPath,omitempty"`
 }
 
 type JobSummary struct {

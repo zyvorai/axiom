@@ -83,6 +83,12 @@ func (sp *SwitchableProvider) current(ctx context.Context) Provider {
 	return e.provider
 }
 
+// CurrentProvider exposes the active cluster's Provider for handlers that need
+// typed access (e.g. WebSocket upgrades that are not on the Provider interface).
+func (sp *SwitchableProvider) CurrentProvider(ctx context.Context) Provider {
+	return sp.current(ctx)
+}
+
 // Clusters lists every registered cluster, flagged Current relative to the
 // requesting session's own active selection.
 func (sp *SwitchableProvider) Clusters(ctx context.Context) []ClusterInfo {
@@ -130,4 +136,34 @@ func (sp *SwitchableProvider) Count() int {
 	sp.mu.RLock()
 	defer sp.mu.RUnlock()
 	return len(sp.order)
+}
+
+// Unregister removes a runtime-registered cluster. Refuses to remove the
+// last remaining cluster so the console always has somewhere to talk to.
+func (sp *SwitchableProvider) Unregister(name string) error {
+	sp.mu.Lock()
+	defer sp.mu.Unlock()
+	if _, ok := sp.entries[name]; !ok {
+		return fmt.Errorf("unknown cluster %q", name)
+	}
+	if len(sp.order) <= 1 {
+		return fmt.Errorf("cannot unregister the last cluster")
+	}
+	delete(sp.entries, name)
+	out := sp.order[:0]
+	for _, n := range sp.order {
+		if n != name {
+			out = append(out, n)
+		}
+	}
+	sp.order = out
+	if sp.defaultActive == name {
+		sp.defaultActive = sp.order[0]
+	}
+	for session, active := range sp.perSession {
+		if active == name {
+			sp.perSession[session] = sp.defaultActive
+		}
+	}
+	return nil
 }

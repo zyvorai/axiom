@@ -514,3 +514,199 @@ func (s *Server) createVeleroSchedule(w http.ResponseWriter, r *http.Request) {
 	EmitStateChanged("velero-schedule", "create")
 	writeJSON(w, http.StatusCreated, v)
 }
+
+func (s *Server) updateSecret(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateSecretRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	req.Namespace, req.Name = r.PathValue("namespace"), r.PathValue("name")
+	v, err := s.provider.UpdateSecret(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("secret.update", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("secret", "update")
+	writeJSON(w, http.StatusOK, v)
+}
+
+func (s *Server) updateConfigMap(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateConfigMapRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	req.Namespace, req.Name = r.PathValue("namespace"), r.PathValue("name")
+	v, err := s.provider.UpdateConfigMap(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("configmap.update", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("configmap", "update")
+	writeJSON(w, http.StatusOK, v)
+}
+
+func (s *Server) createResourceQuota(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateResourceQuotaRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateResourceQuota(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("resourcequota.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("resourcequota", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteResourceQuota(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteResourceQuota(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("resourcequota.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("resourcequota", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createIngress(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateIngressRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateIngress(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("ingress.create", req.Namespace+"/"+req.Name, req.Host, s.auditUser(r))
+	EmitStateChanged("ingress", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteIngress(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteIngress(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("ingress.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("ingress", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createService(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateServiceRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateService(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("service.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("service", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteService(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteService(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("service.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("service", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createVolume(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateVolumeRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateVolume(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("volume.create", req.Namespace+"/"+req.Name, req.Size, s.auditUser(r))
+	EmitStateChanged("volume", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteVolume(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteVolume(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("volume.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("volume", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createVM(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateVMRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateVirtualMachine(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("vm.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("vm", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) deleteVM(w http.ResponseWriter, r *http.Request) {
+	ns, name := r.PathValue("namespace"), r.PathValue("name")
+	err := s.provider.DeleteVirtualMachine(r.Context(), ns, name)
+	if err == nil {
+		platform.RecordAxiomAudit("vm.delete", ns+"/"+name, "", s.auditUser(r))
+		EmitStateChanged("vm", "delete")
+	}
+	respondAction(w, err)
+}
+
+func (s *Server) createVeleroBackup(w http.ResponseWriter, r *http.Request) {
+	var req platform.CreateVeleroBackupRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.CreateVeleroBackup(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("velero-backup.create", req.Namespace+"/"+req.Name, "", s.auditUser(r))
+	EmitStateChanged("velero-backup", "create")
+	writeJSON(w, http.StatusCreated, v)
+}
+
+func (s *Server) helmUpgrade(w http.ResponseWriter, r *http.Request) {
+	var req platform.InstallHelmRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := s.provider.UpgradeHelmChart(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	platform.RecordAxiomAudit("helm.upgrade", req.Namespace+"/"+req.ReleaseName, req.RepoURL+" "+req.ChartName, s.auditUser(r))
+	EmitStateChanged("helm", "upgrade")
+	writeJSON(w, http.StatusAccepted, v)
+}

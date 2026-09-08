@@ -45,7 +45,7 @@ func fakeJWT(t *testing.T, claims map[string]any) string {
 
 func TestResolveOIDCRoleNoMappingConfigured(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": []string{"engineers"}})
-	role := resolveOIDCRole(tok, "groups", "", "")
+	role := resolveOIDCRole(tok, "groups", "", "", "")
 	if role != "admin" {
 		t.Fatalf("expected admin when no groups are configured, got %q", role)
 	}
@@ -53,7 +53,7 @@ func TestResolveOIDCRoleNoMappingConfigured(t *testing.T) {
 
 func TestResolveOIDCRoleAdminGroupMatch(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": []string{"platform-admins", "engineers"}})
-	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers")
+	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers", "")
 	if role != "admin" {
 		t.Fatalf("expected admin, got %q", role)
 	}
@@ -61,7 +61,7 @@ func TestResolveOIDCRoleAdminGroupMatch(t *testing.T) {
 
 func TestResolveOIDCRoleViewerGroupMatch(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": []string{"platform-viewers"}})
-	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers")
+	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers", "")
 	if role != "viewer" {
 		t.Fatalf("expected viewer, got %q", role)
 	}
@@ -69,7 +69,7 @@ func TestResolveOIDCRoleViewerGroupMatch(t *testing.T) {
 
 func TestResolveOIDCRoleNoGroupMatchDefaultsToViewer(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": []string{"unrelated-group"}})
-	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers")
+	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers", "")
 	if role != "viewer" {
 		t.Fatalf("expected viewer as the safe default for an unmapped group, got %q", role)
 	}
@@ -77,7 +77,7 @@ func TestResolveOIDCRoleNoGroupMatchDefaultsToViewer(t *testing.T) {
 
 func TestResolveOIDCRoleSingleStringGroupClaim(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": "platform-admins"})
-	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers")
+	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers", "")
 	if role != "admin" {
 		t.Fatalf("expected admin for a bare-string groups claim, got %q", role)
 	}
@@ -85,7 +85,7 @@ func TestResolveOIDCRoleSingleStringGroupClaim(t *testing.T) {
 
 func TestResolveOIDCRoleCaseInsensitive(t *testing.T) {
 	tok := fakeJWT(t, map[string]any{"groups": []string{"Platform-Admins"}})
-	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers")
+	role := resolveOIDCRole(tok, "groups", "platform-admins", "platform-viewers", "")
 	if role != "admin" {
 		t.Fatalf("expected case-insensitive group match to produce admin, got %q", role)
 	}
