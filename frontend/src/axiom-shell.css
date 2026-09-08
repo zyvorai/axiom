@@ -859,7 +859,6 @@
 .tile-acts {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 /* VM card (alias of .tile with its original name, kept for the reference's
@@ -909,7 +908,6 @@
 .vm-acts {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 /* tabs */
