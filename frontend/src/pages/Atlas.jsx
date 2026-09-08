@@ -112,17 +112,22 @@ export default function Atlas() {
         };
     }, []);
 
-    if (!data) return <Skeleton className="h-64 rounded-2xl bg-muted" />;
+    if (!data) {
+        return (
+            <div className="page">
+                <Skeleton className="h-64 rounded-2xl bg-muted" />
+            </div>
+        );
+    }
 
     if (!data.available) {
         return (
-            <div className="space-y-6">
+            <div className="page">
                 <PageHeader
-                    eyebrow="ATLAS"
                     title="Atlas"
                     description="Storage control plane — Ceph, NFS and ZFS behind one API."
                 />
-                <GlassCard className="flex items-center gap-4 p-6">
+                <GlassCard className="flex items-center gap-4">
                     <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-400">
                         <ShieldAlert className="h-5 w-5" />
                     </div>
@@ -130,10 +135,8 @@ export default function Atlas() {
                         <div className="text-sm font-medium">Atlas not connected</div>
                         <div className="mt-0.5 text-xs text-muted-foreground">{data.reason || "Configure the Atlas gateway URL."}</div>
                     </div>
-                    <Link to="/settings" className="ml-auto">
-                        <Button variant="outline" className="rounded-xl bg-muted/30">
-                            Open Settings
-                        </Button>
+                    <Link to="/settings" className="btn btn-line" style={{ marginLeft: "auto" }}>
+                        Open Settings
                     </Link>
                 </GlassCard>
             </div>
@@ -149,23 +152,20 @@ export default function Atlas() {
     const metrics = data.metrics;
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="ATLAS"
                 title="Atlas"
                 description="Storage control plane — Ceph, NFS and ZFS behind one API."
                 action={
                     <>
                         {data.consoleURL && (
-                            <a href={data.consoleURL} target="_blank" rel="noreferrer">
-                                <Button variant="outline" className="rounded-xl bg-muted/30">
-                                    <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Console
-                                </Button>
+                            <a href={data.consoleURL} target="_blank" rel="noreferrer" className="btn btn-line">
+                                <ExternalLink size={14} /> Console
                             </a>
                         )}
-                        <Button variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
-                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Create volume
-                        </Button>
+                        <button type="button" className="btn btn-fill" onClick={() => setDialogOpen(true)}>
+                            <Plus size={15} /> Create volume
+                        </button>
                     </>
                 }
             />
@@ -205,11 +205,11 @@ export default function Atlas() {
             </div>
 
             {storageClasses.length > 0 && (
-                <GlassCard className="p-4">
-                    <div className="mb-3 text-sm font-medium">StorageClasses</div>
-                    <div className="flex flex-wrap gap-2">
+                <GlassCard>
+                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>StorageClasses</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                         {storageClasses.map((sc, i) => (
-                            <span key={i} className="mono border-y border-border px-2.5 py-1 text-xs">
+                            <span key={i} className="pill soft mono">
                                 {sc.name ?? String(sc)}
                             </span>
                         ))}

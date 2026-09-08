@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Cpu, MemoryStick, Boxes, Server, Ban, CheckCircle2, LogOut } from "lucide-react";
 import { NODES } from "@/constants/testIds";
 import { toast } from "sonner";
@@ -43,93 +40,121 @@ export default function Nodes() {
 
     if (!nodes) {
         return (
-            <div data-testid={NODES.root} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-48 rounded-2xl bg-muted" />
-                ))}
+            <div data-testid={NODES.root} className="page">
+                <div className="grid g3">
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-64 rounded-2xl bg-muted" />
+                    ))}
+                </div>
             </div>
         );
     }
 
     return (
-        <div data-testid={NODES.root} className="space-y-6">
+        <div data-testid={NODES.root} className="page">
             <PageHeader
-                eyebrow="NODES"
                 title="Nodes"
                 description="Compute topology, allocatable capacity and kubelet status."
-                action={<div className="text-xs text-muted-foreground">{nodes.length} nodes total</div>}
+                action={<span style={{ fontSize: 13, color: "var(--ink-3)" }}>{nodes.length} nodes total</span>}
             />
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid g3">
                 {nodes.map((n) => (
-                    <GlassCard key={n.name} data-testid={NODES.row(n.name)} className="p-5">
-                        <div className="flex items-start justify-between">
-                            <div className="min-w-0">
-                                <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="mono truncate text-sm hover:underline">
-                                    {n.name}
-                                </Link>
-                                <div className="mt-1 text-xs text-muted-foreground">
-                                    {n.role} · {n.internalIp}
-                                </div>
-                            </div>
+                    <div key={n.name} data-testid={NODES.row(n.name)} className="tile">
+                        <div className="tile-h">
+                            <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="mono hover:underline" style={{ color: "var(--ink)" }}>
+                                <b>{n.name}</b>
+                            </Link>
                             <StatusBadge status={n.status} />
                         </div>
-
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <FeatureTile nested size="compact" mono icon={Cpu} label="CPU" value={n.allocatableCpu} className="p-2.5" />
-                            <FeatureTile nested size="compact" mono icon={MemoryStick} label="Memory" value={n.allocatableMemory} className="p-2.5" />
-                            <FeatureTile nested size="compact" mono icon={Boxes} label="Pods" value={`${n.pods}/${n.allocatablePods}`} className="p-2.5" />
-                            <FeatureTile nested size="compact" mono icon={Server} label="Version" value={<span className="truncate">{n.version}</span>} className="p-2.5" />
+                        <div style={{ marginTop: -8, marginBottom: 14, fontSize: 12.5, color: "var(--ink-3)" }}>
+                            {n.role} · {n.internalIp}
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
+                        <div className="tile-specs">
                             <div>
-                                <div className="text-[10px] uppercase tracking-widest">OS</div>
-                                <div className="mt-0.5 text-foreground">{n.osImage}</div>
+                                <Cpu size={13} /> CPU
+                                <b>{n.allocatableCpu}</b>
                             </div>
                             <div>
-                                <div className="text-[10px] uppercase tracking-widest">Kernel</div>
-                                <div className="mono mt-0.5 text-foreground">{n.kernelVersion}</div>
+                                <MemoryStick size={13} /> Memory
+                                <b>{n.allocatableMemory}</b>
                             </div>
-                            <div className="col-span-2">
-                                <div className="text-[10px] uppercase tracking-widest">Runtime</div>
-                                <div className="mono mt-0.5 truncate text-foreground">{n.containerRuntime}</div>
+                            <div>
+                                <Boxes size={13} /> Pods
+                                <b>
+                                    {n.pods}
+                                    <small>/{n.allocatablePods}</small>
+                                </b>
+                            </div>
+                            <div>
+                                <Server size={13} /> Version
+                                <b className="truncate" style={{ fontSize: 14 }}>
+                                    {n.version}
+                                </b>
                             </div>
                         </div>
 
-                        <div className="mt-4 flex gap-2 border-t pt-3">
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: 12,
+                                marginBottom: 18,
+                                paddingTop: 14,
+                                borderTop: "1px solid var(--line)",
+                                fontSize: 12,
+                                color: "var(--ink-3)",
+                            }}
+                        >
+                            <div>
+                                OS
+                                <div style={{ marginTop: 2, color: "var(--ink)" }}>{n.osImage}</div>
+                            </div>
+                            <div>
+                                Kernel
+                                <div className="mono" style={{ marginTop: 2, color: "var(--ink)" }}>
+                                    {n.kernelVersion}
+                                </div>
+                            </div>
+                            <div style={{ gridColumn: "1 / -1" }}>
+                                Runtime
+                                <div className="mono truncate" style={{ marginTop: 2, color: "var(--ink)" }}>
+                                    {n.containerRuntime}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="tile-acts">
                             {n.status === "SchedulingDisabled" ? (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
+                                <button
+                                    type="button"
+                                    className="btn btn-line btn-sm"
                                     disabled={busy === `${n.name}:uncordon`}
                                     onClick={() => act(n.name, "uncordon", "uncordon")}
-                                    className="flex-1 rounded-xl bg-muted/30"
                                 >
-                                    <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
-                                </Button>
+                                    <CheckCircle2 size={13} /> Uncordon
+                                </button>
                             ) : (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
+                                <button
+                                    type="button"
+                                    className="btn btn-line btn-sm"
                                     disabled={busy === `${n.name}:cordon`}
                                     onClick={() => act(n.name, "cordon", "cordon")}
-                                    className="flex-1 rounded-xl bg-muted/30"
                                 >
-                                    <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
-                                </Button>
+                                    <Ban size={13} /> Cordon
+                                </button>
                             )}
-                            <Button
-                                size="sm"
-                                variant="outline"
+                            <button
+                                type="button"
+                                className="btn btn-danger btn-sm"
                                 disabled={busy === `${n.name}:drain`}
                                 onClick={() => act(n.name, "drain", "drain")}
-                                className="flex-1 rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
                             >
-                                <LogOut className="mr-1.5 h-3.5 w-3.5" /> Drain
-                            </Button>
+                                <LogOut size={13} /> Drain
+                            </button>
                         </div>
-                    </GlassCard>
+                    </div>
                 ))}
             </div>
         </div>

@@ -3,17 +3,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import ApplyManifestDialog from "@/components/ApplyManifestDialog";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Network, Boxes, ArrowRightLeft, Radar, ShieldHalf, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
@@ -69,31 +59,47 @@ function NetworkPolicyPanel() {
 
     return (
         <GlassCard className="overflow-hidden">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                    <ShieldHalf className="h-4 w-4 text-i17-cosmic" /> NetworkPolicies
+            <div className="card-h">
+                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
+                    <ShieldHalf size={16} style={{ color: "var(--blue)" }} /> NetworkPolicies
+                </h2>
+                <button type="button" className="btn btn-line btn-sm r" onClick={() => setCreateOpen(true)}>
+                    <Plus size={13} /> Create via YAML
+                </button>
+            </div>
+            {policies.length === 0 ? (
+                <div className="empty">No NetworkPolicies configured.</div>
+            ) : (
+                <div style={{ overflowX: "auto" }} className="max-h-[360px] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Types</th>
+                                <th>Pod selector</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {policies.map((p, i) => (
+                                <tr key={i} data-testid={NET.policyRow(p.name)}>
+                                    <td className="name">
+                                        {p.name}
+                                        <small>{p.namespace}</small>
+                                    </td>
+                                    <td>{(p.policyTypes || []).join(", ") || "—"}</td>
+                                    <td className="mono">{p.podSelector || "all pods"}</td>
+                                    <td>
+                                        <button type="button" className="btn btn-line btn-sm" onClick={() => remove(p)}>
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)} className="h-7 rounded-lg bg-muted/30 text-xs">
-                    <Plus className="mr-1 h-3 w-3" /> Create via YAML
-                </Button>
-            </div>
-            <div className="max-h-[360px] overflow-auto scrollbar-thin">
-                {policies.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No NetworkPolicies configured.</div>}
-                {policies.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none hover:bg-muted">
-                        <div className="min-w-0 flex-1">
-                            <div className="mono truncate text-sm">{p.name}</div>
-                            <div className="text-[11px] text-muted-foreground">
-                                {p.namespace} · {(p.policyTypes || []).join(", ") || "—"}
-                            </div>
-                        </div>
-                        <div className="mono max-w-[280px] truncate text-xs text-muted-foreground">{p.podSelector || "all pods"}</div>
-                        <Button size="sm" variant="ghost" onClick={() => remove(p)} className="ml-3 h-7 px-2 text-muted-foreground hover:text-rose-400">
-                            <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                    </div>
-                ))}
-            </div>
+            )}
             <ApplyManifestDialog
                 open={createOpen}
                 onOpenChange={setCreateOpen}
@@ -156,45 +162,47 @@ function PacketWolfPanel() {
 
     return (
         <GlassCard className="overflow-hidden">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                    <Radar className="h-4 w-4 text-i17-cosmic" /> PacketWolf
-                </div>
-                <div className="flex items-center gap-2">
+            <div className="card-h">
+                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
+                    <Radar size={16} style={{ color: "var(--blue)" }} /> PacketWolf
+                </h2>
+                <span className="r" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ink-3)" }}>
                     <span className={`status-dot ${tone}`} />
-                    <span className="text-xs text-muted-foreground">{label}</span>
-                </div>
+                    {label}
+                </span>
             </div>
-            <div className="px-4 py-3 text-xs text-muted-foreground">
+            <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 14 }}>
                 {status.message || status.baseUrl || "eBPF flow visibility via the PacketWolf integration."}
-            </div>
+            </p>
             {status.reachable && (
-                <div className="max-h-[360px] overflow-auto scrollbar-thin border-t">
-                    {flowsError && <div className="px-4 py-6 text-center text-sm text-muted-foreground">{flowsError}</div>}
+                <>
+                    {flowsError && <div className="empty">{flowsError}</div>}
                     {!flowsError && items && items.length > 0 && (
-                        <Table>
-                            <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                                <TableRow className="hover:bg-transparent">
-                                    <TableHead>Source</TableHead>
-                                    <TableHead>Destination</TableHead>
-                                    <TableHead>Proto</TableHead>
-                                    <TableHead>Verdict</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {items.slice(0, 25).map((f, i) => (
-                                    <TableRow key={i} className="hover:bg-muted">
-                                        <TableCell className="mono text-xs">{String(f.source ?? f.src ?? f.from ?? "—")}</TableCell>
-                                        <TableCell className="mono text-xs">{String(f.destination ?? f.dst ?? f.to ?? "—")}</TableCell>
-                                        <TableCell className="text-xs">{String(f.protocol ?? f.proto ?? "—")}</TableCell>
-                                        <TableCell className="text-xs">{String(f.verdict ?? f.action ?? f.disposition ?? "—")}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <div style={{ overflowX: "auto" }} className="max-h-[360px] overflow-y-auto scrollbar-thin">
+                            <table className="tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Destination</th>
+                                        <th>Proto</th>
+                                        <th>Verdict</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.slice(0, 25).map((f, i) => (
+                                        <tr key={i} data-testid={NET.flowRow(i)}>
+                                            <td className="mono">{String(f.source ?? f.src ?? f.from ?? "—")}</td>
+                                            <td className="mono">{String(f.destination ?? f.dst ?? f.to ?? "—")}</td>
+                                            <td>{String(f.protocol ?? f.proto ?? "—")}</td>
+                                            <td>{String(f.verdict ?? f.action ?? f.disposition ?? "—")}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                     {!flowsError && items && items.length === 0 && (
-                        <div className="px-4 py-6 text-center text-sm text-muted-foreground">No flows in the current window.</div>
+                        <div className="empty">No flows in the current window.</div>
                     )}
                     {!flowsError && flows && !items && (
                         <CodeEditor
@@ -204,7 +212,7 @@ function PacketWolfPanel() {
                             className="mx-4 mb-4 min-h-0 [&_.code-pane]:min-h-[28vh] [&_.code-pane]:max-h-[40vh]"
                         />
                     )}
-                </div>
+                </>
             )}
         </GlassCard>
     );
@@ -226,7 +234,7 @@ export default function Networking() {
 
     if (!d) {
         return (
-            <div data-testid={NET.root} className="space-y-4">
+            <div data-testid={NET.root} className="page">
                 <Skeleton className="h-40 rounded-2xl bg-muted" />
                 <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
@@ -234,79 +242,101 @@ export default function Networking() {
     }
 
     return (
-        <div data-testid={NET.root} className="space-y-6">
+        <div data-testid={NET.root} className="page">
             <PageHeader
-                eyebrow="NETWORKING"
                 title="Networking"
                 description="Service graph across pods, services and endpoints."
-                action={<div className="mono text-xs text-muted-foreground">namespace: {d.namespace}</div>}
+                action={
+                    <span className="mono" style={{ fontSize: 13, color: "var(--ink-3)" }}>
+                        namespace: {d.namespace}
+                    </span>
+                }
             />
 
-            <div className="grid gap-4 md:grid-cols-3">
-                {[
-                    { label: "Graph nodes", value: d.nodes.length, icon: Network, tone: "text-i17-sky" },
-                    { label: "Connections", value: d.edges.length, icon: ArrowRightLeft, tone: "text-i17-sage" },
-                    {
-                        label: "Services",
-                        value: d.nodes.filter((n) => n.kind === "service").length,
-                        icon: Boxes,
-                        tone: "text-i17-cosmic",
-                    },
-                ].map((c) => (
-                    <FeatureTile key={c.label} label={c.label} icon={c.icon} iconClassName={c.tone} value={c.value} />
-                ))}
+            <div className="grid g3">
+                <div className="stat">
+                    <Network size={18} style={{ color: "var(--blue)" }} />
+                    <b style={{ marginTop: 12 }}>{d.nodes.length}</b>
+                    <span>Graph nodes</span>
+                </div>
+                <div className="stat">
+                    <ArrowRightLeft size={18} style={{ color: "var(--green)" }} />
+                    <b style={{ marginTop: 12 }}>{d.edges.length}</b>
+                    <span>Connections</span>
+                </div>
+                <div className="stat">
+                    <Boxes size={18} style={{ color: "var(--purple)" }} />
+                    <b style={{ marginTop: 12 }}>{d.nodes.filter((n) => n.kind === "service").length}</b>
+                    <span>Services</span>
+                </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-5">
-                <GlassCard className="p-0 overflow-hidden xl:col-span-2">
-                    <div className="border-b px-4 py-3 text-sm font-medium">Graph nodes</div>
-                    <div className="max-h-[520px] overflow-auto scrollbar-thin">
-                        {d.nodes.map((n) => (
-                            <div
-                                key={n.id}
-                                className="flex items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
-                            >
-                                <Network className="h-4 w-4 text-i17-sage" />
-                                <div className="min-w-0 flex-1">
-                                    <div className="mono truncate text-sm">{n.label}</div>
-                                    <div className="text-[11px] text-muted-foreground">
-                                        {n.kind} · {n.namespace}
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="mono text-xs">{n.ip}</div>
-                                    <div className="text-[11px] text-muted-foreground">{(n.ports || []).join(", ")}</div>
-                                </div>
-                            </div>
-                        ))}
+            <div className="grid g2" style={{ marginTop: 14 }}>
+                <GlassCard className="overflow-hidden">
+                    <div className="card-h">
+                        <h2 style={{ fontSize: 15 }}>Graph nodes</h2>
+                    </div>
+                    <div style={{ overflowX: "auto" }} className="max-h-[520px] overflow-y-auto scrollbar-thin">
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>IP</th>
+                                    <th>Ports</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {d.nodes.map((n) => (
+                                    <tr key={n.id}>
+                                        <td className="name">
+                                            {n.label}
+                                            <small>{n.kind} · {n.namespace}</small>
+                                        </td>
+                                        <td className="mono">{n.ip}</td>
+                                        <td className="mono num">{(n.ports || []).join(", ")}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </GlassCard>
 
-                <GlassCard className="p-0 overflow-hidden xl:col-span-3">
-                    <div className="flex items-center justify-between border-b px-4 py-3">
-                        <div className="text-sm font-medium">Connections</div>
-                        <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                <GlassCard className="overflow-hidden">
+                    <div className="card-h">
+                        <h2 style={{ fontSize: 15 }}>Connections</h2>
+                        <span className="r" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ink-3)" }}>
                             <span className="status-dot ok animate-pulse" /> live
                         </span>
                     </div>
-                    <div className="max-h-[520px] overflow-auto scrollbar-thin">
-                        {d.edges.map((e, i) => (
-                            <div
-                                key={i}
-                                className="grid grid-cols-12 items-center gap-3 border-b px-4 py-2.5 text-xs last:border-none hover:bg-muted"
-                            >
-                                <div className="col-span-5 mono truncate text-foreground">{e.from}</div>
-                                <div className="col-span-1 text-center text-muted-foreground">→</div>
-                                <div className="col-span-5 mono truncate text-foreground">{e.to}</div>
-                                <div className="col-span-1 text-right text-muted-foreground">{e.label}</div>
-                            </div>
-                        ))}
+                    <div style={{ overflowX: "auto" }} className="max-h-[520px] overflow-y-auto scrollbar-thin">
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Label</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {d.edges.map((e, i) => (
+                                    <tr key={i}>
+                                        <td className="mono">{e.from}</td>
+                                        <td className="mono">{e.to}</td>
+                                        <td className="num">{e.label}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </GlassCard>
             </div>
 
-            <PacketWolfPanel />
-            <NetworkPolicyPanel />
+            <div style={{ marginTop: 14 }}>
+                <PacketWolfPanel />
+            </div>
+            <div style={{ marginTop: 14 }}>
+                <NetworkPolicyPanel />
+            </div>
         </div>
     );
 }

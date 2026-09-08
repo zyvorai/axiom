@@ -6,7 +6,6 @@ import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import {
     Table,
     TableBody,
@@ -51,7 +50,7 @@ export default function JobDetail() {
 
     if (job === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -60,11 +59,11 @@ export default function JobDetail() {
 
     if (job === false) {
         return (
-            <div className="space-y-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/jobs")} className="gap-1.5">
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
                     <ArrowLeft className="h-3.5 w-3.5" /> Jobs
-                </Button>
-                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                </button>
+                <GlassCard className="empty">
                     Job <span className="mono text-foreground">{ns}/{nm}</span> was not found.
                 </GlassCard>
             </div>
@@ -72,7 +71,7 @@ export default function JobDetail() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <DetailHeader
                 eyebrow="Job"
                 name={nm}
@@ -88,33 +87,35 @@ export default function JobDetail() {
                     </>
                 }
                 action={
-                    <Button variant="outline" size="sm" onClick={() => navigate("/jobs")} className="rounded-xl gap-1.5">
+                    <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
                         <ArrowLeft className="h-3.5 w-3.5" /> All jobs
-                    </Button>
+                    </button>
                 }
             />
 
-            <SpecTable
-                title="Summary"
-                rows={[
-                    { label: "Completions", value: job.completions || "—", mono: true },
-                    { label: "Duration", value: job.duration || "—", mono: true },
-                    {
-                        label: "Owner CronJob",
-                        value: job.ownerCronJob ? (
-                            <Link
-                                to={`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(job.ownerCronJob)}`}
-                                className="text-primary hover:underline"
-                            >
-                                {job.ownerCronJob}
-                            </Link>
-                        ) : (
-                            "—"
-                        ),
-                        mono: true,
-                    },
-                ]}
-            />
+            <GlassCard>
+                <SpecTable
+                    title="Summary"
+                    rows={[
+                        { label: "Completions", value: job.completions || "—", mono: true },
+                        { label: "Duration", value: job.duration || "—", mono: true },
+                        {
+                            label: "Owner CronJob",
+                            value: job.ownerCronJob ? (
+                                <Link
+                                    to={`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(job.ownerCronJob)}`}
+                                    className="text-primary hover:underline"
+                                >
+                                    {job.ownerCronJob}
+                                </Link>
+                            ) : (
+                                "—"
+                            ),
+                            mono: true,
+                        },
+                    ]}
+                />
+            </GlassCard>
 
             <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Pods ({jobPods.length})</div>

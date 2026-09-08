@@ -37,9 +37,13 @@ function Highlighted({ value }) {
     );
 }
 
-/** macOS Terminal–style colorful JSON/manifest viewer. */
+/** macOS Terminal–style colorful JSON/manifest viewer. An editable instance
+ * (PodDetail/WorkloadDetail's manifest tab) opens straight into edit mode —
+ * it exists to be edited, not previewed first — while a read-only instance
+ * (CustomResources/PluginView/Networking's raw viewers) never shows the
+ * toggle at all. */
 export default function CodeEditor({ value, onChange, editable = true, className, title = "Manifest.json" }) {
-    const [editing, setEditing] = useState(false);
+    const [editing, setEditing] = useState(editable);
 
     return (
         <MacTerm

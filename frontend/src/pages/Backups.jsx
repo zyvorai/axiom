@@ -20,24 +20,36 @@ import { toast } from "sonner";
 function Section({ title, icon: Icon, rows, columns, empty, action }) {
     return (
         <GlassCard className="overflow-hidden">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
+            <div className="card-h">
+                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
+                    <Icon className="h-4 w-4" style={{ color: "var(--blue)" }} /> {title}
+                </h2>
+                {action && <span className="r">{action}</span>}
+            </div>
+            {rows.length === 0 ? (
+                <div className="empty">{empty}</div>
+            ) : (
+                <div style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto" }}>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                {columns.map((c) => (
+                                    <th key={c.key}>{c.label}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((r, i) => (
+                                <tr key={i}>
+                                    {columns.map((c) => (
+                                        <td key={c.key}>{c.render ? c.render(r) : r[c.key]}</td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-                {action}
-            </div>
-            <div className="max-h-[360px] overflow-auto scrollbar-thin">
-                {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>}
-                {rows.map((r, i) => (
-                    <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                        {columns.map((c) => (
-                            <div key={c.key} className={`${c.span || "col-span-3"} min-w-0 text-xs`}>
-                                {c.render ? c.render(r) : <span className="mono truncate text-foreground">{r[c.key]}</span>}
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
+            )}
         </GlassCard>
     );
 }
@@ -190,6 +202,9 @@ export default function Backups() {
     const [createOpen, setCreateOpen] = useState(false);
     const [restoreOpen, setRestoreOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [veleroOpen, setVeleroOpen] = useState(false);
+    const [veleroForm, setVeleroForm] = useState({ namespace: "velero", name: "", includedNamespaces: "*", ttl: "" });
+    const [veleroBusy, setVeleroBusy] = useState(false);
 
     const load = () => {
         Promise.all([
@@ -210,27 +225,29 @@ export default function Backups() {
 
     if (!snapshots) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-64 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-64 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="BACKUPS"
                 title="Backups"
                 description="VolumeSnapshots and Velero cluster backups."
                 action={
                     <>
-                        <Button size="sm" variant="outline" onClick={() => setRestoreOpen(true)} className="rounded-xl bg-muted/30">
-                            <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Restore
-                        </Button>
-                        <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Create snapshot
-                        </Button>
+                        <button type="button" className="btn btn-sm btn-line" onClick={() => setRestoreOpen(true)}>
+                            <Undo2 size={14} /> Restore
+                        </button>
+                        <button type="button" className="btn btn-sm btn-line" onClick={() => setVeleroOpen(true)}>
+                            <Archive size={14} /> Velero backup
+                        </button>
+                        <button type="button" className="btn btn-sm btn-fill" onClick={() => setCreateOpen(true)}>
+                            <Plus size={14} /> Create snapshot
+                        </button>
                     </>
                 }
             />
@@ -241,10 +258,10 @@ export default function Backups() {
                 rows={snapshots}
                 empty="No volume snapshots."
                 columns={[
-                    { key: "name", span: "col-span-4", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace} · {r.pvc}</div></> },
-                    { key: "volumeSnapshotClass", span: "col-span-4", render: (r) => <span className="mono text-muted-foreground">{r.volumeSnapshotClass}</span> },
-                    { key: "status", span: "col-span-3", render: (r) => <StatusBadge status={r.status} /> },
-                    { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace} · {r.pvc}</div></> },
+                    { key: "volumeSnapshotClass", label: "VolumeSnapshotClass", render: (r) => <span className="mono num">{r.volumeSnapshotClass}</span> },
+                    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
+                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
@@ -254,10 +271,10 @@ export default function Backups() {
                 rows={veleroBackups || []}
                 empty="No Velero backups."
                 columns={[
-                    { key: "name", span: "col-span-4", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
-                    { key: "namespaces", span: "col-span-4", render: (r) => <span className="mono text-muted-foreground">{r.namespaces}</span> },
-                    { key: "phase", span: "col-span-3", render: (r) => <StatusBadge status={r.phase} /> },
-                    { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace}</div></> },
+                    { key: "namespaces", label: "Namespaces", render: (r) => <span className="mono num">{r.namespaces}</span> },
+                    { key: "phase", label: "Phase", render: (r) => <StatusBadge status={r.phase} /> },
+                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
@@ -267,22 +284,70 @@ export default function Backups() {
                 rows={veleroSchedules || []}
                 empty="No Velero schedules."
                 action={
-                    <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)} className="h-7 rounded-lg bg-muted/30 text-xs">
-                        <Plus className="mr-1 h-3 w-3" /> New schedule
-                    </Button>
+                    <button type="button" className="btn btn-sm btn-line" onClick={() => setScheduleOpen(true)}>
+                        <Plus size={13} /> New schedule
+                    </button>
                 }
                 columns={[
-                    { key: "name", span: "col-span-4", render: (r) => <><div className="mono truncate text-foreground">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
-                    { key: "schedule", span: "col-span-3", render: (r) => <span className="mono text-muted-foreground">{r.schedule}</span> },
-                    { key: "paused", span: "col-span-2", render: (r) => <StatusBadge status={r.paused ? "Paused" : "Running"} /> },
-                    { key: "lastBackup", span: "col-span-2", render: (r) => <span className="mono text-muted-foreground">{r.lastBackup ? new Date(r.lastBackup).toLocaleString() : "—"}</span> },
-                    { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-muted-foreground">{r.age}</span> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace}</div></> },
+                    { key: "schedule", label: "Schedule", render: (r) => <span className="mono num">{r.schedule}</span> },
+                    { key: "paused", label: "Status", render: (r) => <StatusBadge status={r.paused ? "Paused" : "Running"} /> },
+                    { key: "lastBackup", label: "Last backup", render: (r) => <span className="mono num">{r.lastBackup ? new Date(r.lastBackup).toLocaleString() : "—"}</span> },
+                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
             <CreateBackupDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <RestoreDialog open={restoreOpen} onOpenChange={setRestoreOpen} onCreated={load} />
             <CreateScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} onCreated={load} />
+            <Dialog open={veleroOpen} onOpenChange={setVeleroOpen}>
+                <DialogContent className="glass max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Create Velero backup</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <Field label="Namespace" value={veleroForm.namespace} onChange={(e) => setVeleroForm((f) => ({ ...f, namespace: e.target.value }))} />
+                        <Field label="Name" value={veleroForm.name} onChange={(e) => setVeleroForm((f) => ({ ...f, name: e.target.value }))} placeholder="on-demand-1" />
+                        <Field
+                            label="Included namespaces (comma-separated or *)"
+                            value={veleroForm.includedNamespaces}
+                            onChange={(e) => setVeleroForm((f) => ({ ...f, includedNamespaces: e.target.value }))}
+                        />
+                        <Field label="TTL (optional)" value={veleroForm.ttl} onChange={(e) => setVeleroForm((f) => ({ ...f, ttl: e.target.value }))} placeholder="720h0m0s" />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="brand"
+                            className="rounded-xl"
+                            disabled={veleroBusy || !veleroForm.name}
+                            onClick={async () => {
+                                setVeleroBusy(true);
+                                try {
+                                    const included = veleroForm.includedNamespaces
+                                        .split(",")
+                                        .map((s) => s.trim())
+                                        .filter(Boolean);
+                                    await api.post("/velero/backups", {
+                                        namespace: veleroForm.namespace,
+                                        name: veleroForm.name,
+                                        includedNamespaces: included,
+                                        ttl: veleroForm.ttl || undefined,
+                                    });
+                                    toast.success(`Velero backup ${veleroForm.name} requested`);
+                                    setVeleroOpen(false);
+                                    load();
+                                } catch (e) {
+                                    toast.error("Velero backup failed", { description: e?.response?.data?.error || e.message });
+                                } finally {
+                                    setVeleroBusy(false);
+                                }
+                            }}
+                        >
+                            {veleroBusy ? "Creating…" : "Create"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

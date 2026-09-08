@@ -13,14 +13,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Search, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -194,17 +186,16 @@ export default function Pods() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="PODS"
                 title="Pods"
                 description="Every running pod across all namespaces."
                 action={
@@ -217,98 +208,97 @@ export default function Pods() {
                         </div>
                     )
                 }
+                tools={
+                    <>
+                        <div className="input">
+                            <Search size={15} style={{ color: "var(--ink-3)" }} />
+                            <input
+                                placeholder="Search pod name"
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            />
+                        </div>
+                        <Select value={ns} onValueChange={setNs}>
+                            <SelectTrigger className="w-[180px] bg-muted/30">
+                                <SelectValue placeholder="Namespace" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All namespaces</SelectItem>
+                                {namespaces.map((n) => (
+                                    <SelectItem key={n} value={n}>
+                                        {n}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </>
+                }
             />
-
-            <GlassCard className="p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative flex-1 min-w-[220px]">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder="Search pod name"
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            className="bg-muted/30 pl-9"
-                        />
-                    </div>
-                    <Select value={ns} onValueChange={setNs}>
-                        <SelectTrigger className="w-[180px] bg-muted/30">
-                            <SelectValue placeholder="Namespace" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All namespaces</SelectItem>
-                            {namespaces.map((n) => (
-                                <SelectItem key={n} value={n}>
-                                    {n}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </GlassCard>
 
             <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    <Table>
-                        <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead className="w-10">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th className="w-10">
                                     <Checkbox
                                         checked={rows.length > 0 && selected.size === rows.length}
                                         onCheckedChange={toggleAll}
                                     />
-                                </TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Namespace</TableHead>
-                                <TableHead>Node</TableHead>
-                                <TableHead>Ready</TableHead>
-                                <TableHead>Restarts</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>IP</TableHead>
-                                <TableHead>Age</TableHead>
-                                <TableHead />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                                </th>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Node</th>
+                                <th>Ready</th>
+                                <th>Restarts</th>
+                                <th>Status</th>
+                                <th>IP</th>
+                                <th>Age</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
                             {rows.map((p) => (
-                                <TableRow key={`${p.namespace}/${p.name}`} className="hover:bg-muted">
-                                    <TableCell>
+                                <tr key={`${p.namespace}/${p.name}`}>
+                                    <td>
                                         <Checkbox checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
-                                    </TableCell>
-                                    <TableCell className="font-medium">
+                                    </td>
+                                    <td className="name">
                                         <Link to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`} className="hover:underline">
                                             {p.name}
                                         </Link>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{p.namespace}</TableCell>
-                                    <TableCell className="mono text-xs">{p.node}</TableCell>
-                                    <TableCell className="mono">{p.ready}</TableCell>
-                                    <TableCell className={`mono ${p.restarts > 0 ? "text-amber-400" : ""}`}>{p.restarts}</TableCell>
-                                    <TableCell>
+                                    </td>
+                                    <td className="mono">{p.namespace}</td>
+                                    <td className="mono">{p.node}</td>
+                                    <td className="mono num">{p.ready}</td>
+                                    <td className={`mono num ${p.restarts > 0 ? "text-amber-400" : ""}`}>{p.restarts}</td>
+                                    <td>
                                         <StatusBadge status={p.status} />
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{p.ip}</TableCell>
-                                    <TableCell className="mono text-xs">{p.age}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-1">
-                                            <Button size="sm" variant="ghost" onClick={() => setExecTarget(p)} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
-                                                <Terminal className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button size="sm" variant="ghost" onClick={() => evict(p)} className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-400">
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
+                                    </td>
+                                    <td className="mono">{p.ip}</td>
+                                    <td className="mono">{p.age}</td>
+                                    <td>
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                                            <button type="button" className="btn btn-line btn-sm" title="Exec" onClick={() => setExecTarget(p)}>
+                                                <Terminal size={13} />
+                                            </button>
+                                            <button type="button" className="btn btn-line btn-sm" title="Evict" onClick={() => evict(p)}>
+                                                <Trash2 size={13} />
+                                            </button>
                                         </div>
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                </tr>
                             ))}
                             {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
-                                        No pods match the current filters.
-                                    </TableCell>
-                                </TableRow>
+                                <tr>
+                                    <td colSpan={10}>
+                                        <div className="empty">No pods match the current filters.</div>
+                                    </td>
+                                </tr>
                             )}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
 

@@ -66,7 +66,7 @@ export default function NamespaceDetail() {
 
     if (meta === null || pods === null || workloads === null || services === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
@@ -75,7 +75,7 @@ export default function NamespaceDetail() {
 
     if (meta === false) {
         return (
-            <div className="space-y-6">
+            <div className="page space-y-6">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/namespaces")} className="gap-1.5">
                     <ArrowLeft className="h-3.5 w-3.5" /> Namespaces
                 </Button>
@@ -87,7 +87,7 @@ export default function NamespaceDetail() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <DetailHeader
                 eyebrow="Namespace"
                 name={ns}
@@ -116,7 +116,7 @@ export default function NamespaceDetail() {
             </div>
 
             <Tabs defaultValue="pods">
-                <TabsList>
+                <TabsList className="tabs">
                     <TabsTrigger value="pods" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Pods ({pods.length})
                     </TabsTrigger>

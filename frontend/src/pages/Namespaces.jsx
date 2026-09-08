@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,70 +68,74 @@ export default function Namespaces() {
 
     if (!items) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <div className="grid g3" style={{ marginTop: 16 }}>
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-48 rounded-2xl bg-muted" />
+                    ))}
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="NAMESPACES"
                 title="Namespaces"
                 description="Every namespace in the cluster, with pod and service counts."
                 action={
-                    <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create namespace
-                    </Button>
+                    <button type="button" className="btn btn-fill" onClick={() => setOpen(true)}>
+                        <Plus size={15} /> Create namespace
+                    </button>
                 }
             />
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid g3">
                 {items.map((n) => (
-                    <GlassCard key={n.name} className="p-5 transition-colors hover:bg-muted/20">
+                    <div key={n.name} className="tile">
                         <Link
                             to={`/namespaces/${encodeURIComponent(n.name)}`}
-                            className="block outline-none"
                             data-testid={`namespace-card-${n.name}`}
+                            style={{ display: "block", color: "inherit" }}
                         >
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <Boxes className="h-4 w-4 shrink-0 text-i17-sky" />
-                                    <div className="mono truncate text-sm">{n.name}</div>
-                                </div>
+                            <div className="tile-h">
+                                <Boxes size={16} style={{ color: "var(--blue)", flexShrink: 0 }} />
+                                <b className="mono truncate">{n.name}</b>
                                 <StatusBadge status={n.status} />
                             </div>
-                            <div className="mt-4 grid grid-cols-2 gap-3">
-                                <FeatureTile nested size="compact" mono label="Pods" value={n.pods} className="p-2.5" />
-                                <FeatureTile nested size="compact" mono label="Services" value={n.services} className="p-2.5" />
+                            <div className="tile-specs" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                                <div>
+                                    Pods
+                                    <b>{n.pods}</b>
+                                </div>
+                                <div>
+                                    Services
+                                    <b>{n.services}</b>
+                                </div>
                             </div>
                         </Link>
-                        <div className="mt-4 flex items-center justify-between border-t pt-3">
-                            <Link
-                                to={`/namespaces/${encodeURIComponent(n.name)}`}
-                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                            >
-                                Open <ChevronRight className="h-3 w-3" />
+                        <div className="tile-acts" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                            <Link to={`/namespaces/${encodeURIComponent(n.name)}`} className="btn btn-ghost btn-sm" style={{ paddingLeft: 0 }}>
+                                Open <ChevronRight size={13} />
                             </Link>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">{n.age}</span>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.age}</span>
+                                <button
+                                    type="button"
+                                    className="btn btn-line btn-sm"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         remove(n);
                                     }}
-                                    className="text-muted-foreground hover:text-rose-400"
+                                    aria-label={`Delete namespace ${n.name}`}
                                 >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
+                                    <Trash2 size={13} />
+                                </button>
                             </div>
                         </div>
-                    </GlassCard>
+                    </div>
                 ))}
             </div>
 

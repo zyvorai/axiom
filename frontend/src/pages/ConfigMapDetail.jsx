@@ -5,10 +5,11 @@ import GlassCard from "@/components/GlassCard";
 import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileCog } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, FileCog, Save } from "lucide-react";
 import MacTerm from "@/components/MacTerm";
+import { toast } from "sonner";
 
 export default function ConfigMapDetail() {
     const { namespace, name } = useParams();
@@ -16,6 +17,9 @@ export default function ConfigMapDetail() {
     const ns = decodeURIComponent(namespace || "");
     const nm = decodeURIComponent(name || "");
     const [detail, setDetail] = useState(null);
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState("");
+    const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         let alive = true;
@@ -28,9 +32,33 @@ export default function ConfigMapDetail() {
         };
     }, [ns, nm]);
 
+    const startEdit = () => {
+        setDraft(JSON.stringify(detail.data || {}, null, 2));
+        setEditing(true);
+    };
+
+    const save = async () => {
+        setBusy(true);
+        try {
+            const data = JSON.parse(draft);
+            const { data: updated } = await api.put(`/configmaps/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}`, {
+                namespace: ns,
+                name: nm,
+                data,
+            });
+            setDetail(updated);
+            setEditing(false);
+            toast.success("ConfigMap updated");
+        } catch (e) {
+            toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
     if (detail === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
@@ -39,11 +67,11 @@ export default function ConfigMapDetail() {
 
     if (detail === false) {
         return (
-            <div className="space-y-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/configmaps")} className="gap-1.5">
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/configmaps")}>
                     <ArrowLeft className="h-3.5 w-3.5" /> ConfigMaps
-                </Button>
-                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                </button>
+                <GlassCard className="empty">
                     ConfigMap <span className="mono text-foreground">{ns}/{nm}</span> was not found.
                 </GlassCard>
             </div>
@@ -53,7 +81,7 @@ export default function ConfigMapDetail() {
     const entries = Object.entries(detail.data || {});
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <DetailHeader
                 eyebrow="ConfigMap"
                 name={nm}
@@ -69,24 +97,41 @@ export default function ConfigMapDetail() {
                     </>
                 }
                 action={
-                    <Button variant="outline" size="sm" onClick={() => navigate("/configmaps")} className="rounded-xl gap-1.5">
-                        <ArrowLeft className="h-3.5 w-3.5" /> All ConfigMaps
-                    </Button>
+                    <div className="flex gap-2">
+                        {!editing ? (
+                            <button type="button" className="btn btn-line btn-sm" onClick={startEdit}>
+                                Edit data
+                            </button>
+                        ) : (
+                            <button type="button" className="btn btn-fill btn-sm" onClick={save} disabled={busy}>
+                                <Save className="h-3.5 w-3.5" /> {busy ? "Saving…" : "Save"}
+                            </button>
+                        )}
+                        <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/configmaps")}>
+                            <ArrowLeft className="h-3.5 w-3.5" /> All ConfigMaps
+                        </button>
+                    </div>
                 }
             />
 
             {detail.labels && Object.keys(detail.labels).length > 0 && (
-                <SpecTable
-                    title="Labels"
-                    rows={Object.entries(detail.labels).map(([k, v]) => ({ label: k, value: v, mono: true }))}
-                />
+                <GlassCard>
+                    <SpecTable
+                        title="Labels"
+                        rows={Object.entries(detail.labels).map(([k, v]) => ({ label: k, value: v, mono: true }))}
+                    />
+                </GlassCard>
             )}
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                     <FileCog className="h-4 w-4 text-i17-sky" /> Data
                 </div>
-                {entries.length === 0 ? (
+                {editing ? (
+                    <div className="p-4">
+                        <Textarea className="mono min-h-[280px] bg-muted/30 text-xs" value={draft} onChange={(e) => setDraft(e.target.value)} />
+                    </div>
+                ) : entries.length === 0 ? (
                     <div className="px-4 py-10 text-center text-sm text-muted-foreground">No data keys.</div>
                 ) : (
                     entries.map(([key, value]) => (

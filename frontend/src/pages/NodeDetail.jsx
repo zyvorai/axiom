@@ -213,10 +213,14 @@ export default function NodeDetail() {
         }
     };
 
-    if (!node) return <Skeleton className="h-96 rounded-2xl" />;
+    if (!node) return (
+        <div className="page">
+            <Skeleton className="h-96 rounded-2xl" />
+        </div>
+    );
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
@@ -259,7 +263,7 @@ export default function NodeDetail() {
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList className="h-auto flex-wrap gap-1 p-1">
+                <TabsList className="tabs h-auto flex-wrap gap-1 p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>

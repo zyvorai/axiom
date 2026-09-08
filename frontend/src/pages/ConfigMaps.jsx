@@ -14,14 +14,6 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FileCog, Search, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
@@ -140,60 +132,65 @@ export default function ConfigMaps() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="CONFIGMAPS"
                 title="ConfigMaps"
                 description="Application configuration across all namespaces."
                 action={
-                    <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create ConfigMap
-                    </Button>
+                    <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
+                        <Plus size={15} /> Create ConfigMap
+                    </button>
+                }
+                tools={
+                    <div className="input">
+                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <input
+                            placeholder="Search ConfigMap name"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                        />
+                    </div>
                 }
             />
 
-            <GlassCard className="p-3">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search ConfigMap name" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
-                </div>
-            </GlassCard>
-
             <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    <Table>
-                        <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead>Name</TableHead>
-                                <TableHead>Namespace</TableHead>
-                                <TableHead>Keys</TableHead>
-                                <TableHead>Age</TableHead>
-                                <TableHead />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Keys</th>
+                                <th>Age</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
                             {rows.map((c) => (
-                                <TableRow key={`${c.namespace}/${c.name}`} className="hover:bg-muted">
-                                    <TableCell className="flex max-w-xs items-center gap-2 font-medium">
-                                        <FileCog className="h-3.5 w-3.5 shrink-0 text-i17-sky" />
-                                        <Link
-                                            to={`/configmaps/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`}
-                                            className="min-w-0 truncate text-primary hover:underline"
-                                            title={c.name}
-                                        >
-                                            {c.name}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{c.namespace}</TableCell>
-                                    <TableCell>
+                                <tr key={`${c.namespace}/${c.name}`}>
+                                    <td className="name">
+                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                            <FileCog size={14} style={{ color: "var(--ink-3)" }} />
+                                            <Link
+                                                to={`/configmaps/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`}
+                                                className="hover:underline"
+                                                title={c.name}
+                                            >
+                                                {c.name}
+                                            </Link>
+                                        </span>
+                                    </td>
+                                    <td className="mono">{c.namespace}</td>
+                                    <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(c.keys || []).map((k) => (
                                                 <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
@@ -201,24 +198,24 @@ export default function ConfigMaps() {
                                                 </Badge>
                                             ))}
                                         </div>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{c.age}</TableCell>
-                                    <TableCell>
-                                        <Button size="sm" variant="ghost" onClick={() => remove(c)} className="text-muted-foreground hover:text-rose-400">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="mono">{c.age}</td>
+                                    <td>
+                                        <button type="button" className="btn btn-line btn-sm" onClick={() => remove(c)}>
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </td>
+                                </tr>
                             ))}
                             {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                                        No ConfigMaps match the current filters.
-                                    </TableCell>
-                                </TableRow>
+                                <tr>
+                                    <td colSpan={5}>
+                                        <div className="empty">No ConfigMaps match the current filters.</div>
+                                    </td>
+                                </tr>
                             )}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
 

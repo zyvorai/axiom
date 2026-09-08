@@ -4,16 +4,7 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Search, Lock, LockOpen, Waypoints, Router } from "lucide-react";
 
 export default function Ingresses() {
@@ -40,7 +31,7 @@ export default function Ingresses() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
                 <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
@@ -48,43 +39,48 @@ export default function Ingresses() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="INGRESSES"
                 title="Ingresses"
                 description="External routes into cluster services, equivalent to OpenShift Routes."
+                tools={
+                    <div className="input">
+                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <input
+                            placeholder="Search by name or host"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                        />
+                    </div>
+                }
             />
 
-            <GlassCard className="p-3">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search by name or host" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
-                </div>
-            </GlassCard>
-
             <GlassCard className="overflow-hidden">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    <Table>
-                        <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead>Name</TableHead>
-                                <TableHead>Namespace</TableHead>
-                                <TableHead>Class</TableHead>
-                                <TableHead>Hosts</TableHead>
-                                <TableHead>Address</TableHead>
-                                <TableHead>TLS</TableHead>
-                                <TableHead>Age</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Class</th>
+                                <th>Hosts</th>
+                                <th>Address</th>
+                                <th>TLS</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {rows.map((i) => (
-                                <TableRow key={`${i.namespace}/${i.name}`} className="hover:bg-muted">
-                                    <TableCell className="flex items-center gap-2 font-medium">
-                                        <Waypoints className="h-3.5 w-3.5 text-i17-sky" /> {i.name}
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{i.namespace}</TableCell>
-                                    <TableCell className="text-xs">{i.class || "—"}</TableCell>
-                                    <TableCell>
+                                <tr key={`${i.namespace}/${i.name}`}>
+                                    <td className="name">
+                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                            <Waypoints size={14} style={{ color: "var(--ink-3)" }} /> {i.name}
+                                        </span>
+                                    </td>
+                                    <td className="mono">{i.namespace}</td>
+                                    <td>{i.class || "—"}</td>
+                                    <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(i.hosts || []).map((h) => (
                                                 <Badge key={h} variant="outline" className="mono text-[10px] bg-muted/30">
@@ -92,36 +88,38 @@ export default function Ingresses() {
                                                 </Badge>
                                             ))}
                                         </div>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs text-muted-foreground">{i.address || "—"}</TableCell>
-                                    <TableCell>
+                                    </td>
+                                    <td className="mono num">{i.address || "—"}</td>
+                                    <td>
                                         {i.tls ? (
-                                            <Lock className="h-3.5 w-3.5 text-emerald-400" />
+                                            <Lock size={14} style={{ color: "var(--green)" }} />
                                         ) : (
-                                            <LockOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                                            <LockOpen size={14} style={{ color: "var(--ink-3)" }} />
                                         )}
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{i.age}</TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="mono">{i.age}</td>
+                                </tr>
                             ))}
                             {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                                        No ingresses match the current filters.
-                                    </TableCell>
-                                </TableRow>
+                                <tr>
+                                    <td colSpan={7}>
+                                        <div className="empty">No ingresses match the current filters.</div>
+                                    </td>
+                                </tr>
                             )}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
 
-            <AutoTable
-                title="Gateway API"
-                icon={Router}
-                items={gateways}
-                emptyHint={gateways === null ? "Loading…" : "No Gateway API objects found (GatewayClass/Gateway/HTTPRoute)."}
-            />
+            <div style={{ marginTop: 24 }}>
+                <AutoTable
+                    title="Gateway API"
+                    icon={Router}
+                    items={gateways}
+                    emptyHint={gateways === null ? "Loading…" : "No Gateway API objects found (GatewayClass/Gateway/HTTPRoute)."}
+                />
+            </div>
         </div>
     );
 }

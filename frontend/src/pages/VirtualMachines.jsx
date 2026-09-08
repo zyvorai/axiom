@@ -4,7 +4,6 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,9 +52,17 @@ function ConsolePanel({ vm }) {
                 </div>
                 <div>
                     <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
-                    <div className="text-xs text-muted-foreground">Axiom doesn't embed a browser VNC client — open the console with virtctl.</div>
+                    <div className="text-xs text-muted-foreground">
+                        Use virtctl locally, or connect a VNC client to the proxied WebSocket path below.
+                    </div>
                 </div>
             </div>
+            {info.wsPath && (
+                <div>
+                    <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Browser WebSocket proxy</div>
+                    <code className="mono block truncate text-[11px] text-i17-sage">{info.wsPath}</code>
+                </div>
+            )}
             <div>
                 <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
                 <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
@@ -168,7 +175,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
 function VmProtection() {
     return (
         <Tabs defaultValue="snapshots">
-            <TabsList className="p-1">
+            <TabsList className="tabs" style={{ background: "none", padding: 0, height: "auto", borderRadius: 0 }}>
                 <TabsTrigger value="snapshots" className="gap-1.5">
                     <Camera className="h-3.5 w-3.5" /> Snapshots
                 </TabsTrigger>
@@ -308,6 +315,14 @@ export default function VirtualMachines() {
     const [vms, setVms] = useState(null);
     const [openVm, setOpenVm] = useState(null);
     const [busy, setBusy] = useState("");
+    const [createOpen, setCreateOpen] = useState(false);
+    const [createForm, setCreateForm] = useState({
+        namespace: "default",
+        name: "",
+        cpu: "1",
+        memory: "2Gi",
+        image: "quay.io/containerdisks/ubuntu:22.04",
+    });
 
     const load = () => api.get("/vms").then((r) => setVms(r.data));
 
@@ -338,91 +353,150 @@ export default function VirtualMachines() {
 
     if (!vms) {
         return (
-            <div data-testid={VMS.root} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-64 rounded-2xl" />
-                ))}
+            <div data-testid={VMS.root} className="page">
+                <div className="grid g3">
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-64 rounded-2xl" />
+                    ))}
+                </div>
             </div>
         );
     }
 
     return (
-        <div data-testid={VMS.root} className="space-y-6">
+        <div data-testid={VMS.root} className="page">
             <PageHeader
-                eyebrow="VIRTUAL MACHINES"
                 title="Virtual Machines"
-                description="KubeVirt-managed VMs — start, stop, live-migrate and console access."
-                action={<div className="text-xs text-muted-foreground">{vms.length} VMs</div>}
+                description="KubeVirt-managed VMs. Start, stop, live-migrate and open a console."
+                action={
+                    <>
+                        <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{vms.length} VMs</span>
+                        <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
+                            <Plus size={15} /> Create VM
+                        </button>
+                    </>
+                }
             />
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogContent className="glass max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Create virtual machine</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input className="bg-muted/30" value={createForm.namespace} onChange={(e) => setCreateForm((f) => ({ ...f, namespace: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Name</Label>
+                            <Input className="bg-muted/30" value={createForm.name} onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))} placeholder="web-vm" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">CPU cores</Label>
+                                <Input className="bg-muted/30" value={createForm.cpu} onChange={(e) => setCreateForm((f) => ({ ...f, cpu: e.target.value }))} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Memory</Label>
+                                <Input className="bg-muted/30" value={createForm.memory} onChange={(e) => setCreateForm((f) => ({ ...f, memory: e.target.value }))} />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Container disk image</Label>
+                            <Input className="bg-muted/30" value={createForm.image} onChange={(e) => setCreateForm((f) => ({ ...f, image: e.target.value }))} />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="brand"
+                            className="rounded-xl"
+                            disabled={busy === "create" || !createForm.name}
+                            onClick={async () => {
+                                setBusy("create");
+                                try {
+                                    await api.post("/vms", { ...createForm, running: true });
+                                    toast.success(`VM ${createForm.name} created`);
+                                    setCreateOpen(false);
+                                    await load();
+                                } catch (e) {
+                                    toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+                                } finally {
+                                    setBusy("");
+                                }
+                            }}
+                        >
+                            {busy === "create" ? "Creating…" : "Create"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <div className="grid g3">
                 {vms.map((vm) => {
                     const running = vm.running || vm.status === "Running";
                     return (
-                        <GlassCard key={`${vm.namespace}/${vm.name}`} data-testid={VMS.card(vm.name)} className="p-5">
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                    <Link
-                                        to={`/vms/${encodeURIComponent(vm.namespace)}/${encodeURIComponent(vm.name)}`}
-                                        className="mono truncate text-sm text-primary hover:underline"
-                                    >
-                                        {vm.name}
-                                    </Link>
-                                    <div className="mt-1 text-xs text-muted-foreground">{vm.os}</div>
-                                </div>
+                        <div key={`${vm.namespace}/${vm.name}`} data-testid={VMS.card(vm.name)} className="vm">
+                            <div className="vm-h">
+                                <Link
+                                    to={`/vms/${encodeURIComponent(vm.namespace)}/${encodeURIComponent(vm.name)}`}
+                                    className="mono hover:underline"
+                                    style={{ color: "var(--ink)" }}
+                                >
+                                    <b>{vm.name}</b>
+                                </Link>
                                 <StatusBadge status={vm.status} />
                             </div>
-
-                            <div className="mt-4 grid grid-cols-2 gap-3">
-                                <FeatureTile nested size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu} className="p-2.5" />
-                                <FeatureTile nested size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory} className="p-2.5" />
+                            <div className="vm-specs">
+                                <div>
+                                    <Cpu size={13} /> vCPU
+                                    <b>{vm.cpu}</b>
+                                </div>
+                                <div>
+                                    <MemoryStick size={13} /> Memory
+                                    <b>{vm.memory}</b>
+                                </div>
+                                <div>
+                                    Node
+                                    <b className="mono" style={{ fontSize: 14, marginTop: 6 }}>
+                                        {vm.node || "—"}
+                                    </b>
+                                </div>
                             </div>
-
-                            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                <span className="mono">{vm.node}</span>
-                                <span className="ml-auto">{vm.age}</span>
-                            </div>
-
-                            <div className="mt-4 grid grid-cols-3 gap-2">
+                            <div className="vm-acts">
                                 {running ? (
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
+                                    <button
+                                        type="button"
+                                        className="btn btn-line btn-sm"
                                         disabled={busy === `${vm.namespace}/${vm.name}:stop`}
                                         onClick={() => act(vm, "stop", "stop")}
-                                        className="rounded-xl"
                                     >
-                                        <Square className="mr-1 h-3.5 w-3.5" /> Stop
-                                    </Button>
+                                        <Square size={12} /> Stop
+                                    </button>
                                 ) : (
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
+                                    <button
+                                        type="button"
+                                        className="btn btn-line btn-sm"
                                         disabled={busy === `${vm.namespace}/${vm.name}:start`}
                                         onClick={() => act(vm, "start", "start")}
-                                        className="rounded-xl"
                                     >
-                                        <Play className="mr-1 h-3.5 w-3.5" /> Start
-                                    </Button>
+                                        <Play size={12} /> Start
+                                    </button>
                                 )}
-                                <Button
-                                    size="sm"
-                                    variant="outline"
+                                <button
+                                    type="button"
+                                    className="btn btn-line btn-sm"
                                     disabled={!running || busy === `${vm.namespace}/${vm.name}:migrate`}
                                     onClick={() => act(vm, "migrate", "migrate")}
-                                    className="rounded-xl"
                                 >
-                                    <ArrowRightLeft className="mr-1 h-3.5 w-3.5" /> Migrate
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => setOpenVm(vm)}
-                                    className="rounded-xl"
-                                >
-                                    <Terminal className="mr-1 h-3.5 w-3.5" /> Console
-                                </Button>
+                                    <ArrowRightLeft size={13} /> Migrate
+                                </button>
+                                <button type="button" className="btn btn-fill btn-sm" onClick={() => setOpenVm(vm)}>
+                                    <Terminal size={13} /> Console
+                                </button>
+                                <span style={{ marginLeft: "auto", fontSize: 12.5, color: "var(--ink-3)", alignSelf: "center" }}>{vm.age}</span>
                             </div>
-                        </GlassCard>
+                        </div>
                     );
                 })}
             </div>

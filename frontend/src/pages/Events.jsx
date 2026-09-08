@@ -33,7 +33,7 @@ export default function Events() {
 
     if (!events) {
         return (
-            <div data-testid={EVENTS.root} className="space-y-4">
+            <div data-testid={EVENTS.root} className="page">
                 <Skeleton className="h-8 w-64 rounded-lg bg-muted" />
                 <Skeleton className="h-[70vh] rounded-2xl bg-muted" />
             </div>
@@ -41,45 +41,58 @@ export default function Events() {
     }
 
     return (
-        <div data-testid={EVENTS.root} className="space-y-6">
+        <div data-testid={EVENTS.root} className="page">
             <PageHeader
-                eyebrow="EVENTS"
                 title="Events"
                 description="Kubernetes event stream, most recent first."
             />
 
             <GlassCard className="overflow-hidden">
-                <div className="max-h-[70vh] overflow-auto scrollbar-thin">
-                    {events.map((e, i) => {
-                        const href = resourceHref(e.namespace, e.object);
-                        return (
-                            <div
-                                key={i}
-                                data-testid={EVENTS.row(i)}
-                                className="grid grid-cols-12 items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
-                            >
-                                <div className="col-span-2">
-                                    <StatusBadge status={e.type} />
-                                </div>
-                                <div className="col-span-3 mono text-xs text-sky-300">{e.reason}</div>
-                                <div className="col-span-5 text-sm text-foreground/90">{e.message}</div>
-                                <div className="col-span-1 mono text-xs text-muted-foreground">×{e.count}</div>
-                                <div className="col-span-1 mono text-right text-xs text-muted-foreground">{relTime(e.time)}</div>
-                                <div className="col-span-12 mt-0.5 mono text-[11px] text-muted-foreground">
-                                    {href ? (
-                                        <Link to={href} className="text-primary hover:underline">
-                                            {e.namespace}/{e.object}
-                                        </Link>
-                                    ) : (
-                                        `${e.namespace}/${e.object}`
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                    {events.length === 0 && (
-                        <div className="py-10 text-center text-sm text-muted-foreground">No recent events.</div>
-                    )}
+                <div style={{ overflowX: "auto" }} className="max-h-[70vh] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Reason</th>
+                                <th>Message</th>
+                                <th>Object</th>
+                                <th>Count</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {events.map((e, i) => {
+                                const href = resourceHref(e.namespace, e.object);
+                                return (
+                                    <tr key={i} data-testid={EVENTS.row(i)}>
+                                        <td>
+                                            <StatusBadge status={e.type} />
+                                        </td>
+                                        <td className="mono">{e.reason}</td>
+                                        <td>{e.message}</td>
+                                        <td className="mono">
+                                            {href ? (
+                                                <Link to={href} className="text-primary hover:underline">
+                                                    {e.namespace}/{e.object}
+                                                </Link>
+                                            ) : (
+                                                `${e.namespace}/${e.object}`
+                                            )}
+                                        </td>
+                                        <td className="num">×{e.count}</td>
+                                        <td className="mono num">{relTime(e.time)}</td>
+                                    </tr>
+                                );
+                            })}
+                            {events.length === 0 && (
+                                <tr>
+                                    <td colSpan={6}>
+                                        <div className="empty">No recent events.</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
         </div>

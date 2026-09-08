@@ -1,47 +1,138 @@
 /*
- * Apple Store–style login gate — ported from
- * ../zeus-os/ui/src/zyvor-premium-login.css (same wordmark → hero title →
- * tagline → elevated white card → Apple-blue pill CTA pattern, same
- * hsl(240 6% 10%) near-black / hsl(0 0% 100%) white / hsl(211 100% 45%)
- * Apple Action Blue values). Scoped under `axiom-login-*` classes and kept
- * always-light regardless of the app's dark-mode token, matching how
+ * Apple Store chapter login — ported from
+ * ../h2kvm-/web/dashboard/src/zyvor-premium-login.css (PremiumLoginShell):
+ * full-bleed white hero (wordmark → huge title → tagline → tone pills →
+ * Action Blue CTAs), a second "parchment" chapter for the credential card.
+ * Always-light regardless of the app's dark-mode token, matching how
  * Apple's own account sign-in stays light independent of system theme.
  */
 
-@keyframes axiom-login-fade-in-up {
+/* One accent per tone — solid, tint (wash), and glow (radial depth)
+   variants. Bind with data-tone="…" on a wrapper; consumed by
+   .login-chapter-hero::before and .login-pill. */
+.login-page {
+  --tone-sky: #0071e3;
+  --tone-sky-tint: rgba(0, 113, 227, 0.1);
+  --tone-sky-glow: rgba(0, 113, 227, 0.22);
+  --tone-violet: #7c3aed;
+  --tone-violet-tint: rgba(124, 58, 237, 0.1);
+  --tone-violet-glow: rgba(124, 58, 237, 0.22);
+  --tone-emerald: #248a3d;
+  --tone-emerald-tint: rgba(36, 138, 61, 0.1);
+  --tone-emerald-glow: rgba(36, 138, 61, 0.22);
+  --tone-amber: #bf7a00;
+  --tone-amber-tint: rgba(191, 122, 0, 0.12);
+  --tone-amber-glow: rgba(191, 122, 0, 0.24);
+}
+
+[data-tone='sky']     { --tone-color: var(--tone-sky);     --tone-wash: var(--tone-sky-tint);     --tone-glow: var(--tone-sky-glow); }
+[data-tone='violet']  { --tone-color: var(--tone-violet);  --tone-wash: var(--tone-violet-tint);  --tone-glow: var(--tone-violet-glow); }
+[data-tone='emerald'] { --tone-color: var(--tone-emerald); --tone-wash: var(--tone-emerald-tint); --tone-glow: var(--tone-emerald-glow); }
+[data-tone='amber']   { --tone-color: var(--tone-amber);   --tone-wash: var(--tone-amber-tint);   --tone-glow: var(--tone-amber-glow); }
+
+@keyframes login-fade-in-up {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes axiom-login-shake {
+@keyframes login-shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-4px); }
   40%, 80% { transform: translateX(4px); }
 }
 
-.axiom-login-page {
+.login-page {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  background: hsl(0 0% 100%);
   color: hsl(240 6% 10%);
-  font-family: var(--font-hero, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif);
+  background: hsl(0 0% 100%);
+  font-family: var(--font-hero, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.axiom-login-brand {
-  animation: axiom-login-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* Full-viewport snap scroll between hero + sign-in chapters */
+.login-store-page {
+  overflow: hidden;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+.login-store-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-store-scroll {
+    scroll-snap-type: none;
+  }
+}
+
+.login-chapter {
+  box-sizing: border-box;
   width: 100%;
-  max-width: 420px;
+  min-height: 100%;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(2rem, 6vh, 4rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.login-chapter-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: hsl(0 0% 100%);
   text-align: center;
+  animation: login-fade-in-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.login-chapter-hero::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background: radial-gradient(55% 70% at 50% 8%, var(--tone-glow, var(--tone-sky-glow)), transparent 70%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.login-chapter-sign-in {
+  background: hsl(240 5% 96%); /* Apple parchment #f5f5f7 */
+  justify-content: center;
+}
+
+.login-chapter-inner {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+}
+
+.login-sign-in-inner {
+  max-width: 26rem;
+}
+
+/* Brand mark — the Zyvor orange tile used as the shell's `logo` */
+.login-logo {
+  display: block;
 }
 
 .axiom-login-mark {
@@ -51,107 +142,230 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 28px -16px rgba(232, 112, 28, 0.55);
 }
 
-.axiom-login-product {
-  margin: 1.25rem 0 0;
-  font-size: clamp(1.75rem, 4vw, 2.125rem);
+/* Brand first — small-caps eyebrow, chapter-divider style */
+.login-wordmark {
+  margin: 0;
+  font-family: var(--font-hero, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif);
+  font-size: clamp(0.8125rem, 1.4vw, 0.9375rem);
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.1;
-  color: hsl(240 6% 10%);
-}
-
-.axiom-login-product-by {
-  margin: 0.35rem 0 0;
-  font-size: 0.75rem;
-  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
-  color: hsl(240 3% 55%);
+  line-height: 1.2;
+  color: var(--tone-color, var(--tone-sky));
+  text-wrap: balance;
 }
 
-.axiom-login-hero-title {
-  margin: 1.5rem 0 0.75rem;
-  font-size: clamp(1.75rem, 4.5vw, 2.375rem);
+/* Huge Store headline */
+.login-hero-title {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-hero, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif);
+  font-size: clamp(2.75rem, 8vw, 5rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
   color: hsl(240 6% 10%);
   text-wrap: balance;
 }
 
-.axiom-login-tagline {
-  margin: 0 0 2.25rem;
+.login-tagline {
+  margin: 1rem auto 0;
+  max-width: 34rem;
   color: hsl(240 3% 46%);
-  font-size: clamp(0.9375rem, 2vw, 1.0625rem);
-  line-height: 1.5;
   letter-spacing: -0.011em;
-  max-width: 28rem;
+  font-size: clamp(1.05rem, 2.1vw, 1.3125rem);
+  line-height: 1.47;
+  font-weight: 400;
 }
 
-.axiom-login-card {
-  animation: axiom-login-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
-  width: 100%;
-  max-width: 380px;
+/* Side-by-side Store CTAs — primary Action Blue + outline */
+.login-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 2rem;
+}
+
+.login-cta-primary,
+.login-cta-secondary,
+a.login-cta-primary,
+a.login-cta-secondary,
+button.login-cta-primary,
+button.login-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: 980px;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.login-cta-primary,
+a.login-cta-primary,
+button.login-cta-primary {
+  border: none;
+  background: hsl(211 100% 45%); /* #0071e3 */
+  color: hsl(0 0% 100%);
+  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
+}
+
+.login-cta-primary:hover,
+a.login-cta-primary:hover,
+button.login-cta-primary:hover {
+  background: hsl(211 100% 40%);
+  color: hsl(0 0% 100%);
+}
+
+.login-cta-secondary,
+a.login-cta-secondary,
+button.login-cta-secondary {
+  border: 1px solid hsl(211 100% 45%);
   background: hsl(0 0% 100%);
-  border: 1px solid hsl(240 6% 10% / 0.1);
-  border-radius: 20px;
-  padding: 2rem 1.75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 24px 48px -24px rgba(0, 0, 0, 0.12);
-  text-align: left;
-}
-
-.axiom-login-card.axiom-login-shake {
-  animation: axiom-login-shake 0.45s ease-out;
-}
-
-.axiom-login-eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
   color: hsl(211 100% 45%);
 }
 
-.axiom-login-form-heading {
-  margin: 0.35rem 0 0;
+.login-cta-secondary:hover,
+a.login-cta-secondary:hover,
+button.login-cta-secondary:hover {
+  background: hsl(211 100% 45% / 0.06);
+  color: hsl(211 100% 40%);
+}
+
+.login-cta-primary:active,
+.login-cta-secondary:active,
+a.login-cta-primary:active,
+a.login-cta-secondary:active,
+button.login-cta-primary:active,
+button.login-cta-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Tone-tinted pill row — one pill per Axiom domain, under the tagline and
+   above the CTAs. */
+.login-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.login-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.55rem;
+  border-radius: 980px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(240 6% 10%);
+  background: var(--tone-wash, hsl(211 100% 45% / 0.08));
+  border: 1px solid color-mix(in srgb, var(--tone-color, hsl(211 100% 45%)) 28%, transparent);
+}
+
+.login-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tone-color, hsl(211 100% 45%));
+  flex-shrink: 0;
+}
+
+.login-chapter-note {
+  margin: 2.25rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: hsl(240 4% 62%);
+  line-height: 1.4;
+}
+
+.login-form-heading {
+  margin: 0 0 1rem;
+  text-align: center;
   font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.022em;
   color: hsl(240 6% 10%);
 }
 
-.axiom-login-form-hint {
-  margin: 0.375rem 0 0;
-  font-size: 0.875rem;
-  color: hsl(240 3% 46%);
+.login-card {
+  width: 100%;
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(240 6% 10% / 0.08);
+  border-radius: 20px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-align: left;
 }
 
-.axiom-login-input {
+@media (min-width: 640px) {
+  .login-card {
+    padding: 2rem 1.75rem;
+  }
+}
+
+.login-shake {
+  animation: login-shake 0.45s ease-out;
+}
+
+.login-input {
   width: 100%;
-  height: 2.75rem;
-  padding: 0 1rem;
+  padding: 0.75rem 2.5rem;
   border-radius: 12px;
   font-size: 0.9375rem;
-  font-family: inherit;
+  line-height: 1.35;
   color: hsl(240 6% 10%);
   background: hsl(0 0% 100%);
-  border: 1px solid hsl(240 6% 10% / 0.14);
+  border: 1px solid hsl(240 5% 84%);
+  font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.axiom-login-input::placeholder {
-  color: hsl(240 3% 55%);
+
+.login-input::placeholder {
+  color: hsl(240 3% 46%);
+  opacity: 0.85;
 }
-.axiom-login-input:focus {
+
+.login-input:focus {
   outline: none;
   border-color: hsl(211 100% 45%);
   box-shadow: 0 0 0 3px hsl(211 100% 45% / 0.18);
 }
-.axiom-login-input:disabled {
+
+.login-input:focus-visible {
+  outline: 2px solid hsl(211 100% 45%);
+  outline-offset: 2px;
+}
+
+.login-input:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.axiom-login-btn-primary {
+.login-field-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.875rem;
+  height: 0.875rem;
+  color: hsl(240 3% 46%);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.login-btn-primary {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,284 +376,136 @@
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  font-family: inherit;
   color: hsl(0 0% 100%);
   border-radius: 980px;
   border: none;
-  /* Apple Action Blue #0071e3 */
   background: hsl(211 100% 45%);
   box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 }
-.axiom-login-btn-primary:hover:not(:disabled) {
+
+.login-btn-primary:hover:not(:disabled) {
   background: hsl(211 100% 40%);
 }
-.axiom-login-btn-primary:active:not(:disabled) {
+
+.login-btn-primary:active:not(:disabled) {
   transform: scale(0.98);
 }
-.axiom-login-btn-primary:disabled {
+
+.login-btn-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.axiom-login-btn-secondary {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-family: inherit;
-  color: hsl(240 6% 10%);
-  border-radius: 16px;
-  border: 1px solid hsl(240 6% 10% / 0.12);
-  background: hsl(240 6% 10% / 0.02);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-.axiom-login-btn-secondary:hover {
-  background: hsl(240 6% 10% / 0.05);
-  border-color: hsl(240 6% 10% / 0.18);
-}
-
-.axiom-login-icon-chip {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background: hsl(240 6% 10% / 0.05);
-  border: 1px solid hsl(240 6% 10% / 0.08);
-}
-
-.axiom-login-divider {
-  position: relative;
-  margin: 1.5rem 0 0.75rem;
-  text-align: center;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: hsl(240 3% 55%);
-}
-.axiom-login-divider span {
-  position: relative;
-  z-index: 1;
-  padding: 0 0.75rem;
-  background: hsl(0 0% 100%);
-}
-.axiom-login-divider::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 50%;
-  border-top: 1px solid hsl(240 6% 10% / 0.1);
-}
-
-.axiom-login-security-note {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 12px;
-  border: 1px solid hsl(240 6% 10% / 0.08);
-  background: hsl(240 6% 10% / 0.02);
-  font-size: 0.6875rem;
+.login-hint {
   color: hsl(240 3% 46%);
-}
-
-.axiom-login-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.6875rem;
-  color: hsl(240 3% 55%);
-}
-
-/* ── Destination / product chapters (apple.com “where you are”) ── */
-
-.login-chapter-destination {
-  background: hsl(240 6% 10%); /* ink */
-  color: hsl(0 0% 100%);
-  text-align: center;
-}
-
-.login-chapter-destination .login-chapter-inner {
-  max-width: 48rem;
-}
-
-.login-chapter-kicker {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: hsl(0 0% 100% / 0.45);
-}
-
-.login-chapter-destination .login-hero-title,
-.login-chapter-destination .login-dest-title {
-  margin: 0.65rem 0 0;
-  font-family: var(--font-hero, var(--font-display, -apple-system, BlinkMacSystemFont, sans-serif));
-  font-size: clamp(2.5rem, 7vw, 4.5rem);
-  font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-  color: hsl(0 0% 100%);
-  word-break: break-word;
-}
-
-.login-chapter-destination .login-tagline {
-  color: hsl(0 0% 100% / 0.72);
-}
-
-.login-dest-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 1.25rem 1.5rem;
-  width: 100%;
-  margin: 2.25rem auto 0;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-}
-
-.login-dest-fact {
-  border-top: 1px solid hsl(0 0% 100% / 0.14);
-  padding-top: 0.85rem;
-}
-
-.login-dest-fact-label {
-  display: block;
-  margin: 0 0 0.35rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: hsl(0 0% 100% / 0.45);
-}
-
-.login-dest-fact-value {
-  display: block;
-  font-family: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
-  font-size: clamp(0.9375rem, 2vw, 1.125rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: hsl(0 0% 100%);
-  word-break: break-all;
-  font-variant-numeric: tabular-nums;
-}
-
-.login-dest-fact-value.is-display {
-  font-family: var(--font-display, -apple-system, BlinkMacSystemFont, sans-serif);
-  font-size: clamp(1.125rem, 2.4vw, 1.375rem);
-  font-weight: 600;
-}
-
-.login-chapter-product {
-  background: hsl(240 5% 96%);
-  text-align: center;
-}
-
-.login-chapter-product .login-hero-title {
-  font-size: clamp(2.5rem, 7vw, 4.25rem);
-}
-
-.login-localnav {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem 1.25rem;
-  padding: 0.75rem 1rem;
-  background: hsl(0 0% 100% / 0.82);
-  backdrop-filter: saturate(180%) blur(16px);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  border-bottom: 1px solid hsl(240 6% 10% / 0.08);
   font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  line-height: 1.5;
+  text-align: center;
+  margin-top: 1.5rem;
+  max-width: 38ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.login-localnav a {
+.login-hint-action {
+  color: hsl(211 100% 45%);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+}
+
+.login-hint-action:hover {
   color: hsl(211 100% 40%);
+}
+
+.login-sso-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.875rem;
+  font-size: 0.875rem;
+  color: hsl(211 100% 45%);
   text-decoration: none;
 }
 
-.login-localnav a:hover {
+.login-sso-link:hover {
   text-decoration: underline;
 }
 
-.login-localnav-host {
-  color: hsl(240 3% 46%);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.6875rem;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.login-apple-step {
+  animation: login-apple-step-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.login-sign-in-context {
-  margin: 0 0 1.25rem;
-  text-align: center;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: hsl(240 3% 46%);
+@keyframes login-apple-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.login-sign-in-context strong {
-  color: hsl(240 6% 10%);
+.login-apple-host {
   font-weight: 600;
+  color: hsl(240 6% 10%);
 }
 
-.login-sign-in-context .login-apple-host {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+.login-apple-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.75rem 0.45rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid hsl(240 5% 84%);
+  background: hsl(0 0% 100%);
+  color: hsl(240 6% 10%);
   font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.login-sign-in-mode {
-  color: hsl(240 3% 46%);
-  font-weight: 500;
+.login-apple-identity:hover {
+  background: hsl(240 5% 96%);
 }
 
-.login-chapter-destination .login-cta-secondary,
-.login-chapter-destination a.login-cta-secondary {
-  border-color: hsl(0 0% 100% / 0.55);
-  background: transparent;
-  color: hsl(0 0% 100%);
+.login-apple-identity:active {
+  transform: scale(0.98);
 }
 
-.login-chapter-destination .login-cta-secondary:hover,
-.login-chapter-destination a.login-cta-secondary:hover {
-  background: hsl(0 0% 100% / 0.1);
-  color: #fff;
-  border-color: #fff;
+.login-apple-fields {
+  margin-bottom: 0.25rem;
 }
 
-.login-chapter-product .login-chapter-kicker {
-  color: hsl(240 3% 46%);
-}
-
-
-.axiom-login-page.login-store-page {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  max-height: 100dvh;
-  overflow: hidden;
-  padding: 0;
-}
-.axiom-login-page.login-store-page .login-store-scroll {
-  flex: 1;
-  min-height: 0;
-}
-.axiom-login-page.login-store-page .axiom-login-footer {
+.axiom-login-footer {
   flex-shrink: 0;
+  margin: 0;
   padding: 0.75rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: hsl(240 3% 55%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-apple-step,
+  .login-chapter-hero {
+    animation: none !important;
+  }
+  .login-shake {
+    animation: none !important;
+  }
 }

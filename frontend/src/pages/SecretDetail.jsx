@@ -5,7 +5,6 @@ import GlassCard from "@/components/GlassCard";
 import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Eye, EyeOff, KeySquare } from "lucide-react";
 import { toast } from "sonner";
@@ -51,7 +50,7 @@ export default function SecretDetail() {
 
     if (detail === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-96 rounded-2xl bg-muted" />
             </div>
@@ -60,11 +59,11 @@ export default function SecretDetail() {
 
     if (detail === false) {
         return (
-            <div className="space-y-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/secrets")} className="gap-1.5">
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/secrets")}>
                     <ArrowLeft className="h-3.5 w-3.5" /> Secrets
-                </Button>
-                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                </button>
+                <GlassCard className="empty">
                     Secret <span className="mono text-foreground">{ns}/{nm}</span> was not found.
                 </GlassCard>
             </div>
@@ -74,7 +73,7 @@ export default function SecretDetail() {
     const keys = detail.keys || [];
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <DetailHeader
                 eyebrow="Secret"
                 name={nm}
@@ -95,22 +94,48 @@ export default function SecretDetail() {
                 }
                 action={
                     <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={toggleReveal} disabled={busy} className="rounded-xl gap-1.5">
+                        <button type="button" className="btn btn-line btn-sm" onClick={toggleReveal} disabled={busy}>
                             {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                             {revealed ? "Hide values" : busy ? "Loading…" : "Reveal values"}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate("/secrets")} className="rounded-xl gap-1.5">
+                        </button>
+                        {revealed && (
+                            <button
+                                type="button"
+                                className="btn btn-fill btn-sm"
+                                disabled={busy}
+                                onClick={async () => {
+                                    setBusy(true);
+                                    try {
+                                        await api.put(`/secrets/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}`, {
+                                            namespace: ns,
+                                            name: nm,
+                                            data: detail.values || {},
+                                        });
+                                        toast.success("Secret updated");
+                                    } catch (e) {
+                                        toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+                                    } finally {
+                                        setBusy(false);
+                                    }
+                                }}
+                            >
+                                Save values
+                            </button>
+                        )}
+                        <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/secrets")}>
                             <ArrowLeft className="h-3.5 w-3.5" /> All secrets
-                        </Button>
+                        </button>
                     </div>
                 }
             />
 
             {detail.labels && Object.keys(detail.labels).length > 0 && (
-                <SpecTable
-                    title="Labels"
-                    rows={Object.entries(detail.labels).map(([k, v]) => ({ label: k, value: v, mono: true }))}
-                />
+                <GlassCard>
+                    <SpecTable
+                        title="Labels"
+                        rows={Object.entries(detail.labels).map(([k, v]) => ({ label: k, value: v, mono: true }))}
+                    />
+                </GlassCard>
             )}
 
             <GlassCard className="overflow-hidden">

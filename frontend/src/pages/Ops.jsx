@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import FeatureTile from "@/components/FeatureTile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,10 +54,19 @@ function useEndpoint(path, deps = []) {
     return data;
 }
 
+// Row-list wrapper for tabs whose rows are richer than a flat table (Agents, Webhooks).
 function Rows({ items, empty, render }) {
     if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
-    if (items.length === 0) return <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>;
-    return <div className="max-h-[520px] overflow-auto scrollbar-thin">{items.map(render)}</div>;
+    if (items.length === 0) return <div className="empty">{empty}</div>;
+    return <div style={{ maxHeight: 520, overflow: "auto" }}>{items.map(render)}</div>;
+}
+
+// Renders a `.tbl` once `items` has rows; a loading skeleton or `.empty` block
+// otherwise (kept outside any <table> so the DOM stays valid either way).
+function TablePanel({ items, empty, table }) {
+    if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
+    if (items.length === 0) return <div className="empty">{empty}</div>;
+    return table(items);
 }
 
 function HelmRow({ r, onChanged }) {
@@ -103,32 +109,34 @@ function HelmRow({ r, onChanged }) {
     };
 
     return (
-        <div className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-            <div className="col-span-3 min-w-0">
-                <div className="mono truncate text-sm">{r.name}</div>
-                <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
-            </div>
-            <div className="col-span-3 mono truncate text-xs text-muted-foreground">{r.chart}</div>
-            <div className="col-span-1 text-xs text-muted-foreground">rev {r.revision}</div>
-            <div className="col-span-1">
+        <tr>
+            <td className="name">
+                {r.name}
+                <small>{r.namespace}</small>
+            </td>
+            <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{r.chart}</td>
+            <td className="num">rev {r.revision}</td>
+            <td>
                 <StatusBadge status={r.status === "deployed" ? "Healthy" : r.status} />
-            </div>
-            <div className="col-span-1 text-right text-xs text-muted-foreground">{r.age}</div>
-            <div className="col-span-3 flex items-center justify-end gap-1.5">
-                <Input
-                    value={revision}
-                    onChange={(e) => setRevision(e.target.value)}
-                    placeholder="rev"
-                    className="h-7 w-14 bg-muted/30 px-2 text-xs"
-                />
-                <Button size="sm" variant="outline" disabled={!!busy} onClick={rollback} className="h-7 rounded-lg bg-muted/30 px-2">
-                    <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-                <Button size="sm" variant="outline" disabled={!!busy} onClick={uninstall} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 px-2 text-rose-300 hover:bg-rose-500/20">
-                    <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-            </div>
-        </div>
+            </td>
+            <td className="num">{r.age}</td>
+            <td>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                    <Input
+                        value={revision}
+                        onChange={(e) => setRevision(e.target.value)}
+                        placeholder="rev"
+                        className="h-7 w-14 bg-muted/30 px-2 text-xs"
+                    />
+                    <button type="button" className="btn btn-line btn-sm" disabled={!!busy} onClick={rollback} title="Rollback">
+                        <RotateCcw size={13} />
+                    </button>
+                    <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={uninstall} title="Uninstall">
+                        <Trash2 size={13} />
+                    </button>
+                </div>
+            </td>
+        </tr>
     );
 }
 
@@ -153,7 +161,7 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Install chart</DialogTitle>
                 </DialogHeader>
@@ -193,9 +201,9 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
                     </p>
                 </div>
                 <DialogFooter>
-                    <Button variant="brand" onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName} className="rounded-xl">
+                    <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName}>
                         {busy ? "Starting…" : "Install"}
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -207,19 +215,37 @@ function HelmTab() {
     const releases = useEndpoint("/helm/releases", [reload]);
     const [installOpen, setInstallOpen] = useState(false);
     return (
-        <div className="space-y-3">
-            <div className="flex justify-end">
-                <Button variant="brand" size="sm" onClick={() => setInstallOpen(true)} className="rounded-xl">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Install chart
-                </Button>
+        <div className="stack">
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button type="button" className="btn btn-fill btn-sm" onClick={() => setInstallOpen(true)}>
+                    <Plus size={14} /> Install chart
+                </button>
             </div>
-            <GlassCard className="overflow-hidden">
-                <Rows
+            <div className="card" style={{ padding: 0 }}>
+                <TablePanel
                     items={releases}
                     empty="No Helm releases."
-                    render={(r) => <HelmRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
+                    table={(rows) => (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Release</th>
+                                    <th>Chart</th>
+                                    <th>Revision</th>
+                                    <th>Status</th>
+                                    <th>Age</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((r) => (
+                                    <HelmRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 />
-            </GlassCard>
+            </div>
             <InstallChartDialog open={installOpen} onOpenChange={setInstallOpen} onInstalled={() => setReload((n) => n + 1)} />
         </div>
     );
@@ -245,35 +271,51 @@ function GitOpsTab() {
     };
 
     return (
-        <GlassCard className="overflow-hidden">
-            <Rows
+        <div className="card" style={{ padding: 0 }}>
+            <TablePanel
                 items={apps}
                 empty="No GitOps applications."
-                render={(a) => (
-                    <div key={`${a.namespace}/${a.name}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                        <div className="col-span-4 min-w-0">
-                            <div className="mono truncate text-sm">{a.name}</div>
-                            <div className="text-[11px] text-muted-foreground">{a.kind} · {a.namespace}</div>
-                        </div>
-                        <div className="col-span-4 mono truncate text-xs text-muted-foreground">{a.source}</div>
-                        <div className="col-span-2"><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></div>
-                        <div className="col-span-1 text-right text-xs text-muted-foreground">{a.age}</div>
-                        <div className="col-span-1 flex justify-end">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                disabled={syncing === `${a.namespace}/${a.name}`}
-                                onClick={() => sync(a)}
-                                className="h-7 px-2 text-muted-foreground hover:text-i17-sky"
-                                title="Sync"
-                            >
-                                <RotateCcw className="h-3.5 w-3.5" />
-                            </Button>
-                        </div>
-                    </div>
+                table={(rows) => (
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Application</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Age</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((a) => (
+                                <tr key={`${a.namespace}/${a.name}`}>
+                                    <td className="name">
+                                        {a.name}
+                                        <small>{a.kind} · {a.namespace}</small>
+                                    </td>
+                                    <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{a.source}</td>
+                                    <td><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></td>
+                                    <td className="num">{a.age}</td>
+                                    <td>
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                            <button
+                                                type="button"
+                                                className="btn btn-line btn-sm"
+                                                disabled={syncing === `${a.namespace}/${a.name}`}
+                                                onClick={() => sync(a)}
+                                                title="Sync"
+                                            >
+                                                <RotateCcw size={13} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             />
-        </GlassCard>
+        </div>
     );
 }
 
@@ -295,32 +337,38 @@ function AgentRunRow({ r, onChanged }) {
     };
 
     return (
-        <div className="border-b px-4 py-3 last:border-none hover:bg-muted">
-            <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                    <div className="mono truncate text-sm">{r.name}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">{r.goal}</div>
+        <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                    <div className="mono" style={{ fontSize: 13.5 }}>{r.name}</div>
+                    <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--ink-3)" }}>{r.goal}</div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div style={{ display: "flex", flexShrink: 0, alignItems: "center", gap: 8 }}>
                     <StatusBadge status={r.phase === "Proposed" ? "Pending" : r.phase} />
                     {pending && (
                         <>
-                            <Button size="sm" disabled={!!busy} onClick={() => decide("approve")} className="h-7 rounded-lg bg-emerald-500/15 px-2 text-emerald-300 hover:bg-emerald-500/25">
-                                <Check className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button size="sm" disabled={!!busy} onClick={() => decide("deny")} className="h-7 rounded-lg bg-rose-500/15 px-2 text-rose-300 hover:bg-rose-500/25">
-                                <X className="h-3.5 w-3.5" />
-                            </Button>
+                            <button
+                                type="button"
+                                className="btn btn-sm"
+                                disabled={!!busy}
+                                onClick={() => decide("approve")}
+                                style={{ boxShadow: "0 0 0 1px var(--green) inset", color: "var(--green)", background: "transparent" }}
+                            >
+                                <Check size={13} />
+                            </button>
+                            <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={() => decide("deny")}>
+                                <X size={13} />
+                            </button>
                         </>
                     )}
                 </div>
             </div>
             {r.plan?.summary && (
-                <div className="mt-2 border-y border-border px-3 py-2 text-xs text-muted-foreground">
+                <div style={{ marginTop: 8, borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "8px 0", fontSize: 12.5, color: "var(--ink-3)" }}>
                     {r.plan.summary}
                 </div>
             )}
-            <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--ink-3)" }}>
                 <span>autonomy: {r.autonomy}</span>
                 <span>·</span>
                 <span>risk: {r.risk}</span>
@@ -335,13 +383,13 @@ function AgentsTab() {
     const [reload, setReload] = useState(0);
     const runs = useEndpoint("/agent-runs", [reload]);
     return (
-        <GlassCard className="overflow-hidden">
+        <div className="card" style={{ padding: 0 }}>
             <Rows
                 items={runs}
                 empty="No agent runs."
                 render={(r) => <AgentRunRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
             />
-        </GlassCard>
+        </div>
     );
 }
 
@@ -349,32 +397,46 @@ function IdentityTab() {
     const identity = useEndpoint("/haven/identity");
     if (!identity) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
-        <div className="space-y-4">
-            <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">Identity planes</div>
-                <Rows
+        <div className="stack">
+            <div className="card" style={{ padding: 0 }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>Identity planes</div>
+                <TablePanel
                     items={identity.planes}
                     empty="No identity planes."
-                    render={(p) => (
-                        <div key={`${p.namespace}/${p.name}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-4 min-w-0">
-                                <div className="mono truncate text-sm">{p.name}</div>
-                                <div className="text-[11px] text-muted-foreground">{p.namespace} · {p.profile}</div>
-                            </div>
-                            <div className="col-span-5 mono truncate text-xs text-muted-foreground">{p.hostname}</div>
-                            <div className="col-span-2"><StatusBadge status={p.phase} /></div>
-                            <div className="col-span-1 text-right text-xs text-muted-foreground">{p.age}</div>
-                        </div>
+                    table={(rows) => (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Plane</th>
+                                    <th>Hostname</th>
+                                    <th>Status</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((p) => (
+                                    <tr key={`${p.namespace}/${p.name}`}>
+                                        <td className="name">
+                                            {p.name}
+                                            <small>{p.namespace} · {p.profile}</small>
+                                        </td>
+                                        <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{p.hostname}</td>
+                                        <td><StatusBadge status={p.phase} /></td>
+                                        <td className="num">{p.age}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 />
-            </GlassCard>
-            <GlassCard className="p-4 text-sm">
-                <div className="mb-2 font-medium">Admin credentials</div>
-                <div className="text-xs text-muted-foreground">
+            </div>
+            <div className="card">
+                <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>Admin credentials</div>
+                <div style={{ fontSize: 12.5, color: "var(--ink-3)" }}>
                     {identity.admin?.exists ? `Secret ${identity.admin.secretName} in ${identity.admin.namespace}` : "Not configured"}
                     {identity.admin?.hint && <span> — {identity.admin.hint}</span>}
                 </div>
-            </GlassCard>
+            </div>
         </div>
     );
 }
@@ -416,36 +478,52 @@ function AuditTab() {
     };
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1 min-w-[220px]">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="stack">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
+                    <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--ink-3)" }} />
                     <Input
                         placeholder="Search action, target, detail, or user"
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        className="bg-muted/30 pl-9"
+                        className="bg-muted/30"
+                        style={{ paddingLeft: 34 }}
                     />
                 </div>
-                <Button size="sm" variant="outline" onClick={exportCSV} disabled={!filtered || filtered.length === 0} className="rounded-xl bg-muted/30">
-                    <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
-                </Button>
+                <button type="button" className="btn btn-line btn-sm" onClick={exportCSV} disabled={!filtered || filtered.length === 0}>
+                    <Download size={13} /> Export CSV
+                </button>
             </div>
-            <GlassCard className="overflow-hidden">
-                <Rows
+            <div className="card" style={{ padding: 0 }}>
+                <TablePanel
                     items={filtered}
                     empty={q ? "No audit entries match." : "No audit entries recorded yet."}
-                    render={(e, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-2 mono text-xs text-sky-300">{e.action}</div>
-                            <div className="col-span-5 mono truncate text-xs text-foreground/90">{e.target}</div>
-                            <div className="col-span-3 truncate text-xs text-muted-foreground">{e.detail}</div>
-                            <div className="col-span-1 text-xs text-muted-foreground">{e.user}</div>
-                            <div className="col-span-1 text-right text-xs text-muted-foreground">{relTime(e.time)}</div>
-                        </div>
+                    table={(rows) => (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Target</th>
+                                    <th>Detail</th>
+                                    <th>User</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((e, i) => (
+                                    <tr key={i}>
+                                        <td className="mono" style={{ fontSize: 12.5, color: "var(--blue)" }}>{e.action}</td>
+                                        <td className="mono" style={{ fontSize: 12.5 }}>{e.target}</td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{e.detail}</td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{e.user}</td>
+                                        <td className="num">{relTime(e.time)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 />
-            </GlassCard>
+            </div>
         </div>
     );
 }
@@ -479,7 +557,7 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>New Role</DialogTitle>
                 </DialogHeader>
@@ -502,9 +580,9 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
+                    <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !name}>
                         {busy ? "Creating…" : "Create"}
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -541,7 +619,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>New RoleBinding</DialogTitle>
                 </DialogHeader>
@@ -568,12 +646,63 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="brand" onClick={submit} disabled={busy || !name || !roleName} className="rounded-xl">
+                    <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !name || !roleName}>
                         {busy ? "Creating…" : "Create"}
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabel }) {
+    return (
+        <div className="card" style={{ padding: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid var(--line)" }}>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
+                {onCreate && (
+                    <button type="button" className="btn btn-line btn-sm" onClick={onCreate}>
+                        <Plus size={13} /> {createLabel}
+                    </button>
+                )}
+            </div>
+            <TablePanel
+                items={items}
+                empty="None found."
+                table={(rows) => (
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th></th>
+                                {deletable && <th></th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((r, i) => (
+                                <tr key={i}>
+                                    <td className="name">
+                                        {r.name}
+                                        {r.namespace && <small>{r.namespace}</small>}
+                                        {r.roleRef && <small className="mono">{r.roleRef}</small>}
+                                    </td>
+                                    <td className="num">{r.rules != null ? `${r.rules} rules` : `${r.subjects} subjects`}</td>
+                                    {deletable && (
+                                        <td>
+                                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                                <button type="button" className="btn btn-danger btn-sm" onClick={() => onDelete(r)}>
+                                                    <Trash2 size={13} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            />
+        </div>
     );
 }
 
@@ -625,41 +754,9 @@ function RbacTab() {
         { title: "Role bindings", items: rbac.roleBindings, deletable: true, onDelete: deleteRoleBinding, onCreate: () => setBindingOpen(true), createLabel: "New binding" },
     ];
     return (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid g2">
             {groups.map((g) => (
-                <GlassCard key={g.title} className="overflow-hidden">
-                    <div className="flex items-center justify-between border-b px-4 py-3">
-                        <div className="text-sm font-medium">{g.title}</div>
-                        {g.onCreate && (
-                            <Button size="sm" variant="outline" onClick={g.onCreate} className="h-7 rounded-lg bg-muted/30 text-xs">
-                                <Plus className="mr-1 h-3 w-3" /> {g.createLabel}
-                            </Button>
-                        )}
-                    </div>
-                    <Rows
-                        items={g.items}
-                        empty="None found."
-                        render={(r, i) => (
-                            <div key={i} className="flex items-center justify-between gap-3 border-b px-4 py-2.5 last:border-none hover:bg-muted">
-                                <div className="min-w-0">
-                                    <div className="mono truncate text-sm">{r.name}</div>
-                                    {r.namespace && <div className="text-[11px] text-muted-foreground">{r.namespace}</div>}
-                                    {r.roleRef && <div className="mono text-[11px] text-muted-foreground">{r.roleRef}</div>}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="mono text-xs text-muted-foreground">
-                                        {r.rules != null ? `${r.rules} rules` : `${r.subjects} subjects`}
-                                    </div>
-                                    {g.deletable && (
-                                        <Button size="sm" variant="ghost" onClick={() => g.onDelete(r)} className="h-7 px-2 text-muted-foreground hover:text-rose-400">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    />
-                </GlassCard>
+                <RbacGroupCard key={g.title} {...g} />
             ))}
             <CreateRoleDialog open={roleOpen} onOpenChange={setRoleOpen} onCreated={reload} />
             <CreateRoleBindingDialog open={bindingOpen} onOpenChange={setBindingOpen} onCreated={reload} />
@@ -675,29 +772,41 @@ function WebhooksTab() {
         ["Mutating", webhooks.filter((w) => w.type === "Mutating")],
     ];
     return (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid g2">
             {groups.map(([title, items]) => (
-                <GlassCard key={title} className="overflow-hidden">
-                    <div className="border-b px-4 py-3 text-sm font-medium">{title} webhooks</div>
-                    <Rows
-                        items={items}
-                        empty="None found."
-                        render={(w, i) => (
-                            <div key={i} className="border-b px-4 py-2.5 last:border-none hover:bg-muted">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="mono truncate text-sm">{w.webhookName}</div>
-                                    <span className={`text-[11px] ${w.failurePolicy === "Fail" ? "text-amber-400" : "text-muted-foreground"}`}>
-                                        {w.failurePolicy}
-                                    </span>
-                                </div>
-                                <div className="text-[11px] text-muted-foreground">{w.configName}</div>
-                                {(w.rules || []).length > 0 && (
-                                    <div className="mono mt-1 truncate text-[11px] text-muted-foreground">{w.rules.join(", ")}</div>
-                                )}
-                            </div>
-                        )}
-                    />
-                </GlassCard>
+                <div key={title} className="card" style={{ padding: 0 }}>
+                    <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>{title} webhooks</div>
+                    {items.length === 0 ? (
+                        <div className="empty">None found.</div>
+                    ) : (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Webhook</th>
+                                    <th>Rules</th>
+                                    <th>Failure policy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((w, i) => (
+                                    <tr key={i}>
+                                        <td className="name">
+                                            {w.webhookName}
+                                            <small>{w.configName}</small>
+                                        </td>
+                                        <td className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{(w.rules || []).join(", ") || "—"}</td>
+                                        <td>
+                                            <span className="pill" style={{ "--c": w.failurePolicy === "Fail" ? "var(--amber)" : "var(--ink-3)" }}>
+                                                <i aria-hidden="true" />
+                                                {w.failurePolicy}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
             ))}
         </div>
     );
@@ -707,61 +816,88 @@ function CostTab() {
     const cost = useEndpoint("/cost");
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
-        <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-                <FeatureTile label="Total monthly cost" value={`$${cost.totalMonthlyUsd}`} />
-                <FeatureTile
-                    label="CPU rate"
-                    value={
-                        <>
-                            ${cost.cpuRatePerCore}
-                            <span className="text-sm text-muted-foreground">/core</span>
-                        </>
-                    }
-                />
-                <FeatureTile
-                    label="Memory rate"
-                    value={
-                        <>
-                            ${cost.memoryRatePerGi}
-                            <span className="text-sm text-muted-foreground">/GiB</span>
-                        </>
-                    }
-                />
+        <div className="stack">
+            <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+                <div className="stat">
+                    <b>${cost.totalMonthlyUsd}</b>
+                    <span>Total monthly cost</span>
+                </div>
+                <div className="stat">
+                    <b>
+                        ${cost.cpuRatePerCore}
+                        <small>/core</small>
+                    </b>
+                    <span>CPU rate</span>
+                </div>
+                <div className="stat">
+                    <b>
+                        ${cost.memoryRatePerGi}
+                        <small>/GiB</small>
+                    </b>
+                    <span>Memory rate</span>
+                </div>
             </div>
-            <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">By namespace</div>
-                <Rows
+            <div className="card" style={{ padding: 0 }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>By namespace</div>
+                <TablePanel
                     items={cost.namespaces}
                     empty="No namespace cost data."
-                    render={(n) => (
-                        <div key={n.namespace} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-4 mono text-sm">{n.namespace}</div>
-                            <div className="col-span-3 text-xs text-muted-foreground">{n.cpuCores} cores</div>
-                            <div className="col-span-3 text-xs text-muted-foreground">{n.memoryGi} GiB</div>
-                            <div className="col-span-2 text-right mono text-sm">${n.monthlyUsd}</div>
-                        </div>
+                    table={(rows) => (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Namespace</th>
+                                    <th>CPU</th>
+                                    <th>Memory</th>
+                                    <th>Monthly cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((n) => (
+                                    <tr key={n.namespace}>
+                                        <td className="name">{n.namespace}</td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.cpuCores} cores</td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.memoryGi} GiB</td>
+                                        <td className="mono num">${n.monthlyUsd}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 />
-            </GlassCard>
-            <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">By workload</div>
-                <Rows
+            </div>
+            <div className="card" style={{ padding: 0 }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>By workload</div>
+                <TablePanel
                     items={cost.workloads}
                     empty="No workload cost data."
-                    render={(w) => (
-                        <div key={`${w.namespace}/${w.workload}`} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-4 min-w-0">
-                                <div className="mono truncate text-sm">{w.workload}</div>
-                                <div className="text-[11px] text-muted-foreground">{w.namespace} · {w.kind}</div>
-                            </div>
-                            <div className="col-span-3 text-xs text-muted-foreground">{w.cpuCores} cores</div>
-                            <div className="col-span-3 text-xs text-muted-foreground">{w.memoryGi} GiB</div>
-                            <div className="col-span-2 text-right mono text-sm">${w.monthlyUsd}</div>
-                        </div>
+                    table={(rows) => (
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Workload</th>
+                                    <th>CPU</th>
+                                    <th>Memory</th>
+                                    <th>Monthly cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((w) => (
+                                    <tr key={`${w.namespace}/${w.workload}`}>
+                                        <td className="name">
+                                            {w.workload}
+                                            <small>{w.namespace} · {w.kind}</small>
+                                        </td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{w.cpuCores} cores</td>
+                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{w.memoryGi} GiB</td>
+                                        <td className="mono num">${w.monthlyUsd}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 />
-            </GlassCard>
+            </div>
         </div>
     );
 }
@@ -784,15 +920,14 @@ export default function Ops() {
     const Panel = PANELS[active];
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="OPS"
                 title="Ops"
                 description="Helm, GitOps, agents, identity, audit, access and cost."
             />
 
             <Tabs value={active} onValueChange={(v) => navigate(`/ops/${v}`)}>
-                <TabsList>
+                <TabsList className="tabs">
                     {TABS.map((t) => (
                         <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
                             <t.icon className="h-3.5 w-3.5" /> {t.label}

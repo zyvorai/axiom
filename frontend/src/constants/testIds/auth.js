@@ -34,9 +34,6 @@ export const LOGOUT = {
 
 export const SSO = {
 	page: 'login-page',
-	google: 'sso-google-button',
-	github: 'sso-github-button',
-	okta: 'sso-okta-button',
 };
 
 export const USER_MENU = {

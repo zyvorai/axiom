@@ -59,62 +59,67 @@ function renderColumnValue(row, col) {
 // ahead of time). Passing an explicit `columns` list (as declared by a
 // Tier 1 plugin manifest) overrides that guessing with a fixed, ordered
 // set of columns instead.
+function TableChrome({ title, Icon, count }) {
+    return (
+        <div className="card-h">
+            <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
+                <Icon className="h-4 w-4" style={{ color: "var(--blue)" }} /> {title}
+            </h2>
+            <span className="r" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{count}</span>
+        </div>
+    );
+}
+
 export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowClick, columns, rowActions }) {
     const rows = Array.isArray(items) ? items : null;
 
     if (columns && columns.length > 0) {
         return (
             <GlassCard className="overflow-hidden">
-                <div className="flex items-center justify-between border-b px-5 py-4">
-                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
-                    </div>
-                    <span className="text-xs text-muted-foreground">{rows ? rows.length : 0}</span>
-                </div>
-                <div className="max-h-[420px] overflow-auto scrollbar-thin">
-                    {(!rows || rows.length === 0) && (
-                        <div className="px-5 py-10 text-center text-sm text-muted-foreground">{emptyHint}</div>
-                    )}
-                    {rows &&
-                        rows.map((row, i) => (
-                            <div
-                                key={getPath(row, "name") ?? i}
-                                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
-                            >
-                                {columns.map((col, ci) => (
-                                    <div
-                                        key={col.path}
-                                        className={ci === 0 ? "mono min-w-[160px] flex-1 truncate text-sm" : "text-xs text-muted-foreground"}
+                <TableChrome title={title} Icon={Icon} count={rows ? rows.length : 0} />
+                {(!rows || rows.length === 0) ? (
+                    <div className="empty">{emptyHint}</div>
+                ) : (
+                    <div style={{ overflowX: "auto" }}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    {columns.map((col) => (
+                                        <th key={col.path}>{col.label}</th>
+                                    ))}
+                                    {rowActions && <th />}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((row, i) => (
+                                    <tr
+                                        key={getPath(row, "name") ?? i}
+                                        onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                        style={onRowClick ? { cursor: "pointer" } : undefined}
                                     >
-                                        {ci !== 0 && <span className="opacity-70">{col.label}: </span>}
-                                        <span className={ci === 0 ? undefined : "mono text-foreground"}>{renderColumnValue(row, col)}</span>
-                                    </div>
+                                        {columns.map((col, ci) => (
+                                            <td key={col.path} className={ci === 0 ? "name mono" : "num"}>
+                                                {renderColumnValue(row, col)}
+                                            </td>
+                                        ))}
+                                        {rowActions && (
+                                            <td onClick={(e) => e.stopPropagation()}>{rowActions(row)}</td>
+                                        )}
+                                    </tr>
                                 ))}
-                                {rowActions && (
-                                    <div className="ml-auto flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                        {rowActions(row)}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                </div>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </GlassCard>
         );
     }
 
     return (
         <GlassCard className="overflow-hidden">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
-                </div>
-                <span className="text-xs text-muted-foreground">{rows ? rows.length : 0}</span>
-            </div>
-            <div className="max-h-[420px] overflow-auto scrollbar-thin">
-                {(!rows || rows.length === 0) && (
-                    <div className="px-5 py-10 text-center text-sm text-muted-foreground">{emptyHint}</div>
-                )}
+            <TableChrome title={title} Icon={Icon} count={rows ? rows.length : 0} />
+            {(!rows || rows.length === 0) && <div className="empty">{emptyHint}</div>}
+            <div className="stack">
                 {rows &&
                     rows.map((row, i) => {
                         const nameKey = ["name", "bucket", "intent", "id"].find((k) => row[k] !== undefined);
@@ -127,13 +132,15 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                             <div
                                 key={row.id ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={`flex flex-wrap items-center gap-x-6 gap-y-1 border-b px-5 py-4 last:border-none transition-colors hover:bg-foreground/[0.03] ${onRowClick ? "cursor-pointer" : ""}`}
+                                style={{
+                                    display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 24px",
+                                    borderBottom: "1px solid var(--line)", paddingBottom: 12, cursor: onRowClick ? "pointer" : undefined,
+                                }}
                             >
-                                <div className="mono min-w-[160px] flex-1 truncate text-sm">{String(name)}</div>
+                                <div className="mono" style={{ minWidth: 160, flex: 1, fontSize: 13.5 }}>{String(name)}</div>
                                 {fields.slice(0, 5).map(([k, v]) => (
-                                    <div key={k} className="text-xs text-muted-foreground">
-                                        <span className="opacity-70">{pretty(k)}:</span>{" "}
-                                        <span className="mono text-foreground">{formatValue(v)}</span>
+                                    <div key={k} style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                                        {pretty(k)}: <span className="mono" style={{ color: "var(--ink)" }}>{formatValue(v)}</span>
                                     </div>
                                 ))}
                                 {statusKey && <StatusBadge status={String(row[statusKey])} />}

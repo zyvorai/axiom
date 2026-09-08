@@ -63,7 +63,7 @@ export default function WorkloadDetail() {
 
     if (error) {
         return (
-            <div className="space-y-6">
+            <div className="page space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-4 w-4" /> Back
                 </button>
@@ -72,10 +72,14 @@ export default function WorkloadDetail() {
         );
     }
 
-    if (!detail) return <Skeleton className="h-96 rounded-2xl bg-muted" />;
+    if (!detail) return (
+        <div className="page">
+            <Skeleton className="h-96 rounded-2xl bg-muted" />
+        </div>
+    );
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
@@ -83,7 +87,7 @@ export default function WorkloadDetail() {
             <DetailHeader eyebrow={kind} name={detail.name} meta={<span>{detail.namespace}</span>} />
 
             <Tabs defaultValue="overview">
-                <TabsList>
+                <TabsList className="tabs">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Tag className="h-3.5 w-3.5" /> Overview
                     </TabsTrigger>
@@ -99,7 +103,7 @@ export default function WorkloadDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
-                    <GlassCard className="glass-tint-lavender p-5">
+                    <GlassCard className="p-5">
                         <div className="mb-3 text-sm font-medium text-violet-200">Labels</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import AutoTable from "@/components/AutoTable";
@@ -39,70 +38,74 @@ export default function Storage() {
 
     if (!volumes) {
         return (
-            <div data-testid={STORAGE.root} className="space-y-4">
+            <div data-testid={STORAGE.root} className="page">
                 <Skeleton className="h-40 rounded-2xl bg-muted" />
-                <Skeleton className="h-80 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-80 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div data-testid={STORAGE.root} className="space-y-6">
+        <div data-testid={STORAGE.root} className="page">
             <PageHeader
-                eyebrow="STORAGE"
                 title="Storage"
                 description="StorageClasses and PersistentVolumeClaims across all namespaces."
             />
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid g3">
                 {classes.map((sc) => (
-                    <GlassCard key={sc.name} data-testid={STORAGE.classRow(sc.name)} className="p-4">
-                        <div className="flex items-start justify-between gap-2">
-                            <div className="grid h-9 w-9 place-items-center rounded-xl bg-i17-sky/15 text-i17-sky">
-                                <Database className="h-4 w-4" />
-                            </div>
-                        </div>
-                        <div className="mono mt-3 truncate text-sm">{sc.name}</div>
-                        <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span>Claims</span>
-                            <span className="mono text-foreground">{sc.count}</span>
-                        </div>
-                    </GlassCard>
+                    <div key={sc.name} data-testid={STORAGE.classRow(sc.name)} className="stat">
+                        <Database size={18} style={{ color: "var(--blue)" }} />
+                        <span className="mono" style={{ fontSize: 14, marginTop: 12, display: "block" }}>
+                            {sc.name}
+                        </span>
+                        <em>Claims · {sc.count}</em>
+                    </div>
                 ))}
             </div>
 
-            <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">PersistentVolumeClaims</div>
-                <div className="max-h-[60vh] overflow-auto scrollbar-thin">
-                    {volumes.map((p) => (
-                        <div
-                            key={`${p.namespace}/${p.name}`}
-                            data-testid={STORAGE.pvcRow(p.name)}
-                            className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
-                        >
-                            <div className="col-span-4 flex items-center gap-3 min-w-0">
-                                <HardDrive className="h-4 w-4 text-i17-lavender shrink-0" />
-                                <div className="min-w-0">
-                                    <div className="mono truncate text-sm">{p.name}</div>
-                                    <div className="text-[11px] text-muted-foreground">
-                                        {p.namespace} · {p.storageClass}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-span-2 text-xs text-muted-foreground">
-                                <span className="mono text-foreground">{p.capacity}</span>
-                            </div>
-                            <div className="col-span-3 mono truncate text-xs text-muted-foreground">{p.volumeName}</div>
-                            <div className="col-span-2 mono text-xs text-muted-foreground">{p.accessModes}</div>
-                            <div className="col-span-1 text-right">
-                                <StatusBadge status={p.status} />
-                            </div>
-                        </div>
-                    ))}
+            <div className="card overflow-hidden" style={{ marginTop: 14, padding: 0 }}>
+                <div style={{ overflowX: "auto" }}>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Claim</th>
+                                <th>Namespace</th>
+                                <th>Class</th>
+                                <th>Size</th>
+                                <th>Volume</th>
+                                <th>Access</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volumes.map((p) => (
+                                <tr key={`${p.namespace}/${p.name}`} data-testid={STORAGE.pvcRow(p.name)}>
+                                    <td className="name">
+                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                            <HardDrive size={15} style={{ color: "var(--ink-3)" }} />
+                                            {p.name}
+                                        </span>
+                                    </td>
+                                    <td className="mono">{p.namespace}</td>
+                                    <td className="mono">{p.storageClass}</td>
+                                    <td className="num">{p.capacity}</td>
+                                    <td className="mono num">{p.volumeName || "—"}</td>
+                                    <td className="num">{p.accessModes}</td>
+                                    <td>
+                                        <StatusBadge status={p.status} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            </GlassCard>
+            </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="section-h" style={{ marginTop: 40 }}>
+                <h2>Raw resources</h2>
+            </div>
+            <div className="grid g2">
                 <AutoTable
                     title="StorageClasses"
                     icon={Layers}

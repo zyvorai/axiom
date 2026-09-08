@@ -1,18 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, streamPodLogs } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import MacTerm from "@/components/MacTerm";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Play, Square, Trash2, TerminalSquare } from "lucide-react";
 import { LOGS } from "@/constants/testIds";
 
@@ -83,7 +74,7 @@ export default function Logs() {
 
     if (!pods) {
         return (
-            <div data-testid={LOGS.root} className="space-y-4">
+            <div data-testid={LOGS.root} className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
                 <Skeleton className="h-[60vh] rounded-2xl bg-muted" />
             </div>
@@ -91,78 +82,56 @@ export default function Logs() {
     }
 
     return (
-        <div data-testid={LOGS.root} className="space-y-6">
+        <div data-testid={LOGS.root} className="page">
             <PageHeader
-                eyebrow="LOGS"
                 title="Pod Logs"
                 description="Live streaming terminal via chunked HTTP."
-            />
-
-            <GlassCard className="flex flex-wrap items-center gap-3 p-3">
-                <div className="flex items-center gap-2">
-                    <TerminalSquare className="h-4 w-4 text-i17-cosmic" />
-                    <span className="text-sm font-medium">Pod</span>
-                </div>
-                <Select
-                    value={selected}
-                    onValueChange={(v) => {
-                        stop();
-                        setSelected(v);
-                    }}
-                >
-                    <SelectTrigger data-testid={LOGS.podSelect} className="w-[300px] bg-muted/30">
-                        <SelectValue placeholder="Choose pod" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {podOptions.map((p) => (
-                            <SelectItem key={p.value} value={p.value}>
-                                {p.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                {containerOptions.length > 1 && (
-                    <Select value={container} onValueChange={setContainer}>
-                        <SelectTrigger className="w-[160px] bg-muted/30">
-                            <SelectValue placeholder="Container" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {containerOptions.map((c) => (
-                                <SelectItem key={c} value={c}>
-                                    {c}
-                                </SelectItem>
+                tools={
+                    <>
+                        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "var(--ink-2)" }}>
+                            <TerminalSquare size={15} style={{ color: "var(--ink-3)" }} /> Pod
+                        </span>
+                        <select
+                            data-testid={LOGS.podSelect}
+                            className="select"
+                            value={selected}
+                            onChange={(e) => {
+                                stop();
+                                setSelected(e.target.value);
+                            }}
+                        >
+                            {podOptions.length === 0 && <option value="">Choose pod</option>}
+                            {podOptions.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
                             ))}
-                        </SelectContent>
-                    </Select>
-                )}
-                {running ? (
-                    <Button
-                        data-testid={LOGS.stopBtn}
-                        onClick={stop}
-                        variant="outline"
-                        className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
-                    >
-                        <Square className="mr-1.5 h-4 w-4" /> Stop
-                    </Button>
-                ) : (
-                    <Button
-                        data-testid={LOGS.startBtn}
-                        onClick={start}
-                        variant="brand"
-                        className="rounded-xl"
-                    >
-                        <Play className="mr-1.5 h-4 w-4" /> Follow
-                    </Button>
-                )}
-                <Button
-                    data-testid={LOGS.clearBtn}
-                    variant="ghost"
-                    onClick={() => setLines([])}
-                    className="ml-auto rounded-xl text-muted-foreground hover:text-foreground"
-                >
-                    <Trash2 className="mr-1.5 h-4 w-4" /> Clear
-                </Button>
-            </GlassCard>
+                        </select>
+                        {containerOptions.length > 1 && (
+                            <select className="select" value={container} onChange={(e) => setContainer(e.target.value)}>
+                                {containerOptions.map((c) => (
+                                    <option key={c} value={c}>
+                                        {c}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                        {running ? (
+                            <button type="button" data-testid={LOGS.stopBtn} className="btn btn-line" onClick={stop}>
+                                <Square size={15} /> Stop
+                            </button>
+                        ) : (
+                            <button type="button" data-testid={LOGS.startBtn} className="btn btn-fill" onClick={start}>
+                                <Play size={15} /> Follow
+                            </button>
+                        )}
+                        <span className="sp" />
+                        <button type="button" data-testid={LOGS.clearBtn} className="btn btn-line" onClick={() => setLines([])}>
+                            <Trash2 size={15} /> Clear
+                        </button>
+                    </>
+                }
+            />
 
             <MacTerm
                 title={running ? `logs — ${selected}` : `logs — idle`}

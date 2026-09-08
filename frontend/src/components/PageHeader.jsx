@@ -1,23 +1,19 @@
 import { cn } from "@/lib/utils";
 
-// The apple.com-style hero header: a small tracked-caps eyebrow label
-// above an oversized, bold, tight-tracking title, closed off with a
-// hairline rule beneath it — the same eyebrow/rule/huge-title shape
-// apple.com uses to open a section, scaled down to fit inside the app
-// shell instead of a full-bleed marketing page.
-export default function PageHeader({ eyebrow, title, description, action, className }) {
+// Flat apple.com page head — see .head in axiom-shell.css. No tracked-caps
+// eyebrow (apple.com never uses one on an in-app page); `tools` is an
+// optional row of filters/search rendered beneath the title.
+export default function PageHeader({ title, description, action, tools, className }) {
     return (
-        <div className={cn("flex flex-wrap items-end justify-between gap-6 border-b border-border pb-8", className)}>
-            <div className="min-w-0">
-                {eyebrow && (
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">{eyebrow}</div>
-                )}
-                <h1 className={cn("font-hero text-display font-bold text-foreground", eyebrow && "mt-2")}>
-                    {title}
-                </h1>
-                {description && <p className="mt-3 max-w-2xl text-base text-muted-foreground">{description}</p>}
+        <header className={cn("head", className)}>
+            <div className="head-row">
+                <div className="min-w-0">
+                    <h1>{title}</h1>
+                    {description && <p>{description}</p>}
+                </div>
+                {action && <div className="r">{action}</div>}
             </div>
-            {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
-        </div>
+            {tools && <div className="tools">{tools}</div>}
+        </header>
     );
 }

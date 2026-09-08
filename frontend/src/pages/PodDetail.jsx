@@ -378,11 +378,15 @@ export default function PodDetail() {
         }
     };
 
-    if (pods === null) return <Skeleton className="h-96 rounded-2xl bg-muted" />;
+    if (pods === null) return (
+        <div className="page">
+            <Skeleton className="h-96 rounded-2xl bg-muted" />
+        </div>
+    );
 
     if (!pod) {
         return (
-            <div className="space-y-6">
+            <div className="page space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-4 w-4" /> Back
                 </button>
@@ -394,7 +398,7 @@ export default function PodDetail() {
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
@@ -437,13 +441,13 @@ export default function PodDetail() {
             />
 
             {diagnosis && !diagnosis.scheduled && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <GlassCard className="flex items-start gap-3 p-4">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--amber)" }} />
                     <div className="min-w-0">
-                        <div className="text-sm font-medium text-amber-300">Not scheduled</div>
-                        <div className="mt-0.5 text-sm text-amber-100/90">{diagnosis.diagnosis}</div>
+                        <div className="text-sm font-medium">Not scheduled</div>
+                        <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
                     </div>
-                </div>
+                </GlassCard>
             )}
             {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
                 <div className="flex items-start gap-3 border-y border-border px-4 py-3">
@@ -456,20 +460,19 @@ export default function PodDetail() {
             )}
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <FeatureTile size="compact" mono className="glass-tint-sage" label="Ready" value={pod.ready} />
+                <FeatureTile size="compact" mono label="Ready" value={pod.ready} />
                 <FeatureTile
                     size="compact"
                     mono
-                    className="glass-tint-gold"
                     label="Restarts"
                     value={<span className={pod.restarts > 0 ? "text-amber-400" : ""}>{pod.restarts}</span>}
                 />
-                <FeatureTile size="compact" mono className="glass-tint-sky" icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
-                <FeatureTile size="compact" mono className="glass-tint-lavender" icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
+                <FeatureTile size="compact" mono icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
+                <FeatureTile size="compact" mono icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
             </div>
 
             <Tabs defaultValue="overview">
-                <TabsList>
+                <TabsList className="tabs">
                     <TabsTrigger value="overview" className="gap-1.5">
                         <Box className="h-3.5 w-3.5" /> Details
                     </TabsTrigger>
@@ -519,8 +522,8 @@ export default function PodDetail() {
                             )}
 
                             {(spec.volumes || []).length > 0 && (
-                                <GlassCard className="glass-tint-lavender overflow-hidden p-0">
-                                    <div className="flex items-center gap-2 border-b border-violet-500/20 px-4 py-3 text-sm font-medium text-violet-200">
+                                <GlassCard className="overflow-hidden p-0">
+                                    <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-violet-200">
                                         <HardDrive className="h-4 w-4 text-i17-lavender" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
@@ -538,8 +541,8 @@ export default function PodDetail() {
                             )}
 
                             {(status?.conditions || []).length > 0 && (
-                                <GlassCard className="glass-tint-sage overflow-hidden p-0">
-                                    <div className="border-b border-emerald-500/20 px-4 py-3 text-sm font-medium text-emerald-200">Conditions</div>
+                                <GlassCard className="overflow-hidden p-0">
+                                    <div className="border-b border-border px-4 py-3 text-sm font-medium text-emerald-200">Conditions</div>
                                     {status.conditions.map((c, i) => (
                                         <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-xs last:border-none">
                                             <span className="text-foreground/90">{c.type}</span>
@@ -561,7 +564,7 @@ export default function PodDetail() {
                             )}
 
                             {(spec.tolerations || []).length > 0 && (
-                                <GlassCard className="glass-tint-gold p-4">
+                                <GlassCard className="p-4">
                                     <div className="mb-2 text-sm font-medium text-amber-200">Tolerations</div>
                                     <div className="space-y-1 text-xs">
                                         {spec.tolerations.map((t, i) => (
@@ -598,8 +601,8 @@ export default function PodDetail() {
                     )}
 
                     {(pod.ports || []).length > 0 && (
-                        <GlassCard className="glass-tint-sky overflow-hidden p-0">
-                            <div className="border-b border-sky-500/20 px-4 py-3 text-sm font-medium text-sky-200">Ports</div>
+                        <GlassCard className="overflow-hidden p-0">
+                            <div className="border-b border-border px-4 py-3 text-sm font-medium text-sky-200">Ports</div>
                             {pod.ports.map((p, i) => (
                                 <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
                                     <div className="mono text-sm text-sky-100/90">
@@ -671,7 +674,7 @@ export default function PodDetail() {
                 </TabsContent>
 
                 <TabsContent value="labels" className="mt-4">
-                    <GlassCard className="glass-tint-lavender p-5">
+                    <GlassCard className="p-5">
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(pod.labels || {}).map(([k, v]) => (
                                 <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />

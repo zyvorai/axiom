@@ -4,8 +4,6 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -83,60 +81,78 @@ export default function CustomResources() {
 
     if (!crds) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="CUSTOM RESOURCES"
                 title="Custom Resources"
                 description="Browse any CustomResourceDefinition installed in the cluster."
+                tools={
+                    <div className="input">
+                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <input
+                            placeholder="Search CRDs"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                        />
+                    </div>
+                }
             />
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
                 <GlassCard className="overflow-hidden">
-                    <div className="border-b p-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Search CRDs"
-                                value={q}
-                                onChange={(e) => setQ(e.target.value)}
-                                className="bg-muted/30 pl-9"
-                            />
-                        </div>
-                    </div>
-                    <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                        {filtered.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No CRDs match.</div>}
-                        {filtered.map((c) => {
-                            const active = selected && selected.group === c.group && selected.plural === c.plural;
-                            return (
-                                <button
-                                    key={`${c.group}/${c.version}/${c.plural}`}
-                                    onClick={() => {
-                                        setSelected(c);
-                                        setDetail(null);
-                                    }}
-                                    className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left last:border-none hover:bg-muted ${active ? "bg-muted" : ""}`}
-                                >
-                                    <Layers className="h-4 w-4 shrink-0 text-i17-lavender" />
-                                    <div className="min-w-0 flex-1">
-                                        <div className="mono truncate text-sm">{c.kind}</div>
-                                        <div className="truncate text-[11px] text-muted-foreground">
-                                            {c.group}/{c.version}
-                                        </div>
-                                    </div>
-                                    <Badge variant="outline" className="bg-muted/30 text-[10px]">
-                                        {c.scope}
-                                    </Badge>
-                                </button>
-                            );
-                        })}
+                    <div style={{ maxHeight: "65vh", overflow: "auto" }}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Kind</th>
+                                    <th>Group / Version</th>
+                                    <th>Scope</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.length === 0 && (
+                                    <tr>
+                                        <td colSpan={3}>
+                                            <div className="empty">No CRDs match.</div>
+                                        </td>
+                                    </tr>
+                                )}
+                                {filtered.map((c) => {
+                                    const active = selected && selected.group === c.group && selected.plural === c.plural;
+                                    return (
+                                        <tr
+                                            key={`${c.group}/${c.version}/${c.plural}`}
+                                            onClick={() => {
+                                                setSelected(c);
+                                                setDetail(null);
+                                            }}
+                                            style={{ cursor: "pointer", background: active ? "var(--active)" : undefined }}
+                                        >
+                                            <td className="name mono">
+                                                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                    <Layers size={14} style={{ color: "var(--ink-3)" }} />
+                                                    {c.kind}
+                                                </span>
+                                            </td>
+                                            <td className="mono num">
+                                                {c.group}/{c.version}
+                                            </td>
+                                            <td>
+                                                <span className="pill soft">{c.scope}</span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
                 </GlassCard>
 
@@ -149,8 +165,8 @@ export default function CustomResources() {
                         onRowClick={openInstance}
                     />
                 ) : (
-                    <GlassCard className="flex items-center justify-center p-16 text-sm text-muted-foreground">
-                        Select a CRD to browse its instances.
+                    <GlassCard>
+                        <div className="empty">Select a CRD to browse its instances.</div>
                     </GlassCard>
                 )}
             </div>

@@ -134,7 +134,7 @@ export default function HPA() {
 
     if (!hpas) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -142,52 +142,63 @@ export default function HPA() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="AUTOSCALING"
                 title="Autoscaling"
                 description="Horizontal Pod Autoscalers across all namespaces."
                 action={
-                    <Button size="sm" variant="brand" onClick={() => setDialogOpen(true)} className="rounded-xl">
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Create autoscaler
-                    </Button>
+                    <button type="button" className="btn btn-fill" onClick={() => setDialogOpen(true)}>
+                        <Plus size={15} /> Create autoscaler
+                    </button>
                 }
             />
 
             <GlassCard className="overflow-hidden">
-                <div className="flex items-center justify-between border-b px-4 py-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        <Gauge className="h-4 w-4 text-i17-cosmic" /> HorizontalPodAutoscalers
+                <div className="card-h">
+                    <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
+                        <Gauge size={16} style={{ color: "var(--blue)" }} /> HorizontalPodAutoscalers
+                    </h2>
+                    <span className="r" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{hpas.length}</span>
+                </div>
+                {hpas.length === 0 ? (
+                    <div className="empty">No HorizontalPodAutoscalers configured.</div>
+                ) : (
+                    <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Target</th>
+                                    <th>Min – Max</th>
+                                    <th>Current</th>
+                                    <th>CPU (current / target)</th>
+                                    <th>Age</th>
+                                    <th />
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {hpas.map((h, i) => (
+                                    <tr key={i}>
+                                        <td className="name">
+                                            {h.name}
+                                            <small>{h.namespace}</small>
+                                        </td>
+                                        <td>{h.targetKind}/{h.targetName}</td>
+                                        <td className="mono">{h.minReplicas} – {h.maxReplicas}</td>
+                                        <td className="mono num">{h.currentReplicas}</td>
+                                        <td className="mono">{h.currentCpuPercent ?? "—"}% / {h.targetCpuPercent ?? "—"}%</td>
+                                        <td className="mono">{h.age}</td>
+                                        <td>
+                                            <button type="button" className="btn btn-line btn-sm" onClick={() => remove(h)}>
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                    <span className="text-xs text-muted-foreground">{hpas.length}</span>
-                </div>
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    {hpas.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No HorizontalPodAutoscalers configured.</div>}
-                    {hpas.map((h, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-3 min-w-0">
-                                <div className="mono truncate text-sm">{h.name}</div>
-                                <div className="text-[11px] text-muted-foreground">{h.namespace}</div>
-                            </div>
-                            <div className="col-span-2 text-xs text-muted-foreground">
-                                {h.targetKind}/{h.targetName}
-                            </div>
-                            <div className="col-span-2 mono text-xs">
-                                {h.minReplicas} – {h.maxReplicas}
-                            </div>
-                            <div className="col-span-1 mono text-xs tabular-nums">{h.currentReplicas}</div>
-                            <div className="col-span-2 mono text-xs">
-                                {h.currentCpuPercent ?? "—"}% / {h.targetCpuPercent ?? "—"}%
-                            </div>
-                            <div className="col-span-1 mono text-xs text-muted-foreground">{h.age}</div>
-                            <div className="col-span-1 flex justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => remove(h)} className="h-7 px-2 text-muted-foreground hover:text-rose-400">
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                )}
             </GlassCard>
 
             <CreateHPADialog open={dialogOpen} onOpenChange={setDialogOpen} workloads={workloads} onCreated={load} />

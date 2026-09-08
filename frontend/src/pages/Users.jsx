@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -21,14 +18,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { UserPlus, Trash2, ShieldCheck, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -54,7 +43,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                 username,
                 password,
                 role,
-                namespaces: role === "viewer" ? parseNamespaces(namespacesText) : [],
+                namespaces: role === "viewer" || role === "operator" ? parseNamespaces(namespacesText) : [],
             });
             toast.success(`User ${username} created`);
             onOpenChange(false);
@@ -72,7 +61,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Add user</DialogTitle>
                 </DialogHeader>
@@ -93,11 +82,12 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="viewer">Viewer — read only</SelectItem>
+                                <SelectItem value="operator">Operator — day-2 writes, no user/cluster admin</SelectItem>
                                 <SelectItem value="admin">Admin — full access</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    {role === "viewer" && (
+                    {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
                             <Input
@@ -110,9 +100,9 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                     )}
                 </div>
                 <DialogFooter>
-                    <Button variant="brand" onClick={submit} disabled={busy || !username || password.length < 8} className="rounded-xl">
+                    <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !username || password.length < 8}>
                         {busy ? "Creating…" : "Create"}
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -159,7 +149,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
 
     return (
         <Dialog open={!!user} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Edit {user?.username}</DialogTitle>
                 </DialogHeader>
@@ -172,11 +162,12 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="viewer">Viewer — read only</SelectItem>
+                                <SelectItem value="operator">Operator — day-2 writes, no user/cluster admin</SelectItem>
                                 <SelectItem value="admin">Admin — full access</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    {role === "viewer" && (
+                    {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
                             <Input
@@ -193,9 +184,9 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy || (password.length > 0 && password.length < 8)} className="rounded-xl">
+                    <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || (password.length > 0 && password.length < 8)}>
                         {busy ? "Saving…" : "Save"}
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -232,96 +223,82 @@ export default function Users() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
-                <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-64 rounded-2xl bg-muted" />
+            <div className="page">
+                <PageHeader title="Users" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    <Skeleton className="h-16 rounded-2xl bg-muted" />
+                    <Skeleton className="h-64 rounded-2xl bg-muted" />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="USERS"
                 title="Users"
                 description="Local accounts alongside SSO. Viewers can read every page but cannot create, change, or delete anything."
                 action={
-                    <Button variant="brand" size="sm" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                        <UserPlus className="mr-1.5 h-3.5 w-3.5" /> Add user
-                    </Button>
+                    <button type="button" className="btn btn-fill btn-sm" onClick={() => setCreateOpen(true)}>
+                        <UserPlus size={14} /> Add user
+                    </button>
                 }
             />
 
-            <GlassCard className="overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead>Username</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Namespaces</TableHead>
-                            <TableHead>Created</TableHead>
-                            <TableHead />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.map((u) => (
-                            <TableRow key={u.username} className="hover:bg-muted">
-                                <TableCell className="font-medium">{u.username}</TableCell>
-                                <TableCell>
-                                    <Badge
-                                        variant="outline"
-                                        className={
-                                            u.role === "admin"
-                                                ? "border-i17-sage/40 bg-i17-sage/10 text-i17-sage"
-                                                : "bg-muted/30 text-muted-foreground"
-                                        }
-                                    >
-                                        {u.role === "admin" ? (
-                                            <ShieldCheck className="mr-1 h-3 w-3" />
+            <div className="card" style={{ padding: 0 }}>
+                {data.length === 0 ? (
+                    <div className="empty">No local accounts yet — the env-configured operator account signs in separately.</div>
+                ) : (
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Namespaces</th>
+                                <th>Created</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((u) => (
+                                <tr key={u.username}>
+                                    <td className="name">{u.username}</td>
+                                    <td>
+                                        <span className="pill" style={{ "--c": u.role === "admin" ? "var(--green)" : "var(--ink-3)" }}>
+                                            {u.role === "admin" ? <ShieldCheck size={11} /> : <Eye size={11} />}
+                                            {u.role}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {u.namespaces && u.namespaces.length > 0 ? (
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                                {u.namespaces.map((ns) => (
+                                                    <span key={ns} className="pill soft mono" style={{ fontSize: 11 }}>
+                                                        {ns}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         ) : (
-                                            <Eye className="mr-1 h-3 w-3" />
+                                            <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>All namespaces</span>
                                         )}
-                                        {u.role}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    {u.namespaces && u.namespaces.length > 0 ? (
-                                        <div className="flex flex-wrap gap-1">
-                                            {u.namespaces.map((ns) => (
-                                                <Badge key={ns} variant="outline" className="mono text-[10px] bg-muted/30">
-                                                    {ns}
-                                                </Badge>
-                                            ))}
+                                    </td>
+                                    <td className="mono num">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
+                                    <td>
+                                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                                            <button type="button" className="btn btn-line btn-sm" onClick={() => setEditingUser(u)}>
+                                                <Pencil size={13} />
+                                            </button>
+                                            <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(u)}>
+                                                <Trash2 size={13} />
+                                            </button>
                                         </div>
-                                    ) : (
-                                        <span className="text-xs text-muted-foreground">All namespaces</span>
-                                    )}
-                                </TableCell>
-                                <TableCell className="mono text-xs text-muted-foreground">
-                                    {u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex justify-end gap-1">
-                                        <Button size="sm" variant="ghost" onClick={() => setEditingUser(u)} className="text-muted-foreground hover:text-i17-sky">
-                                            <Pencil className="h-3.5 w-3.5" />
-                                        </Button>
-                                        <Button size="sm" variant="ghost" onClick={() => remove(u)} className="text-muted-foreground hover:text-rose-400">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {data.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                                    No local accounts yet — the env-configured operator account signs in separately.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </GlassCard>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
 
             <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <EditUserDialog user={editingUser} onOpenChange={(open) => !open && setEditingUser(null)} onUpdated={load} />

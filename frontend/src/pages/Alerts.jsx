@@ -5,7 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
-import { AlertTriangle, ListChecks } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { resourceHref } from "@/lib/resourceHref";
 
 function relTime(iso) {
@@ -32,7 +32,7 @@ export default function Alerts() {
 
     if (!d) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -43,64 +43,97 @@ export default function Alerts() {
     const rules = d.rules || [];
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="ALERTS"
                 title="Alerts"
                 description="Active warnings and Prometheus alerting rule groups."
             />
 
+            <div className="section-h">
+                <h2>Active warnings</h2>
+            </div>
             <GlassCard className="overflow-hidden">
-                <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" /> Active warnings
-                </div>
-                <div className="max-h-[400px] overflow-auto scrollbar-thin">
-                    {warnings.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No active warnings.</div>}
-                    {warnings.map((w, i) => {
-                        const href = resourceHref(w.namespace, w.object);
-                        return (
-                            <div key={i} className="flex items-start gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-sm">
-                                        <span className="mono text-xs text-sky-300">{w.reason}</span> — {w.message}
-                                    </div>
-                                    <div className="mt-0.5 text-[11px] text-muted-foreground">
-                                        {href ? (
-                                            <Link to={href} className="mono text-primary hover:underline">
-                                                {w.namespace}/{w.object}
-                                            </Link>
-                                        ) : (
-                                            <span className="mono">
-                                                {w.namespace}/{w.object}
+                <div style={{ overflowX: "auto" }} className="max-h-[400px] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Warning</th>
+                                <th>Resource</th>
+                                <th>Count</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {warnings.map((w, i) => {
+                                const href = resourceHref(w.namespace, w.object);
+                                return (
+                                    <tr key={i}>
+                                        <td>
+                                            <span style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                                                <AlertTriangle size={14} style={{ color: "var(--orange)", marginTop: 2, flexShrink: 0 }} />
+                                                <span>
+                                                    <span className="mono" style={{ color: "var(--blue)" }}>{w.reason}</span> — {w.message}
+                                                </span>
                                             </span>
-                                        )}{" "}
-                                        · ×{w.count}
-                                    </div>
-                                </div>
-                                <div className="text-[11px] text-muted-foreground">{relTime(w.time)}</div>
-                            </div>
-                        );
-                    })}
+                                        </td>
+                                        <td className="mono">
+                                            {href ? (
+                                                <Link to={href} style={{ color: "var(--blue)" }}>
+                                                    {w.namespace}/{w.object}
+                                                </Link>
+                                            ) : (
+                                                `${w.namespace}/${w.object}`
+                                            )}
+                                        </td>
+                                        <td className="num">×{w.count}</td>
+                                        <td className="num">{relTime(w.time)}</td>
+                                    </tr>
+                                );
+                            })}
+                            {warnings.length === 0 && (
+                                <tr>
+                                    <td colSpan={4}>
+                                        <div className="empty">No active warnings.</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
 
+            <div className="section-h" style={{ marginTop: 40 }}>
+                <h2>Alerting rule groups</h2>
+            </div>
             <GlassCard className="overflow-hidden">
-                <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <ListChecks className="h-4 w-4 text-i17-sage" /> Alerting rule groups
-                </div>
-                <div className="max-h-[300px] overflow-auto scrollbar-thin">
-                    {rules.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No alerting rules configured.</div>}
-                    {rules.map((r, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-6 min-w-0">
-                                <div className="mono truncate text-sm">{r.name}</div>
-                                <div className="text-[11px] text-muted-foreground">{r.namespace}</div>
-                            </div>
-                            <div className="col-span-4 text-xs text-muted-foreground">{r.groups} groups</div>
-                            <div className="col-span-2 text-right text-xs text-muted-foreground">{r.age}</div>
-                        </div>
-                    ))}
+                <div style={{ overflowX: "auto" }} className="max-h-[300px] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Groups</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rules.map((r, i) => (
+                                <tr key={i}>
+                                    <td className="name mono">{r.name}</td>
+                                    <td className="mono">{r.namespace}</td>
+                                    <td className="num">{r.groups} groups</td>
+                                    <td className="num">{r.age}</td>
+                                </tr>
+                            ))}
+                            {rules.length === 0 && (
+                                <tr>
+                                    <td colSpan={4}>
+                                        <div className="empty">No alerting rules configured.</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
         </div>

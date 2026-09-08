@@ -112,7 +112,7 @@ export default function VMDetail() {
 
     if (vm === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -121,11 +121,11 @@ export default function VMDetail() {
 
     if (vm === false) {
         return (
-            <div className="space-y-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/vms")} className="gap-1.5">
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/vms")}>
                     <ArrowLeft className="h-3.5 w-3.5" /> Virtual Machines
-                </Button>
-                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                </button>
+                <GlassCard className="empty">
                     VM <span className="mono text-foreground">{ns}/{nm}</span> was not found.
                 </GlassCard>
             </div>
@@ -135,7 +135,7 @@ export default function VMDetail() {
     const running = vm.running || vm.status === "Running";
 
     return (
-        <div className="space-y-6" data-testid={VMS.root}>
+        <div className="page space-y-6" data-testid={VMS.root}>
             <DetailHeader
                 eyebrow="Virtual Machine"
                 name={nm}
@@ -155,56 +155,59 @@ export default function VMDetail() {
                 action={
                     <div className="flex flex-wrap gap-2">
                         {running ? (
-                            <Button size="sm" variant="outline" disabled={busy === "stop"} onClick={() => act("stop", "stop")} className="rounded-xl">
+                            <button type="button" className="btn btn-line btn-sm" disabled={busy === "stop"} onClick={() => act("stop", "stop")}>
                                 <Square className="mr-1 h-3.5 w-3.5" /> Stop
-                            </Button>
+                            </button>
                         ) : (
-                            <Button size="sm" variant="outline" disabled={busy === "start"} onClick={() => act("start", "start")} className="rounded-xl">
+                            <button type="button" className="btn btn-line btn-sm" disabled={busy === "start"} onClick={() => act("start", "start")}>
                                 <Play className="mr-1 h-3.5 w-3.5" /> Start
-                            </Button>
+                            </button>
                         )}
-                        <Button
-                            size="sm"
-                            variant="outline"
+                        <button
+                            type="button"
+                            className="btn btn-line btn-sm"
                             disabled={!running || busy === "migrate"}
                             onClick={() => act("migrate", "migrate")}
-                            className="rounded-xl"
                         >
                             <ArrowRightLeft className="mr-1 h-3.5 w-3.5" /> Migrate
-                        </Button>
-                        <Button size="sm" onClick={() => setConsoleOpen(true)} className="rounded-xl">
+                        </button>
+                        <button type="button" className="btn btn-fill btn-sm" onClick={() => setConsoleOpen(true)}>
                             <Terminal className="mr-1 h-3.5 w-3.5" /> Console
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate("/vms")} className="rounded-xl gap-1.5">
+                        </button>
+                        <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/vms")}>
                             <ArrowLeft className="h-3.5 w-3.5" /> All VMs
-                        </Button>
+                        </button>
                     </div>
                 }
             />
 
-            <div className="grid gap-3 sm:grid-cols-2">
-                <FeatureTile nested size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu || "—"} className="p-3" />
-                <FeatureTile nested size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory || "—"} className="p-3" />
-            </div>
+            <GlassCard>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <FeatureTile nested size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu || "—"} className="p-3" />
+                    <FeatureTile nested size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory || "—"} className="p-3" />
+                </div>
+            </GlassCard>
 
-            <SpecTable
-                title="Placement"
-                rows={[
-                    {
-                        label: "Node",
-                        value: vm.node ? (
-                            <Link to={`/nodes/${encodeURIComponent(vm.node)}`} className="text-primary hover:underline">
-                                {vm.node}
-                            </Link>
-                        ) : (
-                            "—"
-                        ),
-                        mono: true,
-                    },
-                    { label: "Ready", value: vm.ready ? "Yes" : "No" },
-                    { label: "Running", value: running ? "Yes" : "No" },
-                ]}
-            />
+            <GlassCard>
+                <SpecTable
+                    title="Placement"
+                    rows={[
+                        {
+                            label: "Node",
+                            value: vm.node ? (
+                                <Link to={`/nodes/${encodeURIComponent(vm.node)}`} className="text-primary hover:underline">
+                                    {vm.node}
+                                </Link>
+                            ) : (
+                                "—"
+                            ),
+                            mono: true,
+                        },
+                        { label: "Ready", value: vm.ready ? "Yes" : "No" },
+                        { label: "Running", value: running ? "Yes" : "No" },
+                    ]}
+                />
+            </GlassCard>
 
             <Dialog open={consoleOpen} onOpenChange={setConsoleOpen}>
                 <DialogContent data-testid={VMS.consoleModal} className="glass max-w-lg border-border bg-card p-4 backdrop-blur-2xl">

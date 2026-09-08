@@ -4,7 +4,6 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles } from "lucide-react";
 
 export default function PlatformIntents() {
     const [items, setItems] = useState(null);
@@ -22,7 +21,7 @@ export default function PlatformIntents() {
 
     if (!items) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -30,42 +29,55 @@ export default function PlatformIntents() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="PLATFORM INTENTS"
                 title="Platform Intents"
                 description="Workloads requested via natural-language intent (Workloads → Run workload → Intent)."
             />
 
             <GlassCard className="overflow-hidden">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    {items.length === 0 && (
-                        <div className="flex flex-col items-center gap-2 px-4 py-16 text-center text-sm text-muted-foreground">
-                            <Sparkles className="h-5 w-5" />
-                            No platform intents yet.
-                        </div>
-                    )}
-                    {items.map((it, i) => (
-                        <div
-                            key={i}
-                            className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted"
-                        >
-                            <div className="col-span-3 min-w-0">
-                                <div className="mono truncate text-sm">{it.name}</div>
-                                <div className="text-[11px] text-muted-foreground">{it.namespace}</div>
-                            </div>
-                            <div className="col-span-2 text-xs text-muted-foreground">{it.workloadKind}</div>
-                            <div className="col-span-2 mono text-xs text-muted-foreground truncate">{it.image}</div>
-                            <div className="col-span-2 text-xs text-muted-foreground">
-                                {it.replicas ? `${it.replicas}x` : ""} {it.cpu} {it.memory}
-                            </div>
-                            <div className="col-span-2">
-                                <StatusBadge status={it.phase} />
-                            </div>
-                            <div className="col-span-1 text-right text-xs text-muted-foreground">{it.age}</div>
-                            {it.message && <div className="col-span-12 mt-1 text-[11px] text-muted-foreground">{it.message}</div>}
-                        </div>
-                    ))}
+                <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Kind</th>
+                                <th>Image</th>
+                                <th>Resources</th>
+                                <th>Status</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((it, i) => (
+                                <tr key={i}>
+                                    <td className="name mono">
+                                        {it.name}
+                                        {it.message && <small>{it.message}</small>}
+                                    </td>
+                                    <td className="mono">{it.namespace}</td>
+                                    <td>{it.workloadKind}</td>
+                                    <td className="mono">{it.image}</td>
+                                    <td className="num">
+                                        {it.replicas ? `${it.replicas}x ` : ""}
+                                        {it.cpu} {it.memory}
+                                    </td>
+                                    <td>
+                                        <StatusBadge status={it.phase} />
+                                    </td>
+                                    <td className="num">{it.age}</td>
+                                </tr>
+                            ))}
+                            {items.length === 0 && (
+                                <tr>
+                                    <td colSpan={7}>
+                                        <div className="empty">No platform intents yet.</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
         </div>

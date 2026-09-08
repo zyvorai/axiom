@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
-/** Flat section wrapper — no card chrome (apple.com-style). */
+/** Flat apple.com-dark card surface — see .card in axiom-shell.css. */
 export function GlassCard({ className, children, ...rest }) {
     return (
-        <div className={cn("relative", className)} {...rest}>
+        <div className={cn("card", className)} {...rest}>
             {children}
         </div>
     );

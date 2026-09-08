@@ -155,7 +155,10 @@ test("create nikola from UX and exercise ops (keep it)", async ({ page }) => {
 
   // Logs
   await page.getByRole("link", { name: /Logs/ }).first().click();
-  await expect(page.getByRole("heading", { name: /Logs|Pod Logs/i }).or(page.getByTestId("logs-page"))).toBeVisible({
+  // .first() because the redesigned Logs page legitimately has both a
+  // heading and the testid at once — plain .or() hits Playwright's strict
+  // mode (multiple matches) instead of "either is fine".
+  await expect(page.getByRole("heading", { name: /Logs|Pod Logs/i }).or(page.getByTestId("logs-page")).first()).toBeVisible({
     timeout: 20000,
   });
   const startBtn = page.getByTestId("logs-start").or(page.getByRole("button", { name: /^Start$/i }));

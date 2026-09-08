@@ -8,6 +8,7 @@ export function ThemeProvider({ children }) {
     useEffect(() => {
         const root = document.documentElement;
         root.classList.toggle("dark", theme === "dark");
+        root.dataset.theme = theme;
         localStorage.setItem("kubecloud.theme", theme);
     }, [theme]);
 

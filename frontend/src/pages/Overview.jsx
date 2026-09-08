@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import MetricRing from "@/components/MetricRing";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Rocket } from "lucide-react";
 import { OVERVIEW } from "@/constants/testIds";
+import { useAlertsCount } from "@/lib/alerts";
 
 function SetupBanner() {
     const [needsSetup, setNeedsSetup] = useState(false);
@@ -30,40 +29,25 @@ function SetupBanner() {
     if (!needsSetup) return null;
 
     return (
-        <Link
-            to="/getting-started"
-            className="mx-auto flex max-w-xl items-center justify-center gap-2 px-1 py-3 text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-            Finish setup for this instance
-            <ArrowRight className="h-3.5 w-3.5 text-i17-cosmic" />
-        </Link>
-    );
-}
-
-/** Centered apple.com section intro — one title, one sentence. */
-function SectionIntro({ title, copy, className = "" }) {
-    return (
-        <div className={`mx-auto max-w-3xl text-center ${className}`}>
-            <h2 className="text-display font-bold tracking-tight text-foreground text-balance">{title}</h2>
-            {copy && <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl">{copy}</p>}
+        <div className="notice">
+            <Rocket size={16} />
+            Setup for this instance isn't finished yet.
+            <Link to="/getting-started">
+                Finish setup <ArrowRight size={14} />
+            </Link>
         </div>
     );
 }
 
 export default function Overview() {
     const [data, setData] = useState(null);
-    const [alertCount, setAlertCount] = useState(0);
+    const alertCount = useAlertsCount();
 
     useEffect(() => {
         let alive = true;
         const load = () =>
-            Promise.all([
-                api.get("/overview"),
-                api.get("/alerts").catch(() => ({ data: { warnings: [] } })),
-            ]).then(([o, a]) => {
-                if (!alive) return;
-                setData(o.data);
-                setAlertCount((a.data.warnings || []).length);
+            api.get("/overview").then((o) => {
+                if (alive) setData(o.data);
             });
         load();
         const t = setInterval(load, 6000);
@@ -75,16 +59,14 @@ export default function Overview() {
 
     if (!data) {
         return (
-            <div data-testid={OVERVIEW.root} className="space-y-24 pb-24">
-                <div className="flex flex-col items-center gap-5 pt-16 pb-8">
-                    <Skeleton className="h-3 w-40 rounded bg-muted" />
-                    <Skeleton className="h-20 w-72 max-w-full rounded-2xl bg-muted" />
-                    <Skeleton className="h-5 w-64 rounded bg-muted" />
-                    <Skeleton className="mt-4 h-11 w-40 rounded-full bg-muted" />
+            <div data-testid={OVERVIEW.root} className="page">
+                <div className="hero">
+                    <Skeleton className="mx-auto h-16 w-72 rounded-2xl bg-muted" />
+                    <Skeleton className="mx-auto mt-4 h-5 w-64 rounded bg-muted" />
                 </div>
-                <div className="flex justify-center gap-16">
-                    {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-40 w-36 rounded-2xl bg-muted" />
+                <div className="stats">
+                    {[...Array(4)].map((_, i) => (
+                        <Skeleton key={i} className="h-32 rounded-2xl bg-muted" />
                     ))}
                 </div>
             </div>
@@ -98,141 +80,111 @@ export default function Overview() {
         : 0;
 
     const inventory = [
-        { key: "nodes", label: "Nodes", value: `${data.readyNodes}/${data.nodes}` },
-        { key: "pods", label: "Pods", value: `${data.runningPods}/${data.pods}` },
+        { key: "nodes", label: "Nodes ready", value: data.readyNodes, of: data.nodes },
+        { key: "pods", label: "Pods running", value: data.runningPods, of: data.pods },
         { key: "workloads", label: "Workloads", value: data.workloads },
-        { key: "vms", label: "VMs", value: `${data.readyVms}/${data.vms}` },
+        { key: "vms", label: "VMs running", value: data.readyVms, of: data.vms },
+    ];
+
+    const utilization = [
+        { label: "CPU", value: Math.round(data.cpuPercent) },
+        { label: "Memory", value: Math.round(data.memoryPercent) },
+        { label: "Storage", value: storagePct },
     ];
 
     return (
-        <div data-testid={OVERVIEW.root} className="pb-28">
+        <div data-testid={OVERVIEW.root} className="page">
             <SetupBanner />
 
-            {/* ── Hero ── */}
-            <section className="fade-up mx-auto max-w-4xl px-4 pb-24 pt-16 text-center sm:pt-20">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-i17-cosmic">Axiom</p>
-                <h1 className="mt-5 text-hero font-bold text-foreground text-balance">{data.cluster}</h1>
-                <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground text-pretty sm:text-xl">
-                    Your Kubernetes-native private cloud — one console from k3s to production.
-                </p>
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+            <section className="hero">
+                <h1>{data.cluster}</h1>
+                <p>Your Kubernetes-native private cloud. One console from k3s to production.</p>
+                <div className="status">
                     <StatusBadge status={data.health} />
-                    <span className="text-foreground/25">·</span>
+                    <span style={{ color: "var(--ink-3)" }}>·</span>
                     <span>{data.region}</span>
                 </div>
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                    <Button asChild variant="brand" className="rounded-full px-6">
-                        <Link to="/workloads">
-                            Explore workloads <ArrowRight className="ml-1.5 h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
-                        <Link to="/nodes">View nodes</Link>
-                    </Button>
+                <div className="acts">
+                    <Link to="/workloads" className="btn btn-fill btn-lg">
+                        Explore workloads <ArrowRight size={16} />
+                    </Link>
+                    <Link to="/nodes" className="btn btn-line btn-lg">
+                        View nodes
+                    </Link>
                 </div>
             </section>
 
-            {/* ── Capacity ── */}
-            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "60ms" }}>
-                <SectionIntro title="Built for the load." copy="Live CPU, memory, and storage against what this cluster can allocate." />
-                <div className="mt-16 flex flex-wrap items-start justify-center gap-x-16 gap-y-14 sm:gap-x-20">
-                    <MetricRing
-                        layout="stack"
-                        size={128}
-                        stroke={11}
-                        value={Math.round(data.cpuPercent)}
-                        label="CPU"
-                        color="var(--i17-cosmic)"
-                        sublabel="of allocatable"
-                    />
-                    <MetricRing
-                        layout="stack"
-                        size={128}
-                        stroke={11}
-                        value={Math.round(data.memoryPercent)}
-                        label="Memory"
-                        color="var(--i17-sage)"
-                        sublabel="of allocatable"
-                    />
-                    <MetricRing
-                        layout="stack"
-                        size={128}
-                        stroke={11}
-                        value={storagePct}
-                        label="Storage"
-                        color="var(--i17-lavender)"
-                        sublabel="of provisioned"
-                    />
-                </div>
-            </section>
+            <div className="section-h">
+                <h2>At a glance</h2>
+                <p>Everything running on this cluster, right now.</p>
+            </div>
+            <div className="stats">
+                {inventory.map((c) => (
+                    <div className="stat" key={c.key} data-testid={OVERVIEW.metric(c.key)}>
+                        <b>
+                            {c.value}
+                            {c.of != null && <small>/{c.of}</small>}
+                        </b>
+                        <span>{c.label}</span>
+                    </div>
+                ))}
+            </div>
+            <p style={{ textAlign: "center", fontSize: 13, color: "var(--ink-3)", marginTop: 14 }}>
+                {data.storageUsedTb} of {data.storageCapacityTb} TB storage provisioned
+            </p>
 
-            {/* ── Inventory ── */}
-            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "120ms" }}>
-                <SectionIntro title="At a glance." copy="Everything running on this cluster, right now." />
-                <div className="mx-auto mt-16 grid max-w-5xl gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-                    {inventory.map((c) => (
-                        <div key={c.key} data-testid={OVERVIEW.metric(c.key)} className="text-center">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{c.label}</div>
-                            <div className="mt-4 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground sm:text-6xl">
-                                {c.value}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <p className="mt-14 text-center text-sm text-muted-foreground">
-                    {data.storageUsedTb} of {data.storageCapacityTb} TB storage provisioned
-                </p>
-            </section>
-
-            {/* ── Utilization ── */}
-            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "180ms" }}>
-                <SectionIntro title="Utilization." copy="How hard the cluster has been working." />
-                <div className="mx-auto mt-16 grid max-w-5xl gap-16 lg:grid-cols-2 lg:gap-20">
-                    <div className="text-center lg:text-left">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Cluster CPU</div>
-                        <div className="mt-3 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground">
-                            {Math.round(data.cpuPercent)}%
-                        </div>
-                        <div className="mt-8">
-                            <Sparkline data={cpuSeries} color="var(--i17-cosmic)" height={140} />
+            <div className="divider" />
+            <div className="section-h">
+                <h2>Utilization</h2>
+                <p>How hard the cluster has been working against what it can allocate.</p>
+            </div>
+            <div className="grid g3">
+                {utilization.map((u) => (
+                    <div className="stat" key={u.label}>
+                        <b>
+                            {u.value}
+                            <small>%</small>
+                        </b>
+                        <span>{u.label}</span>
+                        <div className="meter">
+                            <i style={{ width: `${u.value}%`, background: u.value > 80 ? "var(--orange)" : "var(--blue)" }} />
                         </div>
                     </div>
-                    <div className="text-center lg:text-left">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Cluster Memory</div>
-                        <div className="mt-3 text-5xl font-bold tracking-[-0.04em] tabular-nums text-foreground">
-                            {Math.round(data.memoryPercent)}%
-                        </div>
-                        <div className="mt-8">
-                            <Sparkline data={memSeries} color="var(--i17-sage)" height={140} />
-                        </div>
-                    </div>
-                </div>
-            </section>
+                ))}
+            </div>
 
-            {/* ── Observe: links only — logs live on Alerts / Events / Pod Logs ── */}
-            <section className="fade-up border-t border-border/60 px-4 py-24" style={{ animationDelay: "240ms" }}>
-                <SectionIntro
-                    title="Stay informed."
-                    copy="Warnings, cluster events, and pod streams live on their own pages — not on the home screen."
-                />
-                <div className="mx-auto mt-12 flex max-w-2xl flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
-                        <Link to="/alerts">
-                            Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight className="ml-1.5 h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
-                        <Link to="/events">
-                            Events <ArrowRight className="ml-1.5 h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-full px-6 bg-transparent">
-                        <Link to="/logs">
-                            Pod logs <ArrowRight className="ml-1.5 h-4 w-4" />
-                        </Link>
-                    </Button>
+            <div className="divider" />
+            <div className="section-h">
+                <h2>Trend</h2>
+                <p>CPU and memory over the last observed window.</p>
+            </div>
+            <div className="grid g2">
+                <div className="card">
+                    <div style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 8 }}>Cluster CPU</div>
+                    <Sparkline data={cpuSeries} color="var(--blue)" height={100} />
                 </div>
-            </section>
+                <div className="card">
+                    <div style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 8 }}>Cluster Memory</div>
+                    <Sparkline data={memSeries} color="var(--green)" height={100} />
+                </div>
+            </div>
+
+            <div className="divider" />
+            <div className="section-h">
+                <h2>Stay informed</h2>
+                <p>Warnings, cluster events, and pod streams live on their own pages.</p>
+            </div>
+            <div className="tools" style={{ marginTop: 0, justifyContent: "center" }}>
+                <Link to="/alerts" className="btn btn-line">
+                    Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={14} />
+                </Link>
+                <Link to="/events" className="btn btn-line">
+                    Events <ArrowRight size={14} />
+                </Link>
+                <Link to="/logs" className="btn btn-line">
+                    Pod logs <ArrowRight size={14} />
+                </Link>
+            </div>
         </div>
     );
 }

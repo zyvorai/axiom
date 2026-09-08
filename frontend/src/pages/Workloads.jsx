@@ -574,19 +574,18 @@ export default function Workloads() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="WORKLOADS"
                 title="Workloads"
-                description="Deployments, StatefulSets, DaemonSets, Pods and CronJobs."
+                description="Deployments, StatefulSets, DaemonSets, Pods and CronJobs across every namespace."
                 action={
                     <>
                         {selected.size > 0 && (
@@ -600,52 +599,51 @@ export default function Workloads() {
                                 </Button>
                             </div>
                         )}
-                        <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
-                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Run workload
-                        </Button>
+                        <button type="button" className="btn btn-fill" onClick={() => setLaunchOpen(true)}>
+                            <Plus size={15} /> Run workload
+                        </button>
+                    </>
+                }
+                tools={
+                    <>
+                        <div className="input" style={{ position: "relative" }}>
+                            <Search size={15} style={{ color: "var(--ink-3)" }} />
+                            <input
+                                placeholder="Search name or image"
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            />
+                        </div>
+                        <Select value={ns} onValueChange={setNs}>
+                            <SelectTrigger className="w-[180px] bg-muted/30">
+                                <SelectValue placeholder="Namespace" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All namespaces</SelectItem>
+                                {namespaces.map((n) => (
+                                    <SelectItem key={n} value={n}>
+                                        {n}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={kind} onValueChange={setKind}>
+                            <SelectTrigger className="w-[160px] bg-muted/30">
+                                <SelectValue placeholder="Kind" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All kinds</SelectItem>
+                                {kinds.map((k) => (
+                                    <SelectItem key={k} value={k}>
+                                        {k}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </>
                 }
             />
-
-            <GlassCard className="p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative flex-1 min-w-[220px]">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder="Search name or image"
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            className="bg-muted/30 pl-9"
-                        />
-                    </div>
-                    <Select value={ns} onValueChange={setNs}>
-                        <SelectTrigger className="w-[180px] bg-muted/30">
-                            <SelectValue placeholder="Namespace" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All namespaces</SelectItem>
-                            {namespaces.map((n) => (
-                                <SelectItem key={n} value={n}>
-                                    {n}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select value={kind} onValueChange={setKind}>
-                        <SelectTrigger className="w-[160px] bg-muted/30">
-                            <SelectValue placeholder="Kind" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All kinds</SelectItem>
-                            {kinds.map((k) => (
-                                <SelectItem key={k} value={k}>
-                                    {k}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </GlassCard>
 
             <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">

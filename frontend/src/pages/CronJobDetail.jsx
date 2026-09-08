@@ -6,7 +6,6 @@ import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import {
     Table,
     TableBody,
@@ -76,7 +75,7 @@ export default function CronJobDetail() {
 
     if (cron === null) {
         return (
-            <div className="space-y-4">
+            <div className="page space-y-4">
                 <Skeleton className="h-20 rounded-2xl bg-muted" />
                 <Skeleton className="h-64 rounded-2xl bg-muted" />
             </div>
@@ -85,11 +84,11 @@ export default function CronJobDetail() {
 
     if (cron === false) {
         return (
-            <div className="space-y-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/jobs")} className="gap-1.5">
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
                     <ArrowLeft className="h-3.5 w-3.5" /> Jobs
-                </Button>
-                <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+                </button>
+                <GlassCard className="empty">
                     CronJob <span className="mono text-foreground">{ns}/{nm}</span> was not found.
                 </GlassCard>
             </div>
@@ -97,7 +96,7 @@ export default function CronJobDetail() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page space-y-6">
             <DetailHeader
                 eyebrow="CronJob"
                 name={nm}
@@ -116,25 +115,27 @@ export default function CronJobDetail() {
                 }
                 action={
                     <div className="flex gap-2">
-                        <Button size="sm" variant="outline" disabled={busy} onClick={trigger} className="rounded-xl gap-1.5">
+                        <button type="button" className="btn btn-line btn-sm" disabled={busy} onClick={trigger}>
                             <PlayCircle className="h-3.5 w-3.5" /> {busy ? "Triggering…" : "Run now"}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate("/jobs")} className="rounded-xl gap-1.5">
+                        </button>
+                        <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
                             <ArrowLeft className="h-3.5 w-3.5" /> All jobs
-                        </Button>
+                        </button>
                     </div>
                 }
             />
 
-            <SpecTable
-                title="Schedule"
-                rows={[
-                    { label: "Cron", value: cron.schedule || "—", mono: true },
-                    { label: "Suspended", value: cron.suspend ? "Yes" : "No" },
-                    { label: "Active jobs", value: String(cron.active ?? 0), mono: true },
-                    { label: "Last schedule", value: cron.lastSchedule || "—", mono: true },
-                ]}
-            />
+            <GlassCard>
+                <SpecTable
+                    title="Schedule"
+                    rows={[
+                        { label: "Cron", value: cron.schedule || "—", mono: true },
+                        { label: "Suspended", value: cron.suspend ? "Yes" : "No" },
+                        { label: "Active jobs", value: String(cron.active ?? 0), mono: true },
+                        { label: "Last schedule", value: cron.lastSchedule || "—", mono: true },
+                    ]}
+                />
+            </GlassCard>
 
             <GlassCard className="overflow-hidden">
                 <div className="border-b px-4 py-3 text-sm font-medium">Recent jobs ({ownedJobs.length})</div>

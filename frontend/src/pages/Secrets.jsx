@@ -22,14 +22,6 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2 } from "lucide-react";
 import { toast } from "sonner";
@@ -145,24 +137,42 @@ function ExternalSecretsSection() {
             </div>
             <div className="max-h-[300px] overflow-auto scrollbar-thin">
                 {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
-                {items && items.length === 0 && (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No ExternalSecret resources found.</div>
+                {items && (
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Store</th>
+                                <th>Refresh</th>
+                                <th>Status</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((s, i) => (
+                                <tr key={i}>
+                                    <td className="name">
+                                        {s.name}
+                                        <small>{s.namespace}</small>
+                                    </td>
+                                    <td className="mono">{s.store}</td>
+                                    <td>{s.refresh}</td>
+                                    <td>
+                                        <StatusBadge status={s.ready ? "Ready" : s.status} />
+                                    </td>
+                                    <td className="mono">{s.age}</td>
+                                </tr>
+                            ))}
+                            {items.length === 0 && (
+                                <tr>
+                                    <td colSpan={5}>
+                                        <div className="empty">No ExternalSecret resources found.</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 )}
-                {items &&
-                    items.map((s, i) => (
-                        <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none hover:bg-muted">
-                            <div className="col-span-5 min-w-0">
-                                <div className="mono truncate text-sm">{s.name}</div>
-                                <div className="text-[11px] text-muted-foreground">{s.namespace}</div>
-                            </div>
-                            <div className="col-span-3 mono truncate text-xs text-muted-foreground">{s.store}</div>
-                            <div className="col-span-2 text-xs text-muted-foreground">{s.refresh}</div>
-                            <div className="col-span-1">
-                                <StatusBadge status={s.ready ? "Ready" : s.status} />
-                            </div>
-                            <div className="col-span-1 text-right text-xs text-muted-foreground">{s.age}</div>
-                        </div>
-                    ))}
             </div>
         </GlassCard>
     );
@@ -207,67 +217,72 @@ export default function Secrets() {
 
     if (!data) {
         return (
-            <div className="space-y-4">
+            <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <Skeleton className="h-96 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="page">
             <PageHeader
-                eyebrow="SECRETS"
                 title="Secrets"
                 description="Opaque, TLS and registry secrets across all namespaces."
                 action={
                     <>
-                        <Button size="sm" variant="outline" onClick={load} className="rounded-xl bg-muted/30">
-                            <RefreshCcw className="mr-1.5 h-3.5 w-3.5" /> Refresh
-                        </Button>
-                        <Button size="sm" variant="brand" onClick={() => setCreateOpen(true)} className="rounded-xl">
-                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Create secret
-                        </Button>
+                        <button type="button" className="btn btn-line" onClick={load}>
+                            <RefreshCcw size={15} /> Refresh
+                        </button>
+                        <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
+                            <Plus size={15} /> Create secret
+                        </button>
                     </>
+                }
+                tools={
+                    <div className="input">
+                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <input
+                            placeholder="Search secret name"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                        />
+                    </div>
                 }
             />
 
-            <GlassCard className="p-3">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search secret name" value={q} onChange={(e) => setQ(e.target.value)} className="bg-muted/30 pl-9" />
-                </div>
-            </GlassCard>
-
             <GlassCard className="overflow-hidden">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
-                    <Table>
-                        <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead>Name</TableHead>
-                                <TableHead>Namespace</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Keys</TableHead>
-                                <TableHead>Age</TableHead>
-                                <TableHead />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Namespace</th>
+                                <th>Type</th>
+                                <th>Keys</th>
+                                <th>Age</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
                             {rows.map((s) => (
-                                <TableRow key={`${s.namespace}/${s.name}`} className="hover:bg-muted">
-                                    <TableCell className="flex max-w-xs items-center gap-2 font-medium">
-                                        <KeySquare className="h-3.5 w-3.5 shrink-0 text-i17-lavender" />
-                                        <Link
-                                            to={`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
-                                            className="min-w-0 truncate text-primary hover:underline"
-                                            title={s.name}
-                                        >
-                                            {s.name}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{s.namespace}</TableCell>
-                                    <TableCell className="mono text-xs">{s.type}</TableCell>
-                                    <TableCell>
+                                <tr key={`${s.namespace}/${s.name}`}>
+                                    <td className="name">
+                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                            <KeySquare size={14} style={{ color: "var(--ink-3)" }} />
+                                            <Link
+                                                to={`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
+                                                className="hover:underline"
+                                                title={s.name}
+                                            >
+                                                {s.name}
+                                            </Link>
+                                        </span>
+                                    </td>
+                                    <td className="mono">{s.namespace}</td>
+                                    <td className="mono">{s.type}</td>
+                                    <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(s.keys || []).map((k) => (
                                                 <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
@@ -275,24 +290,24 @@ export default function Secrets() {
                                                 </Badge>
                                             ))}
                                         </div>
-                                    </TableCell>
-                                    <TableCell className="mono text-xs">{s.age}</TableCell>
-                                    <TableCell>
-                                        <Button size="sm" variant="ghost" onClick={() => remove(s)} className="text-muted-foreground hover:text-rose-400">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="mono">{s.age}</td>
+                                    <td>
+                                        <button type="button" className="btn btn-line btn-sm" onClick={() => remove(s)}>
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </td>
+                                </tr>
                             ))}
                             {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                                        No secrets match the current filters.
-                                    </TableCell>
-                                </TableRow>
+                                <tr>
+                                    <td colSpan={6}>
+                                        <div className="empty">No secrets match the current filters.</div>
+                                    </td>
+                                </tr>
                             )}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </GlassCard>
 
