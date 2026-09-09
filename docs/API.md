@@ -1,6 +1,6 @@
 # Zyvor Axiom API Reference
 
-All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OIDC session, or API key when configured). JSON mutation bodies are limited to 1 MiB and reject unknown fields unless noted. Authenticated callers with a `viewer` role (see [Users](#users)) can call every `GET` route but get `403` on any mutating one.
+All endpoints except `GET /api/v1/health` require authentication (HTTP Basic — including an LDAP simple-bind fallback when `AXIOM_LDAP_URL` is set — an OIDC or SAML session cookie, or an API key when configured). JSON mutation bodies are limited to 1 MiB and reject unknown fields unless noted. Authenticated callers with a `viewer` role (see [Users](#users)) can call every `GET` route but get `403` on any mutating one.
 
 ## Session and health
 
@@ -20,9 +20,11 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic, OI
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/clusters` | List registered clusters, with the caller's own currently-active one flagged |
+| POST | `/api/v1/clusters` | Register a fleet cluster from a kubeconfig: `{"name","kubeconfig"}` (`kubeconfig` is the raw YAML content) |
+| DELETE | `/api/v1/clusters/{name}` | Unregister a fleet cluster |
 | POST | `/api/v1/clusters/{name}/activate` | Switch the active cluster for the calling browser tab/script only |
 
-The backend `Provider` is always a `SwitchableProvider` delegating to whichever cluster is active *for the caller*, not one global switch — see `docs/ARCHITECTURE.md`'s Multi-cluster section. The frontend sends an `X-Axiom-Session` header (one random ID per browser tab) so switching clusters in one tab never affects another tab or another user; a request sent with no such header (e.g. a scripted `curl`) is scoped per authenticated username instead. A normal in-cluster (ServiceAccount) deployment registers exactly one cluster — this is not a stub, it's the honest single-cluster case. A kubeconfig with multiple contexts registers one provider per context. Demo mode registers three independent demo clusters.
+Register/unregister (and Settings → Clusters, which drives them) are restricted to `admin` — see [Users](#users)'s operator-role note. The backend `Provider` is always a `SwitchableProvider` delegating to whichever cluster is active *for the caller*, not one global switch — see `docs/ARCHITECTURE.md`'s Multi-cluster section. The frontend sends an `X-Axiom-Session` header (one random ID per browser tab) so switching clusters in one tab never affects another tab or another user; a request sent with no such header (e.g. a scripted `curl`) is scoped per authenticated username instead. A normal in-cluster (ServiceAccount) deployment registers exactly one cluster — this is not a stub, it's the honest single-cluster case. A kubeconfig with multiple contexts registers one provider per context. Demo mode registers three independent demo clusters.
 
 ## Authentication
 
@@ -32,9 +34,10 @@ The backend `Provider` is always a `SwitchableProvider` delegating to whichever 
 | GET | `/api/v1/auth/oidc/login` | Start OIDC authorize redirect |
 | GET | `/api/v1/auth/oidc/callback` | OIDC callback (IdP redirect target) |
 | GET | `/api/v1/auth/saml/login` | Redirect to SAML IdP (`AXIOM_SAML_LOGIN_URL`) |
+| POST \| GET | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service — the IdP posts (or redirects) its response here; mints the same session cookie an OIDC login does. Validated against the pinned IdP cert (`AXIOM_SAML_IDP_CERT`), or accepted unsigned when `AXIOM_SAML_ALLOW_UNSIGNED=true` (lab only) |
 | POST | `/api/v1/auth/logout` | Clear session cookie |
 
-`GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured.
+`GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured, and an `ldap` block (`enabled`/`domain`/`url`) when `AXIOM_LDAP_*` is set — LDAP has no separate login form; the same username/password fields on the local sign-in form simple-bind against `AXIOM_LDAP_URL` first, falling through to local accounts on failure.
 
 ## Workloads
 
@@ -92,10 +95,15 @@ The backend `Provider` is always a `SwitchableProvider` delegating to whichever 
 | GET | `/api/v1/configmaps?namespace=...` | List ConfigMaps (namespace, name, keys) |
 | POST | `/api/v1/configmaps` | Create a ConfigMap (`{"namespace","name","data":{...}}`) |
 | GET | `/api/v1/configmaps/{namespace}/{name}` | ConfigMap detail (full data) |
+| PUT | `/api/v1/configmaps/{namespace}/{name}` | Replace a ConfigMap's data: `{"data":{...}}` |
 | DELETE | `/api/v1/configmaps/{namespace}/{name}` | Delete a ConfigMap |
 | GET | `/api/v1/resourcequotas?namespace=...` | ResourceQuotas (hard vs. used, per namespace) |
+| POST | `/api/v1/resourcequotas` | Create a ResourceQuota: `{"namespace","name","hard":{...}}` |
+| DELETE | `/api/v1/resourcequotas/{namespace}/{name}` | Delete a ResourceQuota |
 | GET | `/api/v1/limitranges?namespace=...` | LimitRanges (Container/Pod/PVC default/min/max) |
 | GET | `/api/v1/ingresses?namespace=...` | Ingresses (class, hosts, TLS, load-balancer address) — the OpenShift-Route equivalent |
+| POST | `/api/v1/ingresses` | Create an Ingress: `{"namespace","name","host","service","port","class","tlsSecret"}` (`class`/`tlsSecret` optional) |
+| DELETE | `/api/v1/ingresses/{namespace}/{name}` | Delete an Ingress |
 
 ## Pods
 
@@ -212,6 +220,8 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 | POST | `/api/v1/namespaces` | Create namespace |
 | DELETE | `/api/v1/namespaces/{name}` | Delete namespace |
 | GET | `/api/v1/services?namespace=...` | List Services |
+| POST | `/api/v1/services` | Create a Service: `{"namespace","name","type","port","targetPort","selector":{...}}` |
+| DELETE | `/api/v1/services/{namespace}/{name}` | Delete a Service |
 | GET | `/api/v1/network?namespace=...` | Service→Pod topology graph |
 | GET | `/api/v1/packetwolf/status` | PacketWolf connectivity |
 | GET | `/api/v1/packetwolf/proxy/{path...}` | Authenticated proxy to PacketWolf API |
@@ -223,10 +233,13 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/vms?namespace=...` | List VirtualMachines |
+| POST | `/api/v1/vms` | Create a VM: `{"namespace","name","cpu","memory","image","running"}` |
+| DELETE | `/api/v1/vms/{namespace}/{name}` | Delete a VM |
 | POST | `/api/v1/vms/{namespace}/{name}/start` | Start VM |
 | POST | `/api/v1/vms/{namespace}/{name}/stop` | Stop VM |
 | POST | `/api/v1/vms/{namespace}/{name}/migrate` | Live migration |
 | GET | `/api/v1/vms/{namespace}/{name}/console` | virtctl / VNC hints |
+| GET | `/api/v1/vms/{namespace}/{name}/vnc` | Proxied VNC WebSocket path for a browser VNC client (no embedded noVNC UI yet — this is the path an external client connects to) |
 | GET | `/api/v1/vm-snapshots` | List snapshots |
 | POST | `/api/v1/vm-snapshots` | Create snapshot |
 | GET | `/api/v1/vm-clones` | List clones |
@@ -241,6 +254,9 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/volumes?namespace=...` | PVCs and storage classes |
+| POST | `/api/v1/volumes` | Create a PVC: `{"namespace","name","size","storageClass","accessMode"}` (`storageClass`/`accessMode` optional) |
+| DELETE | `/api/v1/volumes/{namespace}/{name}` | Delete a PVC |
+| GET | `/api/v1/persistentvolumes` | Cluster-scoped PersistentVolumes (capacity, access modes, claim, storage class) |
 | GET | `/api/v1/atlas` | Atlas summary (policies, pools, volumes) |
 | GET | `/api/v1/atlas/{path...}` | Atlas API proxy |
 | POST | `/api/v1/atlas/volumes` | Request Atlas volume (+ optional PVC) |
@@ -252,6 +268,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | GET | `/api/v1/secrets?namespace=...` | List Secrets (keys only) |
 | POST | `/api/v1/secrets` | Create Secret |
 | GET | `/api/v1/secrets/{namespace}/{name}` | Secret detail |
+| PUT | `/api/v1/secrets/{namespace}/{name}` | Replace a Secret's data: `{"data":{...},"type":"..."}` |
 | DELETE | `/api/v1/secrets/{namespace}/{name}` | Delete Secret |
 | GET | `/api/v1/external-secrets?namespace=...` | ExternalSecret CRs |
 | GET | `/api/v1/backups?namespace=...` | Volume snapshots / backups |
@@ -270,6 +287,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | POST | `/api/v1/helm/releases/{namespace}/{name}/rollback` | Rollback (`{"revision": N}`) |
 | POST | `/api/v1/helm/releases/{namespace}/{name}/uninstall` | Uninstall release |
 | POST | `/api/v1/helm/install` | Install a chart: `{"namespace","releaseName","repoUrl","chartName","chartVersion","values"}` (`chartVersion`/`values` optional, `values` is raw YAML). Runs `helm install --repo <repoUrl>` as a background Job under Axiom's own ServiceAccount — the chart can only create resources that ServiceAccount is itself allowed to create. No chart-repo browsing in this pass; supply the repo URL and chart name directly, the same as `helm install --repo` on the CLI |
+| POST | `/api/v1/helm/upgrade` | Upgrade an existing release: same body shape as install (`{"namespace","releaseName","repoUrl","chartName","chartVersion","values"}`) — runs `helm upgrade --repo <repoUrl>` under the same ServiceAccount constraints |
 | GET | `/api/v1/gitops` | GitOps applications (Flux/Argo when present) |
 | POST | `/api/v1/gitops/{kind}/{namespace}/{name}/sync` | Force a re-sync. `kind` is one of `Application` (Argo — patches the top-level `operation.sync` field, the same mechanism `argocd app sync` uses) or `Kustomization`\|`HelmRelease` (Flux — bumps the `reconcile.fluxcd.io/requestedAt` annotation, the same convention `flux reconcile` uses) |
 | GET | `/api/v1/alerts?namespace=...` | Alertmanager / Prometheus alerts |
@@ -324,9 +342,11 @@ RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRole
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/users` | List local accounts (username, role, namespaces, createdAt — never the password hash) |
-| POST | `/api/v1/users` | Create a local account: `{"username","password","role":"admin"\|"viewer","namespaces":[...]}` (password ≥ 8 chars; `namespaces` is ignored unless `role` is `viewer`) |
+| POST | `/api/v1/users` | Create a local account: `{"username","password","role":"admin"\|"operator"\|"viewer","namespaces":[...]}` (password ≥ 8 chars; `namespaces` is ignored unless `role` is `viewer`) |
 | PATCH | `/api/v1/users/{username}` | Update role, password, and/or namespaces independently: `{"role":"viewer","password":"...","namespaces":["team-a"]}` — include only the fields to change |
 | DELETE | `/api/v1/users/{username}` | Delete a local account |
+
+Three roles: `admin` (full access), `operator` (can mutate day-2 resources but not users, integrations, or the cluster registry — see [Clusters](#clusters)), and `viewer` (read-only, optionally namespace-restricted).
 
 Local accounts are independent of the single env-configured operator account (`AXIOM_USERNAME`/`AXIOM_PASSWORD`, always admin). A `viewer` account authenticates and can call every `GET` endpoint, but any mutating request returns `403 {"error":"read-only user: this account cannot perform write actions"}`.
 
