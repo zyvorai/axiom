@@ -578,6 +578,13 @@ func (d *DemoProvider) ListResourceQuotas(ctx context.Context, ns string) ([]Res
 			out = append(out, q)
 		}
 	}
+	demoQuotaExtraMu.Lock()
+	for _, q := range demoQuotaExtra {
+		if ns == "" || ns == "all" || q.Namespace == ns {
+			out = append(out, q)
+		}
+	}
+	demoQuotaExtraMu.Unlock()
 	return out, nil
 }
 
@@ -607,6 +614,13 @@ func (d *DemoProvider) ListIngresses(ctx context.Context, ns string) ([]IngressS
 			out = append(out, i)
 		}
 	}
+	demoIngressExtraMu.Lock()
+	for _, i := range demoIngressExtra {
+		if ns == "" || ns == "all" || i.Namespace == ns {
+			out = append(out, i)
+		}
+	}
+	demoIngressExtraMu.Unlock()
 	return out, nil
 }
 

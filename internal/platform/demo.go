@@ -610,6 +610,13 @@ func (d *DemoProvider) ListServices(ctx context.Context, ns string) ([]Service, 
 			Selector: map[string]string{"app": w.Name}, Endpoints: eps, Age: w.Age,
 		})
 	}
+	demoServicesExtraMu.Lock()
+	for _, svc := range demoServicesExtra {
+		if ns == "" || ns == "all" || svc.Namespace == ns {
+			out = append(out, svc)
+		}
+	}
+	demoServicesExtraMu.Unlock()
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace == out[j].Namespace {
 			return out[i].Name < out[j].Name

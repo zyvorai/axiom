@@ -67,12 +67,42 @@ func LDAPAuthenticate(cfg LDAPConfig, username, password string) (ok bool, err e
 	return true, nil
 }
 
-func ldapBindDN(cfg LDAPConfig, username string) string {
-	if strings.Contains(username, "=") || strings.Contains(username, ",") {
-		return username // already a DN
+// ldapEscapeDN escapes RFC 4514 special characters in a DN attribute value.
+// username here is attacker-controlled (submitted at the anonymous login
+// form), so it must never be embedded in a constructed DN unescaped — an
+// unescaped "," or "=" lets it inject additional RDN components and bind as
+// an arbitrary DN elsewhere in the directory, defeating BaseDN scoping.
+func ldapEscapeDN(v string) string {
+	var b strings.Builder
+	for i, r := range v {
+		switch r {
+		case ',', '+', '"', '\\', '<', '>', ';', '=':
+			b.WriteByte('\\')
+			b.WriteRune(r)
+		case ' ':
+			if i == 0 || i == len(v)-1 {
+				b.WriteByte('\\')
+			}
+			b.WriteRune(r)
+		case '#':
+			if i == 0 {
+				b.WriteByte('\\')
+			}
+			b.WriteRune(r)
+		default:
+			b.WriteRune(r)
+		}
 	}
+	return b.String()
+}
+
+func ldapBindDN(cfg LDAPConfig, username string) string {
+	// Deliberately no "username already looks like a DN, pass it through"
+	// branch here: username comes straight from the anonymous login form, so
+	// trusting it as pre-formed DN syntax would let anyone bind as an
+	// arbitrary DN anywhere in the directory instead of the configured scope.
 	if strings.Contains(username, "@") {
-		return username // UPN
+		return username // UPN — a standard AD bind form, not raw DN syntax
 	}
 	if cfg.Domain != "" && !strings.Contains(cfg.Domain, "=") {
 		// NetBIOS DOMAIN\user
@@ -83,7 +113,7 @@ func ldapBindDN(cfg LDAPConfig, username string) string {
 		attr = "uid"
 	}
 	if cfg.BaseDN != "" {
-		return fmt.Sprintf("%s=%s,%s", attr, username, cfg.BaseDN)
+		return fmt.Sprintf("%s=%s,%s", attr, ldapEscapeDN(username), cfg.BaseDN)
 	}
 	return username
 }

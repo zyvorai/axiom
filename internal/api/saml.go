@@ -259,23 +259,34 @@ func verifySAMLIdPCert(xmlBytes []byte, pemCert string) error {
 
 func extractXMLTag(raw []byte, local string) string {
 	s := string(raw)
-	// Prefer exact local-name match, including namespaced tags like ds:X509Certificate.
-	needle := local + ">"
+	// Match the tag by its exact name token (optionally namespace-prefixed,
+	// e.g. ds:X509Certificate), not a substring search within a fixed lookahead
+	// window — a window-based search can "reach through" a short enclosing
+	// ancestor tag (e.g. <ds:KeyInfo>) whose own name plus the real target
+	// tag's name together fit inside the window, anchoring on the ancestor's
+	// '<' instead of the target's and corrupting the extracted content with
+	// the ancestor's literal markup.
 	idx := -1
-	for i := 0; i+len(local) < len(s); i++ {
-		if s[i] != '<' {
+	for i := 0; i < len(s); i++ {
+		if s[i] != '<' || i+1 >= len(s) {
 			continue
 		}
-		rest := s[i+1:]
-		if strings.HasPrefix(rest, local) && (len(rest) == len(local) || rest[len(local)] == '>' || rest[len(local)] == ' ') {
-			idx = i
+		switch s[i+1] {
+		case '/', '?', '!':
+			continue
+		}
+		j := i + 1
+		for j < len(s) {
+			switch s[j] {
+			case '>', '/', ' ', '\t', '\n', '\r':
+			default:
+				j++
+				continue
+			}
 			break
 		}
-		if j := strings.Index(rest, ":"+needle); j >= 0 && j < 64 {
-			idx = i
-			break
-		}
-		if j := strings.Index(rest, ":"+local+" "); j >= 0 && j < 64 {
+		name := s[i+1 : j]
+		if name == local || strings.HasSuffix(name, ":"+local) {
 			idx = i
 			break
 		}
