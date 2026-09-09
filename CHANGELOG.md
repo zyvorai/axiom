@@ -10,6 +10,7 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Fixed
 - `CodeEditor.jsx`'s editable manifest tabs (Pod/Workload detail YAML) now open straight into edit mode instead of requiring an extra "Edit" click first, matching their documented behavior as editable tabs.
+- `DELETE /api/v1/vms/{namespace}/{name}` was rejected with a 403 in real (non-demo) deployments — the `zyvor-axiom` ClusterRole granted `get/list/watch/update/patch/create` on `kubevirt.io` VMs but not `delete`. Found by validating the enterprise write endpoints against a real cluster (`e2e/scripts/validate-enterprise-writes.sh`) rather than only the demo provider/fake clientset unit tests; VM create/list, Service/Ingress/ResourceQuota create+list+delete, fleet cluster register/activate/unregister, and Helm install/upgrade/uninstall all round-tripped correctly against the real cluster.
 
 ### Added
 - Enterprise gap closure pass: real SAML ACS sessions, LDAP bind login, operator role, fleet cluster register/unregister from kubeconfig, HA Helm guard (`sessionSecret` required when `replicaCount > 1`), audit ring default 5000, ConfigMap/Secret update, Velero on-demand backup, VM create/delete + VNC WebSocket proxy path, PVC/Service/Ingress/Quota writes, Helm upgrade. See `docs/GAPS.md`.

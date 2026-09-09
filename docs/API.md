@@ -233,7 +233,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/vms?namespace=...` | List VirtualMachines |
-| POST | `/api/v1/vms` | Create a VM: `{"namespace","name","cpu","memory","image","running"}` |
+| POST | `/api/v1/vms` | Create a VM: `{"namespace","name","cpu","memory","image","running"}` (`cpu` is a string, e.g. `"1"`, not a JSON number) |
 | DELETE | `/api/v1/vms/{namespace}/{name}` | Delete a VM |
 | POST | `/api/v1/vms/{namespace}/{name}/start` | Start VM |
 | POST | `/api/v1/vms/{namespace}/{name}/stop` | Stop VM |

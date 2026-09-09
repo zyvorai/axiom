@@ -334,7 +334,7 @@ func isAdminOnlyPath(path string) bool {
 	if path == "/api/v1/integrations" {
 		return true
 	}
-	if path == "/api/v1/clusters" && true {
+	if path == "/api/v1/clusters" {
 		// POST register — GET list is fine for operators; Guard only runs this
 		// on mutating methods, so GET /clusters stays allowed.
 		return true
