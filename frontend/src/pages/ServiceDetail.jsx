@@ -7,14 +7,6 @@ import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { ArrowLeft, Network } from "lucide-react";
 
 function labelsMatch(podLabels, selector) {
@@ -141,36 +133,38 @@ export default function ServiceDetail() {
             </GlassCard>
 
             <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">Matching pods ({matchingPods.length})</div>
+                <div className="card-h">
+                    <h2 style={{ fontSize: 15 }}>Matching pods ({matchingPods.length})</h2>
+                </div>
                 {matchingPods.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods match this selector.</div>
+                    <div className="empty">No pods match this selector.</div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>IP</TableHead>
-                                <TableHead>Node</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>IP</th>
+                                <th>Node</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {matchingPods.map((p) => (
-                                <TableRow
+                                <tr
                                     key={p.name}
-                                    className="cursor-pointer hover:bg-muted"
+                                    style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/pods/${encodeURIComponent(ns)}/${encodeURIComponent(p.name)}`)}
                                 >
-                                    <TableCell className="mono text-sm">{p.name}</TableCell>
-                                    <TableCell>
+                                    <td className="name mono">{p.name}</td>
+                                    <td>
                                         <StatusBadge status={p.status} />
-                                    </TableCell>
-                                    <TableCell className="mono text-xs text-muted-foreground">{p.ip || "—"}</TableCell>
-                                    <TableCell className="mono text-xs text-muted-foreground">{p.node || "—"}</TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="mono num">{p.ip || "—"}</td>
+                                    <td className="mono num">{p.node || "—"}</td>
+                                </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 )}
             </GlassCard>
         </div>

@@ -6,14 +6,6 @@ import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { ArrowLeft, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -138,36 +130,38 @@ export default function CronJobDetail() {
             </GlassCard>
 
             <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">Recent jobs ({ownedJobs.length})</div>
+                <div className="card-h">
+                    <h2 style={{ fontSize: 15 }}>Recent jobs ({ownedJobs.length})</h2>
+                </div>
                 {ownedJobs.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No jobs from this CronJob yet.</div>
+                    <div className="empty">No jobs from this CronJob yet.</div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Completions</TableHead>
-                                <TableHead>Age</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Completions</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {ownedJobs.map((j) => (
-                                <TableRow
+                                <tr
                                     key={j.name}
-                                    className="cursor-pointer hover:bg-muted"
+                                    style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/jobs/${encodeURIComponent(ns)}/${encodeURIComponent(j.name)}`)}
                                 >
-                                    <TableCell className="mono text-sm">{j.name}</TableCell>
-                                    <TableCell>
+                                    <td className="name mono">{j.name}</td>
+                                    <td>
                                         <StatusBadge status={j.status} />
-                                    </TableCell>
-                                    <TableCell className="mono text-xs text-muted-foreground">{j.completions || "—"}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{j.age || "—"}</TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="num">{j.completions || "—"}</td>
+                                    <td className="num">{j.age || "—"}</td>
+                                </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 )}
             </GlassCard>
         </div>

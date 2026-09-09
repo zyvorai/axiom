@@ -6,14 +6,6 @@ import DetailHeader from "@/components/DetailHeader";
 import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { ArrowLeft } from "lucide-react";
 
 function isJobPod(pod, jobName) {
@@ -118,36 +110,38 @@ export default function JobDetail() {
             </GlassCard>
 
             <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">Pods ({jobPods.length})</div>
+                <div className="card-h">
+                    <h2 style={{ fontSize: 15 }}>Pods ({jobPods.length})</h2>
+                </div>
                 {jobPods.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods found for this job.</div>
+                    <div className="empty">No pods found for this job.</div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Restarts</TableHead>
-                                <TableHead>Age</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Restarts</th>
+                                <th>Age</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {jobPods.map((p) => (
-                                <TableRow
+                                <tr
                                     key={p.name}
-                                    className="cursor-pointer hover:bg-muted"
+                                    style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/pods/${encodeURIComponent(ns)}/${encodeURIComponent(p.name)}`)}
                                 >
-                                    <TableCell className="mono text-sm">{p.name}</TableCell>
-                                    <TableCell>
+                                    <td className="name mono">{p.name}</td>
+                                    <td>
                                         <StatusBadge status={p.status} />
-                                    </TableCell>
-                                    <TableCell className="mono text-xs text-muted-foreground">{p.restarts ?? 0}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{p.age || "—"}</TableCell>
-                                </TableRow>
+                                    </td>
+                                    <td className="num">{p.restarts ?? 0}</td>
+                                    <td className="num">{p.age || "—"}</td>
+                                </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 )}
             </GlassCard>
         </div>
