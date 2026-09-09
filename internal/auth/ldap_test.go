@@ -305,12 +305,189 @@ func TestLDAPAuthenticateSuccess(t *testing.T) {
 	addr := fakeLDAPServer(t, [][]byte{canonicalBindResponse(0)})
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://" + addr, BaseDN: "dc=example,dc=com"}
 
-	ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	role, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !ok {
 		t.Fatal("expected a successful bind to authenticate")
+	}
+	if role != "operator" {
+		t.Fatalf("expected the default operator role when no groups are configured, got %q", role)
+	}
+}
+
+// canonicalSearchResultEntry builds a SearchResultEntry LDAPMessage: { objectName
+// OCTET STRING, attributes SEQUENCE OF PartialAttribute { type OCTET STRING,
+// vals SET OF OCTET STRING } } — mirrors canonicalBindResponse's hand-computed
+// style above, all field lengths kept under 128 so single-byte BER lengths apply.
+func canonicalSearchResultEntry(messageID byte, dn, attrName string, values []string) []byte {
+	var valsInner []byte
+	for _, v := range values {
+		valsInner = append(valsInner, 0x04, byte(len(v)))
+		valsInner = append(valsInner, []byte(v)...)
+	}
+	valsSet := append([]byte{0x31, byte(len(valsInner))}, valsInner...)
+
+	attrType := append([]byte{0x04, byte(len(attrName))}, []byte(attrName)...)
+	partialAttrInner := append(append([]byte{}, attrType...), valsSet...)
+	partialAttr := append([]byte{0x30, byte(len(partialAttrInner))}, partialAttrInner...)
+	attrsSeq := append([]byte{0x30, byte(len(partialAttr))}, partialAttr...)
+
+	objectName := append([]byte{0x04, byte(len(dn))}, []byte(dn)...)
+	entryInner := append(append([]byte{}, objectName...), attrsSeq...)
+	entry := append([]byte{0x64, byte(len(entryInner))}, entryInner...)
+
+	seqInner := append([]byte{0x02, 0x01, messageID}, entry...)
+	return append([]byte{0x30, byte(len(seqInner))}, seqInner...)
+}
+
+// canonicalSearchResultDone builds a successful SearchResultDone LDAPMessage,
+// the terminator ldapSearchGroups reads to know the entry list is complete.
+func canonicalSearchResultDone(messageID byte) []byte {
+	doneInner := []byte{
+		0x0a, 0x01, 0x00, // resultCode success
+		0x04, 0x00, // matchedDN ""
+		0x04, 0x00, // diagnosticMessage ""
+	}
+	done := append([]byte{0x65, byte(len(doneInner))}, doneInner...)
+	seqInner := append([]byte{0x02, 0x01, messageID}, done...)
+	return append([]byte{0x30, byte(len(seqInner))}, seqInner...)
+}
+
+// joinLDAPMessages concatenates canned LDAPMessage byte sequences the way a
+// real server pushes SearchResultEntry/SearchResultDone back to back without
+// waiting for another client write in between — see fakeLDAPServer's doc
+// comment: it writes one slice entry per client write it reads, so a
+// multi-message push has to arrive pre-joined as a single entry.
+func joinLDAPMessages(msgs ...[]byte) []byte {
+	var out []byte
+	for _, m := range msgs {
+		out = append(out, m...)
+	}
+	return out
+}
+
+func TestLDAPAuthenticateMapsAdminGroup(t *testing.T) {
+	addr := fakeLDAPServer(t, [][]byte{
+		canonicalBindResponse(0),
+		joinLDAPMessages(
+			canonicalSearchResultEntry(2, "uid=alice,dc=example,dc=com", "memberOf", []string{"cn=Axiom Admins,ou=groups,dc=example,dc=com"}),
+			canonicalSearchResultDone(2),
+		),
+	})
+	cfg := LDAPConfig{
+		Enabled: true, URL: "ldap://" + addr, BaseDN: "dc=example,dc=com",
+		AdminGroup: "Axiom Admins", ViewerGroup: "Axiom Viewers",
+	}
+
+	role, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected a successful bind to authenticate")
+	}
+	if role != "admin" {
+		t.Fatalf("expected admin role from memberOf CN match, got %q", role)
+	}
+}
+
+func TestLDAPAuthenticateMapsViewerGroupByFullDN(t *testing.T) {
+	addr := fakeLDAPServer(t, [][]byte{
+		canonicalBindResponse(0),
+		joinLDAPMessages(
+			canonicalSearchResultEntry(2, "uid=alice,dc=example,dc=com", "memberOf", []string{"cn=Axiom Viewers,ou=groups,dc=example,dc=com"}),
+			canonicalSearchResultDone(2),
+		),
+	})
+	cfg := LDAPConfig{
+		Enabled: true, URL: "ldap://" + addr, BaseDN: "dc=example,dc=com",
+		AdminGroup: "Axiom Admins", ViewerGroup: "cn=Axiom Viewers,ou=groups,dc=example,dc=com",
+	}
+
+	role, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected a successful bind to authenticate")
+	}
+	if role != "viewer" {
+		t.Fatalf("expected viewer role from a full-DN match, got %q", role)
+	}
+}
+
+func TestLDAPAuthenticateDefaultsToOperatorWhenNoGroupMatches(t *testing.T) {
+	addr := fakeLDAPServer(t, [][]byte{
+		canonicalBindResponse(0),
+		joinLDAPMessages(
+			canonicalSearchResultEntry(2, "uid=alice,dc=example,dc=com", "memberOf", []string{"cn=Everyone,ou=groups,dc=example,dc=com"}),
+			canonicalSearchResultDone(2),
+		),
+	})
+	cfg := LDAPConfig{
+		Enabled: true, URL: "ldap://" + addr, BaseDN: "dc=example,dc=com",
+		AdminGroup: "Axiom Admins", ViewerGroup: "Axiom Viewers",
+	}
+
+	role, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected a successful bind to authenticate")
+	}
+	if role != "operator" {
+		t.Fatalf("expected the operator default when memberOf matches neither configured group, got %q", role)
+	}
+}
+
+func TestLDAPAuthenticateSkipsGroupLookupForNonDNBindForm(t *testing.T) {
+	// Domain set (NetBIOS bind form) with no BaseDN: ldapBindDN returns a bare
+	// "DOMAIN\user" identity, not a real DN, so ldapRoleAfterBind must not
+	// attempt a search on it — only the bind response is in the fake server's
+	// queue, so any unexpected search write here would hang/fail the read.
+	addr := fakeLDAPServer(t, [][]byte{canonicalBindResponse(0)})
+	cfg := LDAPConfig{
+		Enabled: true, URL: "ldap://" + addr, Domain: "example.com",
+		AdminGroup: "Axiom Admins",
+	}
+
+	role, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected a successful bind to authenticate")
+	}
+	if role != "operator" {
+		t.Fatalf("expected the operator default for a non-DN bind form, got %q", role)
+	}
+}
+
+func TestLdapRoleFromGroups(t *testing.T) {
+	tests := []struct {
+		name                    string
+		groups                  []string
+		adminGroup, viewerGroup string
+		want                    string
+	}{
+		{"no groups configured matches nothing", []string{"cn=Anything,dc=example,dc=com"}, "", "", "operator"},
+		{"admin by CN", []string{"cn=Axiom Admins,ou=groups,dc=example,dc=com"}, "Axiom Admins", "Axiom Viewers", "admin"},
+		{"admin by full DN", []string{"cn=Axiom Admins,ou=groups,dc=example,dc=com"}, "cn=Axiom Admins,ou=groups,dc=example,dc=com", "", "admin"},
+		{"viewer when admin doesn't match", []string{"cn=Axiom Viewers,ou=groups,dc=example,dc=com"}, "Axiom Admins", "Axiom Viewers", "viewer"},
+		{"admin takes priority when a user is in both groups", []string{"cn=Axiom Admins,dc=example,dc=com", "cn=Axiom Viewers,dc=example,dc=com"}, "Axiom Admins", "Axiom Viewers", "admin"},
+		{"no match falls back to default", []string{"cn=Everyone,dc=example,dc=com"}, "Axiom Admins", "Axiom Viewers", "operator"},
+		{"case-insensitive CN match", []string{"CN=axiom admins,dc=example,dc=com"}, "Axiom Admins", "", "admin"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ldapRoleFromGroups(tc.groups, tc.adminGroup, tc.viewerGroup, "operator")
+			if got != tc.want {
+				t.Errorf("ldapRoleFromGroups(%v, %q, %q) = %q, want %q", tc.groups, tc.adminGroup, tc.viewerGroup, got, tc.want)
+			}
+		})
 	}
 }
 
@@ -318,7 +495,7 @@ func TestLDAPAuthenticateInvalidCredentials(t *testing.T) {
 	addr := fakeLDAPServer(t, [][]byte{canonicalBindResponse(49)}) // invalidCredentials
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://" + addr, BaseDN: "dc=example,dc=com"}
 
-	ok, err := LDAPAuthenticate(cfg, "alice", "wrongpass")
+	_, ok, err := LDAPAuthenticate(cfg, "alice", "wrongpass")
 	if err != nil {
 		t.Fatalf("expected no error (a rejected bind is reported via ok=false, not err), got %v", err)
 	}
@@ -335,7 +512,7 @@ func TestLDAPAuthenticateFallsBackToUPNForm(t *testing.T) {
 	addr := fakeLDAPServer(t, [][]byte{canonicalBindResponse(49), canonicalBindResponse(0)})
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://" + addr, Domain: "example.com"}
 
-	ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	_, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -348,7 +525,7 @@ func TestLDAPAuthenticateUPNFallbackAlsoFails(t *testing.T) {
 	addr := fakeLDAPServer(t, [][]byte{canonicalBindResponse(49), canonicalBindResponse(49)})
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://" + addr, Domain: "example.com"}
 
-	ok, err := LDAPAuthenticate(cfg, "alice", "wrongpass")
+	_, ok, err := LDAPAuthenticate(cfg, "alice", "wrongpass")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -368,7 +545,7 @@ func TestLDAPAuthenticateDialError(t *testing.T) {
 	_ = ln.Close()
 
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://" + addr}
-	ok, err := LDAPAuthenticate(cfg, "alice", "secret")
+	_, ok, err := LDAPAuthenticate(cfg, "alice", "secret")
 	if ok {
 		t.Fatal("expected failure when the LDAP server is unreachable")
 	}
@@ -378,7 +555,7 @@ func TestLDAPAuthenticateDialError(t *testing.T) {
 }
 
 func TestLDAPAuthenticateRequiresURL(t *testing.T) {
-	ok, err := LDAPAuthenticate(LDAPConfig{Enabled: true}, "alice", "secret")
+	_, ok, err := LDAPAuthenticate(LDAPConfig{Enabled: true}, "alice", "secret")
 	if ok || err == nil {
 		t.Fatalf("expected an error when no LDAP URL is configured, got ok=%v err=%v", ok, err)
 	}
@@ -389,10 +566,10 @@ func TestLDAPAuthenticateRejectsEmptyCredentials(t *testing.T) {
 	// check must short-circuit before any network I/O is attempted.
 	cfg := LDAPConfig{Enabled: true, URL: "ldap://127.0.0.1:1"}
 
-	if ok, err := LDAPAuthenticate(cfg, "", "secret"); ok || err != nil {
+	if _, ok, err := LDAPAuthenticate(cfg, "", "secret"); ok || err != nil {
 		t.Fatalf("empty username: got ok=%v err=%v, want ok=false err=nil", ok, err)
 	}
-	if ok, err := LDAPAuthenticate(cfg, "alice", ""); ok || err != nil {
+	if _, ok, err := LDAPAuthenticate(cfg, "alice", ""); ok || err != nil {
 		t.Fatalf("empty password: got ok=%v err=%v, want ok=false err=nil", ok, err)
 	}
 }

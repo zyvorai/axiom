@@ -39,6 +39,9 @@ type Config struct {
 	LDAPBindDN        string
 	LDAPBindPW        string
 	LDAPUserAttr      string
+	LDAPGroupAttr     string
+	LDAPAdminGroup    string
+	LDAPViewerGroup   string
 	AtlasURL          string
 	AtlasToken        string
 	ClusterName       string
@@ -77,6 +80,9 @@ func FromEnv() Config {
 		LDAPBindDN:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_BIND_DN")),
 		LDAPBindPW:         strings.TrimSpace(os.Getenv("AXIOM_LDAP_BIND_PASSWORD")),
 		LDAPUserAttr:       strings.TrimSpace(os.Getenv("AXIOM_LDAP_USER_ATTR")),
+		LDAPGroupAttr:      strings.TrimSpace(os.Getenv("AXIOM_LDAP_GROUP_ATTR")),
+		LDAPAdminGroup:     strings.TrimSpace(os.Getenv("AXIOM_LDAP_ADMIN_GROUP")),
+		LDAPViewerGroup:    strings.TrimSpace(os.Getenv("AXIOM_LDAP_VIEWER_GROUP")),
 		AtlasURL:           strings.TrimSpace(os.Getenv("AXIOM_ATLAS_URL")),
 		AtlasToken:         strings.TrimSpace(os.Getenv("AXIOM_ATLAS_TOKEN")),
 		ClusterName:        strings.TrimSpace(os.Getenv("AXIOM_CLUSTER_NAME")),

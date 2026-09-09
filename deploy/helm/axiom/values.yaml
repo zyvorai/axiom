@@ -52,6 +52,11 @@ auth:
   ldapURL: ""
   ldapDomain: ""
   ldapBaseDN: ""
+  # Group-based role mapping (optional, only takes effect with ldapBaseDN set —
+  # see docs/GAPS.md). ldapGroupAttr defaults to memberOf when either group is set.
+  ldapGroupAttr: ""
+  ldapAdminGroup: ""
+  ldapViewerGroup: ""
   # OIDC default role when admin/viewer groups are unset (admin|viewer|operator).
   oidcDefaultRole: admin
 

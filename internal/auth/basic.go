@@ -314,8 +314,8 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 		return Identity{User: g.Username, Role: "admin"}, true
 	}
 	if g.LDAP.Enabled || g.LDAP.URL != "" {
-		if ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
-			return Identity{User: u, Role: "operator"}, true
+		if role, ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
+			return Identity{User: u, Role: role}, true
 		}
 	}
 	if g.Users != nil {

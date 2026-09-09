@@ -14,6 +14,7 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Added
 - OIDC SSO validated end-to-end: minted a public (PKCE, no client secret) `axiom` client in a real Keycloak realm, wired `AXIOM_OIDC_ISSUER`/`AXIOM_OIDC_CLIENT_ID` via `PUT /api/v1/integrations`, and confirmed a full browser login mints a real Axiom session (`GET /api/v1/session` returns `"auth":"oidc"`). See `e2e/scripts/verify-sso.js`.
+- LDAP group-based role mapping: `AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP` (plus `AXIOM_LDAP_GROUP_ATTR`, default `memberOf`) map a bound user's directory group membership to `admin`/`viewer`, matched by full DN or `cn`. Implemented as a minimal hand-rolled LDAP Search (base-scope, present filter), extending the existing hand-rolled bind — no new dependency. Only applies to the `AXIOM_LDAP_BASE_DN`-constructed bind form; both env vars unset (the default) keeps every bind at the previous blanket `operator` role, so this is backward compatible. See `docs/GAPS.md`.
 
 ### Added
 - Enterprise gap closure pass: real SAML ACS sessions, LDAP bind login, operator role, fleet cluster register/unregister from kubeconfig, HA Helm guard (`sessionSecret` required when `replicaCount > 1`), audit ring default 5000, ConfigMap/Secret update, Velero on-demand backup, VM create/delete + VNC WebSocket proxy path, PVC/Service/Ingress/Quota writes, Helm upgrade. See `docs/GAPS.md`.

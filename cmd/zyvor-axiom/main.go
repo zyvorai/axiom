@@ -78,6 +78,9 @@ func main() {
 		LDAPBindDN:         cfg.LDAPBindDN,
 		LDAPBindPW:         cfg.LDAPBindPW,
 		LDAPUserAttr:       cfg.LDAPUserAttr,
+		LDAPGroupAttr:      cfg.LDAPGroupAttr,
+		LDAPAdminGroup:     cfg.LDAPAdminGroup,
+		LDAPViewerGroup:    cfg.LDAPViewerGroup,
 
 		OIDCGroupsClaim: cfg.OIDCGroupsClaim,
 		OIDCAdminGroup:  cfg.OIDCAdminGroup,

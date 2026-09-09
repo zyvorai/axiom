@@ -87,6 +87,18 @@ spec:
             - name: AXIOM_LDAP_BASE_DN
               value: {{ .Values.auth.ldapBaseDN | quote }}
             {{- end }}
+            {{- if .Values.auth.ldapGroupAttr }}
+            - name: AXIOM_LDAP_GROUP_ATTR
+              value: {{ .Values.auth.ldapGroupAttr | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapAdminGroup }}
+            - name: AXIOM_LDAP_ADMIN_GROUP
+              value: {{ .Values.auth.ldapAdminGroup | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapViewerGroup }}
+            - name: AXIOM_LDAP_VIEWER_GROUP
+              value: {{ .Values.auth.ldapViewerGroup | quote }}
+            {{- end }}
             {{- if .Values.auth.oidcDefaultRole }}
             - name: AXIOM_OIDC_DEFAULT_ROLE
               value: {{ .Values.auth.oidcDefaultRole | quote }}

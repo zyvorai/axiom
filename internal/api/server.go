@@ -44,6 +44,15 @@ type AuthOptions struct {
 	LDAPBindDN         string
 	LDAPBindPW         string
 	LDAPUserAttr       string
+	// LDAPGroupAttr/LDAPAdminGroup/LDAPViewerGroup map a bound user's directory
+	// group membership to a viewer/admin/operator role, the LDAP equivalent of
+	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup below. Group lookup only
+	// works for the BaseDN-constructed bind form (auth.ldapBindDN's "uid=...,
+	// BaseDN" case) — see auth.LDAPAuthenticate. When both groups are unset,
+	// every successful bind keeps the long-standing "operator" default.
+	LDAPGroupAttr   string
+	LDAPAdminGroup  string
+	LDAPViewerGroup string
 
 	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup map an ID token's groups
 	// claim to a viewer/admin/operator role. When OIDCAdminGroup and
@@ -295,6 +304,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		LDAP: auth.LDAPConfig{
 			Enabled: opts.LDAPEnabled, URL: opts.LDAPURL, Domain: opts.LDAPDomain,
 			BaseDN: opts.LDAPBaseDN, BindDN: opts.LDAPBindDN, BindPW: opts.LDAPBindPW, UserAttr: opts.LDAPUserAttr,
+			GroupAttr: opts.LDAPGroupAttr, AdminGroup: opts.LDAPAdminGroup, ViewerGroup: opts.LDAPViewerGroup,
 		},
 	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
