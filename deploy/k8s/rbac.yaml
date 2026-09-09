@@ -77,7 +77,7 @@ rules:
     verbs: ["get", "list", "watch", "create"]
   - apiGroups: ["kubevirt.io"]
     resources: ["virtualmachines", "virtualmachineinstances", "virtualmachineinstancemigrations"]
-    verbs: ["get", "list", "watch", "update", "patch", "create"]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete"]
   - apiGroups: ["subresources.kubevirt.io"]
     resources: ["virtualmachineinstances/vnc", "virtualmachineinstances/console"]
     verbs: ["get"]
