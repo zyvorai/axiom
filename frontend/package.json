@@ -65,7 +65,8 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "lint:design": "sh scripts/lint-design.sh"
   },
   "proxy": "http://localhost:5090",
   "browserslist": {
