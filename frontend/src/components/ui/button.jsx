@@ -5,29 +5,30 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform,filter] duration-150 focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)] disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  // Netra: pill, 400 weight, 0.28s apple ease, solid (never faded) disabled fill.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-normal tracking-[-0.016em] transition-[color,background-color,border-color,box-shadow,transform,filter] duration-300 ease-apple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-outline)] disabled:pointer-events-none disabled:border-transparent disabled:bg-[var(--disabled-bg)] disabled:text-[var(--disabled-text)] disabled:shadow-none active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Apple Action Blue solid fill (#0071e3) — no gradients / alternate hues
+        // Action Blue #0071e3; dark-mode hover adds the blue glow (netra)
         default:
-          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.18)] hover:brightness-[0.92]",
+          "bg-primary text-primary-foreground hover:brightness-[1.06] dark:hover:shadow-[0_8px_24px_rgba(0,113,227,0.35)]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:brightness-[1.08]",
         outline:
-          "border border-input shadow-sm hover:bg-foreground/[0.06]",
+          "border border-[var(--line-2)] bg-transparent hover:bg-accent",
         secondary:
-          "bg-foreground/[0.06] text-secondary-foreground hover:bg-foreground/[0.1]",
-        ghost: "hover:bg-foreground/[0.06]",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-accent text-foreground hover:bg-[var(--hover-fill-strong)]",
+        ghost: "hover:bg-accent",
+        link: "text-tone-link underline-offset-4 hover:underline",
         brand:
-          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.18)] hover:brightness-[0.92]",
+          "bg-primary text-primary-foreground hover:brightness-[1.06] dark:hover:shadow-[0_8px_24px_rgba(0,113,227,0.35)]",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-full px-3 text-xs",
-        lg: "h-10 rounded-full px-8",
-        xl: "h-12 rounded-full px-9 text-[15px]",
+        default: "h-9 px-5 py-2",
+        sm: "h-8 px-3.5 text-[13px]",
+        lg: "h-11 px-6 text-[17px] tracking-[-0.022em]",
+        xl: "h-12 px-9 text-[17px] tracking-[-0.022em]",
         icon: "h-9 w-9",
       },
     },
