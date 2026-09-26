@@ -125,7 +125,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
         const patch = {};
         if (role !== user.role) patch.role = role;
         if (password) patch.password = password;
-        if (role === "viewer") {
+        if (role === "viewer" || role === "operator") {
             const next = parseNamespaces(namespacesText);
             const current = user.namespaces || [];
             if (next.join(",") !== current.join(",")) patch.namespaces = next;

@@ -127,6 +127,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/oidc/test");
             r.ok ? toast.success("OIDC reachable", { description: r.hint }) : toast.error("OIDC test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -154,6 +156,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/atlas/test");
             r.ok ? toast.success("Atlas reachable", { description: `${r.latencyMs}ms` }) : toast.error("Atlas test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -185,6 +189,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/postgres/test");
             r.ok ? toast.success("Postgres reachable", { description: `${r.latencyMs}ms` }) : toast.error("Postgres test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -214,6 +220,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/probe/test");
             r.ok ? toast.success("Probe reachable", { description: `${r.latencyMs}ms` }) : toast.error("Probe test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -242,6 +250,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/slack/test");
             r.ok ? toast.success("Slack message sent") : toast.error("Slack test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -252,6 +262,8 @@ export default function Settings() {
         try {
             const { data: r } = await api.post("/integrations/webhook/test");
             r.ok ? toast.success("Webhook delivered") : toast.error("Webhook test failed", { description: r.error || r.hint });
+        } catch (e) {
+            toast.error("Test failed", { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }

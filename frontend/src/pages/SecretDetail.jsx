@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Eye, EyeOff, KeySquare } from "lucide-react";
 import { toast } from "sonner";
 import MacTerm from "@/components/MacTerm";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function SecretDetail() {
     const { namespace, name } = useParams();
@@ -18,10 +19,12 @@ export default function SecretDetail() {
     const [detail, setDetail] = useState(null);
     const [revealed, setRevealed] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [draft, setDraft] = useState({}); // edited values while revealed, keyed by secret key
 
     useEffect(() => {
         let alive = true;
         setRevealed(false);
+        setDraft({});
         api
             .get(`/secrets/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}`)
             .then((r) => alive && setDetail(r.data))
@@ -40,6 +43,7 @@ export default function SecretDetail() {
         try {
             const { data } = await api.get(`/secrets/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}?values=true`);
             setDetail(data);
+            setDraft(data.values || {});
             setRevealed(true);
         } catch (e) {
             toast.error("Reveal failed", { description: e?.response?.data?.error || e.message });
@@ -71,6 +75,25 @@ export default function SecretDetail() {
     }
 
     const keys = detail.keys || [];
+    const saved = detail.values || {};
+    const dirty = revealed && Object.keys({ ...saved, ...draft }).some((k) => (draft[k] ?? "") !== (saved[k] ?? ""));
+
+    const save = async () => {
+        setBusy(true);
+        try {
+            await api.put(`/secrets/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}`, {
+                namespace: ns,
+                name: nm,
+                data: draft,
+            });
+            setDetail((d) => ({ ...d, values: draft }));
+            toast.success("Secret updated");
+        } catch (e) {
+            toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
 
     return (
         <div className="page space-y-6">
@@ -102,22 +125,8 @@ export default function SecretDetail() {
                             <button
                                 type="button"
                                 className="btn btn-fill btn-sm"
-                                disabled={busy}
-                                onClick={async () => {
-                                    setBusy(true);
-                                    try {
-                                        await api.put(`/secrets/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}`, {
-                                            namespace: ns,
-                                            name: nm,
-                                            data: detail.values || {},
-                                        });
-                                        toast.success("Secret updated");
-                                    } catch (e) {
-                                        toast.error("Update failed", { description: e?.response?.data?.error || e.message });
-                                    } finally {
-                                        setBusy(false);
-                                    }
-                                }}
+                                disabled={busy || !dirty}
+                                onClick={save}
                             >
                                 Save values
                             </button>
@@ -148,7 +157,6 @@ export default function SecretDetail() {
                     keys.map((k) => {
                         const key = typeof k === "string" ? k : k.key;
                         const size = typeof k === "object" ? k.size : null;
-                        const value = revealed ? detail.values?.[key] : null;
                         return (
                             <div key={key} className="border-b px-4 py-3 last:border-none">
                                 <div className="mb-1 flex items-center gap-2">
@@ -157,12 +165,22 @@ export default function SecretDetail() {
                                     </Badge>
                                     {size != null && <span className="text-[11px] text-muted-foreground">{size} bytes</span>}
                                 </div>
-                                <MacTerm
-                                    title={key}
-                                    bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-term-plain"
-                                >
-                                    {revealed ? value ?? "—" : "••••••••"}
-                                </MacTerm>
+                                {revealed ? (
+                                    <Textarea
+                                        aria-label={`Value of ${key}`}
+                                        value={draft[key] ?? ""}
+                                        onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
+                                        spellCheck={false}
+                                        className="mono min-h-[5.5rem] text-[12px] leading-[1.55]"
+                                    />
+                                ) : (
+                                    <MacTerm
+                                        title={key}
+                                        bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-term-plain"
+                                    >
+                                        ••••••••
+                                    </MacTerm>
+                                )}
                             </div>
                         );
                     })

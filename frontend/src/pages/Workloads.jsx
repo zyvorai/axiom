@@ -152,15 +152,21 @@ function RolloutDialog({ workload, onOpenChange }) {
     );
 }
 
+// A Kubernetes object name (RFC 1123 label) — what the API server would enforce anyway.
+const DNS_LABEL = /^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/;
+
 function ScaleDialog({ workload, onOpenChange, onDone }) {
     const [replicas, setReplicas] = useState(String(workload.desired ?? workload.ready ?? 1));
     const [busy, setBusy] = useState(false);
+    const count = replicas.trim() === "" ? NaN : Number(replicas); // Number("") is 0, which would silently stop the workload
+    const valid = Number.isInteger(count) && count >= 0;
 
     const submit = async () => {
+        if (!valid) return;
         setBusy(true);
         try {
             await api.post(`/workloads/${workload.namespace}/${workload.kind}/${encodeURIComponent(workload.name)}/scale`, {
-                replicas: Number(replicas),
+                replicas: count,
             });
             toast.success(`${workload.name} scaled to ${replicas}`);
             onOpenChange(false);
@@ -178,9 +184,9 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Scale · {workload.name}</DialogTitle>
                 </DialogHeader>
-                <Input type="number" min={0} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="bg-muted/30" />
+                <Input type="number" min={0} step={1} aria-label="Replicas" aria-invalid={!valid} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="bg-muted/30" />
                 <DialogFooter>
-                    <Button onClick={submit} disabled={busy} className="rounded-xl">
+                    <Button onClick={submit} disabled={busy || !valid} className="rounded-xl">
                         {busy ? "Scaling…" : "Scale"}
                     </Button>
                 </DialogFooter>
@@ -297,7 +303,10 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
     const [step, setStep] = useState("form");
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
+    const nameOk = !form.name || DNS_LABEL.test(form.name);
+
     const launchForm = async () => {
+        if (!nameOk) return;
         setBusy(true);
         try {
             await api.post("/workloads", form);
@@ -375,7 +384,12 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="workloads-name" className="text-xs text-muted-foreground">Name</Label>
-                                <Input id="workloads-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" className="bg-muted/30" />
+                                <Input id="workloads-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" aria-invalid={!nameOk} aria-describedby={nameOk ? undefined : "workloads-name-err"} className="bg-muted/30" />
+                                {!nameOk && (
+                                    <p id="workloads-name-err" className="text-xs text-tone-red">
+                                        Use lowercase letters, numbers and “-” (start and end with a letter or number, max 63).
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <div className="space-y-1.5">
@@ -407,7 +421,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="brand" onClick={launchForm} disabled={busy || !form.name || !form.image} className="rounded-xl">
+                            <Button variant="brand" onClick={launchForm} disabled={busy || !form.name || !nameOk || !form.image} className="rounded-xl">
                                 {busy ? "Launching…" : "Launch"}
                             </Button>
                         </DialogFooter>
@@ -444,7 +458,10 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         <MacTerm title="manifest.yaml" bodyClassName="!p-0">
                             <Textarea
                                 value={manifest}
-                                onChange={(e) => setManifest(e.target.value)}
+                                onChange={(e) => {
+                                    setManifest(e.target.value);
+                                    setValidation(null); // the last result no longer describes this text
+                                }}
                                 placeholder={"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: example\n..."}
                                 className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
                                 spellCheck={false}

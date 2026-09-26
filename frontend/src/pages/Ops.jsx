@@ -328,7 +328,7 @@ function AgentRunRow({ r, onChanged }) {
         setBusy(action);
         try {
             await api.post(`/agent-runs/${r.namespace}/${encodeURIComponent(r.name)}/${action}`);
-            toast.success(`${r.name}: ${action}d`);
+            toast.success(`${r.name}: ${action === "deny" ? "denied" : "approved"}`);
             onChanged();
         } catch (e) {
             toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
