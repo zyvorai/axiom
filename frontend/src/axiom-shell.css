@@ -693,8 +693,9 @@
   grid-template-columns: 1fr 1fr;
 }
 .g3 {
-  /* as many ≥300px columns as fit (max 3 on wide screens is enforced by page width) */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  /* as many ≥300px columns as fit; auto-fill (not auto-fit) so a lone card
+     keeps a column's width instead of stretching across the row */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
 }
 .g2 > *,
 .g3 > *,
