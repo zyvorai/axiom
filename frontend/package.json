@@ -69,7 +69,8 @@
     "test": "craco test",
     "lint:design": "sh scripts/lint-design.sh",
     "lint:a11y": "node scripts/lint-a11y.js",
-    "lint": "sh scripts/lint-design.sh && node scripts/lint-a11y.js"
+    "lint": "sh scripts/lint-design.sh && node scripts/lint-a11y.js && eslint src",
+    "lint:js": "eslint src"
   },
   "proxy": "http://localhost:5090",
   "browserslist": {
