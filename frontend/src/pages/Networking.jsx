@@ -10,6 +10,9 @@ import { NET } from "@/constants/testIds";
 import { useConfirm } from "@/components/ConfirmDialog";
 import CodeEditor from "@/components/CodeEditor";
 
+// zero-width spaces after "/" and ":" give long refs (service:ns/name) natural wrap points
+const breakable = (v) => String(v ?? "").replace(/([/:])/g, "$1\u200b");
+
 const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -320,8 +323,8 @@ export default function Networking() {
                             <tbody>
                                 {d.edges.map((e, i) => (
                                     <tr key={i}>
-                                        <td className="mono">{e.from}</td>
-                                        <td className="mono">{e.to}</td>
+                                        <td className="mono wrap">{breakable(e.from)}</td>
+                                        <td className="mono wrap">{breakable(e.to)}</td>
                                         <td className="num">{e.label}</td>
                                     </tr>
                                 ))}

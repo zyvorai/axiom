@@ -772,7 +772,7 @@ function WebhooksTab() {
         ["Mutating", webhooks.filter((w) => w.type === "Mutating")],
     ];
     return (
-        <div className="grid g2">
+        <div className="stack">
             {groups.map(([title, items]) => (
                 <div key={title} className="card p-0">
                     <div className="panel-h">{title} webhooks</div>
@@ -794,7 +794,7 @@ function WebhooksTab() {
                                             {w.webhookName}
                                             <small>{w.configName}</small>
                                         </td>
-                                        <td className="mono text-[11.5px] text-ink-3">{(w.rules || []).join(", ") || "—"}</td>
+                                        <td className="mono wrap text-[11.5px] text-ink-3">{(w.rules || []).join(", ") || "—"}</td>
                                         <td>
                                             <span className="pill" style={{ "--c": w.failurePolicy === "Fail" ? "var(--amber)" : "var(--ink-3)" }}>
                                                 <i aria-hidden="true" />

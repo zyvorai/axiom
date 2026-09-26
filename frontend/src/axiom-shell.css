@@ -930,6 +930,12 @@
 .tbl .mono {
   font-size: 13px;
 }
+.tbl .wrap {
+  /* opt back in to wrapping for long mono values (refs, rule lists); breaks
+     at spaces / <wbr> / zero-width-space points first, mid-word only as a last resort */
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 .tbl .more {
   width: 30px;
   height: 30px;
@@ -1005,6 +1011,20 @@
   color: var(--ink-3);
   font-weight: 500;
 }
+.vm-specs {
+  /* two columns: vCPU / Memory, and the (long, mono) node name gets a full row */
+  grid-template-columns: 1fr 1fr;
+}
+.vm-specs > div:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.tile-specs b,
+.vm-specs b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .tile-specs svg,
 .vm-specs svg,
 .stat svg {
@@ -1017,6 +1037,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* cards stacked directly on the page get a gap (they had none) */
+.page > .card + .card {
+  margin-top: 20px;
+}
+.page > .card + .section-h {
+  margin-top: 40px;
 }
 
 /* panel header — title row inside a padded-0 card/table wrapper */
