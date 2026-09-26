@@ -32,7 +32,7 @@ The blue **fill** stays `#0071e3` in both themes (white label); only the *link/t
 
 Radii: `xs 6 · sm 10 · md 12 · base 14 · lg 16 · xl 18 · 2xl 24 · 3xl 28 · pill 980`. Cards use 3xl, entity tiles 2xl, metric tiles xl, inputs md, buttons/badges pill. Tailwind's `rounded-*` scale is mapped onto these.
 
-Type is the system stack (`--font-display` body/UI, `--font-hero` headlines; `-apple-system, BlinkMacSystemFont, "SF Pro Text/Display", "Segoe UI", sans-serif`, `font-synthesis: none`). Mono is `ui-monospace, SFMono-Regular, "SF Mono", Menlo`, with self-hosted JetBrains Mono Variable as a non-Apple fallback (imported in `src/index.js`). Inter is not loaded.
+Type is the system stack (`--font-display` body/UI, `--font-hero` headlines; `-apple-system, BlinkMacSystemFont, "SF Pro Text/Display", "Inter Variable", "Segoe UI", sans-serif`, `font-synthesis: none`). Mono is `ui-monospace, SFMono-Regular, "SF Mono", Menlo`, with self-hosted JetBrains Mono Variable as a non-Apple fallback (imported in `src/index.js`). **Inter Variable** (self-hosted via `@fontsource-variable/inter`, imported in `src/index.js`) sits after the SF Pro families, so Windows/Linux/Android get a face with SF-like metrics instead of Segoe/Helvetica/Roboto and the identity is the same everywhere. The browser only downloads it when nothing earlier in the stack resolves — on Apple platforms it is never requested; elsewhere only the ~48 kB Latin file loads. (Netra itself uses no web fonts; this is a deliberate addition.)
 
 ### Using colours in code
 
@@ -75,7 +75,7 @@ Tone/soft/term colours are plain `var()` colours, so they don't take a `/opacity
 | `.btn-success` / `.bare-input` | Green outline button / borderless input reset |
 | `.eyebrow` | 12px uppercase blue label (page heads, detail heads) |
 | `.stats.c3`, `.tile-specs.c2` | 3-column stats / 2-column tile specs modifiers; `.g3` is a responsive ≥300px auto-fill grid |
-| `.page.rhythm`, `.hero-media`, `.stat.media`, `.card.media`, `.cta-cards` / `.cta-card` | Meta-style presentation, opt-in (used on the Overview): large rounded hero block, bolder section rhythm, larger gradient metric tiles, link cards |
+| `.page.rhythm`, `.hero-media`, `.stat.media`, `.card.media`, `.cta-cards` / `.cta-card` | Meta-style presentation, opt-in (used on the Overview and Getting Started; the login hero has its own glass panel in `axiom-login.css`): large rounded hero block, bolder section rhythm, larger gradient metric tiles, link cards |
 
 Buttons are pills (`--radius-pill`), 36px by default (netra's compact tier), `.btn-lg` 44px, `.btn-sm` 30px.
 
@@ -271,9 +271,43 @@ The UI is audited with axe-core (WCAG 2.0 A/AA) on every route in both themes; t
 - **Names:** every icon-only button/checkbox/switch/select needs `aria-label` (and a `title` tooltip for buttons); put the resource name in it (`Delete secret ${s.name}`). Every form field needs an associated `<label htmlFor>` (see `Field` in `Settings.jsx`).
 - **Scroll regions** (any `overflow-auto`/`-x-auto`/`-y-auto` element, `<div>` or `<pre>`) get `tabIndex={0}`, `role="region"` and an `aria-label` so they can be scrolled by keyboard.
 - **Page titles:** `PageHeader` / `DetailHeader` set the tab title through `lib/pageTitle.js` (`usePageTitle(title, section)` → "Nodes · Axiom", "checkout · Service · Axiom"). A page without either header (Overview, Ops tabs) calls the hook itself.
+- **Labels:** every `<Label>` needs `htmlFor` pointing at its control (or must wrap it). Use `useId` in a shared field component (see `Settings.jsx`/`Backups.jsx`) or a stable id. A group of inputs (e.g. key/value rows) is a `role="group"` labelled by its heading, and each input gets its own `aria-label`.
+- **Dialogs:** focus must move in, stay trapped, and return to the trigger on close. The shared `dialog`/`alert-dialog`/`sheet` primitives do this via `lib/returnFocus.js` (Radix only restores focus for `<DialogTrigger>`; ours are opened from state). Give every dialog a `DialogTitle`.
+- **Keyboard:** a "Skip to content" link is the first tab stop; `<main id="main-content" tabIndex={-1}>` receives focus after each route change so keyboard and screen-reader users land in the new page. Custom selection widgets expose their state (`aria-current="step"` on the wizard `Stepper`, `aria-current="page"` on nav, `aria-selected` on tabs, `aria-pressed` on segmented controls) — never a background tint alone.
 - **Tap targets:** the shadcn `Checkbox` stays 16px visually, but an invisible `::after` extends its click/tap area to 26px.
-- **Enforcement:** `npm run lint` (run in CI) chains `lint:design` (colour tokens) and `lint:a11y` (`scripts/lint-a11y.js`, a JSX-parsing check for unfocusable scroll containers and unnamed icon-only buttons). It does not replace an axe-core sweep — contrast and label association need a rendered DOM. Silence a deliberate exception with `// a11y-ok: <reason>` on the line above.
+- **Enforcement:** `npm run lint` (run in CI) chains `lint:design` (colour tokens), `lint:a11y` and ESLint (`eslint.config.js`: undefined variables/JSX components, rules of hooks — the build does not catch a removed import) — `lint:a11y` (`scripts/lint-a11y.js`, a JSX-parsing check for unfocusable scroll containers and unnamed icon-only buttons). It does not replace an axe-core sweep — contrast and label association need a rendered DOM. Silence a deliberate exception with `// a11y-ok: <reason>` on the line above.
 - **Link buttons:** the shell resets `a`/`button` colour inside `:where(.ax)` (zero specificity), so `.btn-*` and Tailwind colour utilities win on `<a>` too — don't re-add a `.ax a { color: … }` rule.
+
+## Display preferences
+
+`styles/accessibility.css` (imported last in `App.js` so it wins the cascade) handles two user settings; both were verified by emulating them in a browser.
+
+- **Forced colours** (Windows High Contrast): the system drops backgrounds, shadows and gradients, so state that lives only there vanishes. The stylesheet gives buttons/links a `ButtonText` border, disabled controls `GrayText`, the active nav item a `Highlight` outline and rail, selected tabs a thick `Highlight` underline (unselected use `Canvas`), meters and step markers explicit borders/`Highlight` fills, `aria-current="step"` a `Highlight` border, and keeps status dots' colour (they sit next to a text label). Only system colour keywords are used there.
+- **Reduced motion:** `@media (prefers-reduced-motion: reduce)` disables animations/transitions **globally** (the older rule was scoped to `.ax` and missed dialogs, menus and toasts, which render in portals). Measured: 0 animations running with the preference on, including the live-dot pulse.
+
+When you add a component whose state is only a colour, add the forced-colours rule (and the ARIA state) with it.
+
+## Error and loading states
+
+Pages fetch on mount and most have no failure path, so failures are handled once in the shell rather than in each page:
+
+- `lib/api.js`'s response interceptor reports failed GETs (5xx and no-response; not 4xx, which are business outcomes pages handle) to `lib/apiHealth.js`, and clears a URL when it later succeeds. `LoadErrorBanner` (`role="alert"`) shows one notice with a **Retry** that remounts the page so it refetches. Failures are cleared on navigation.
+- `ErrorBoundary` wraps the page outlet: "This page hit a problem" with Try again / Go to Overview for render errors, and "Axiom was updated" with Reload when a lazy chunk fails to load (a stale tab after a deploy — the routes are code-split). It resets on navigation.
+- `pages/NotFound.jsx` for unknown URLs; `usePageTitle` for the tab title.
+
+If a new page has a meaningful empty or error state of its own, render it — the banner is the safety net, not the design.
+
+## Visual regression
+
+`e2e/tests/visual.spec.js` screenshots the key screens (overview, getting started, nodes, pods, workloads, VM detail, settings, 404, the Run-workload dialog, and the login hero/password step) in **both themes** at 1280×800 with reduced motion, against baselines committed in `e2e/tests/visual.spec.js-snapshots/`. It is **opt-in and not part of `npm test`/CI**: baselines are per-OS (font rendering differs between macOS and Linux), so they are recorded on macOS.
+
+```bash
+cd e2e
+VISUAL=1 AXIOM_E2E_BASE_URL=http://localhost:5090 npx playwright test --project=visual   # compare (npm run test:visual)
+npm run test:visual:update                                                                # after an intentional change
+```
+
+Use a fresh demo server so data is deterministic. Review the diff images Playwright writes before updating baselines. Verified stable across two identical runs and verified to fail on a changed page.
 
 ## Routing and loading
 

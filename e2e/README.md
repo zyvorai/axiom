@@ -26,6 +26,19 @@ Override the target and credentials with `AXIOM_E2E_BASE_URL`,
 `AXIOM_E2E_USERNAME`, `AXIOM_E2E_PASSWORD` if not testing against a
 default local demo instance.
 
+## Visual regression (opt-in)
+
+`tests/visual.spec.js` compares screenshots of the key screens, in both themes, with committed
+baselines. It is **not** part of `npm test` or CI: baselines are recorded on macOS and font
+rendering differs on Linux runners. Run it against a fresh demo server:
+
+```bash
+npm run test:visual           # compare
+npm run test:visual:update    # refresh baselines after an intentional UI change (review the diffs first)
+```
+
+See `docs/DESIGN-SYSTEM.md` → *Visual regression*.
+
 ## Why `workers: 1`
 
 Axiom's login rate limiter (`internal/auth/ratelimit.go`) counts every
