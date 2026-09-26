@@ -278,6 +278,13 @@ The UI is audited with axe-core (WCAG 2.0 A/AA) on every route in both themes; t
 - **Enforcement:** `npm run lint` (run in CI) chains `lint:design` (colour tokens), `lint:a11y` and ESLint (`eslint.config.js`: undefined variables/JSX components, rules of hooks — the build does not catch a removed import) — `lint:a11y` (`scripts/lint-a11y.js`, a JSX-parsing check for unfocusable scroll containers and unnamed icon-only buttons). It does not replace an axe-core sweep — contrast and label association need a rendered DOM. Silence a deliberate exception with `// a11y-ok: <reason>` on the line above.
 - **Link buttons:** the shell resets `a`/`button` colour inside `:where(.ax)` (zero specificity), so `.btn-*` and Tailwind colour utilities win on `<a>` too — don't re-add a `.ax a { color: … }` rule.
 
+## Form validation
+
+- A control that cannot succeed is **disabled with its reason visible** (inline `text-tone-red` message tied to the field with `aria-describedby` / `aria-invalid`) instead of letting the user submit and fail: Run-workload name (RFC 1123), Scale replicas (empty or negative), a new user's password under 8 characters.
+- Server-side rules are the source of truth; the client repeats them only to save a round trip. A rejected request always surfaces the server's message in a toast and keeps the dialog open.
+- Revealed secret values are editable `Textarea`s labelled `Value of <key>`; **Save values** enables only when something changed.
+- Toasts for an action's outcome use the past tense of the action (`approved`, `denied`).
+
 ## Display preferences
 
 `styles/accessibility.css` (imported last in `App.js` so it wins the cascade) handles two user settings; both were verified by emulating them in a browser.

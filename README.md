@@ -210,6 +210,12 @@ Axiom's Atlas page (and `/api/v1/atlas*`) talks to [Atlas](../atlas), Zyvor's se
 
 Settings → Notifications configures a Slack incoming-webhook URL and/or a generic alert-webhook URL, each with a one-shot "Test" button (`POST /api/v1/integrations/slack/test`, `.../webhook/test`). When "Forward Warning events automatically" is on, a background dispatcher (`platform.RunAlertDispatcher`) polls `ListAlerts` every 60s and pushes new cluster Warning events to whichever channels are configured — this is genuine outbound delivery (a real Slack message / a real HTTP POST), not a UI-only toggle.
 
+## Testing
+
+- `go test ./cmd/... ./internal/...` — demo build. `go test -modfile=go.production.mod -tags kubernetes ./internal/...` — the real Kubernetes provider against fake clientsets (about 60 write operations: objects stored, 404 / 409 / 400 / 429 mapping, cross-namespace isolation). Fake clientsets don't reproduce API-server validation, admission, server-side apply or real drain semantics.
+- `cd frontend && npm run lint` — design, a11y and JS lint.
+- `e2e/` — Playwright: smoke, the Nikola workload walkthrough, **functional specs that submit every create / edit / delete / action flow** (and sign in through OIDC / SAML / LDAP mock IdPs), and opt-in visual regression. Runs in Chromium, Firefox and WebKit with `BROWSERS=all`. Details and what a pass does and does not prove: [`e2e/README.md`](e2e/README.md).
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`: builds the frontend (required before any Go step, since `internal/ui/embed.go`'s `//go:embed dist/*` needs `internal/ui/dist/` populated), then `go vet`/`go test`/`go build` for both the demo and `-tags kubernetes` builds, then sanity-checks `deploy/k8s/*.yaml` parses as valid YAML.

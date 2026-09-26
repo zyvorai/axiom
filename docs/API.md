@@ -2,6 +2,17 @@
 
 All endpoints except `GET /api/v1/health` require authentication (HTTP Basic — including an LDAP simple-bind fallback when `AXIOM_LDAP_URL` is set — an OIDC or SAML session cookie, or an API key when configured). JSON mutation bodies are limited to 1 MiB and reject unknown fields unless noted. Authenticated callers with a `viewer` role (see [Users](#users)) can call every `GET` route but get `403` on any mutating one.
 
+## Errors and validation
+
+Errors are JSON, `{"error": "message"}`. Status classes: `400` invalid input, `401` / `403` not authenticated / not allowed, `404` not found, `409` already exists or nothing to do (e.g. rollback / undo with no previous revision), `429` blocked by a PodDisruptionBudget (eviction, drain), `5xx` a real server or upstream failure. Both the demo and Kubernetes builds classify the same way (see [ARCHITECTURE.md](ARCHITECTURE.md#http-status-mapping)). Notable validation rules:
+
+- Workload `name` must be an RFC 1123 label (lowercase letters, digits, `-`; max 63); replicas must be an integer >= 0.
+- `POST /hpas`: `maxReplicas` below `minReplicas` is a `400` (an omitted max defaults to min).
+- `POST /secrets` needs at least one `data` / `keys` entry.
+- `POST /users`: `username` must not contain `:` or control characters (HTTP Basic cannot carry them); password at least 8 characters.
+- `POST /apply` and `POST /validate` take exactly one object — a multi-document (`---`) manifest is reported invalid.
+- Sizes and quantities (`size`, `cpu`, `memory`, quota `hard`) that do not parse are `400`.
+
 ## Session and health
 
 | Method | Path | Purpose |
@@ -34,7 +45,7 @@ Register/unregister (and Settings → Clusters, which drives them) are restricte
 | GET | `/api/v1/auth/oidc/login` | Start OIDC authorize redirect |
 | GET | `/api/v1/auth/oidc/callback` | OIDC callback (IdP redirect target) |
 | GET | `/api/v1/auth/saml/login` | Redirect to SAML IdP (`AXIOM_SAML_LOGIN_URL`) |
-| POST \| GET | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service — the IdP posts (or redirects) its response here; mints the same session cookie an OIDC login does. Validated against the pinned IdP cert (`AXIOM_SAML_IDP_CERT`), or accepted unsigned when `AXIOM_SAML_ALLOW_UNSIGNED=true` (lab only) |
+| POST \| GET | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service — the IdP posts (or redirects) its response here; mints the same session cookie an OIDC login does. **Known limitation:** the response is only checked for *embedding* the pinned IdP cert (`AXIOM_SAML_IDP_CERT`); its XML signature is **not** verified and there are no audience / expiry / replay checks, so the assertion can be forged (the IdP cert is public). Do not rely on SAML for access control until signature verification lands — see [GAPS.md](GAPS.md). `AXIOM_SAML_ALLOW_UNSIGNED=true` accepts unsigned responses (lab only) |
 | POST | `/api/v1/auth/logout` | Clear session cookie |
 
 `GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured, and an `ldap` block (`enabled`/`domain`/`url`) when `AXIOM_LDAP_*` is set — LDAP has no separate login form; the same username/password fields on the local sign-in form simple-bind against `AXIOM_LDAP_URL` first, falling through to local accounts on failure.
