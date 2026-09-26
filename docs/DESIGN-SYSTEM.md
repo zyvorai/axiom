@@ -24,11 +24,11 @@ Three files carry the system:
 :root[data-theme="dark"] {       /* dark */
   --bg-page: #000;   --bg-elevated: #1d1d1f;   --bg-elevated-2: #2c2c2e;
   --text-primary: #f5f5f7;   --border-hairline: rgba(255,255,255,.16);
-  --apple-link: #2997ff;   --danger: #ff453a;
+  --apple-link: #4aa8ff;   --danger: #ff453a;
 }
 ```
 
-The blue **fill** stays `#0071e3` in both themes (white label); only the *link/text* blue changes (`#0066cc` light, `#2997ff` dark). Small text on light surfaces uses the darker text-safe accents (`--green`, `--amber`, `--orange`, `--red`) instead of the fill accents.
+The blue **fill** stays `#0071e3` in both themes (white label); only the *link/text* blue changes (`#0066cc` light, `#4aa8ff` dark — Apple's `#2997ff` is only 4.1:1 on tinted surfaces). Small text on light surfaces uses the darker text-safe accents (`--green`, `--amber`, `--orange`, `--red`) instead of the fill accents.
 
 Radii: `xs 6 · sm 10 · md 12 · base 14 · lg 16 · xl 18 · 2xl 24 · 3xl 28 · pill 980`. Cards use 3xl, entity tiles 2xl, metric tiles xl, inputs md, buttons/badges pill. Tailwind's `rounded-*` scale is mapped onto these.
 
@@ -259,7 +259,7 @@ A card in `frontend/src/pages/Settings.jsx` alongside OIDC/Atlas/Postgres/Probe:
 Two themes via the top-bar toggle or **Settings → Appearance** (`lib/theme.js`, `localStorage` key `axiom-theme`; a saved value under the old `kubecloud.theme` key is still read once). Setting a theme toggles Tailwind's `dark` class on `<html>` *and* sets `<html data-theme="dark|light">` — both are needed, one drives the shadcn tokens, the other the shell tokens. An inline script in `public/index.html` applies the saved theme (and the `theme-color` meta: `#000` dark, `#f5f5f7` light) before first paint, so there is no flash. Sonner toasts follow the same theme.
 
 - **Light** — `#f5f5f7` canvas, `#fff` cards, `#1d1d1f` text, Action Blue `#0071e3`
-- **Dark** — `#000` canvas, `#1d1d1f` cards, `#f5f5f7` text, link blue `#2997ff`
+- **Dark** — `#000` canvas, `#1d1d1f` cards, `#f5f5f7` text, link blue `#4aa8ff`
 
 Default is dark. ⌘K → "Toggle light/dark mode" also switches.
 

@@ -173,7 +173,8 @@
   --hover-fill: rgba(255, 255, 255, 0.06);
   --hover-fill-strong: rgba(255, 255, 255, 0.1);
 
-  --apple-link: #2997ff;
+  /* Apple's #2997ff is 4.1:1 on the tinted info surface; #4aa8ff is >=4.9:1 on every dark surface */
+  --apple-link: #4aa8ff;
   --danger: #ff453a;
   --danger-bg: rgba(255, 69, 58, 0.14);
   --danger-border: rgba(255, 69, 58, 0.35);
