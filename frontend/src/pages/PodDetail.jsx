@@ -547,7 +547,7 @@ export default function PodDetail() {
                                     <div className="border-b border-border px-4 py-3 text-sm font-medium">Conditions</div>
                                     {status.conditions.map((c, i) => (
                                         <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 text-xs last:border-none">
-                                            <span className="text-foreground/90">{c.type}</span>
+                                            <span className="text-foreground">{c.type}</span>
                                             <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
                                         </div>
                                     ))}
@@ -669,7 +669,7 @@ export default function PodDetail() {
                                     <StatusBadge status={e.type} />
                                 </div>
                                 <div className="col-span-3 mono text-xs text-tone-link">{e.reason}</div>
-                                <div className="col-span-7 text-sm text-foreground/90">{e.message}</div>
+                                <div className="col-span-7 text-sm text-foreground">{e.message}</div>
                             </div>
                         ))}
                     </GlassCard>

@@ -57,9 +57,9 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Target workload</Label>
+                        <Label htmlFor="hpa-target-workload" className="text-xs text-muted-foreground">Target workload</Label>
                         <Select onValueChange={pickTarget}>
-                            <SelectTrigger className="bg-muted/30">
+                            <SelectTrigger id="hpa-target-workload" className="bg-muted/30">
                                 <SelectValue placeholder="Select a workload" />
                             </SelectTrigger>
                             <SelectContent>
@@ -73,16 +73,16 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Min replicas</Label>
-                            <Input type="number" min={1} value={form.minReplicas} onChange={(e) => set({ minReplicas: Number(e.target.value) })} className="bg-muted/30" />
+                            <Label htmlFor="hpa-min-replicas" className="text-xs text-muted-foreground">Min replicas</Label>
+                            <Input id="hpa-min-replicas" type="number" min={1} value={form.minReplicas} onChange={(e) => set({ minReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Max replicas</Label>
-                            <Input type="number" min={1} value={form.maxReplicas} onChange={(e) => set({ maxReplicas: Number(e.target.value) })} className="bg-muted/30" />
+                            <Label htmlFor="hpa-max-replicas" className="text-xs text-muted-foreground">Max replicas</Label>
+                            <Input id="hpa-max-replicas" type="number" min={1} value={form.maxReplicas} onChange={(e) => set({ maxReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Target CPU %</Label>
-                            <Input type="number" min={1} max={100} value={form.targetCpuPercent} onChange={(e) => set({ targetCpuPercent: Number(e.target.value) })} className="bg-muted/30" />
+                            <Label htmlFor="hpa-target-cpu" className="text-xs text-muted-foreground">Target CPU %</Label>
+                            <Input id="hpa-target-cpu" type="number" min={1} max={100} value={form.targetCpuPercent} onChange={(e) => set({ targetCpuPercent: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                     </div>
                 </div>

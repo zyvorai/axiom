@@ -7,6 +7,8 @@
  *      tabIndex — keyboard users cannot scroll them (axe: scrollable-region-focusable)
  *   2. icon-only buttons / button-styled links with no accessible name
  *      (no aria-label / aria-labelledby / title and no visible text)
+ *   3. <Label> with no htmlFor that doesn't wrap its control — the label isn't
+ *      associated with any field (axe: label). Pair it with an id, or use useId.
  * This complements, not replaces, the axe-core sweep (colour contrast, label
  * association etc. need a rendered DOM). Add `// a11y-ok: <reason>` on the line above
  * an element to silence a deliberate exception.
@@ -39,7 +41,11 @@ const hasVisibleText = (node, src) =>
     if (c.type === "JSXText") return c.value.trim().length > 0;
     if (c.type === "JSXExpressionContainer") {
       const t = src.slice(c.start, c.end);
-      return c.expression.type !== "JSXEmptyExpression" && !/^\{\s*<\s*[A-Z]/.test(t) && !/Icon\b/.test(t);
+      if (c.expression.type === "JSXEmptyExpression") return false;
+      // an expression that renders capitalised JSX (icons) and contains no string literal is not text,
+      // e.g. {copied ? <Check /> : <Copy />}; {busy ? "Saving…" : "Save"} is
+      if (/<\s*[A-Z]/.test(t) && !/["'`][^"'`]{2,}["'`]/.test(t)) return false;
+      return !/^\{\s*<\s*[A-Z]/.test(t) && !/Icon\b/.test(t);
     }
     if (c.type === "JSXElement") {
       const n = nameOf(c.openingElement.name);
@@ -49,6 +55,10 @@ const hasVisibleText = (node, src) =>
     }
     return false;
   });
+
+const CONTROLS = new Set(["Input", "Textarea", "input", "textarea", "select", "SelectTrigger", "Switch", "Checkbox"]);
+const hasControl = (node) =>
+  node.children.some((c) => c.type === "JSXElement" && (CONTROLS.has(nameOf(c.openingElement.name)) || hasControl(c)));
 
 let problems = 0;
 const report = (file, line, msg) => {
@@ -73,6 +83,8 @@ for (const d of DIRS) {
         if (!ok(line)) {
           if (SCROLL.test(cls) && !attr(el, "tabIndex"))
             report(file, line, `scroll container <${tag}> needs tabIndex={0} role="region" aria-label="…" (keyboard scrolling)`);
+          if (tag === "Label" && !attr(el, "htmlFor") && !hasControl(n))
+            report(file, line, `<Label> needs htmlFor pointing at its control's id (or wrap the control)`);
           const isButton = tag === "button" || tag === "Button" || ((tag === "Link" || tag === "a") && /\bbtn\b/.test(cls));
           if (isButton) {
             const named = ["aria-label", "aria-labelledby", "title"].some((a) => attr(el, a));

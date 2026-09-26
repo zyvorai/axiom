@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { resolveIcon } from "@/constants/navItems";
+import { usePageTitle } from "@/lib/pageTitle";
 import { useConfirm } from "@/components/ConfirmDialog";
 import CodeEditor from "@/components/CodeEditor";
 
@@ -69,6 +70,8 @@ export default function PluginView() {
     const [instances, setInstances] = useState(null);
     const [instancesError, setInstancesError] = useState(null);
     const [detail, setDetail] = useState(null);
+    // the not-found/loading states have no PageHeader, so set the title here too
+    usePageTitle(notFound ? "Plugin not found" : manifest ? manifest.displayName : "Plugin");
 
     useEffect(() => {
         setManifest(null);

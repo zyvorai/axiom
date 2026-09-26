@@ -370,40 +370,40 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                     <TabsContent value="form" className="mt-4 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Namespace</Label>
-                                <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
+                                <Label htmlFor="workloads-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                                <Input id="workloads-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Name</Label>
-                                <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" className="bg-muted/30" />
+                                <Label htmlFor="workloads-name" className="text-xs text-muted-foreground">Name</Label>
+                                <Input id="workloads-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" className="bg-muted/30" />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Image</Label>
-                            <Input value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="ghcr.io/zyvorai/checkout:v1" className="bg-muted/30" />
+                            <Label htmlFor="workloads-image" className="text-xs text-muted-foreground">Image</Label>
+                            <Input id="workloads-image" value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="ghcr.io/zyvorai/checkout:v1" className="bg-muted/30" />
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Replicas</Label>
-                                <Input type="number" min={1} value={form.replicas} onChange={(e) => set({ replicas: Number(e.target.value) })} className="bg-muted/30" />
+                                <Label htmlFor="workloads-replicas" className="text-xs text-muted-foreground">Replicas</Label>
+                                <Input id="workloads-replicas" type="number" min={1} value={form.replicas} onChange={(e) => set({ replicas: Number(e.target.value) })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">CPU</Label>
-                                <Input value={form.cpu} onChange={(e) => set({ cpu: e.target.value })} className="bg-muted/30" />
+                                <Label htmlFor="workloads-cpu" className="text-xs text-muted-foreground">CPU</Label>
+                                <Input id="workloads-cpu" value={form.cpu} onChange={(e) => set({ cpu: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Memory</Label>
-                                <Input value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="bg-muted/30" />
+                                <Label htmlFor="workloads-memory" className="text-xs text-muted-foreground">Memory</Label>
+                                <Input id="workloads-memory" value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="bg-muted/30" />
                             </div>
                         </div>
                         <div className="flex items-center justify-between border-y border-border px-3 py-2.5">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Port</Label>
-                                <Input type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 bg-muted/30" />
+                                <Label htmlFor="workloads-port" className="text-xs text-muted-foreground">Port</Label>
+                                <Input id="workloads-port" type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 bg-muted/30" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <Label className="text-xs text-muted-foreground">Expose service</Label>
-                                <Switch aria-label="Expose service" checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
+                                <Label htmlFor="workloads-expose-service" className="text-xs text-muted-foreground">Expose service</Label>
+                                <Switch id="workloads-expose-service" aria-label="Expose service" checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
                             </div>
                         </div>
                         <DialogFooter>

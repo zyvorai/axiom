@@ -181,7 +181,7 @@ export default function WorkloadDetail() {
                                     <StatusBadge status={e.type} />
                                 </div>
                                 <div className="col-span-3 mono text-xs text-tone-link">{e.reason}</div>
-                                <div className="col-span-7 text-sm text-foreground/90">{e.message}</div>
+                                <div className="col-span-7 text-sm text-foreground">{e.message}</div>
                             </div>
                         ))}
                     </GlassCard>

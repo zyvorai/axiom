@@ -57,21 +57,21 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
+                            <Label htmlFor="config-maps-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="config-maps-namespace" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
+                            <Label htmlFor="config-maps-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Input id="config-maps-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Data</Label>
-                        <div className="space-y-2">
+                        <div id="cm-data-label" className="text-xs font-medium leading-none text-muted-foreground">Data</div>
+                        <div className="space-y-2" role="group" aria-labelledby="cm-data-label">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={`Key ${i + 1}`} className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={`Value ${i + 1}`} className="bg-muted/30" />
                                     <button aria-label="Remove row" title="Remove row" onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>

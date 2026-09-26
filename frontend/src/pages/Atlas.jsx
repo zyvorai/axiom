@@ -56,13 +56,13 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Name</Label>
-                        <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="billing-db-root" className="bg-muted/30" />
+                        <Label htmlFor="atlas-name" className="text-xs text-muted-foreground">Name</Label>
+                        <Input id="atlas-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="billing-db-root" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Policy</Label>
+                        <Label htmlFor="atlas-policy" className="text-xs text-muted-foreground">Policy</Label>
                         <Select value={form.policy} onValueChange={(v) => set({ policy: v })}>
-                            <SelectTrigger className="bg-muted/30">
+                            <SelectTrigger id="atlas-policy" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -76,12 +76,12 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Size (GiB)</Label>
-                            <Input type="number" min={1} value={form.size_gi} onChange={(e) => set({ size_gi: Number(e.target.value) })} className="bg-muted/30" />
+                            <Label htmlFor="atlas-size" className="text-xs text-muted-foreground">Size (GiB)</Label>
+                            <Input id="atlas-size" type="number" min={1} value={form.size_gi} onChange={(e) => set({ size_gi: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
+                            <Label htmlFor="atlas-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="atlas-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                     </div>
                 </div>

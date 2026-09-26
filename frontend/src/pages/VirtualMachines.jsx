@@ -67,7 +67,7 @@ function ConsolePanel({ vm }) {
                 <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
                     <code className="mono flex-1 truncate text-xs text-tone-green">{info.virtctl}</code>
-                    <button onClick={copy} className="text-muted-foreground hover:text-foreground">
+                    <button onClick={copy} aria-label="Copy" title="Copy" className="text-muted-foreground hover:text-foreground">
                         {copied ? <Check className="h-3.5 w-3.5 text-tone-green" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                 </div>
@@ -152,8 +152,9 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                     <div className="space-y-3">
                         {formFields.map((f) => (
                             <div key={f.key} className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">{f.label}</Label>
+                                <Label htmlFor={`vm-field-${f.key}`} className="text-xs text-muted-foreground">{f.label}</Label>
                                 <Input
+                                    id={`vm-field-${f.key}`}
                                     value={form[f.key] || ""}
                                     onChange={(e) => set({ [f.key]: e.target.value })}
                                     placeholder={f.placeholder}
@@ -385,26 +386,26 @@ export default function VirtualMachines() {
                     </DialogHeader>
                     <div className="space-y-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input className="bg-muted/30" value={createForm.namespace} onChange={(e) => setCreateForm((f) => ({ ...f, namespace: e.target.value }))} />
+                            <Label htmlFor="virtual-machines-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="virtual-machines-namespace" className="bg-muted/30" value={createForm.namespace} onChange={(e) => setCreateForm((f) => ({ ...f, namespace: e.target.value }))} />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input className="bg-muted/30" value={createForm.name} onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))} placeholder="web-vm" />
+                            <Label htmlFor="virtual-machines-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Input id="virtual-machines-name" className="bg-muted/30" value={createForm.name} onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))} placeholder="web-vm" />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">CPU cores</Label>
-                                <Input className="bg-muted/30" value={createForm.cpu} onChange={(e) => setCreateForm((f) => ({ ...f, cpu: e.target.value }))} />
+                                <Label htmlFor="virtual-machines-cpu-cores" className="text-xs text-muted-foreground">CPU cores</Label>
+                                <Input id="virtual-machines-cpu-cores" className="bg-muted/30" value={createForm.cpu} onChange={(e) => setCreateForm((f) => ({ ...f, cpu: e.target.value }))} />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Memory</Label>
-                                <Input className="bg-muted/30" value={createForm.memory} onChange={(e) => setCreateForm((f) => ({ ...f, memory: e.target.value }))} />
+                                <Label htmlFor="virtual-machines-memory" className="text-xs text-muted-foreground">Memory</Label>
+                                <Input id="virtual-machines-memory" className="bg-muted/30" value={createForm.memory} onChange={(e) => setCreateForm((f) => ({ ...f, memory: e.target.value }))} />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Container disk image</Label>
-                            <Input className="bg-muted/30" value={createForm.image} onChange={(e) => setCreateForm((f) => ({ ...f, image: e.target.value }))} />
+                            <Label htmlFor="virtual-machines-container-disk-image" className="text-xs text-muted-foreground">Container disk image</Label>
+                            <Input id="virtual-machines-container-disk-image" className="bg-muted/30" value={createForm.image} onChange={(e) => setCreateForm((f) => ({ ...f, image: e.target.value }))} />
                         </div>
                     </div>
                     <DialogFooter>

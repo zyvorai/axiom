@@ -169,32 +169,32 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
+                            <Label htmlFor="ops-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="ops-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Release name</Label>
-                            <Input value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="bg-muted/30" />
+                            <Label htmlFor="ops-release-name" className="text-xs text-muted-foreground">Release name</Label>
+                            <Input id="ops-release-name" value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Chart repo URL</Label>
-                        <Input value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="bg-muted/30" />
+                        <Label htmlFor="ops-chart-repo-url" className="text-xs text-muted-foreground">Chart repo URL</Label>
+                        <Input id="ops-chart-repo-url" value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="bg-muted/30" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Chart name</Label>
-                            <Input value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="bg-muted/30" />
+                            <Label htmlFor="ops-chart-name" className="text-xs text-muted-foreground">Chart name</Label>
+                            <Input id="ops-chart-name" value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Version (optional)</Label>
-                            <Input value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="bg-muted/30" />
+                            <Label htmlFor="ops-version" className="text-xs text-muted-foreground">Version (optional)</Label>
+                            <Input id="ops-version" value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Values YAML (optional)</Label>
+                        <Label htmlFor="ops-values-yaml" className="text-xs text-muted-foreground">Values YAML (optional)</Label>
                         <MacTerm title="values.yaml" bodyClassName="!p-0">
-                            <Textarea value={form.values} onChange={(e) => set({ values: e.target.value })} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                            <Textarea id="ops-values-yaml" value={form.values} onChange={(e) => set({ values: e.target.value })} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
@@ -572,18 +572,18 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
+                            <Label htmlFor="ops-namespace-2" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="ops-namespace-2" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
+                            <Label htmlFor="ops-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Input id="ops-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Rules (JSON array of PolicyRule)</Label>
+                        <Label htmlFor="ops-rules" className="text-xs text-muted-foreground">Rules (JSON array of PolicyRule)</Label>
                         <MacTerm title="rules.json" bodyClassName="!p-0">
-                            <Textarea value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                            <Textarea id="ops-rules" value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
                     </div>
                 </div>
@@ -634,22 +634,22 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                 <div className="space-y-3">
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Namespace</Label>
-                            <Input value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
+                            <Label htmlFor="ops-namespace-3" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Input id="ops-namespace-3" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor-binding" className="bg-muted/30" />
+                            <Label htmlFor="ops-name-2" className="text-xs text-muted-foreground">Name</Label>
+                            <Input id="ops-name-2" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor-binding" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Role name</Label>
-                            <Input value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
+                            <Label htmlFor="ops-role-name" className="text-xs text-muted-foreground">Role name</Label>
+                            <Input id="ops-role-name" value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Subjects (JSON array)</Label>
+                        <Label htmlFor="ops-subjects" className="text-xs text-muted-foreground">Subjects (JSON array)</Label>
                         <MacTerm title="subjects.json" bodyClassName="!p-0">
-                            <Textarea value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
+                            <Textarea id="ops-subjects" value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
                     </div>
                 </div>

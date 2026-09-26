@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -54,11 +54,13 @@ function Section({ title, icon: Icon, rows, columns, empty, action }) {
     );
 }
 
-function Field({ label, ...props }) {
+function Field({ label, id, ...props }) {
+    const auto = useId();
+    const fieldId = id || auto;
     return (
         <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{label}</Label>
-            <Input className="bg-muted/30" {...props} />
+            <Label htmlFor={fieldId} className="text-xs text-muted-foreground">{label}</Label>
+            <Input id={fieldId} className="bg-muted/30" {...props} />
         </div>
     );
 }

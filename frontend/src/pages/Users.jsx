@@ -67,17 +67,17 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Username</Label>
-                        <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" className="bg-muted/30" />
+                        <Label htmlFor="users-username" className="text-xs text-muted-foreground">Username</Label>
+                        <Input id="users-username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Password (min 8 characters)</Label>
-                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-muted/30" />
+                        <Label htmlFor="users-password" className="text-xs text-muted-foreground">Password (min 8 characters)</Label>
+                        <Input id="users-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Role</Label>
+                        <Label htmlFor="users-role" className="text-xs text-muted-foreground">Role</Label>
                         <Select value={role} onValueChange={setRole}>
-                            <SelectTrigger className="bg-muted/30">
+                            <SelectTrigger id="users-role" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -89,8 +89,8 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                     </div>
                     {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
-                            <Input
+                            <Label htmlFor="users-restrict-to-namespaces" className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Input id="users-restrict-to-namespaces"
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
                                 placeholder="team-a, team-b"
@@ -155,9 +155,9 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Role</Label>
+                        <Label htmlFor="users-role-2" className="text-xs text-muted-foreground">Role</Label>
                         <Select value={role} onValueChange={setRole}>
-                            <SelectTrigger className="bg-muted/30">
+                            <SelectTrigger id="users-role-2" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -169,8 +169,8 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                     </div>
                     {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
-                            <Input
+                            <Label htmlFor="users-restrict-to-namespaces-2" className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Input id="users-restrict-to-namespaces-2"
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
                                 placeholder="team-a, team-b"
@@ -179,8 +179,8 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                         </div>
                     )}
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">New password (leave blank to keep current)</Label>
-                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="bg-muted/30" />
+                        <Label htmlFor="users-new-password" className="text-xs text-muted-foreground">New password (leave blank to keep current)</Label>
+                        <Input id="users-new-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="bg-muted/30" />
                     </div>
                 </div>
                 <DialogFooter>

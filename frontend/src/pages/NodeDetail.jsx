@@ -153,17 +153,17 @@ function TaintsPanel({ name, taints, onChanged }) {
                 <div className="mb-3 text-sm font-medium">Add taint</div>
                 <div className="grid grid-cols-4 gap-3">
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Key</Label>
-                        <Input value={key} onChange={(e) => setKey(e.target.value)} placeholder="dedicated" />
+                        <Label htmlFor="node-detail-key" className="text-xs text-muted-foreground">Key</Label>
+                        <Input id="node-detail-key" value={key} onChange={(e) => setKey(e.target.value)} placeholder="dedicated" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Value</Label>
-                        <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder="gpu" />
+                        <Label htmlFor="node-detail-value" className="text-xs text-muted-foreground">Value</Label>
+                        <Input id="node-detail-value" value={value} onChange={(e) => setValue(e.target.value)} placeholder="gpu" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Effect</Label>
+                        <Label htmlFor="node-detail-effect" className="text-xs text-muted-foreground">Effect</Label>
                         <Select value={effect} onValueChange={setEffect}>
-                            <SelectTrigger>
+                            <SelectTrigger id="node-detail-effect">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
