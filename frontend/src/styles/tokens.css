@@ -131,8 +131,11 @@
   --dur-slow: 300ms;
 
   /* type */
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
-  --font-hero: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  /* SF Pro on Apple platforms; Inter (self-hosted, metrics close to SF) everywhere else,
+     so the identity is the same on Windows/Linux/Android. The browser only downloads
+     Inter when none of the earlier families resolve. */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter Variable", "Segoe UI", sans-serif;
+  --font-hero: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter Variable", "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, "JetBrains Mono Variable", monospace;
 
   /* focus */
