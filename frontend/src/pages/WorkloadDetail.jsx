@@ -104,7 +104,7 @@ export default function WorkloadDetail() {
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     <GlassCard className="p-5">
-                        <div className="mb-3 text-sm font-medium text-tone-purple">Labels</div>
+                        <div className="mb-3 text-sm font-medium">Labels</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (
                                 <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />

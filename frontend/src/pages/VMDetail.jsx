@@ -181,12 +181,10 @@ export default function VMDetail() {
                 }
             />
 
-            <GlassCard>
-                <div className="grid gap-3 sm:grid-cols-2">
-                    <FeatureTile nested size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu || "—"} className="p-3" />
-                    <FeatureTile nested size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory || "—"} className="p-3" />
-                </div>
-            </GlassCard>
+            <div className="stats c2">
+                <FeatureTile size="compact" mono icon={Cpu} label="vCPU" value={vm.cpu || "—"} />
+                <FeatureTile size="compact" mono icon={MemoryStick} label="RAM" value={vm.memory || "—"} />
+            </div>
 
             <GlassCard>
                 <SpecTable

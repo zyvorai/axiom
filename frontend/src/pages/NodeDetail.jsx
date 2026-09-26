@@ -255,7 +255,7 @@ export default function NodeDetail() {
                 }
             />
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="stats">
                 <FeatureTile size="compact" mono label="Pods" value={`${node.pods}/${node.allocatablePods}`} />
                 <FeatureTile size="compact" mono icon={Cpu} label="Allocatable CPU" value={node.allocatableCpu} />
                 <FeatureTile size="compact" mono icon={MemoryStick} label="Allocatable Memory" value={node.allocatableMemory} />
@@ -276,15 +276,17 @@ export default function NodeDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
-                    <SpecTable
-                        title="System"
-                        columns={2}
-                        rows={[
-                            { label: "OS image", value: node.osImage || "—", mono: true },
-                            { label: "Kernel", value: node.kernelVersion || "—", mono: true },
-                            { label: "Container runtime", value: node.containerRuntime || "—", mono: true },
-                        ]}
-                    />
+                    <GlassCard>
+                        <SpecTable
+                            title="System"
+                            columns={2}
+                            rows={[
+                                { label: "OS image", value: node.osImage || "—", mono: true },
+                                { label: "Kernel", value: node.kernelVersion || "—", mono: true },
+                                { label: "Container runtime", value: node.containerRuntime || "—", mono: true },
+                            ]}
+                        />
+                    </GlassCard>
                     {(node.conditions || []).length > 0 && (
                         <GlassCard className="overflow-hidden">
                             <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>

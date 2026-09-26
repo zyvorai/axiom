@@ -109,10 +109,10 @@ export default function NamespaceDetail() {
                 }
             />
 
-            <div className="grid gap-3 sm:grid-cols-3">
-                <FeatureTile icon={Box} label="Pods" value={pods.length} className="p-4" />
-                <FeatureTile icon={Layers} label="Workloads" value={workloads.length} className="p-4" />
-                <FeatureTile icon={Network} label="Services" value={services.length} className="p-4" />
+            <div className="stats c3">
+                <FeatureTile icon={Box} label="Pods" value={pods.length} />
+                <FeatureTile icon={Layers} label="Workloads" value={workloads.length} />
+                <FeatureTile icon={Network} label="Services" value={services.length} />
             </div>
 
             <Tabs defaultValue="pods">

@@ -753,14 +753,14 @@
   font-weight: 500;
   margin-left: 2px;
 }
-.stat span {
+.stat > span {
   display: block;
   font-size: 13px;
   color: var(--ink-2);
   margin-top: 10px;
   line-height: 1.35;
 }
-.stat em {
+.stat > em {
   display: block;
   font-style: normal;
   font-size: 12px;
@@ -1146,6 +1146,22 @@
 .stats.c3 {
   grid-template-columns: repeat(3, 1fr);
 }
+.stats.c2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.stat.compact {
+  padding: 16px 20px;
+}
+.stat.compact b {
+  font-size: clamp(20px, 2vw, 28px);
+  letter-spacing: -0.025em;
+}
+.stat.compact b.mono {
+  font-size: clamp(18px, 1.8vw, 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .tile-specs.c2 {
   grid-template-columns: 1fr 1fr;
 }
@@ -1392,7 +1408,7 @@
   font-weight: 700;
   letter-spacing: -0.04em;
 }
-.stat.media span {
+.stat.media > span {
   font-size: 15px;
 }
 .card.media {
@@ -1470,7 +1486,8 @@
     min-width: 0;
     padding: 0 10px;
   }
-  .stats.c3 {
+  .stats.c3,
+  .stats.c2 {
     grid-template-columns: 1fr;
   }
   .page {

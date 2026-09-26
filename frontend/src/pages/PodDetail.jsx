@@ -459,7 +459,7 @@ export default function PodDetail() {
                 </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="stats">
                 <FeatureTile size="compact" mono label="Ready" value={pod.ready} />
                 <FeatureTile
                     size="compact"
@@ -496,14 +496,16 @@ export default function PodDetail() {
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     {spec ? (
                         <>
-                            <SpecTable
-                                title="Pod spec"
-                                columns={2}
-                                rows={[
-                                    { label: "Service account", value: spec.serviceAccountName || "default", mono: true },
-                                    { label: "Restart policy", value: spec.restartPolicy || "Always", mono: true },
-                                ]}
-                            />
+                            <GlassCard>
+                                <SpecTable
+                                    title="Pod spec"
+                                    columns={2}
+                                    rows={[
+                                        { label: "Service account", value: spec.serviceAccountName || "default", mono: true },
+                                        { label: "Restart policy", value: spec.restartPolicy || "Always", mono: true },
+                                    ]}
+                                />
+                            </GlassCard>
 
                             <div className="space-y-3">
                                 <div className="text-sm font-medium">Containers</div>
@@ -523,8 +525,8 @@ export default function PodDetail() {
 
                             {(spec.volumes || []).length > 0 && (
                                 <GlassCard className="overflow-hidden p-0">
-                                    <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-tone-purple">
-                                        <HardDrive className="h-4 w-4 text-tone-purple" /> Volumes
+                                    <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium">
+                                        <HardDrive className="h-4 w-4 text-tone-link" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
                                         const kind = Object.keys(v).find((k) => k !== "name") || "—";
@@ -542,7 +544,7 @@ export default function PodDetail() {
 
                             {(status?.conditions || []).length > 0 && (
                                 <GlassCard className="overflow-hidden p-0">
-                                    <div className="border-b border-border px-4 py-3 text-sm font-medium text-tone-green">Conditions</div>
+                                    <div className="border-b border-border px-4 py-3 text-sm font-medium">Conditions</div>
                                     {status.conditions.map((c, i) => (
                                         <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 text-xs last:border-none">
                                             <span className="text-foreground/90">{c.type}</span>
@@ -565,7 +567,7 @@ export default function PodDetail() {
 
                             {(spec.tolerations || []).length > 0 && (
                                 <GlassCard className="p-4">
-                                    <div className="mb-2 text-sm font-medium text-tone-amber">Tolerations</div>
+                                    <div className="mb-2 text-sm font-medium">Tolerations</div>
                                     <div className="space-y-1 text-xs">
                                         {spec.tolerations.map((t, i) => (
                                             <div key={i} className="mono text-tone-amber">
@@ -602,7 +604,7 @@ export default function PodDetail() {
 
                     {(pod.ports || []).length > 0 && (
                         <GlassCard className="overflow-hidden p-0">
-                            <div className="border-b border-border px-4 py-3 text-sm font-medium text-tone-link">Ports</div>
+                            <div className="border-b border-border px-4 py-3 text-sm font-medium">Ports</div>
                             {pod.ports.map((p, i) => (
                                 <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 last:border-none">
                                     <div className="mono text-sm text-tone-link">
