@@ -1,8 +1,25 @@
 import axios from "axios";
+import { clearApiFailure, reportApiFailure } from "@/lib/apiHealth";
 
 export const API = "/api/v1";
 
 export const api = axios.create({ baseURL: API, timeout: 15000 });
+
+// Report server/network failures of GETs so the shell can show a Retry banner (see lib/apiHealth.js).
+const isGet = (cfg) => (cfg?.method || "get").toLowerCase() === "get";
+api.interceptors.response.use(
+    (res) => {
+        if (isGet(res.config)) clearApiFailure(res.config.url);
+        return res;
+    },
+    (err) => {
+        const status = err.response?.status ?? 0; // 0 = no response (offline, timeout, CORS)
+        if (isGet(err.config) && (status === 0 || status >= 500) && err.code !== "ERR_CANCELED") {
+            reportApiFailure({ url: err.config?.url || "", status });
+        }
+        return Promise.reject(err);
+    }
+);
 
 const TOKEN_KEY = "axiom.basicAuth";
 
