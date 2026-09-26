@@ -338,9 +338,9 @@ function AgentRunRow({ r, onChanged }) {
     };
 
     return (
-        <div className="panel-h">
+        <div className="list-row">
             <div className="flex items-center justify-between gap-3">
-                <div className="min-w-[0px]">
+                <div className="min-w-0">
                     <div className="mono text-[13.5px]">{r.name}</div>
                     <div className="mt-0.5 text-[12.5px] text-ink-3">{r.goal}</div>
                 </div>
@@ -352,12 +352,20 @@ function AgentRunRow({ r, onChanged }) {
                                 type="button"
                                 className="btn btn-sm btn-success"
                                 disabled={!!busy}
-                                aria-label="Approve proposal" title="Approve proposal" onClick={() => decide("approve")}
-                                
+                                aria-label="Approve proposal"
+                                title="Approve proposal"
+                                onClick={() => decide("approve")}
                             >
                                 <Check size={13} />
                             </button>
-                            <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} aria-label="Deny proposal" title="Deny proposal" onClick={() => decide("deny")}>
+                            <button
+                                type="button"
+                                className="btn btn-danger btn-sm"
+                                disabled={!!busy}
+                                aria-label="Deny proposal"
+                                title="Deny proposal"
+                                onClick={() => decide("deny")}
+                            >
                                 <X size={13} />
                             </button>
                         </>

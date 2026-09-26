@@ -134,13 +134,23 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                                 className={onRowClick ? "data-row clickable" : "data-row"}
                             >
-                                <div className="mono min-w-[160px] flex-1 text-[13.5px]">{String(name)}</div>
-                                {fields.slice(0, 5).map(([k, v]) => (
-                                    <div key={k} className="text-[12px] text-ink-3">
-                                        {pretty(k)}: <span className="mono text-ink">{formatValue(v)}</span>
-                                    </div>
-                                ))}
-                                {statusKey && <StatusBadge status={String(row[statusKey])} />}
+                                <div className="data-head">
+                                    <div className="data-name" title={String(name)}>{String(name)}</div>
+                                    {statusKey && <StatusBadge status={String(row[statusKey])} />}
+                                </div>
+                                {fields.length > 0 && (
+                                    <dl className="data-fields">
+                                        {fields.slice(0, 6).map(([k, v]) => {
+                                            const val = formatValue(v);
+                                            return (
+                                                <div key={k}>
+                                                    <dt>{pretty(k)}</dt>
+                                                    <dd title={val}>{val}</dd>
+                                                </div>
+                                            );
+                                        })}
+                                    </dl>
+                                )}
                             </div>
                         );
                     })}

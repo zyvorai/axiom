@@ -9,9 +9,8 @@ import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
 import { useConfirm } from "@/components/ConfirmDialog";
 import CodeEditor from "@/components/CodeEditor";
+import { breakable } from "@/lib/text";
 
-// zero-width spaces after "/" and ":" give long refs (service:ns/name) natural wrap points
-const breakable = (v) => String(v ?? "").replace(/([/:])/g, "$1\u200b");
 
 const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Search, Layers, Boxes } from "lucide-react";
 import CodeEditor from "@/components/CodeEditor";
+import { breakable } from "@/lib/text";
 
 function InstanceDetail({ crd, instance, onOpenChange }) {
     if (!instance) return null;
@@ -105,7 +106,7 @@ export default function CustomResources() {
                 }
             />
 
-            <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(360px,36%)_minmax(0,1fr)]">
                 <GlassCard className="overflow-hidden p-0">
                     <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="Custom resource definitions">
                         <table className="tbl">
@@ -141,8 +142,8 @@ export default function CustomResources() {
                                                     {c.kind}
                                                 </span>
                                             </td>
-                                            <td className="mono num">
-                                                {c.group}/{c.version}
+                                            <td className="mono num wrap">
+                                                {breakable(`${c.group}/${c.version}`)}
                                             </td>
                                             <td>
                                                 <span className="pill soft">{c.scope}</span>

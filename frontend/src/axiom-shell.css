@@ -1058,6 +1058,14 @@
   font-size: 14px;
   font-weight: 500;
 }
+/* block row in an edge-to-edge card list (multi-line content, unlike .panel-h's flex title row) */
+.list-row {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.list-row:last-child {
+  border-bottom: 0;
+}
 /* setting row between two hairlines */
 .rule-row {
   display: flex;
@@ -1070,12 +1078,53 @@
 }
 /* generic list row (AutoTable card list) */
 .data-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 24px;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
+}
+.data-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.data-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.data-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+}
+/* label/value pairs: small uppercase label over a mono value, in an aligned grid */
+.data-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px 24px;
+  margin: 12px 0 0;
+}
+.data-fields > div {
+  min-width: 0;
+}
+.data-fields dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.data-fields dd {
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
 }
 .data-row.clickable {
   cursor: pointer;
