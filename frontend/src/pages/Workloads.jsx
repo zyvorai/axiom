@@ -645,7 +645,7 @@ export default function Workloads() {
             />
 
             <GlassCard className="overflow-hidden">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Workloads">
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
                             <TableRow className="hover:bg-transparent">

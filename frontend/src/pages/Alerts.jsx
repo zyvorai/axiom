@@ -53,7 +53,7 @@ export default function Alerts() {
                 <h2>Active warnings</h2>
             </div>
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Active warnings">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -106,7 +106,7 @@ export default function Alerts() {
                 <h2>Alerting rule groups</h2>
             </div>
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Alerting rule groups">
                     <table className="tbl">
                         <thead>
                             <tr>

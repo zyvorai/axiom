@@ -163,7 +163,7 @@ export default function HPA() {
                 {hpas.length === 0 ? (
                     <div className="empty">No HorizontalPodAutoscalers configured.</div>
                 ) : (
-                    <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto">
+                    <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Autoscalers">
                         <table className="tbl">
                             <thead>
                                 <tr>

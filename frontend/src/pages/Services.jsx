@@ -55,7 +55,7 @@ export default function Services() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Services">
                     <table className="tbl">
                         <thead>
                             <tr>

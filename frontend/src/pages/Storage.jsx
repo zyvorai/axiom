@@ -65,7 +65,7 @@ export default function Storage() {
             </div>
 
             <div className="card overflow-hidden mt-3.5 p-0">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Persistent volume claims">
                     <table className="tbl">
                         <thead>
                             <tr>

@@ -236,7 +236,7 @@ export default function Pods() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Pods">
                     <table className="tbl">
                         <thead>
                             <tr>

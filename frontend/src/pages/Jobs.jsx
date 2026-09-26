@@ -18,7 +18,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
                     <Icon className="h-4 w-4 text-tone-link" /> {title}
                 </div>
             </div>
-            <div className="max-h-[420px] overflow-auto scrollbar-thin">
+            <div className="max-h-[420px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Jobs and CronJobs">
                 <table className="tbl">
                     <thead>
                         <tr>

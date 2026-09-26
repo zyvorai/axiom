@@ -48,7 +48,7 @@ export default function Events() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Events">
                     <table className="tbl">
                         <thead>
                             <tr>

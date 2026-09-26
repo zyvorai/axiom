@@ -29,7 +29,7 @@ function Section({ title, icon: Icon, rows, columns, empty, action }) {
             {rows.length === 0 ? (
                 <div className="empty">{empty}</div>
             ) : (
-                <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
+                <div className="overflow-x-auto max-h-[360px] overflow-y-auto" tabIndex={0} role="region" aria-label="Backups">
                     <table className="tbl">
                         <thead>
                             <tr>

@@ -135,7 +135,7 @@ function ExternalSecretsSection() {
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                 <Link2 className="h-4 w-4 text-tone-link" /> External Secrets
             </div>
-            <div className="max-h-[300px] overflow-auto scrollbar-thin">
+            <div className="max-h-[300px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="External secrets">
                 {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
                 {items && (
                     <table className="tbl">
@@ -252,7 +252,7 @@ export default function Secrets() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Secrets">
                     <table className="tbl">
                         <thead>
                             <tr>

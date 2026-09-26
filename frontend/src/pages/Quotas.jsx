@@ -17,7 +17,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
             {rows.length === 0 ? (
                 <div className="empty">{empty}</div>
             ) : (
-                <div className="max-h-[420px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[420px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Quotas and limits">
                     <table className="tbl">
                         <thead>
                             <tr>

@@ -72,7 +72,7 @@ function NetworkPolicyPanel() {
             {policies.length === 0 ? (
                 <div className="empty">No NetworkPolicies configured.</div>
             ) : (
-                <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Network policies">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -180,7 +180,7 @@ function PacketWolfPanel() {
                 <>
                     {flowsError && <div className="empty">{flowsError}</div>}
                     {!flowsError && items && items.length > 0 && (
-                        <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                        <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Live flows">
                             <table className="tbl">
                                 <thead>
                                     <tr>
