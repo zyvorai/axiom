@@ -52,8 +52,8 @@ export default function Alerts() {
             <div className="section-h">
                 <h2>Active warnings</h2>
             </div>
-            <GlassCard className="overflow-hidden">
-                <div style={{ overflowX: "auto" }} className="max-h-[400px] overflow-y-auto scrollbar-thin">
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -69,16 +69,16 @@ export default function Alerts() {
                                 return (
                                     <tr key={i}>
                                         <td>
-                                            <span style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                                                <AlertTriangle size={14} style={{ color: "var(--orange)", marginTop: 2, flexShrink: 0 }} />
+                                            <span className="flex items-start gap-2">
+                                                <AlertTriangle size={14} className="text-tone-orange mt-0.5 shrink-0" />
                                                 <span>
-                                                    <span className="mono" style={{ color: "var(--blue)" }}>{w.reason}</span> — {w.message}
+                                                    <span className="mono text-tone-link">{w.reason}</span> — {w.message}
                                                 </span>
                                             </span>
                                         </td>
                                         <td className="mono">
                                             {href ? (
-                                                <Link to={href} style={{ color: "var(--blue)" }}>
+                                                <Link to={href} className="text-tone-link">
                                                     {w.namespace}/{w.object}
                                                 </Link>
                                             ) : (
@@ -102,11 +102,11 @@ export default function Alerts() {
                 </div>
             </GlassCard>
 
-            <div className="section-h" style={{ marginTop: 40 }}>
+            <div className="section-h mt-10">
                 <h2>Alerting rule groups</h2>
             </div>
-            <GlassCard className="overflow-hidden">
-                <div style={{ overflowX: "auto" }} className="max-h-[300px] overflow-y-auto scrollbar-thin">
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>

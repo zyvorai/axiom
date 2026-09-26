@@ -18,7 +18,7 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
     const name = instance.metadata?.name || instance.name || "—";
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-2xl">
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">
                         {crd.kind} · {name}
@@ -95,20 +95,19 @@ export default function CustomResources() {
                 description="Browse any CustomResourceDefinition installed in the cluster."
                 tools={
                     <div className="input">
-                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <Search size={15} className="text-ink-3" />
                         <input
                             placeholder="Search CRDs"
                             value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
                     </div>
                 }
             />
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-                <GlassCard className="overflow-hidden">
-                    <div style={{ maxHeight: "65vh", overflow: "auto" }}>
+                <GlassCard className="overflow-hidden p-0">
+                    <div className="max-h-[65vh] overflow-auto">
                         <table className="tbl">
                             <thead>
                                 <tr>
@@ -134,11 +133,11 @@ export default function CustomResources() {
                                                 setSelected(c);
                                                 setDetail(null);
                                             }}
-                                            style={{ cursor: "pointer", background: active ? "var(--active)" : undefined }}
+                                            className={active ? "cursor-pointer bg-[var(--active)]" : "cursor-pointer"}
                                         >
                                             <td className="name mono">
-                                                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                    <Layers size={14} style={{ color: "var(--ink-3)" }} />
+                                                <span className="flex items-center gap-2">
+                                                    <Layers size={14} className="text-ink-3" />
                                                     {c.kind}
                                                 </span>
                                             </td>

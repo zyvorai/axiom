@@ -52,7 +52,7 @@ function ExecDialog({ pod, onOpenChange }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Exec · {pod.name}</DialogTitle>
                 </DialogHeader>
@@ -85,9 +85,9 @@ function ExecDialog({ pod, onOpenChange }) {
                     </div>
                     <MacTerm
                         title={`exec — ${pod.name}`}
-                        bodyClassName="h-64 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                        bodyClassName="h-64 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-term-plain"
                     >
-                        {output || <span className="text-white/40">Output will appear here.</span>}
+                        {output || <span className="text-term-dim">Output will appear here.</span>}
                     </MacTerm>
                 </div>
             </DialogContent>
@@ -202,7 +202,7 @@ export default function Pods() {
                     selected.size > 0 && (
                         <div className="flex items-center gap-3 border-y border-border px-3 py-1.5">
                             <span className="text-xs text-muted-foreground">{selected.size} selected</span>
-                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-soft-danger-border bg-soft-danger text-xs text-tone-red hover:bg-soft-danger">
                                 <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
                             </Button>
                         </div>
@@ -211,12 +211,11 @@ export default function Pods() {
                 tools={
                     <>
                         <div className="input">
-                            <Search size={15} style={{ color: "var(--ink-3)" }} />
+                            <Search size={15} className="text-ink-3" />
                             <input
                                 placeholder="Search pod name"
                                 value={q}
-                                onChange={(e) => setQ(e.target.value)}
-                                style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                                onChange={(e) => setQ(e.target.value)} className="bare-input"
                             />
                         </div>
                         <Select value={ns} onValueChange={setNs}>
@@ -236,7 +235,7 @@ export default function Pods() {
                 }
             />
 
-            <GlassCard className="overflow-hidden">
+            <GlassCard className="overflow-hidden p-0">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <table className="tbl">
                         <thead>
@@ -272,14 +271,14 @@ export default function Pods() {
                                     <td className="mono">{p.namespace}</td>
                                     <td className="mono">{p.node}</td>
                                     <td className="mono num">{p.ready}</td>
-                                    <td className={`mono num ${p.restarts > 0 ? "text-amber-400" : ""}`}>{p.restarts}</td>
+                                    <td className={`mono num ${p.restarts > 0 ? "text-tone-amber" : ""}`}>{p.restarts}</td>
                                     <td>
                                         <StatusBadge status={p.status} />
                                     </td>
                                     <td className="mono">{p.ip}</td>
                                     <td className="mono">{p.age}</td>
                                     <td>
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                                        <div className="flex items-center justify-end gap-1.5">
                                             <button type="button" className="btn btn-line btn-sm" title="Exec" onClick={() => setExecTarget(p)}>
                                                 <Terminal size={13} />
                                             </button>

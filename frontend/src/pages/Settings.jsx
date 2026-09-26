@@ -43,18 +43,18 @@ function Pill({ on, onLabel, offLabel }) {
 function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTest, saving, testing }) {
     return (
         <div className="card">
-            <div className="form-section" style={{ marginBottom: 0 }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                    <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="form-section mb-0">
+                <div className="flex items-start justify-between gap-3">
+                    <h2 className="flex items-center gap-2">
                         <Icon size={16} />
                         {title}
                     </h2>
                     <Pill on={configured} onLabel="configured" offLabel="not configured" />
                 </div>
-                <div className="form-row" style={{ marginTop: 16 }}>
+                <div className="form-row mt-4">
                     {children}
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                <div className="flex flex-wrap gap-2.5">
                     <button type="button" className="btn btn-fill btn-sm" onClick={onSave} disabled={saving}>
                         <Save size={14} /> {saving ? "Saving…" : "Save"}
                     </button>
@@ -259,7 +259,7 @@ export default function Settings() {
         return (
             <div className="page">
                 <PageHeader title="Settings" />
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div className="flex flex-col gap-3.5">
                     <Skeleton className="h-64 rounded-2xl bg-muted" />
                     <Skeleton className="h-64 rounded-2xl bg-muted" />
                 </div>
@@ -275,14 +275,14 @@ export default function Settings() {
             />
 
             <div className="stack">
-                <div className="card" id="clusters" style={{ scrollMarginTop: 16 }}>
-                    <div className="form-section" style={{ marginBottom: 0 }}>
-                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
-                            <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div className="card scroll-mt-4" id="clusters">
+                    <div className="form-section mb-0">
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                            <h2 className="flex items-center gap-2">
                                 <Cloud size={16} />
                                 Clusters
                             </h2>
-                            <div style={{ display: "flex", gap: 10 }}>
+                            <div className="flex gap-2.5">
                                 <button type="button" className="btn btn-line btn-sm" onClick={refreshClusters} disabled={clustersLoading}>
                                     Refresh
                                 </button>
@@ -313,8 +313,8 @@ export default function Settings() {
                                         return (
                                             <tr key={c.name} data-testid={NAV.clusterOption(c.name)}>
                                                 <td className="name">
-                                                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                        <Check size={14} style={{ opacity: isActive ? 1 : 0, color: "var(--blue)", flexShrink: 0 }} />
+                                                    <span className="flex items-center gap-2">
+                                                        <Check size={14} className={`shrink-0 text-tone-link ${isActive ? "opacity-100" : "opacity-0"}`} />
                                                         {c.label || c.name}
                                                         {isActive && <span className="pill soft">active</span>}
                                                     </span>
@@ -384,16 +384,16 @@ export default function Settings() {
                 </Dialog>
 
                 <div className="card">
-                    <div className="form-section" style={{ marginBottom: 0 }}>
-                        <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="form-section mb-0">
+                        <h2 className="flex items-center gap-2">
                             <SunMoon size={16} />
                             Appearance
                         </h2>
                         <p className="lead">Theme is stored in this browser.</p>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "12px 0" }}>
+                        <div className="rule-row">
                             <div>
-                                <div style={{ fontSize: 14 }}>Theme</div>
-                                <div style={{ fontSize: 12.5, color: "var(--ink-3)" }}>
+                                <div className="text-[14px]">Theme</div>
+                                <div className="text-[12.5px] text-ink-3">
                                     {theme === "dark" ? "Dark" : "Light"}
                                 </div>
                             </div>
@@ -467,15 +467,15 @@ export default function Settings() {
                 </IntegrationCard>
 
                 <div className="card">
-                    <div className="form-section" style={{ marginBottom: 0 }}>
-                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                            <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="form-section mb-0">
+                        <div className="flex items-start justify-between gap-3">
+                            <h2 className="flex items-center gap-2">
                                 <BellRing size={16} />
                                 Notifications
                             </h2>
                             <Pill on={data.notifyConfigured} onLabel="configured" offLabel="not configured" />
                         </div>
-                        <div className="form-row" style={{ marginTop: 16 }}>
+                        <div className="form-row mt-4">
                             <Field
                                 label={data.slackWebhookUrlSet ? "Slack webhook URL (set — leave blank to keep)" : "Slack webhook URL"}
                                 type="password"
@@ -491,14 +491,14 @@ export default function Settings() {
                                 placeholder="https://your-endpoint.example.com/hooks/axiom"
                             />
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "12px 0", marginBottom: 16 }}>
+                        <div className="rule-row mb-4">
                             <div>
-                                <div style={{ fontSize: 14 }}>Forward Warning events automatically</div>
-                                <div style={{ fontSize: 12.5, color: "var(--ink-3)" }}>Polls every 60s and pushes new cluster Warning events to the channels above.</div>
+                                <div className="text-[14px]">Forward Warning events automatically</div>
+                                <div className="text-[12.5px] text-ink-3">Polls every 60s and pushes new cluster Warning events to the channels above.</div>
                             </div>
                             <Switch checked={!!form.notifyOnWarnings} onCheckedChange={(v) => set({ notifyOnWarnings: v })} />
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        <div className="flex flex-wrap gap-2.5">
                             <button type="button" className="btn btn-fill btn-sm" onClick={saveNotify} disabled={busy === "notify-save"}>
                                 <Save size={14} /> {busy === "notify-save" ? "Saving…" : "Save"}
                             </button>
@@ -512,7 +512,7 @@ export default function Settings() {
                     </div>
                 </div>
 
-                <div className="card" style={{ fontSize: 13.5, color: "var(--ink-2)" }}>
+                <div className="card text-[13.5px] text-ink-2">
                     API-key sign-in is configured via the <span className="mono">AXIOM_API_KEY</span> environment variable on the Axiom process.
                 </div>
             </div>

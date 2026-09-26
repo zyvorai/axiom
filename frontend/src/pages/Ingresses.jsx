@@ -45,19 +45,18 @@ export default function Ingresses() {
                 description="External routes into cluster services, equivalent to OpenShift Routes."
                 tools={
                     <div className="input">
-                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <Search size={15} className="text-ink-3" />
                         <input
                             placeholder="Search by name or host"
                             value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
                     </div>
                 }
             />
 
-            <GlassCard className="overflow-hidden">
-                <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -74,8 +73,8 @@ export default function Ingresses() {
                             {rows.map((i) => (
                                 <tr key={`${i.namespace}/${i.name}`}>
                                     <td className="name">
-                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                            <Waypoints size={14} style={{ color: "var(--ink-3)" }} /> {i.name}
+                                        <span className="flex gap-2 items-center">
+                                            <Waypoints size={14} className="text-ink-3" /> {i.name}
                                         </span>
                                     </td>
                                     <td className="mono">{i.namespace}</td>
@@ -92,9 +91,9 @@ export default function Ingresses() {
                                     <td className="mono num">{i.address || "—"}</td>
                                     <td>
                                         {i.tls ? (
-                                            <Lock size={14} style={{ color: "var(--green)" }} />
+                                            <Lock size={14} className="text-tone-green" />
                                         ) : (
-                                            <LockOpen size={14} style={{ color: "var(--ink-3)" }} />
+                                            <LockOpen size={14} className="text-ink-3" />
                                         )}
                                     </td>
                                     <td className="mono">{i.age}</td>
@@ -112,7 +111,7 @@ export default function Ingresses() {
                 </div>
             </GlassCard>
 
-            <div style={{ marginTop: 24 }}>
+            <div className="mt-6">
                 <AutoTable
                     title="Gateway API"
                     icon={Router}

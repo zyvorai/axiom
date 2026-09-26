@@ -55,8 +55,8 @@ export default function Storage() {
             <div className="grid g3">
                 {classes.map((sc) => (
                     <div key={sc.name} data-testid={STORAGE.classRow(sc.name)} className="stat">
-                        <Database size={18} style={{ color: "var(--blue)" }} />
-                        <span className="mono" style={{ fontSize: 14, marginTop: 12, display: "block" }}>
+                        <Database size={18} className="text-tone-link" />
+                        <span className="mono text-[14px] mt-3 block">
                             {sc.name}
                         </span>
                         <em>Claims · {sc.count}</em>
@@ -64,8 +64,8 @@ export default function Storage() {
                 ))}
             </div>
 
-            <div className="card overflow-hidden" style={{ marginTop: 14, padding: 0 }}>
-                <div style={{ overflowX: "auto" }}>
+            <div className="card overflow-hidden mt-3.5 p-0">
+                <div className="overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -82,8 +82,8 @@ export default function Storage() {
                             {volumes.map((p) => (
                                 <tr key={`${p.namespace}/${p.name}`} data-testid={STORAGE.pvcRow(p.name)}>
                                     <td className="name">
-                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                            <HardDrive size={15} style={{ color: "var(--ink-3)" }} />
+                                        <span className="flex gap-2 items-center">
+                                            <HardDrive size={15} className="text-ink-3" />
                                             {p.name}
                                         </span>
                                     </td>
@@ -102,7 +102,7 @@ export default function Storage() {
                 </div>
             </div>
 
-            <div className="section-h" style={{ marginTop: 40 }}>
+            <div className="section-h mt-10">
                 <h2>Raw resources</h2>
             </div>
             <div className="grid g2">

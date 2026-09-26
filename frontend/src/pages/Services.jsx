@@ -44,19 +44,18 @@ export default function Services() {
                 description="ClusterIP, NodePort and LoadBalancer services across all namespaces."
                 tools={
                     <div className="input">
-                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <Search size={15} className="text-ink-3" />
                         <input
                             placeholder="Search service name"
                             value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
                     </div>
                 }
             />
 
-            <GlassCard className="overflow-hidden">
-                <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>

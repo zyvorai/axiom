@@ -71,20 +71,20 @@ function MetricsPanel({ name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-i17-cosmic" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-primary" /> CPU
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>
-                    <Sparkline data={cpuPoints} color="var(--i17-cosmic)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
+                    <Sparkline data={cpuPoints} color="var(--apple-blue)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
                 </GlassCard>
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <MemoryStick className="h-3.5 w-3.5 text-i17-sage" /> Memory
+                            <MemoryStick className="h-3.5 w-3.5 text-tone-green" /> Memory
                         </div>
                         <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
                     </div>
-                    <Sparkline data={memPoints} color="var(--i17-sage)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
+                    <Sparkline data={memPoints} color="var(--green)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
                 </GlassCard>
             </div>
         </div>
@@ -143,7 +143,7 @@ function TaintsPanel({ name, taints, onChanged }) {
                             {t.key}
                             {t.value ? `=${t.value}` : ""}:{t.effect}
                         </Badge>
-                        <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-7 px-2 text-muted-foreground hover:text-rose-400">
+                        <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-7 px-2 text-muted-foreground hover:text-tone-red">
                             <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                     </div>
@@ -248,7 +248,7 @@ export default function NodeDetail() {
                                 <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
                             </Button>
                         )}
-                        <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
+                        <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-soft-danger-border bg-soft-danger text-tone-red hover:bg-soft-danger">
                             <LogOut className="mr-1.5 h-3.5 w-3.5" /> Drain
                         </Button>
                     </>

@@ -92,7 +92,7 @@ function RolloutDialog({ workload, onOpenChange }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Rollout · {workload.name}</DialogTitle>
                 </DialogHeader>
@@ -174,7 +174,7 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
 
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-xs">
+            <DialogContent className="max-w-xs">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">Scale · {workload.name}</DialogTitle>
                 </DialogHeader>
@@ -269,7 +269,7 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
                     </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={remove} className="text-rose-400 focus:text-rose-400">
+                <DropdownMenuItem onClick={remove} className="text-tone-red focus:text-tone-red">
                     <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
@@ -351,7 +351,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Run workload</DialogTitle>
                 </DialogHeader>
@@ -425,7 +425,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         {intentPreview && (
                             <MacTerm
                                 title="receipt"
-                                bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-4 py-3 text-[11px] leading-[1.55] text-[#9aedfe]"
+                                bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-4 py-3 text-[11px] leading-[1.55] text-term-punct"
                             >
                                 {intentPreview.receipt}
                             </MacTerm>
@@ -451,7 +451,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             />
                         </MacTerm>
                         {validation && (
-                            <div className={`rounded-lg border px-3 py-2 text-xs ${validation.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>
+                            <div className={`rounded-lg border px-3 py-2 text-xs ${validation.valid ? "border-soft-success-border bg-soft-success text-tone-green" : "border-soft-danger-border bg-soft-danger text-tone-red"}`}>
                                 {validation.valid ? `Valid ${validation.kind || "manifest"}` : (validation.errors || [validation.message]).join(", ")}
                             </div>
                         )}
@@ -594,7 +594,7 @@ export default function Workloads() {
                                 <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg bg-muted/30 text-xs">
                                     <RotateCw className="mr-1 h-3 w-3" /> Restart
                                 </Button>
-                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-rose-500/30 bg-rose-500/10 text-xs text-rose-300 hover:bg-rose-500/20">
+                                <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-soft-danger-border bg-soft-danger text-xs text-tone-red hover:bg-soft-danger">
                                     <Trash2 className="mr-1 h-3 w-3" /> Delete
                                 </Button>
                             </div>
@@ -606,13 +606,12 @@ export default function Workloads() {
                 }
                 tools={
                     <>
-                        <div className="input" style={{ position: "relative" }}>
-                            <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <div className="input relative">
+                            <Search size={15} className="text-ink-3" />
                             <input
                                 placeholder="Search name or image"
                                 value={q}
-                                onChange={(e) => setQ(e.target.value)}
-                                style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                                onChange={(e) => setQ(e.target.value)} className="bare-input"
                             />
                         </div>
                         <Select value={ns} onValueChange={setNs}>

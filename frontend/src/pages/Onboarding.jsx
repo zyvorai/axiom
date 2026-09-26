@@ -126,7 +126,7 @@ export default function Onboarding() {
                         <i style={{ width: `${(doneCount / steps.length) * 100}%` }} />
                     </div>
                 </div>
-                <div style={{ marginTop: 8 }}>
+                <div className="mt-2">
                     {steps.map((s, i) => (
                         <div key={s.title} className={`check ${s.done ? "done" : ""}`}>
                             <div className="n">{s.done ? <Check size={15} /> : i + 1}</div>
@@ -156,7 +156,7 @@ export default function Onboarding() {
                     ))}
                 </div>
             </div>
-            <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 18 }}>
+            <p className="text-[13px] text-ink-3 mt-[18px]">
                 Status is live from <span className="mono">/api/v1/integrations</span>, <span className="mono">/api/v1/packetwolf/status</span>{" "}
                 and <span className="mono">/api/v1/auth/providers</span>.
             </p>

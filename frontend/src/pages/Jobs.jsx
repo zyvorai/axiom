@@ -15,7 +15,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
         <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
+                    <Icon className="h-4 w-4 text-primary" /> {title}
                 </div>
             </div>
             <div className="max-h-[420px] overflow-auto scrollbar-thin">
@@ -171,7 +171,7 @@ export default function Jobs() {
                         header: "",
                         align: "right",
                         render: (r) => (
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                            <div className="flex items-center justify-end gap-2">
                                 <button type="button" className="btn btn-line btn-sm" title="Run now" onClick={() => trigger(r)}>
                                     <PlayCircle size={13} />
                                 </button>
@@ -185,7 +185,7 @@ export default function Jobs() {
                 ]}
             />
 
-            <div style={{ height: 24 }} />
+            <div className="h-6" />
 
             <Section
                 title="Jobs"
@@ -215,7 +215,7 @@ export default function Jobs() {
                         header: "",
                         align: "right",
                         render: (r) => (
-                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                            <div className="flex justify-end">
                                 <button type="button" className="btn btn-line btn-sm" title="Delete" onClick={() => deleteJob(r)}>
                                     <Trash2 size={13} />
                                 </button>

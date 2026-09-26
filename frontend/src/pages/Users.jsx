@@ -225,7 +225,7 @@ export default function Users() {
         return (
             <div className="page">
                 <PageHeader title="Users" />
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div className="flex flex-col gap-3.5">
                     <Skeleton className="h-16 rounded-2xl bg-muted" />
                     <Skeleton className="h-64 rounded-2xl bg-muted" />
                 </div>
@@ -245,7 +245,7 @@ export default function Users() {
                 }
             />
 
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card p-0">
                 {data.length === 0 ? (
                     <div className="empty">No local accounts yet — the env-configured operator account signs in separately.</div>
                 ) : (
@@ -271,20 +271,20 @@ export default function Users() {
                                     </td>
                                     <td>
                                         {u.namespaces && u.namespaces.length > 0 ? (
-                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {u.namespaces.map((ns) => (
-                                                    <span key={ns} className="pill soft mono" style={{ fontSize: 11 }}>
+                                                    <span key={ns} className="pill soft mono text-[11px]">
                                                         {ns}
                                                     </span>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>All namespaces</span>
+                                            <span className="text-[12.5px] text-ink-3">All namespaces</span>
                                         )}
                                     </td>
                                     <td className="mono num">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
                                     <td>
-                                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                                        <div className="flex justify-end gap-1.5">
                                             <button type="button" className="btn btn-line btn-sm" onClick={() => setEditingUser(u)}>
                                                 <Pencil size={13} />
                                             </button>

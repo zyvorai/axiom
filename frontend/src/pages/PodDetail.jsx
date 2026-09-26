@@ -95,9 +95,9 @@ function ExecPanel({ namespace, name, containers }) {
             </div>
             <MacTerm
                 title={`exec — ${command || "command"}`}
-                bodyClassName="h-72 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                bodyClassName="h-72 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-term-plain"
             >
-                {output || <span className="text-white/40">Output will appear here.</span>}
+                {output || <span className="text-term-dim">Output will appear here.</span>}
             </MacTerm>
         </GlassCard>
     );
@@ -208,20 +208,20 @@ function MetricsPanel({ namespace, name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-i17-cosmic" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-primary" /> CPU
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>
-                    <Sparkline data={cpuPoints} color="var(--i17-cosmic)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
+                    <Sparkline data={cpuPoints} color="var(--apple-blue)" formatter={(v) => `${v}m`} domain={["auto", "auto"]} />
                 </GlassCard>
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <MemoryStick className="h-3.5 w-3.5 text-i17-sage" /> Memory
+                            <MemoryStick className="h-3.5 w-3.5 text-tone-green" /> Memory
                         </div>
                         <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
                     </div>
-                    <Sparkline data={memPoints} color="var(--i17-sage)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
+                    <Sparkline data={memPoints} color="var(--green)" formatter={(v) => `${v.toFixed(0)} MiB`} domain={["auto", "auto"]} />
                 </GlassCard>
             </div>
             {(series.containers || []).length > 0 && (
@@ -429,11 +429,11 @@ export default function PodDetail() {
                     <>
                         <Link
                             to={`/logs?pod=${pod.namespace}/${encodeURIComponent(pod.name)}`}
-                            className="flex items-center gap-1 text-sm text-i17-sky hover:underline"
+                            className="flex items-center gap-1 text-sm text-tone-link hover:underline"
                         >
                             <ScrollText className="h-3.5 w-3.5" /> Logs <ArrowRight className="h-3 w-3" />
                         </Link>
-                        <Button variant="outline" onClick={evict} className="rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20">
+                        <Button variant="outline" onClick={evict} className="rounded-xl border-soft-danger-border bg-soft-danger text-tone-red hover:bg-soft-danger">
                             <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Evict
                         </Button>
                     </>
@@ -442,7 +442,7 @@ export default function PodDetail() {
 
             {diagnosis && !diagnosis.scheduled && (
                 <GlassCard className="flex items-start gap-3 p-4">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--amber)" }} />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-tone-amber" />
                     <div className="min-w-0">
                         <div className="text-sm font-medium">Not scheduled</div>
                         <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
@@ -465,7 +465,7 @@ export default function PodDetail() {
                     size="compact"
                     mono
                     label="Restarts"
-                    value={<span className={pod.restarts > 0 ? "text-amber-400" : ""}>{pod.restarts}</span>}
+                    value={<span className={pod.restarts > 0 ? "text-tone-amber" : ""}>{pod.restarts}</span>}
                 />
                 <FeatureTile size="compact" mono icon={Cpu} label="CPU limit" value={pod.cpuLimit || "—"} />
                 <FeatureTile size="compact" mono icon={MemoryStick} label="Memory limit" value={pod.memLimit || "—"} />
@@ -523,15 +523,15 @@ export default function PodDetail() {
 
                             {(spec.volumes || []).length > 0 && (
                                 <GlassCard className="overflow-hidden p-0">
-                                    <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-violet-200">
-                                        <HardDrive className="h-4 w-4 text-i17-lavender" /> Volumes
+                                    <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-tone-purple">
+                                        <HardDrive className="h-4 w-4 text-tone-purple" /> Volumes
                                     </div>
                                     {spec.volumes.map((v, i) => {
                                         const kind = Object.keys(v).find((k) => k !== "name") || "—";
                                         return (
-                                            <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-xs last:border-none">
-                                                <span className="mono text-violet-100">{v.name}</span>
-                                                <Badge variant="outline" className="border-violet-500/30 bg-violet-500/10 text-[10px] text-violet-200">
+                                            <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 text-xs last:border-none">
+                                                <span className="mono text-tone-purple">{v.name}</span>
+                                                <Badge variant="outline" className="border-border bg-muted text-[10px] text-tone-purple">
                                                     {kind}
                                                 </Badge>
                                             </div>
@@ -542,9 +542,9 @@ export default function PodDetail() {
 
                             {(status?.conditions || []).length > 0 && (
                                 <GlassCard className="overflow-hidden p-0">
-                                    <div className="border-b border-border px-4 py-3 text-sm font-medium text-emerald-200">Conditions</div>
+                                    <div className="border-b border-border px-4 py-3 text-sm font-medium text-tone-green">Conditions</div>
                                     {status.conditions.map((c, i) => (
-                                        <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-xs last:border-none">
+                                        <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 text-xs last:border-none">
                                             <span className="text-foreground/90">{c.type}</span>
                                             <StatusBadge status={c.status === "True" ? "Ready" : "Pending"} />
                                         </div>
@@ -565,10 +565,10 @@ export default function PodDetail() {
 
                             {(spec.tolerations || []).length > 0 && (
                                 <GlassCard className="p-4">
-                                    <div className="mb-2 text-sm font-medium text-amber-200">Tolerations</div>
+                                    <div className="mb-2 text-sm font-medium text-tone-amber">Tolerations</div>
                                     <div className="space-y-1 text-xs">
                                         {spec.tolerations.map((t, i) => (
-                                            <div key={i} className="mono text-amber-100/80">
+                                            <div key={i} className="mono text-tone-amber">
                                                 {t.key || "*"}
                                                 {t.operator ? ` ${t.operator}` : ""}
                                                 {t.value ? ` ${t.value}` : ""} · {t.effect || "any"}
@@ -602,17 +602,17 @@ export default function PodDetail() {
 
                     {(pod.ports || []).length > 0 && (
                         <GlassCard className="overflow-hidden p-0">
-                            <div className="border-b border-border px-4 py-3 text-sm font-medium text-sky-200">Ports</div>
+                            <div className="border-b border-border px-4 py-3 text-sm font-medium text-tone-link">Ports</div>
                             {pod.ports.map((p, i) => (
-                                <div key={i} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-none">
-                                    <div className="mono text-sm text-sky-100/90">
+                                <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 last:border-none">
+                                    <div className="mono text-sm text-tone-link">
                                         {p.container} · {p.containerPort}/{p.protocol || "TCP"}
                                     </div>
                                     <a
                                         href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-xs text-sky-200 hover:bg-sky-500/20"
+                                        className="flex items-center gap-1 rounded-lg border border-soft-info-border bg-soft-info px-2.5 py-1 text-xs text-tone-link hover:bg-soft-info"
                                     >
                                         Open <ExternalLink className="h-3 w-3" />
                                     </a>
@@ -666,7 +666,7 @@ export default function PodDetail() {
                                 <div className="col-span-2">
                                     <StatusBadge status={e.type} />
                                 </div>
-                                <div className="col-span-3 mono text-xs text-sky-300">{e.reason}</div>
+                                <div className="col-span-3 mono text-xs text-tone-link">{e.reason}</div>
                                 <div className="col-span-7 text-sm text-foreground/90">{e.message}</div>
                             </div>
                         ))}

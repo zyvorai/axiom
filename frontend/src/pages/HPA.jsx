@@ -51,7 +51,7 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create autoscaler</DialogTitle>
                 </DialogHeader>
@@ -155,15 +155,15 @@ export default function HPA() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                        <Gauge size={16} style={{ color: "var(--blue)" }} /> HorizontalPodAutoscalers
+                    <h2 className="flex items-center gap-2 text-[15px]">
+                        <Gauge size={16} className="text-tone-link" /> HorizontalPodAutoscalers
                     </h2>
-                    <span className="r" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{hpas.length}</span>
+                    <span className="r text-[12.5px] text-ink-3">{hpas.length}</span>
                 </div>
                 {hpas.length === 0 ? (
                     <div className="empty">No HorizontalPodAutoscalers configured.</div>
                 ) : (
-                    <div style={{ overflowX: "auto" }} className="max-h-[65vh] overflow-y-auto scrollbar-thin">
+                    <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto">
                         <table className="tbl">
                             <thead>
                                 <tr>

@@ -35,8 +35,8 @@ function ConsolePanel({ vm }) {
         };
     }, [vm]);
 
-    if (info === null) return <Skeleton className="h-40 rounded-xl bg-white/[0.04]" />;
-    if (info === false) return <div className="rounded-xl border border-white/10 p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
+    if (info === null) return <Skeleton className="h-40 rounded-xl bg-muted" />;
+    if (info === false) return <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
 
     const copy = () => {
         navigator.clipboard?.writeText(info.virtctl);
@@ -45,10 +45,10 @@ function ConsolePanel({ vm }) {
     };
 
     return (
-        <div className="space-y-4 rounded-xl border border-white/10 bg-muted p-6">
+        <div className="space-y-4 rounded-xl border border-border bg-muted p-6">
             <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06]">
-                    <Terminal className="h-4 w-4 text-i17-sky" />
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted">
+                    <Terminal className="h-4 w-4 text-tone-link" />
                 </div>
                 <div>
                     <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
@@ -60,15 +60,15 @@ function ConsolePanel({ vm }) {
             {info.wsPath && (
                 <div>
                     <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Browser WebSocket proxy</div>
-                    <code className="mono block truncate text-[11px] text-i17-sage">{info.wsPath}</code>
+                    <code className="mono block truncate text-[11px] text-tone-green">{info.wsPath}</code>
                 </div>
             )}
             <div>
                 <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
-                <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    <code className="mono flex-1 truncate text-xs text-i17-sage">{info.virtctl}</code>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                    <code className="mono flex-1 truncate text-xs text-tone-green">{info.virtctl}</code>
                     <button onClick={copy} className="text-muted-foreground hover:text-foreground">
-                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copied ? <Check className="h-3.5 w-3.5 text-tone-green" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                 </div>
             </div>
@@ -118,7 +118,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
         <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-i17-cosmic" /> {title}
+                    <Icon className="h-4 w-4 text-primary" /> {title}
                 </div>
                 <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
                     <Plus className="mr-1 h-3.5 w-3.5" /> New
@@ -145,7 +145,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
             </div>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="glass max-w-md">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>New {title.replace(/s$/, "")}</DialogTitle>
                     </DialogHeader>
@@ -175,7 +175,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
 function VmProtection() {
     return (
         <Tabs defaultValue="snapshots">
-            <TabsList className="tabs" style={{ background: "none", padding: 0, height: "auto", borderRadius: 0 }}>
+            <TabsList className="tabs !h-auto !rounded-none !bg-transparent !p-0">
                 <TabsTrigger value="snapshots" className="gap-1.5">
                     <Camera className="h-3.5 w-3.5" /> Snapshots
                 </TabsTrigger>
@@ -370,7 +370,7 @@ export default function VirtualMachines() {
                 description="KubeVirt-managed VMs. Start, stop, live-migrate and open a console."
                 action={
                     <>
-                        <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{vms.length} VMs</span>
+                        <span className="text-[13px] text-ink-3">{vms.length} VMs</span>
                         <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
                             <Plus size={15} /> Create VM
                         </button>
@@ -379,7 +379,7 @@ export default function VirtualMachines() {
             />
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="glass max-w-md">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Create virtual machine</DialogTitle>
                     </DialogHeader>
@@ -440,8 +440,7 @@ export default function VirtualMachines() {
                             <div className="vm-h">
                                 <Link
                                     to={`/vms/${encodeURIComponent(vm.namespace)}/${encodeURIComponent(vm.name)}`}
-                                    className="mono hover:underline"
-                                    style={{ color: "var(--ink)" }}
+                                    className="mono hover:underline text-ink"
                                 >
                                     <b>{vm.name}</b>
                                 </Link>
@@ -458,7 +457,7 @@ export default function VirtualMachines() {
                                 </div>
                                 <div>
                                     Node
-                                    <b className="mono" style={{ fontSize: 14, marginTop: 6 }}>
+                                    <b className="mono text-[14px] mt-1.5">
                                         {vm.node || "—"}
                                     </b>
                                 </div>
@@ -494,7 +493,7 @@ export default function VirtualMachines() {
                                 <button type="button" className="btn btn-fill btn-sm" onClick={() => setOpenVm(vm)}>
                                     <Terminal size={13} /> Console
                                 </button>
-                                <span style={{ marginLeft: "auto", fontSize: 12.5, color: "var(--ink-3)", alignSelf: "center" }}>{vm.age}</span>
+                                <span className="ml-auto text-[12.5px] text-ink-3 self-center">{vm.age}</span>
                             </div>
                         </div>
                     );
@@ -506,7 +505,7 @@ export default function VirtualMachines() {
             <Dialog open={!!openVm} onOpenChange={(o) => !o && setOpenVm(null)}>
                 <DialogContent
                     data-testid={VMS.consoleModal}
-                    className="glass max-w-lg border-border bg-card p-4 backdrop-blur-2xl"
+                    className="max-w-lg border-border bg-card p-4 backdrop-blur-2xl"
                 >
                     <DialogHeader className="flex-row items-center justify-between">
                         <div>
@@ -517,7 +516,7 @@ export default function VirtualMachines() {
                         <button
                             data-testid={VMS.consoleClose}
                             onClick={() => setOpenVm(null)}
-                            className="rounded-lg border border-white/10 bg-white/[0.03] p-1.5 text-muted-foreground hover:bg-white/[0.08]"
+                            className="rounded-lg border border-border bg-muted p-1.5 text-muted-foreground hover:bg-accent"
                         >
                             <X className="h-4 w-4" />
                         </button>

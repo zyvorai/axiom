@@ -47,8 +47,8 @@ export default function Events() {
                 description="Kubernetes event stream, most recent first."
             />
 
-            <GlassCard className="overflow-hidden">
-                <div style={{ overflowX: "auto" }} className="max-h-[70vh] overflow-y-auto scrollbar-thin">
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>

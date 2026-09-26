@@ -125,7 +125,7 @@ export default function ConfigMapDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <FileCog className="h-4 w-4 text-i17-sky" /> Data
+                    <FileCog className="h-4 w-4 text-tone-link" /> Data
                 </div>
                 {editing ? (
                     <div className="p-4">
@@ -143,7 +143,7 @@ export default function ConfigMapDetail() {
                             </div>
                             <MacTerm
                                 title={key}
-                                bodyClassName="max-h-48 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                                bodyClassName="max-h-48 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-term-plain"
                             >
                                 {value}
                             </MacTerm>

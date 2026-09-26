@@ -140,7 +140,7 @@ export default function SecretDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <KeySquare className="h-4 w-4 text-i17-lavender" /> Keys
+                    <KeySquare className="h-4 w-4 text-tone-purple" /> Keys
                 </div>
                 {keys.length === 0 ? (
                     <div className="px-4 py-10 text-center text-sm text-muted-foreground">No keys.</div>
@@ -159,7 +159,7 @@ export default function SecretDetail() {
                                 </div>
                                 <MacTerm
                                     title={key}
-                                    bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-[#f1f1f0]"
+                                    bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-3 py-2.5 text-[12px] leading-[1.55] text-term-plain"
                                 >
                                     {revealed ? value ?? "—" : "••••••••"}
                                 </MacTerm>

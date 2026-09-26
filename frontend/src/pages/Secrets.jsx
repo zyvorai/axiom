@@ -61,7 +61,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create secret</DialogTitle>
                 </DialogHeader>
@@ -98,7 +98,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
                                 <div key={i} className="flex items-center gap-1.5">
                                     <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
                                     <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
-                                    <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-rose-400">
+                                    <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>
                                 </div>
@@ -131,9 +131,9 @@ function ExternalSecretsSection() {
     }, []);
 
     return (
-        <GlassCard className="overflow-hidden">
+        <GlassCard className="overflow-hidden p-0">
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                <Link2 className="h-4 w-4 text-i17-sky" /> External Secrets
+                <Link2 className="h-4 w-4 text-tone-link" /> External Secrets
             </div>
             <div className="max-h-[300px] overflow-auto scrollbar-thin">
                 {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
@@ -241,18 +241,17 @@ export default function Secrets() {
                 }
                 tools={
                     <div className="input">
-                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <Search size={15} className="text-ink-3" />
                         <input
                             placeholder="Search secret name"
                             value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
                     </div>
                 }
             />
 
-            <GlassCard className="overflow-hidden">
+            <GlassCard className="overflow-hidden p-0">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <table className="tbl">
                         <thead>
@@ -269,8 +268,8 @@ export default function Secrets() {
                             {rows.map((s) => (
                                 <tr key={`${s.namespace}/${s.name}`}>
                                     <td className="name">
-                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                            <KeySquare size={14} style={{ color: "var(--ink-3)" }} />
+                                        <span className="flex gap-2 items-center">
+                                            <KeySquare size={14} className="text-ink-3" />
                                             <Link
                                                 to={`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
                                                 className="hover:underline"

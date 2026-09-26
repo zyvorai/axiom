@@ -58,7 +58,7 @@ function useEndpoint(path, deps = []) {
 function Rows({ items, empty, render }) {
     if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (items.length === 0) return <div className="empty">{empty}</div>;
-    return <div style={{ maxHeight: 520, overflow: "auto" }}>{items.map(render)}</div>;
+    return <div className="max-h-[520px] overflow-auto">{items.map(render)}</div>;
 }
 
 // Renders a `.tbl` once `items` has rows; a loading skeleton or `.empty` block
@@ -114,14 +114,14 @@ function HelmRow({ r, onChanged }) {
                 {r.name}
                 <small>{r.namespace}</small>
             </td>
-            <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{r.chart}</td>
+            <td className="mono text-[12.5px] text-ink-3">{r.chart}</td>
             <td className="num">rev {r.revision}</td>
             <td>
                 <StatusBadge status={r.status === "deployed" ? "Healthy" : r.status} />
             </td>
             <td className="num">{r.age}</td>
             <td>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                <div className="flex items-center justify-end gap-1.5">
                     <Input
                         value={revision}
                         onChange={(e) => setRevision(e.target.value)}
@@ -216,12 +216,12 @@ function HelmTab() {
     const [installOpen, setInstallOpen] = useState(false);
     return (
         <div className="stack">
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div className="flex justify-end">
                 <button type="button" className="btn btn-fill btn-sm" onClick={() => setInstallOpen(true)}>
                     <Plus size={14} /> Install chart
                 </button>
             </div>
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card p-0">
                 <TablePanel
                     items={releases}
                     empty="No Helm releases."
@@ -271,7 +271,7 @@ function GitOpsTab() {
     };
 
     return (
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card p-0">
             <TablePanel
                 items={apps}
                 empty="No GitOps applications."
@@ -293,11 +293,11 @@ function GitOpsTab() {
                                         {a.name}
                                         <small>{a.kind} · {a.namespace}</small>
                                     </td>
-                                    <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{a.source}</td>
+                                    <td className="mono text-[12.5px] text-ink-3">{a.source}</td>
                                     <td><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></td>
                                     <td className="num">{a.age}</td>
                                     <td>
-                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                        <div className="flex justify-end">
                                             <button
                                                 type="button"
                                                 className="btn btn-line btn-sm"
@@ -337,22 +337,22 @@ function AgentRunRow({ r, onChanged }) {
     };
 
     return (
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                <div style={{ minWidth: 0 }}>
-                    <div className="mono" style={{ fontSize: 13.5 }}>{r.name}</div>
-                    <div style={{ marginTop: 2, fontSize: 12.5, color: "var(--ink-3)" }}>{r.goal}</div>
+        <div className="panel-h">
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-[0px]">
+                    <div className="mono text-[13.5px]">{r.name}</div>
+                    <div className="mt-0.5 text-[12.5px] text-ink-3">{r.goal}</div>
                 </div>
-                <div style={{ display: "flex", flexShrink: 0, alignItems: "center", gap: 8 }}>
+                <div className="flex shrink-0 items-center gap-2">
                     <StatusBadge status={r.phase === "Proposed" ? "Pending" : r.phase} />
                     {pending && (
                         <>
                             <button
                                 type="button"
-                                className="btn btn-sm"
+                                className="btn btn-sm btn-success"
                                 disabled={!!busy}
                                 onClick={() => decide("approve")}
-                                style={{ boxShadow: "0 0 0 1px var(--green) inset", color: "var(--green)", background: "transparent" }}
+                                
                             >
                                 <Check size={13} />
                             </button>
@@ -364,11 +364,11 @@ function AgentRunRow({ r, onChanged }) {
                 </div>
             </div>
             {r.plan?.summary && (
-                <div style={{ marginTop: 8, borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "8px 0", fontSize: 12.5, color: "var(--ink-3)" }}>
+                <div className="mt-2 border-y border-line py-2 text-[12.5px] text-ink-3">
                     {r.plan.summary}
                 </div>
             )}
-            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--ink-3)" }}>
+            <div className="mt-2 flex items-center gap-2 text-[11.5px] text-ink-3">
                 <span>autonomy: {r.autonomy}</span>
                 <span>·</span>
                 <span>risk: {r.risk}</span>
@@ -383,7 +383,7 @@ function AgentsTab() {
     const [reload, setReload] = useState(0);
     const runs = useEndpoint("/agent-runs", [reload]);
     return (
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card p-0">
             <Rows
                 items={runs}
                 empty="No agent runs."
@@ -398,8 +398,8 @@ function IdentityTab() {
     if (!identity) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="stack">
-            <div className="card" style={{ padding: 0 }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>Identity planes</div>
+            <div className="card p-0">
+                <div className="panel-h">Identity planes</div>
                 <TablePanel
                     items={identity.planes}
                     empty="No identity planes."
@@ -420,7 +420,7 @@ function IdentityTab() {
                                             {p.name}
                                             <small>{p.namespace} · {p.profile}</small>
                                         </td>
-                                        <td className="mono" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{p.hostname}</td>
+                                        <td className="mono text-[12.5px] text-ink-3">{p.hostname}</td>
                                         <td><StatusBadge status={p.phase} /></td>
                                         <td className="num">{p.age}</td>
                                     </tr>
@@ -431,8 +431,8 @@ function IdentityTab() {
                 />
             </div>
             <div className="card">
-                <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>Admin credentials</div>
-                <div style={{ fontSize: 12.5, color: "var(--ink-3)" }}>
+                <div className="mb-2 text-[14px] font-[500]">Admin credentials</div>
+                <div className="text-[12.5px] text-ink-3">
                     {identity.admin?.exists ? `Secret ${identity.admin.secretName} in ${identity.admin.namespace}` : "Not configured"}
                     {identity.admin?.hint && <span> — {identity.admin.hint}</span>}
                 </div>
@@ -479,22 +479,21 @@ function AuditTab() {
 
     return (
         <div className="stack">
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
-                    <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--ink-3)" }} />
+            <div className="flex items-center gap-2.5">
+                <div className="relative flex-1 min-w-[220px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
                     <Input
                         placeholder="Search action, target, detail, or user"
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        className="bg-muted/30"
-                        style={{ paddingLeft: 34 }}
+                        className="bg-muted/30 pl-[34px]"
                     />
                 </div>
                 <button type="button" className="btn btn-line btn-sm" onClick={exportCSV} disabled={!filtered || filtered.length === 0}>
                     <Download size={13} /> Export CSV
                 </button>
             </div>
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card p-0">
                 <TablePanel
                     items={filtered}
                     empty={q ? "No audit entries match." : "No audit entries recorded yet."}
@@ -512,10 +511,10 @@ function AuditTab() {
                             <tbody>
                                 {rows.map((e, i) => (
                                     <tr key={i}>
-                                        <td className="mono" style={{ fontSize: 12.5, color: "var(--blue)" }}>{e.action}</td>
-                                        <td className="mono" style={{ fontSize: 12.5 }}>{e.target}</td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{e.detail}</td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{e.user}</td>
+                                        <td className="mono text-[12.5px] text-tone-link">{e.action}</td>
+                                        <td className="mono text-[12.5px]">{e.target}</td>
+                                        <td className="text-[12.5px] text-ink-3">{e.detail}</td>
+                                        <td className="text-[12.5px] text-ink-3">{e.user}</td>
                                         <td className="num">{relTime(e.time)}</td>
                                     </tr>
                                 ))}
@@ -657,9 +656,9 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
 
 function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabel }) {
     return (
-        <div className="card" style={{ padding: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid var(--line)" }}>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
+        <div className="card p-0">
+            <div className="panel-h">
+                <div className="text-[14px] font-[500]">{title}</div>
                 {onCreate && (
                     <button type="button" className="btn btn-line btn-sm" onClick={onCreate}>
                         <Plus size={13} /> {createLabel}
@@ -689,7 +688,7 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
                                     <td className="num">{r.rules != null ? `${r.rules} rules` : `${r.subjects} subjects`}</td>
                                     {deletable && (
                                         <td>
-                                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                            <div className="flex justify-end">
                                                 <button type="button" className="btn btn-danger btn-sm" onClick={() => onDelete(r)}>
                                                     <Trash2 size={13} />
                                                 </button>
@@ -774,8 +773,8 @@ function WebhooksTab() {
     return (
         <div className="grid g2">
             {groups.map(([title, items]) => (
-                <div key={title} className="card" style={{ padding: 0 }}>
-                    <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>{title} webhooks</div>
+                <div key={title} className="card p-0">
+                    <div className="panel-h">{title} webhooks</div>
                     {items.length === 0 ? (
                         <div className="empty">None found.</div>
                     ) : (
@@ -794,7 +793,7 @@ function WebhooksTab() {
                                             {w.webhookName}
                                             <small>{w.configName}</small>
                                         </td>
-                                        <td className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{(w.rules || []).join(", ") || "—"}</td>
+                                        <td className="mono text-[11.5px] text-ink-3">{(w.rules || []).join(", ") || "—"}</td>
                                         <td>
                                             <span className="pill" style={{ "--c": w.failurePolicy === "Fail" ? "var(--amber)" : "var(--ink-3)" }}>
                                                 <i aria-hidden="true" />
@@ -817,7 +816,7 @@ function CostTab() {
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="stack">
-            <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            <div className="stats c3">
                 <div className="stat">
                     <b>${cost.totalMonthlyUsd}</b>
                     <span>Total monthly cost</span>
@@ -837,8 +836,8 @@ function CostTab() {
                     <span>Memory rate</span>
                 </div>
             </div>
-            <div className="card" style={{ padding: 0 }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>By namespace</div>
+            <div className="card p-0">
+                <div className="panel-h">By namespace</div>
                 <TablePanel
                     items={cost.namespaces}
                     empty="No namespace cost data."
@@ -856,8 +855,8 @@ function CostTab() {
                                 {rows.map((n) => (
                                     <tr key={n.namespace}>
                                         <td className="name">{n.namespace}</td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.cpuCores} cores</td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.memoryGi} GiB</td>
+                                        <td className="text-[12.5px] text-ink-3">{n.cpuCores} cores</td>
+                                        <td className="text-[12.5px] text-ink-3">{n.memoryGi} GiB</td>
                                         <td className="mono num">${n.monthlyUsd}</td>
                                     </tr>
                                 ))}
@@ -866,8 +865,8 @@ function CostTab() {
                     )}
                 />
             </div>
-            <div className="card" style={{ padding: 0 }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", fontSize: 14, fontWeight: 500 }}>By workload</div>
+            <div className="card p-0">
+                <div className="panel-h">By workload</div>
                 <TablePanel
                     items={cost.workloads}
                     empty="No workload cost data."
@@ -888,8 +887,8 @@ function CostTab() {
                                             {w.workload}
                                             <small>{w.namespace} · {w.kind}</small>
                                         </td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{w.cpuCores} cores</td>
-                                        <td style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{w.memoryGi} GiB</td>
+                                        <td className="text-[12.5px] text-ink-3">{w.cpuCores} cores</td>
+                                        <td className="text-[12.5px] text-ink-3">{w.memoryGi} GiB</td>
                                         <td className="mono num">${w.monthlyUsd}</td>
                                     </tr>
                                 ))}

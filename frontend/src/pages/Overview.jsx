@@ -101,7 +101,7 @@ export default function Overview() {
                 <p>Your Kubernetes-native private cloud. One console from k3s to production.</p>
                 <div className="status">
                     <StatusBadge status={data.health} />
-                    <span style={{ color: "var(--ink-3)" }}>·</span>
+                    <span className="text-ink-3">·</span>
                     <span>{data.region}</span>
                 </div>
                 <div className="acts">
@@ -129,7 +129,7 @@ export default function Overview() {
                     </div>
                 ))}
             </div>
-            <p style={{ textAlign: "center", fontSize: 13, color: "var(--ink-3)", marginTop: 14 }}>
+            <p className="text-center text-[13px] text-ink-3 mt-3.5">
                 {data.storageUsedTb} of {data.storageCapacityTb} TB storage provisioned
             </p>
 
@@ -160,11 +160,11 @@ export default function Overview() {
             </div>
             <div className="grid g2">
                 <div className="card">
-                    <div style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 8 }}>Cluster CPU</div>
+                    <div className="text-[13px] text-ink-2 mb-2">Cluster CPU</div>
                     <Sparkline data={cpuSeries} color="var(--blue)" height={100} />
                 </div>
                 <div className="card">
-                    <div style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 8 }}>Cluster Memory</div>
+                    <div className="text-[13px] text-ink-2 mb-2">Cluster Memory</div>
                     <Sparkline data={memSeries} color="var(--green)" height={100} />
                 </div>
             </div>
@@ -174,7 +174,7 @@ export default function Overview() {
                 <h2>Stay informed</h2>
                 <p>Warnings, cluster events, and pod streams live on their own pages.</p>
             </div>
-            <div className="tools" style={{ marginTop: 0, justifyContent: "center" }}>
+            <div className="tools mt-0 justify-center">
                 <Link to="/alerts" className="btn btn-line">
                     Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={14} />
                 </Link>

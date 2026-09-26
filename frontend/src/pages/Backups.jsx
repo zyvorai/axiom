@@ -21,15 +21,15 @@ function Section({ title, icon: Icon, rows, columns, empty, action }) {
     return (
         <GlassCard className="overflow-hidden">
             <div className="card-h">
-                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                    <Icon className="h-4 w-4" style={{ color: "var(--blue)" }} /> {title}
+                <h2 className="flex items-center gap-2 text-[15px]">
+                    <Icon className="h-4 w-4 text-tone-link" /> {title}
                 </h2>
                 {action && <span className="r">{action}</span>}
             </div>
             {rows.length === 0 ? (
                 <div className="empty">{empty}</div>
             ) : (
-                <div style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto" }}>
+                <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -84,7 +84,7 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create volume snapshot</DialogTitle>
                 </DialogHeader>
@@ -130,7 +130,7 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Restore from snapshot</DialogTitle>
                 </DialogHeader>
@@ -175,7 +175,7 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>New Velero schedule</DialogTitle>
                 </DialogHeader>
@@ -258,7 +258,7 @@ export default function Backups() {
                 rows={snapshots}
                 empty="No volume snapshots."
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace} · {r.pvc}</div></> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace} · {r.pvc}</div></> },
                     { key: "volumeSnapshotClass", label: "VolumeSnapshotClass", render: (r) => <span className="mono num">{r.volumeSnapshotClass}</span> },
                     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
                     { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
@@ -271,7 +271,7 @@ export default function Backups() {
                 rows={veleroBackups || []}
                 empty="No Velero backups."
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace}</div></> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
                     { key: "namespaces", label: "Namespaces", render: (r) => <span className="mono num">{r.namespaces}</span> },
                     { key: "phase", label: "Phase", render: (r) => <StatusBadge status={r.phase} /> },
                     { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
@@ -289,7 +289,7 @@ export default function Backups() {
                     </button>
                 }
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div style={{ fontSize: 11, color: "var(--ink-3)" }}>{r.namespace}</div></> },
+                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
                     { key: "schedule", label: "Schedule", render: (r) => <span className="mono num">{r.schedule}</span> },
                     { key: "paused", label: "Status", render: (r) => <StatusBadge status={r.paused ? "Paused" : "Running"} /> },
                     { key: "lastBackup", label: "Last backup", render: (r) => <span className="mono num">{r.lastBackup ? new Date(r.lastBackup).toLocaleString() : "—"}</span> },
@@ -301,7 +301,7 @@ export default function Backups() {
             <RestoreDialog open={restoreOpen} onOpenChange={setRestoreOpen} onCreated={load} />
             <CreateScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} onCreated={load} />
             <Dialog open={veleroOpen} onOpenChange={setVeleroOpen}>
-                <DialogContent className="glass max-w-md">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Create Velero backup</DialogTitle>
                     </DialogHeader>

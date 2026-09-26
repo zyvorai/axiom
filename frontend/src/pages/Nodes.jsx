@@ -55,23 +55,23 @@ export default function Nodes() {
             <PageHeader
                 title="Nodes"
                 description="Compute topology, allocatable capacity and kubelet status."
-                action={<span style={{ fontSize: 13, color: "var(--ink-3)" }}>{nodes.length} nodes total</span>}
+                action={<span className="text-[13px] text-ink-3">{nodes.length} nodes total</span>}
             />
 
             <div className="grid g3">
                 {nodes.map((n) => (
                     <div key={n.name} data-testid={NODES.row(n.name)} className="tile">
                         <div className="tile-h">
-                            <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="mono hover:underline" style={{ color: "var(--ink)" }}>
+                            <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="mono hover:underline text-ink">
                                 <b>{n.name}</b>
                             </Link>
                             <StatusBadge status={n.status} />
                         </div>
-                        <div style={{ marginTop: -8, marginBottom: 14, fontSize: 12.5, color: "var(--ink-3)" }}>
+                        <div className="-mt-2 mb-3.5 text-[12.5px] text-ink-3">
                             {n.role} · {n.internalIp}
                         </div>
 
-                        <div className="tile-specs">
+                        <div className="tile-specs c2">
                             <div>
                                 <Cpu size={13} /> CPU
                                 <b>{n.allocatableCpu}</b>
@@ -89,37 +89,26 @@ export default function Nodes() {
                             </div>
                             <div>
                                 <Server size={13} /> Version
-                                <b className="truncate" style={{ fontSize: 14 }}>
+                                <b className="truncate text-[14px]">
                                     {n.version}
                                 </b>
                             </div>
                         </div>
 
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: 12,
-                                marginBottom: 18,
-                                paddingTop: 14,
-                                borderTop: "1px solid var(--line)",
-                                fontSize: 12,
-                                color: "var(--ink-3)",
-                            }}
-                        >
+                        <div className="tile-facts">
                             <div>
                                 OS
-                                <div style={{ marginTop: 2, color: "var(--ink)" }}>{n.osImage}</div>
+                                <div className="mt-0.5 text-ink">{n.osImage}</div>
                             </div>
                             <div>
                                 Kernel
-                                <div className="mono" style={{ marginTop: 2, color: "var(--ink)" }}>
+                                <div className="mono mt-0.5 text-ink">
                                     {n.kernelVersion}
                                 </div>
                             </div>
-                            <div style={{ gridColumn: "1 / -1" }}>
+                            <div className="wide">
                                 Runtime
-                                <div className="mono truncate" style={{ marginTop: 2, color: "var(--ink)" }}>
+                                <div className="mono truncate mt-0.5 text-ink">
                                     {n.containerRuntime}
                                 </div>
                             </div>

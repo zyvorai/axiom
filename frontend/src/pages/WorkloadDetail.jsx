@@ -104,7 +104,7 @@ export default function WorkloadDetail() {
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     <GlassCard className="p-5">
-                        <div className="mb-3 text-sm font-medium text-violet-200">Labels</div>
+                        <div className="mb-3 text-sm font-medium text-tone-purple">Labels</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (
                                 <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />
@@ -180,7 +180,7 @@ export default function WorkloadDetail() {
                                 <div className="col-span-2">
                                     <StatusBadge status={e.type} />
                                 </div>
-                                <div className="col-span-3 mono text-xs text-sky-300">{e.reason}</div>
+                                <div className="col-span-3 mono text-xs text-tone-link">{e.reason}</div>
                                 <div className="col-span-7 text-sm text-foreground/90">{e.message}</div>
                             </div>
                         ))}

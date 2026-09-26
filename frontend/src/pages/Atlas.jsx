@@ -50,7 +50,7 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create volume</DialogTitle>
                 </DialogHeader>
@@ -128,14 +128,14 @@ export default function Atlas() {
                     description="Storage control plane — Ceph, NFS and ZFS behind one API."
                 />
                 <GlassCard className="flex items-center gap-4">
-                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-400">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-soft-warning text-tone-amber">
                         <ShieldAlert className="h-5 w-5" />
                     </div>
                     <div>
                         <div className="text-sm font-medium">Atlas not connected</div>
                         <div className="mt-0.5 text-xs text-muted-foreground">{data.reason || "Configure the Atlas gateway URL."}</div>
                     </div>
-                    <Link to="/settings" className="btn btn-line" style={{ marginLeft: "auto" }}>
+                    <Link to="/settings" className="btn btn-line ml-auto">
                         Open Settings
                     </Link>
                 </GlassCard>
@@ -206,8 +206,8 @@ export default function Atlas() {
 
             {storageClasses.length > 0 && (
                 <GlassCard>
-                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>StorageClasses</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    <div className="text-[15px] font-[600] mb-3">StorageClasses</div>
+                    <div className="flex flex-wrap gap-2">
                         {storageClasses.map((sc, i) => (
                             <span key={i} className="pill soft mono">
                                 {sc.name ?? String(sc)}

@@ -60,8 +60,8 @@ function NetworkPolicyPanel() {
     return (
         <GlassCard className="overflow-hidden">
             <div className="card-h">
-                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                    <ShieldHalf size={16} style={{ color: "var(--blue)" }} /> NetworkPolicies
+                <h2 className="flex items-center gap-2 text-[15px]">
+                    <ShieldHalf size={16} className="text-tone-link" /> NetworkPolicies
                 </h2>
                 <button type="button" className="btn btn-line btn-sm r" onClick={() => setCreateOpen(true)}>
                     <Plus size={13} /> Create via YAML
@@ -70,7 +70,7 @@ function NetworkPolicyPanel() {
             {policies.length === 0 ? (
                 <div className="empty">No NetworkPolicies configured.</div>
             ) : (
-                <div style={{ overflowX: "auto" }} className="max-h-[360px] overflow-y-auto scrollbar-thin">
+                <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -163,22 +163,22 @@ function PacketWolfPanel() {
     return (
         <GlassCard className="overflow-hidden">
             <div className="card-h">
-                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                    <Radar size={16} style={{ color: "var(--blue)" }} /> PacketWolf
+                <h2 className="flex items-center gap-2 text-[15px]">
+                    <Radar size={16} className="text-tone-link" /> PacketWolf
                 </h2>
-                <span className="r" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ink-3)" }}>
+                <span className="r flex items-center gap-2 text-[12.5px] text-ink-3">
                     <span className={`status-dot ${tone}`} />
                     {label}
                 </span>
             </div>
-            <p style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 14 }}>
+            <p className="text-[13px] text-ink-2 mb-3.5">
                 {status.message || status.baseUrl || "eBPF flow visibility via the PacketWolf integration."}
             </p>
             {status.reachable && (
                 <>
                     {flowsError && <div className="empty">{flowsError}</div>}
                     {!flowsError && items && items.length > 0 && (
-                        <div style={{ overflowX: "auto" }} className="max-h-[360px] overflow-y-auto scrollbar-thin">
+                        <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto">
                             <table className="tbl">
                                 <thead>
                                     <tr>
@@ -247,7 +247,7 @@ export default function Networking() {
                 title="Networking"
                 description="Service graph across pods, services and endpoints."
                 action={
-                    <span className="mono" style={{ fontSize: 13, color: "var(--ink-3)" }}>
+                    <span className="mono text-[13px] text-ink-3">
                         namespace: {d.namespace}
                     </span>
                 }
@@ -255,28 +255,28 @@ export default function Networking() {
 
             <div className="grid g3">
                 <div className="stat">
-                    <Network size={18} style={{ color: "var(--blue)" }} />
-                    <b style={{ marginTop: 12 }}>{d.nodes.length}</b>
+                    <Network size={18} className="text-tone-link" />
+                    <b className="mt-3">{d.nodes.length}</b>
                     <span>Graph nodes</span>
                 </div>
                 <div className="stat">
-                    <ArrowRightLeft size={18} style={{ color: "var(--green)" }} />
-                    <b style={{ marginTop: 12 }}>{d.edges.length}</b>
+                    <ArrowRightLeft size={18} className="text-tone-green" />
+                    <b className="mt-3">{d.edges.length}</b>
                     <span>Connections</span>
                 </div>
                 <div className="stat">
-                    <Boxes size={18} style={{ color: "var(--purple)" }} />
-                    <b style={{ marginTop: 12 }}>{d.nodes.filter((n) => n.kind === "service").length}</b>
+                    <Boxes size={18} className="text-tone-purple" />
+                    <b className="mt-3">{d.nodes.filter((n) => n.kind === "service").length}</b>
                     <span>Services</span>
                 </div>
             </div>
 
-            <div className="grid g2" style={{ marginTop: 14 }}>
+            <div className="grid g2 mt-3.5">
                 <GlassCard className="overflow-hidden">
                     <div className="card-h">
-                        <h2 style={{ fontSize: 15 }}>Graph nodes</h2>
+                        <h2 className="text-[15px]">Graph nodes</h2>
                     </div>
-                    <div style={{ overflowX: "auto" }} className="max-h-[520px] overflow-y-auto scrollbar-thin">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto">
                         <table className="tbl">
                             <thead>
                                 <tr>
@@ -303,12 +303,12 @@ export default function Networking() {
 
                 <GlassCard className="overflow-hidden">
                     <div className="card-h">
-                        <h2 style={{ fontSize: 15 }}>Connections</h2>
-                        <span className="r" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ink-3)" }}>
+                        <h2 className="text-[15px]">Connections</h2>
+                        <span className="r flex items-center gap-2 text-[12.5px] text-ink-3">
                             <span className="status-dot ok animate-pulse" /> live
                         </span>
                     </div>
-                    <div style={{ overflowX: "auto" }} className="max-h-[520px] overflow-y-auto scrollbar-thin">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto">
                         <table className="tbl">
                             <thead>
                                 <tr>
@@ -331,10 +331,10 @@ export default function Networking() {
                 </GlassCard>
             </div>
 
-            <div style={{ marginTop: 14 }}>
+            <div className="mt-3.5">
                 <PacketWolfPanel />
             </div>
-            <div style={{ marginTop: 14 }}>
+            <div className="mt-3.5">
                 <NetworkPolicyPanel />
             </div>
         </div>

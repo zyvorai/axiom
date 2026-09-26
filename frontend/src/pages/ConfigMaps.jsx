@@ -50,7 +50,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-md">
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create ConfigMap</DialogTitle>
                 </DialogHeader>
@@ -72,7 +72,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                                 <div key={i} className="flex items-center gap-1.5">
                                     <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
                                     <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
-                                    <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-rose-400">
+                                    <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>
                                 </div>
@@ -151,18 +151,17 @@ export default function ConfigMaps() {
                 }
                 tools={
                     <div className="input">
-                        <Search size={15} style={{ color: "var(--ink-3)" }} />
+                        <Search size={15} className="text-ink-3" />
                         <input
                             placeholder="Search ConfigMap name"
                             value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            style={{ background: "transparent", border: "none", outline: "none", color: "inherit", flex: 1, font: "inherit" }}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
                     </div>
                 }
             />
 
-            <GlassCard className="overflow-hidden">
+            <GlassCard className="overflow-hidden p-0">
                 <div className="max-h-[65vh] overflow-auto scrollbar-thin">
                     <table className="tbl">
                         <thead>
@@ -178,8 +177,8 @@ export default function ConfigMaps() {
                             {rows.map((c) => (
                                 <tr key={`${c.namespace}/${c.name}`}>
                                     <td className="name">
-                                        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                            <FileCog size={14} style={{ color: "var(--ink-3)" }} />
+                                        <span className="flex gap-2 items-center">
+                                            <FileCog size={14} className="text-ink-3" />
                                             <Link
                                                 to={`/configmaps/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`}
                                                 className="hover:underline"

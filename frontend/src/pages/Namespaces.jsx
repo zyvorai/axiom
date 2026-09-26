@@ -70,7 +70,7 @@ export default function Namespaces() {
         return (
             <div className="page">
                 <Skeleton className="h-16 rounded-2xl bg-muted" />
-                <div className="grid g3" style={{ marginTop: 16 }}>
+                <div className="grid g3 mt-4">
                     {[...Array(6)].map((_, i) => (
                         <Skeleton key={i} className="h-48 rounded-2xl bg-muted" />
                     ))}
@@ -97,14 +97,14 @@ export default function Namespaces() {
                         <Link
                             to={`/namespaces/${encodeURIComponent(n.name)}`}
                             data-testid={`namespace-card-${n.name}`}
-                            style={{ display: "block", color: "inherit" }}
+                            className="block text-inherit"
                         >
                             <div className="tile-h">
-                                <Boxes size={16} style={{ color: "var(--blue)", flexShrink: 0 }} />
+                                <Boxes size={16} className="text-tone-link shrink-0" />
                                 <b className="mono truncate">{n.name}</b>
                                 <StatusBadge status={n.status} />
                             </div>
-                            <div className="tile-specs" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                            <div className="tile-specs c2">
                                 <div>
                                     Pods
                                     <b>{n.pods}</b>
@@ -115,12 +115,12 @@ export default function Namespaces() {
                                 </div>
                             </div>
                         </Link>
-                        <div className="tile-acts" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                            <Link to={`/namespaces/${encodeURIComponent(n.name)}`} className="btn btn-ghost btn-sm" style={{ paddingLeft: 0 }}>
+                        <div className="tile-acts justify-between items-center">
+                            <Link to={`/namespaces/${encodeURIComponent(n.name)}`} className="btn btn-ghost btn-sm pl-0">
                                 Open <ChevronRight size={13} />
                             </Link>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{n.age}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[12.5px] text-ink-3">{n.age}</span>
                                 <button
                                     type="button"
                                     className="btn btn-line btn-sm"
@@ -140,7 +140,7 @@ export default function Namespaces() {
             </div>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="glass max-w-sm">
+                <DialogContent className="max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Create namespace</DialogTitle>
                     </DialogHeader>

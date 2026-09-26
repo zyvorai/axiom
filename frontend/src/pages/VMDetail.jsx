@@ -50,7 +50,7 @@ function ConsolePanel({ vm }) {
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2">
                     <code className="mono flex-1 truncate text-xs">{info.virtctl}</code>
                     <button type="button" onClick={copy} className="text-muted-foreground hover:text-foreground">
-                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copied ? <Check className="h-3.5 w-3.5 text-tone-green" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                 </div>
             </div>
@@ -210,7 +210,7 @@ export default function VMDetail() {
             </GlassCard>
 
             <Dialog open={consoleOpen} onOpenChange={setConsoleOpen}>
-                <DialogContent data-testid={VMS.consoleModal} className="glass max-w-lg border-border bg-card p-4 backdrop-blur-2xl">
+                <DialogContent data-testid={VMS.consoleModal} className="max-w-lg border-border bg-card p-4 backdrop-blur-2xl">
                     <DialogHeader>
                         <DialogTitle className="mono text-sm">
                             {nm} <span className="text-muted-foreground">· console</span>

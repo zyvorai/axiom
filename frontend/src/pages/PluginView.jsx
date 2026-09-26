@@ -39,18 +39,18 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
     const name = fieldValue(instance, "name") || "—";
     return (
         <Dialog open onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-2xl">
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="mono text-sm">
                         {manifest.target.kind} · {name}
                     </DialogTitle>
                 </DialogHeader>
                 {manifest.columns && manifest.columns.length > 0 && (
-                    <div className="grid gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs">
+                    <div className="grid gap-2 rounded-lg border border-soft-info-border bg-soft-info p-3 text-xs">
                         {manifest.columns.map((c) => (
                             <div key={c.path} className="flex justify-between gap-4">
-                                <span className="text-sky-300/80">{c.label}</span>
-                                <span className="mono truncate text-sky-100">{displayFieldValue(instance, c)}</span>
+                                <span className="text-tone-link">{c.label}</span>
+                                <span className="mono truncate text-tone-link">{displayFieldValue(instance, c)}</span>
                             </div>
                         ))}
                     </div>

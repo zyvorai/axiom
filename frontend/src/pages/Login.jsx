@@ -249,7 +249,7 @@ export default function Login() {
                         </a>
                     ) : null}
 
-                    <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-zinc-400">
+                    <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-muted-foreground">
                         <CheckCircle className="h-3.5 w-3.5" />
                         <span>Axiom sessions are scoped per device and expire automatically.</span>
                     </div>

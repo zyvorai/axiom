@@ -117,7 +117,7 @@ export default function ServiceDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <Network className="h-4 w-4 text-i17-cosmic" /> Endpoints ({(svc.endpoints || []).length})
+                    <Network className="h-4 w-4 text-primary" /> Endpoints ({(svc.endpoints || []).length})
                 </div>
                 {(svc.endpoints || []).length === 0 ? (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">No endpoints.</div>
@@ -134,7 +134,7 @@ export default function ServiceDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 style={{ fontSize: 15 }}>Matching pods ({matchingPods.length})</h2>
+                    <h2 className="text-[15px]">Matching pods ({matchingPods.length})</h2>
                 </div>
                 {matchingPods.length === 0 ? (
                     <div className="empty">No pods match this selector.</div>
@@ -151,8 +151,7 @@ export default function ServiceDetail() {
                         <tbody>
                             {matchingPods.map((p) => (
                                 <tr
-                                    key={p.name}
-                                    style={{ cursor: "pointer" }}
+                                    key={p.name} className="cursor-pointer"
                                     onClick={() => navigate(`/pods/${encodeURIComponent(ns)}/${encodeURIComponent(p.name)}`)}
                                 >
                                     <td className="name mono">{p.name}</td>

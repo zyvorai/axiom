@@ -10,14 +10,14 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
         <GlassCard className="overflow-hidden">
             <div className="card-h">
-                <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                    <Icon size={16} style={{ color: "var(--blue)" }} /> {title}
+                <h2 className="flex items-center gap-2 text-[15px]">
+                    <Icon size={16} className="text-tone-link" /> {title}
                 </h2>
             </div>
             {rows.length === 0 ? (
                 <div className="empty">{empty}</div>
             ) : (
-                <div style={{ overflowX: "auto" }} className="max-h-[420px] overflow-y-auto scrollbar-thin">
+                <div className="max-h-[420px] overflow-y-auto scrollbar-thin overflow-x-auto">
                     <table className="tbl">
                         <thead>
                             <tr>
@@ -110,7 +110,7 @@ export default function Quotas() {
                 ]}
             />
 
-            <div style={{ marginTop: 24 }}>
+            <div className="mt-6">
                 <Section
                     title="Limit ranges"
                     icon={Ruler}
@@ -139,7 +139,7 @@ export default function Quotas() {
                 />
             </div>
 
-            <div style={{ marginTop: 24 }}>
+            <div className="mt-6">
                 <Section
                     title="Pod disruption budgets"
                     icon={ShieldHalf}
@@ -156,7 +156,7 @@ export default function Quotas() {
                 />
             </div>
 
-            <div style={{ marginTop: 24 }}>
+            <div className="mt-6">
                 <Section
                     title="Priority classes"
                     icon={ArrowUpDown}

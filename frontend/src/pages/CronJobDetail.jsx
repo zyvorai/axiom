@@ -131,7 +131,7 @@ export default function CronJobDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 style={{ fontSize: 15 }}>Recent jobs ({ownedJobs.length})</h2>
+                    <h2 className="text-[15px]">Recent jobs ({ownedJobs.length})</h2>
                 </div>
                 {ownedJobs.length === 0 ? (
                     <div className="empty">No jobs from this CronJob yet.</div>
@@ -148,8 +148,7 @@ export default function CronJobDetail() {
                         <tbody>
                             {ownedJobs.map((j) => (
                                 <tr
-                                    key={j.name}
-                                    style={{ cursor: "pointer" }}
+                                    key={j.name} className="cursor-pointer"
                                     onClick={() => navigate(`/jobs/${encodeURIComponent(ns)}/${encodeURIComponent(j.name)}`)}
                                 >
                                     <td className="name mono">{j.name}</td>

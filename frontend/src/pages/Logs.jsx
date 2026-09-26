@@ -88,8 +88,8 @@ export default function Logs() {
                 description="Live streaming terminal via chunked HTTP."
                 tools={
                     <>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "var(--ink-2)" }}>
-                            <TerminalSquare size={15} style={{ color: "var(--ink-3)" }} /> Pod
+                        <span className="flex items-center gap-1.5 text-[13.5px] text-ink-2">
+                            <TerminalSquare size={15} className="text-ink-3" /> Pod
                         </span>
                         <select
                             data-testid={LOGS.podSelect}
@@ -136,7 +136,7 @@ export default function Logs() {
             <MacTerm
                 title={running ? `logs — ${selected}` : `logs — idle`}
                 actions={
-                    <span className="mono text-[10px] text-white/45">
+                    <span className="mono text-[10px] text-term-dim">
                         <span className={`status-dot mr-1.5 inline-block align-middle ${running ? "ok animate-pulse" : "info"}`} />
                         {lines.length} lines
                     </span>
@@ -146,13 +146,13 @@ export default function Logs() {
                 bodyClassName="h-[60vh] overflow-auto scrollbar-thin whitespace-pre-wrap px-4 py-3 text-[12.5px] leading-[1.55]"
             >
                 {lines.length === 0 && (
-                    <div className="text-white/40">
-                        Press <span className="text-[#5af78e]">Follow</span> to stream{" "}
-                        <span className="text-[#57c7ff]">{selected}</span>.
+                    <div className="text-term-dim">
+                        Press <span className="text-term-key">Follow</span> to stream{" "}
+                        <span className="text-term-str">{selected}</span>.
                     </div>
                 )}
                 {lines.map((l, i) => (
-                    <div key={i} style={{ color: "#f1f1f0" }}>
+                    <div key={i} className="text-term-plain">
                         {l}
                     </div>
                 ))}

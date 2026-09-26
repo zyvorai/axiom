@@ -111,7 +111,7 @@ export default function JobDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 style={{ fontSize: 15 }}>Pods ({jobPods.length})</h2>
+                    <h2 className="text-[15px]">Pods ({jobPods.length})</h2>
                 </div>
                 {jobPods.length === 0 ? (
                     <div className="empty">No pods found for this job.</div>
@@ -128,8 +128,7 @@ export default function JobDetail() {
                         <tbody>
                             {jobPods.map((p) => (
                                 <tr
-                                    key={p.name}
-                                    style={{ cursor: "pointer" }}
+                                    key={p.name} className="cursor-pointer"
                                     onClick={() => navigate(`/pods/${encodeURIComponent(ns)}/${encodeURIComponent(p.name)}`)}
                                 >
                                     <td className="name mono">{p.name}</td>
