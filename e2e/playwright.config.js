@@ -19,5 +19,9 @@ module.exports = defineConfig({
     ignoreHTTPSErrors: true, // self-signed lab/dev certs
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Visual regression is opt-in (VISUAL=1): screenshot baselines are per-OS, see tests/visual.spec.js.
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled", caret: "hide" } },
+  projects: process.env.VISUAL
+    ? [{ name: "visual", testMatch: /visual\.spec\.js/, use: { ...devices["Desktop Chrome"] } }]
+    : [{ name: "chromium", testIgnore: /visual\.spec\.js/, use: { ...devices["Desktop Chrome"] } }],
 });
