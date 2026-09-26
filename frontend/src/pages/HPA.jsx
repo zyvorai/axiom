@@ -173,7 +173,7 @@ export default function HPA() {
                                     <th>Current</th>
                                     <th>CPU (current / target)</th>
                                     <th>Age</th>
-                                    <th />
+                                    <th><span className="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody>

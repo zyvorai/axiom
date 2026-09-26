@@ -155,7 +155,7 @@ export default function PluginView() {
             />
 
             <AutoTable
-                title={manifest.displayName}
+                title={`${manifest.target.kind} instances`}
                 icon={Icon}
                 items={instances}
                 columns={manifest.columns}

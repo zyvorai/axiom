@@ -49,10 +49,8 @@ export default function Alerts() {
                 description="Active warnings and Prometheus alerting rule groups."
             />
 
-            <div className="section-h">
-                <h2>Active warnings</h2>
-            </div>
             <GlassCard className="overflow-hidden p-0">
+                <div className="panel-h">Active warnings</div>
                 <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Active warnings">
                     <table className="tbl">
                         <thead>
@@ -102,10 +100,8 @@ export default function Alerts() {
                 </div>
             </GlassCard>
 
-            <div className="section-h mt-10">
-                <h2>Alerting rule groups</h2>
-            </div>
             <GlassCard className="overflow-hidden p-0">
+                <div className="panel-h">Alerting rule groups</div>
                 <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Alerting rule groups">
                     <table className="tbl">
                         <thead>

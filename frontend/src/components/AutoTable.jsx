@@ -78,7 +78,14 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
             <GlassCard className="overflow-hidden">
                 <TableChrome title={title} Icon={Icon} count={rows ? rows.length : 0} />
                 {(!rows || rows.length === 0) ? (
-                    <div className="empty">{emptyHint}</div>
+                    <div className="empty">
+                    {rows !== null && (
+                        <span className="empty-icon" aria-hidden="true">
+                            <Icon size={20} />
+                        </span>
+                    )}
+                    {emptyHint}
+                </div>
                 ) : (
                     <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Data table">
                         <table className="tbl">
@@ -87,7 +94,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                                     {columns.map((col) => (
                                         <th key={col.path}>{col.label}</th>
                                     ))}
-                                    {rowActions && <th />}
+                                    {rowActions && <th><span className="sr-only">Actions</span></th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,7 +125,14 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
     return (
         <GlassCard className="overflow-hidden">
             <TableChrome title={title} Icon={Icon} count={rows ? rows.length : 0} />
-            {(!rows || rows.length === 0) && <div className="empty">{emptyHint}</div>}
+            {(!rows || rows.length === 0) && <div className="empty">
+                    {rows !== null && (
+                        <span className="empty-icon" aria-hidden="true">
+                            <Icon size={20} />
+                        </span>
+                    )}
+                    {emptyHint}
+                </div>}
             <div className="stack">
                 {rows &&
                     rows.map((row, i) => {

@@ -55,11 +55,12 @@ export default function Storage() {
             <div className="grid g3">
                 {classes.map((sc) => (
                     <div key={sc.name} data-testid={STORAGE.classRow(sc.name)} className="stat">
-                        <Database size={18} className="text-tone-link" />
-                        <span className="mono text-[14px] mt-3 block">
-                            {sc.name}
+                        <b>{sc.count}</b>
+                        <span>
+                            <Database size={14} className="text-tone-link" aria-hidden="true" />
+                            <span className="mono">{sc.name}</span>
                         </span>
-                        <em>Claims · {sc.count}</em>
+                        <em>{sc.count === 1 ? "claim" : "claims"}</em>
                     </div>
                 ))}
             </div>

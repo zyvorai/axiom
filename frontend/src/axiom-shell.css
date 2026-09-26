@@ -474,6 +474,10 @@
   margin: 0 auto;
   padding: 20px clamp(20px, 3.5vw, 64px) 0;
 }
+.main:has([data-testid="load-error-banner"]) .shimmer {
+  /* a page that failed to load isn't "loading": stop the skeleton implying it is */
+  animation: none;
+}
 .notice.danger {
   background: var(--danger-bg);
   border-color: var(--danger-border);
@@ -1114,7 +1118,11 @@
 }
 
 /* cards stacked directly on the page get a gap (they had none) */
-.page > .card + .card {
+.page > .card + .card,
+.page > .grid + .card,
+.page > .card + .grid,
+.page > .grid + .grid,
+.page > .stack + .card {
   margin-top: 20px;
 }
 .page > .card + .section-h {
@@ -1278,6 +1286,16 @@
   text-align: center;
   color: var(--ink-3);
   font-size: 14px;
+}
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  color: var(--ink-3);
 }
 .empty b {
   display: block;

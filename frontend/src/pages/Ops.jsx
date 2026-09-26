@@ -235,7 +235,7 @@ function HelmTab() {
                                     <th>Revision</th>
                                     <th>Status</th>
                                     <th>Age</th>
-                                    <th></th>
+                                    <th><span className="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -284,7 +284,7 @@ function GitOpsTab() {
                                 <th>Source</th>
                                 <th>Status</th>
                                 <th>Age</th>
-                                <th></th>
+                                <th><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -682,8 +682,8 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th></th>
-                                {deletable && <th></th>}
+                                <th>{items && items[0] && items[0].rules != null ? "Rules" : "Subjects"}</th>
+                                {deletable && <th><span className="sr-only">Actions</span></th>}
                             </tr>
                         </thead>
                         <tbody>

@@ -170,7 +170,7 @@ export default function ConfigMaps() {
                                 <th>Namespace</th>
                                 <th>Keys</th>
                                 <th>Age</th>
-                                <th />
+                                <th><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
