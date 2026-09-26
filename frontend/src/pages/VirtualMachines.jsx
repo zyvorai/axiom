@@ -515,7 +515,7 @@ export default function VirtualMachines() {
                         </div>
                         <button
                             data-testid={VMS.consoleClose}
-                            onClick={() => setOpenVm(null)}
+                            aria-label="Close" title="Close" onClick={() => setOpenVm(null)}
                             className="rounded-lg border border-border bg-muted p-1.5 text-muted-foreground hover:bg-accent"
                         >
                             <X className="h-4 w-4" />

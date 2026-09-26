@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
@@ -22,11 +22,13 @@ import { useCluster } from "@/lib/cluster";
 import StatusBadge from "@/components/StatusBadge";
 import { NAV } from "@/constants/testIds";
 
-function Field({ label, ...props }) {
+function Field({ label, id, ...props }) {
+    const auto = useId();
+    const fieldId = id || auto;
     return (
         <div>
-            <Label className="text-xs text-muted-foreground">{label}</Label>
-            <Input className="bg-muted/30 mt-1.5" {...props} />
+            <Label htmlFor={fieldId} className="text-xs text-muted-foreground">{label}</Label>
+            <Input id={fieldId} className="bg-muted/30 mt-1.5" {...props} />
         </div>
     );
 }
@@ -348,8 +350,9 @@ export default function Settings() {
                             <Field label="Name" value={clusterForm.name} onChange={(e) => setClusterForm((f) => ({ ...f, name: e.target.value }))} placeholder="prod-east" />
                             <Field label="Label" value={clusterForm.label} onChange={(e) => setClusterForm((f) => ({ ...f, label: e.target.value }))} placeholder="Production East" />
                             <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Kubeconfig YAML</Label>
+                                <Label htmlFor="cluster-kubeconfig" className="text-xs text-muted-foreground">Kubeconfig YAML</Label>
                                 <Textarea
+                                    id="cluster-kubeconfig"
                                     className="mono min-h-[180px] bg-muted/30 text-xs"
                                     value={clusterForm.kubeconfig}
                                     onChange={(e) => setClusterForm((f) => ({ ...f, kubeconfig: e.target.value }))}
@@ -496,7 +499,7 @@ export default function Settings() {
                                 <div className="text-[14px]">Forward Warning events automatically</div>
                                 <div className="text-[12.5px] text-ink-3">Polls every 60s and pushes new cluster Warning events to the channels above.</div>
                             </div>
-                            <Switch checked={!!form.notifyOnWarnings} onCheckedChange={(v) => set({ notifyOnWarnings: v })} />
+                            <Switch aria-label="Forward Warning events automatically" checked={!!form.notifyOnWarnings} onCheckedChange={(v) => set({ notifyOnWarnings: v })} />
                         </div>
                         <div className="flex flex-wrap gap-2.5">
                             <button type="button" className="btn btn-fill btn-sm" onClick={saveNotify} disabled={busy === "notify-save"}>

@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/lib/pageTitle";
 
 // Netra page-hero — see .head in axiom-shell.css: optional blue eyebrow,
 // tight 600-weight h1, lede, over a soft radial glow. `tools` is an optional
 // row of filters/search rendered beneath the title.
 export default function PageHeader({ eyebrow, title, description, action, tools, className }) {
+    usePageTitle(title);
     return (
         <header className={cn("head", className)}>
             <div className="head-row">

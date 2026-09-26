@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { usePageTitle } from "@/lib/pageTitle";
 import StatusBadge from "@/components/StatusBadge";
 import Sparkline from "@/components/Sparkline";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +41,7 @@ function SetupBanner() {
 }
 
 export default function Overview() {
+    usePageTitle("Overview");
     const [data, setData] = useState(null);
     const alertCount = useAlertsCount();
 

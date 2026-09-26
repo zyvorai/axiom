@@ -175,7 +175,7 @@ export default function Jobs() {
                                 <button type="button" className="btn btn-line btn-sm" title="Run now" onClick={() => trigger(r)}>
                                     <PlayCircle size={13} />
                                 </button>
-                                <Switch checked={!r.suspend} onCheckedChange={(v) => setSuspend(r, !v)} />
+                                <Switch aria-label={`Schedule enabled for ${r.name}`} checked={!r.suspend} onCheckedChange={(v) => setSuspend(r, !v)} />
                                 <button type="button" className="btn btn-line btn-sm" title="Delete" onClick={() => deleteCronJob(r)}>
                                     <Trash2 size={13} />
                                 </button>

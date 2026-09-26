@@ -285,10 +285,10 @@ export default function Users() {
                                     <td className="mono num">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
                                     <td>
                                         <div className="flex justify-end gap-1.5">
-                                            <button type="button" className="btn btn-line btn-sm" onClick={() => setEditingUser(u)}>
+                                            <button type="button" className="btn btn-line btn-sm" aria-label={`Edit user ${u.username}`} title={`Edit user ${u.username}`} onClick={() => setEditingUser(u)}>
                                                 <Pencil size={13} />
                                             </button>
-                                            <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(u)}>
+                                            <button type="button" className="btn btn-danger btn-sm" aria-label={`Delete user ${u.username}`} title={`Delete user ${u.username}`} onClick={() => remove(u)}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </div>

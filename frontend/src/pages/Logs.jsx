@@ -93,6 +93,7 @@ export default function Logs() {
                         </span>
                         <select
                             data-testid={LOGS.podSelect}
+                            aria-label="Pod"
                             className="select"
                             value={selected}
                             onChange={(e) => {
@@ -108,7 +109,7 @@ export default function Logs() {
                             ))}
                         </select>
                         {containerOptions.length > 1 && (
-                            <select className="select" value={container} onChange={(e) => setContainer(e.target.value)}>
+                            <select aria-label="Container" className="select" value={container} onChange={(e) => setContainer(e.target.value)}>
                                 {containerOptions.map((c) => (
                                     <option key={c} value={c}>
                                         {c}

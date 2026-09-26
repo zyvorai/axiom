@@ -233,7 +233,7 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" disabled={!!busy} className="h-7 w-7 p-0 text-muted-foreground">
+                <Button size="sm" variant="ghost" disabled={!!busy} aria-label={`Actions for ${w.name}`} title={`Actions for ${w.name}`} className="h-7 w-7 p-0 text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
@@ -403,7 +403,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Label className="text-xs text-muted-foreground">Expose service</Label>
-                                <Switch checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
+                                <Switch aria-label="Expose service" checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
                             </div>
                         </div>
                         <DialogFooter>
@@ -615,7 +615,7 @@ export default function Workloads() {
                             />
                         </div>
                         <Select value={ns} onValueChange={setNs}>
-                            <SelectTrigger className="w-[180px] bg-muted/30">
+                            <SelectTrigger aria-label="Filter by namespace" className="w-[180px] bg-muted/30">
                                 <SelectValue placeholder="Namespace" />
                             </SelectTrigger>
                             <SelectContent>
@@ -628,7 +628,7 @@ export default function Workloads() {
                             </SelectContent>
                         </Select>
                         <Select value={kind} onValueChange={setKind}>
-                            <SelectTrigger className="w-[160px] bg-muted/30">
+                            <SelectTrigger aria-label="Filter by kind" className="w-[160px] bg-muted/30">
                                 <SelectValue placeholder="Kind" />
                             </SelectTrigger>
                             <SelectContent>
@@ -651,6 +651,7 @@ export default function Workloads() {
                             <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-10">
                                     <Checkbox
+                                        aria-label="Select all workloads"
                                         checked={rows.length > 0 && selected.size === rows.length}
                                         onCheckedChange={toggleAll}
                                     />
@@ -673,7 +674,7 @@ export default function Workloads() {
                                     className="hover:bg-muted"
                                 >
                                     <TableCell>
-                                        <Checkbox checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
+                                        <Checkbox aria-label={`Select workload ${w.name}`} checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
                                     </TableCell>
                                     <TableCell className="max-w-xs">
                                         <Link

@@ -107,7 +107,7 @@ export default function CustomResources() {
 
             <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
                 <GlassCard className="overflow-hidden p-0">
-                    <div className="max-h-[65vh] overflow-auto">
+                    <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="Custom resource definitions">
                         <table className="tbl">
                             <thead>
                                 <tr>

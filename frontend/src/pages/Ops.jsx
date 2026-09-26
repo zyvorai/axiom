@@ -1,3 +1,4 @@
+import { usePageTitle } from "@/lib/pageTitle";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -58,7 +59,7 @@ function useEndpoint(path, deps = []) {
 function Rows({ items, empty, render }) {
     if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (items.length === 0) return <div className="empty">{empty}</div>;
-    return <div className="max-h-[520px] overflow-auto">{items.map(render)}</div>;
+    return <div className="max-h-[520px] overflow-auto" tabIndex={0} role="region" aria-label="Results">{items.map(render)}</div>;
 }
 
 // Renders a `.tbl` once `items` has rows; a loading skeleton or `.empty` block
@@ -351,12 +352,12 @@ function AgentRunRow({ r, onChanged }) {
                                 type="button"
                                 className="btn btn-sm btn-success"
                                 disabled={!!busy}
-                                onClick={() => decide("approve")}
+                                aria-label="Approve proposal" title="Approve proposal" onClick={() => decide("approve")}
                                 
                             >
                                 <Check size={13} />
                             </button>
-                            <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={() => decide("deny")}>
+                            <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} aria-label="Deny proposal" title="Deny proposal" onClick={() => decide("deny")}>
                                 <X size={13} />
                             </button>
                         </>
@@ -689,7 +690,7 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
                                     {deletable && (
                                         <td>
                                             <div className="flex justify-end">
-                                                <button type="button" className="btn btn-danger btn-sm" onClick={() => onDelete(r)}>
+                                                <button type="button" className="btn btn-danger btn-sm" aria-label="Delete" title="Delete" onClick={() => onDelete(r)}>
                                                     <Trash2 size={13} />
                                                 </button>
                                             </div>
@@ -917,6 +918,8 @@ export default function Ops() {
     const navigate = useNavigate();
     const active = TABS.some((t) => t.key === tab) ? tab : "helm";
     const Panel = PANELS[active];
+    // runs after PageHeader's own title effect, so it wins and adds the tab name
+    usePageTitle("Ops", TABS.find((t) => t.key === active)?.label);
 
     return (
         <div className="page">

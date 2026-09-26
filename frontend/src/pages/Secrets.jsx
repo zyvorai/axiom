@@ -98,7 +98,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
                                 <div key={i} className="flex items-center gap-1.5">
                                     <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" className="bg-muted/30" />
                                     <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" className="bg-muted/30" />
-                                    <button onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
+                                    <button aria-label="Remove row" title="Remove row" onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>
                                 </div>
@@ -292,7 +292,7 @@ export default function Secrets() {
                                     </td>
                                     <td className="mono">{s.age}</td>
                                     <td>
-                                        <button type="button" className="btn btn-line btn-sm" onClick={() => remove(s)}>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={`Delete secret ${s.name}`} title={`Delete secret ${s.name}`} onClick={() => remove(s)}>
                                             <Trash2 size={13} />
                                         </button>
                                     </td>

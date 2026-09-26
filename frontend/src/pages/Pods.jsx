@@ -59,7 +59,7 @@ function ExecDialog({ pod, onOpenChange }) {
                 <div className="space-y-3">
                     {containers.length > 1 && (
                         <Select value={container} onValueChange={setContainer}>
-                            <SelectTrigger className="bg-muted/30">
+                            <SelectTrigger aria-label="Container" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -219,7 +219,7 @@ export default function Pods() {
                             />
                         </div>
                         <Select value={ns} onValueChange={setNs}>
-                            <SelectTrigger className="w-[180px] bg-muted/30">
+                            <SelectTrigger aria-label="Filter by namespace" className="w-[180px] bg-muted/30">
                                 <SelectValue placeholder="Namespace" />
                             </SelectTrigger>
                             <SelectContent>
@@ -242,6 +242,7 @@ export default function Pods() {
                             <tr>
                                 <th className="w-10">
                                     <Checkbox
+                                        aria-label="Select all pods"
                                         checked={rows.length > 0 && selected.size === rows.length}
                                         onCheckedChange={toggleAll}
                                     />
@@ -261,7 +262,7 @@ export default function Pods() {
                             {rows.map((p) => (
                                 <tr key={`${p.namespace}/${p.name}`}>
                                     <td>
-                                        <Checkbox checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
+                                        <Checkbox aria-label={`Select pod ${p.name}`} checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
                                     </td>
                                     <td className="name">
                                         <Link to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`} className="hover:underline">

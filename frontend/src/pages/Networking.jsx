@@ -90,7 +90,7 @@ function NetworkPolicyPanel() {
                                     <td>{(p.policyTypes || []).join(", ") || "—"}</td>
                                     <td className="mono">{p.podSelector || "all pods"}</td>
                                     <td>
-                                        <button type="button" className="btn btn-line btn-sm" onClick={() => remove(p)}>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={`Delete policy ${p.name}`} title={`Delete policy ${p.name}`} onClick={() => remove(p)}>
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -276,7 +276,7 @@ export default function Networking() {
                     <div className="card-h">
                         <h2 className="text-[15px]">Graph nodes</h2>
                     </div>
-                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Graph nodes">
                         <table className="tbl">
                             <thead>
                                 <tr>
@@ -308,7 +308,7 @@ export default function Networking() {
                             <span className="status-dot ok animate-pulse" /> live
                         </span>
                     </div>
-                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Connections">
                         <table className="tbl">
                             <thead>
                                 <tr>

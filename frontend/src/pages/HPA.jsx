@@ -189,7 +189,7 @@ export default function HPA() {
                                         <td className="mono">{h.currentCpuPercent ?? "—"}% / {h.targetCpuPercent ?? "—"}%</td>
                                         <td className="mono">{h.age}</td>
                                         <td>
-                                            <button type="button" className="btn btn-line btn-sm" onClick={() => remove(h)}>
+                                            <button type="button" className="btn btn-line btn-sm" aria-label={`Delete autoscaler ${h.name}`} title={`Delete autoscaler ${h.name}`} onClick={() => remove(h)}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </td>
