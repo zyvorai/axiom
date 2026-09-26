@@ -83,7 +83,7 @@ for (const d of DIRS) {
         if (!ok(line)) {
           if (SCROLL.test(cls) && !attr(el, "tabIndex"))
             report(file, line, `scroll container <${tag}> needs tabIndex={0} role="region" aria-label="…" (keyboard scrolling)`);
-          if (tag === "th" && !attr(el, "aria-label") && !el.attributes.some((x) => x.type === "JSXSpreadAttribute") && !hasVisibleText(n, src) && !n.children.some((c) => c.type === "JSXElement"))
+          if ((tag === "th" || tag === "TableHead") && !attr(el, "aria-label") && !el.attributes.some((x) => x.type === "JSXSpreadAttribute") && !hasVisibleText(n, src) && !n.children.some((c) => c.type === "JSXElement"))
             report(file, line, `empty <th> needs a label (e.g. <span className="sr-only">Actions</span>)`);
           if (tag === "Label" && !attr(el, "htmlFor") && !hasControl(n))
             report(file, line, `<Label> needs htmlFor pointing at its control's id (or wrap the control)`);

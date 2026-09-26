@@ -18,13 +18,13 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
                     <Icon className="h-4 w-4 text-tone-link" /> {title}
                 </div>
             </div>
-            <div className="max-h-[420px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Jobs and CronJobs">
+            <div className="max-h-[420px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={title}>
                 <table className="tbl">
                     <thead>
                         <tr>
                             {columns.map((c) => (
                                 <th key={c.key} style={c.align === "right" ? { textAlign: "right" } : undefined}>
-                                    {c.header}
+                                    {c.header || <span className="sr-only">Actions</span>}
                                 </th>
                             ))}
                         </tr>

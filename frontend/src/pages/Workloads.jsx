@@ -664,7 +664,7 @@ export default function Workloads() {
                                 <TableHead>Available</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Age</TableHead>
-                                <TableHead />
+                                <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

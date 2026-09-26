@@ -133,7 +133,7 @@ export default function Onboarding() {
                         <div key={s.title} className={`check ${s.done ? "done" : ""}`}>
                             <div className="n">{s.done ? <Check size={15} /> : i + 1}</div>
                             <div className="body">
-                                <h3>
+                                <h2>
                                     <s.icon size={17} />
                                     {s.title}
                                     {!s.required && <span className="pill soft">Optional</span>}
@@ -143,7 +143,7 @@ export default function Onboarding() {
                                             Done
                                         </span>
                                     )}
-                                </h3>
+                                </h2>
                                 <p>{s.description}</p>
                             </div>
                             {!s.done && s.to && (

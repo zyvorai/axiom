@@ -28,6 +28,9 @@ export default function MacTerm({
             <div
                 ref={bodyRef}
                 className={cn("macos-term-body mono", bodyClassName)}
+                tabIndex={0}
+                role="region"
+                aria-label={typeof title === "string" && title ? title : "Terminal output"}
                 {...bodyProps}
             >
                 {children}

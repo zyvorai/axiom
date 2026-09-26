@@ -87,7 +87,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                     {emptyHint}
                 </div>
                 ) : (
-                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Data table">
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={title || "Data table"}>
                         <table className="tbl">
                             <thead>
                                 <tr>

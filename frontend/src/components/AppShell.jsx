@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import "@/axiom-shell.css";
 import Sidebar from "@/components/Sidebar";
@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadErrorBanner from "@/components/LoadErrorBanner";
 import { clearApiFailures } from "@/lib/apiHealth";
+import { defaultTitle } from "@/lib/pageTitle";
+import { NAV_ITEMS } from "@/constants/navItems";
 import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/sidebar";
 
 const MOBILE_BREAKPOINT = 900;
@@ -25,6 +27,12 @@ export default function AppShell() {
         clearApiFailures();
         setRetryKey((k) => k + 1); // remounts the page, so it refetches
     };
+    // Reset to a route-based title on navigation. A layout effect runs before every passive effect,
+    // so a page's own usePageTitle still wins; this only covers states with no header
+    // (loading, "not found", a deleted job) that would otherwise keep a stale/generic title.
+    useLayoutEffect(() => {
+        document.title = defaultTitle(pathname, NAV_ITEMS);
+    }, [pathname]);
     // failures belong to the page that caused them
     useEffect(() => clearApiFailures(), [pathname]);
 

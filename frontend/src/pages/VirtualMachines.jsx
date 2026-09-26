@@ -124,7 +124,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                     <Plus className="mr-1 h-3.5 w-3.5" /> New
                 </Button>
             </div>
-            <div className="max-h-[360px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Virtual machine data">
+            <div className="max-h-[360px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={title}>
                 {!items && <Skeleton className="m-4 h-24 rounded-xl" />}
                 {items && items.length === 0 && (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">{emptyHint}</div>

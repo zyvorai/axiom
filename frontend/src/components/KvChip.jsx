@@ -12,8 +12,8 @@ export default function KvChip({ name, value, tone = "sky", className }) {
     };
     return (
         <span className={cn("inline-flex max-w-full items-baseline gap-0.5 mono text-[11px]", tones[tone] || tones.sky, className)}>
-            <span className="shrink-0 opacity-70">{name}</span>
-            <span className="opacity-40">=</span>
+            <span className="shrink-0">{name}</span>
+            <span className="text-muted-foreground">=</span>
             <span className="min-w-0 truncate font-medium text-foreground">{value}</span>
         </span>
     );
