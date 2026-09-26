@@ -23,8 +23,11 @@
   letter-spacing: -0.011em;
   font-synthesis: none;
 }
-.ax a,
-.ax button {
+/* :where() keeps this at zero specificity so .btn-*, utilities and component
+   classes can set their own colour on <a>/<button> (a plain `.ax a` rule
+   out-specified `.btn-fill`, giving link-buttons the wrong text colour) */
+:where(.ax) a,
+:where(.ax) button {
   font: inherit;
   color: inherit;
 }
@@ -1220,12 +1223,6 @@
   margin-top: 20px;
   font-size: 14px;
   color: var(--ink-2);
-}
-.hero .status i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--orange);
 }
 .hero .acts {
   display: flex;
