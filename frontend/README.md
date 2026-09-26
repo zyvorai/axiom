@@ -35,8 +35,12 @@ src/
     api.js               axios instance, log streaming, withAccessToken() for WS/plain-link auth
     auth.js               AuthProvider (local Basic-auth + OIDC/SAML)
     cluster.js             real cluster-switcher state (GET/POST /api/v1/clusters*)
-    theme.js                dark/light toggle
-  index.css              zeus-os design tokens + glass utility classes
+    theme.js                dark/light toggle (sets .dark + data-theme)
+    terminalTheme.js         xterm.js theme built from the CSS tokens
+  styles/tokens.css      design tokens — single source of truth (Netra palette)
+  index.css              Tailwind/shadcn colour bridge derived from tokens.css
+  axiom-shell.css        app shell + component classes (.bar, .card, .tbl, …)
+  axiom-login.css        sign-in page (theme-aware)
 ```
 
 ## Real backend, not mocks

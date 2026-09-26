@@ -198,6 +198,6 @@ The provider first tries in-cluster configuration, then `KUBECONFIG`, then `$HOM
 | `frontend/src/pages/*.jsx` | One file per route/page |
 | `frontend/src/components/*` | Shared shell (Sidebar, TopBar, AppShell), the shadcn/ui primitives under `components/ui/`, and `PodTerminal.jsx` (xterm.js terminal) |
 | `frontend/src/lib/*` | `api.js` (axios instance, log streaming, `withAccessToken`), `auth.js`, `cluster.js`, `theme.js` |
-| `frontend/src/index.css` | Shared Tailwind/shadcn design tokens (flat apple.com-dark palette) |
+| `frontend/src/styles/tokens.css` | Single source of truth for design tokens (Netra palette, radii, motion, fonts, terminal colours); `index.css` mirrors the colours as shadcn HSL triplets |
 | `frontend/src/axiom-shell.css` | The app-shell/page component vocabulary — `.bar`/`.side`/`.card`/`.pill`/`.tbl`/`.tabs`/etc (see [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)) |
 | `internal/ui/dist/` | **Generated** embedded copy — gitignored, rebuilt by `./scripts/sync-ui.sh`; never edit directly |

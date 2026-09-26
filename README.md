@@ -6,7 +6,7 @@ This project intentionally contains **no Metal3 workload support**.
 
 ## UX
 
-The web UI is a React 19 + Tailwind + shadcn/ui single-page app, restyled around a flat, dark apple.com-style visual language (plain black/`#1d1d1f` surfaces, hairline borders, pill buttons and badges — see [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)), built with CRACO and embedded inside the Go binary. Source lives in `frontend/`; `scripts/sync-ui.sh` builds it and copies the output into `internal/ui/dist/` (a generated, gitignored build artifact — never edit `internal/ui/dist/` directly).
+The web UI is a React 19 + Tailwind + shadcn/ui single-page app, styled in the Netra design language (apple.com-derived: `#000`/`#f5f5f7` canvas, bordered rounded cards, pill buttons and badges, light and dark themes, with a Meta-style presentation on the Overview — see [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)), built with CRACO and embedded inside the Go binary. Source lives in `frontend/`; `scripts/sync-ui.sh` builds it and copies the output into `internal/ui/dist/` (a generated, gitignored build artifact — never edit `internal/ui/dist/` directly).
 
 Pages:
 
