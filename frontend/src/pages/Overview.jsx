@@ -59,7 +59,7 @@ export default function Overview() {
 
     if (!data) {
         return (
-            <div data-testid={OVERVIEW.root} className="page">
+            <div data-testid={OVERVIEW.root} className="page rhythm">
                 <div className="hero">
                     <Skeleton className="mx-auto h-16 w-72 rounded-2xl bg-muted" />
                     <Skeleton className="mx-auto mt-4 h-5 w-64 rounded bg-muted" />
@@ -96,7 +96,7 @@ export default function Overview() {
         <div data-testid={OVERVIEW.root} className="page">
             <SetupBanner />
 
-            <section className="hero">
+            <section className="hero hero-media">
                 <h1>{data.cluster}</h1>
                 <p>Your Kubernetes-native private cloud. One console from k3s to production.</p>
                 <div className="status">
@@ -120,7 +120,7 @@ export default function Overview() {
             </div>
             <div className="stats">
                 {inventory.map((c) => (
-                    <div className="stat" key={c.key} data-testid={OVERVIEW.metric(c.key)}>
+                    <div className="stat media" key={c.key} data-testid={OVERVIEW.metric(c.key)}>
                         <b>
                             {c.value}
                             {c.of != null && <small>/{c.of}</small>}
@@ -140,7 +140,7 @@ export default function Overview() {
             </div>
             <div className="grid g3">
                 {utilization.map((u) => (
-                    <div className="stat" key={u.label}>
+                    <div className="stat media" key={u.label}>
                         <b>
                             {u.value}
                             <small>%</small>
@@ -159,11 +159,11 @@ export default function Overview() {
                 <p>CPU and memory over the last observed window.</p>
             </div>
             <div className="grid g2">
-                <div className="card">
+                <div className="card media">
                     <div className="text-[13px] text-ink-2 mb-2">Cluster CPU</div>
                     <Sparkline data={cpuSeries} color="var(--blue)" height={100} />
                 </div>
-                <div className="card">
+                <div className="card media">
                     <div className="text-[13px] text-ink-2 mb-2">Cluster Memory</div>
                     <Sparkline data={memSeries} color="var(--green)" height={100} />
                 </div>
@@ -174,15 +174,24 @@ export default function Overview() {
                 <h2>Stay informed</h2>
                 <p>Warnings, cluster events, and pod streams live on their own pages.</p>
             </div>
-            <div className="tools mt-0 justify-center">
-                <Link to="/alerts" className="btn btn-line">
-                    Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={14} />
+            <div className="cta-cards">
+                <Link to="/alerts" className="cta-card">
+                    <b>
+                        Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={18} />
+                    </b>
+                    <span>Warnings and rules that need your attention.</span>
                 </Link>
-                <Link to="/events" className="btn btn-line">
-                    Events <ArrowRight size={14} />
+                <Link to="/events" className="cta-card">
+                    <b>
+                        Events <ArrowRight size={18} />
+                    </b>
+                    <span>What the cluster has been doing, as it happens.</span>
                 </Link>
-                <Link to="/logs" className="btn btn-line">
-                    Pod logs <ArrowRight size={14} />
+                <Link to="/logs" className="cta-card">
+                    <b>
+                        Pod logs <ArrowRight size={18} />
+                    </b>
+                    <span>Stream the output of any pod in real time.</span>
                 </Link>
             </div>
         </div>

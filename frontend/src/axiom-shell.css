@@ -1267,6 +1267,105 @@
   margin-top: 4px;
 }
 
+/* ── Meta-style presentation (opt-in; used on Overview) ──
+   Bolder type, generous section rhythm and large rounded "media" surfaces.
+   Composed from the same tokens — no new colours. */
+.page.rhythm .divider {
+  margin: clamp(3rem, 6vw, 5.5rem) 0;
+}
+.page.rhythm .section-h {
+  margin-bottom: 24px;
+}
+.page.rhythm .section-h h2 {
+  font-family: var(--font-hero);
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+.page.rhythm .section-h p {
+  font-size: 17px;
+}
+.hero.hero-media {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3xl);
+  padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 3rem);
+  margin: 8px 0 clamp(2.5rem, 5vw, 4rem);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.hero.hero-media::before {
+  inset: 0;
+  height: auto;
+}
+.hero.hero-media h1 {
+  font-size: clamp(44px, 7vw, 88px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+.hero.hero-media p {
+  font-size: clamp(18px, 1.8vw, 22px);
+  max-width: 40ch;
+}
+.stat.media {
+  padding: 28px 28px 26px;
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(165deg, var(--bg-2), var(--bg-3));
+}
+.stat.media b {
+  font-size: clamp(40px, 4.6vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+.stat.media span {
+  font-size: 15px;
+}
+.card.media {
+  border-radius: var(--radius-2xl);
+  padding: 28px 30px;
+}
+.cta-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+.cta-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 28px;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  transition: transform 0.25s var(--ease-apple), border-color 0.25s var(--ease-apple);
+}
+.cta-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-2);
+}
+.cta-card b {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.cta-card b svg {
+  color: var(--blue);
+  transition: transform 0.25s var(--ease-apple);
+}
+.cta-card:hover b svg {
+  transform: translateX(3px);
+}
+.cta-card span {
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
 @media (max-width: 1100px) {
   .stats,
   .g4 {
