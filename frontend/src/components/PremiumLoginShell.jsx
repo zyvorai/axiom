@@ -1,6 +1,6 @@
-// Apple Store chapter login — full-bleed white hero (brand → title → lede →
-// pill CTAs), second chapter for credentials. Ported from
-// ../h2kvm-/web/dashboard/src/components/PremiumLoginShell.tsx.
+// Netra-style login — full-bleed hero (brand → title → lede → pill CTAs) over
+// a radial glow, second chapter for credentials. Theme-aware: colours come
+// from styles/tokens.css via axiom-login.css.
 import { AlertCircle } from "lucide-react";
 import "../axiom-login.css";
 
@@ -74,14 +74,14 @@ export function PremiumLoginShell({
 export function LoginError({ message }) {
     return (
         <div
-            className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl p-3 mb-6 login-shake"
+            className="flex items-start gap-2.5 bg-soft-danger border border-soft-danger-border rounded-xl p-3 mb-6 login-shake"
             role="alert"
             aria-live="assertive"
         >
-            <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertCircle className="h-4 w-4 text-tone-red shrink-0 mt-0.5" aria-hidden="true" />
             <div>
-                <p className="text-sm font-medium text-red-700">Unable to sign in</p>
-                <p className="text-sm text-red-600/90 mt-0.5">{message}</p>
+                <p className="text-sm font-medium text-tone-red">Unable to sign in</p>
+                <p className="text-sm text-muted-foreground mt-0.5">{message}</p>
             </div>
         </div>
     );
@@ -90,7 +90,7 @@ export function LoginError({ message }) {
 export function LoginField({ label, id, children }) {
     return (
         <div className="mb-4">
-            <label htmlFor={id} className="block text-xs font-medium text-zinc-500 mb-1.5">
+            <label htmlFor={id} className="block text-xs text-muted-foreground mb-1.5">
                 {label}
             </label>
             <div className="relative group">{children}</div>
@@ -114,11 +114,11 @@ export function LoginRemember({ checked, onChange, label = "Remember me on this 
                     type="checkbox"
                     checked={checked}
                     onChange={(e) => onChange(e.target.checked)}
-                    className="w-4 h-4 rounded border-zinc-300 accent-[#0071e3]"
+                    className="w-4 h-4 rounded border-border accent-primary"
                 />
-                <span className="text-sm text-zinc-500">{label}</span>
+                <span className="text-sm text-muted-foreground">{label}</span>
             </label>
-            {hint ? <p className="text-xs text-zinc-400 mt-1.5 ml-[1.625rem]">{hint}</p> : null}
+            {hint ? <p className="text-xs text-muted-foreground mt-1.5 ml-[1.625rem]">{hint}</p> : null}
         </div>
     );
 }
