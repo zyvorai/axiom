@@ -1,0 +1,204 @@
+/*
+ * Design tokens — single source of truth for the Axiom UI.
+ *
+ * Values follow the Netra web design system (apple.com-derived):
+ *   netra/web/src/styles.css  (:root light, [data-theme="dark"] dark)
+ * Light is on :root, dark is on [data-theme="dark"] (set together with the
+ * `.dark` class by lib/theme.js and the pre-paint script in index.html).
+ *
+ * Three consumers read these:
+ *   1. the app shell (axiom-shell.css / axiom-login.css) via the netra names
+ *      and the short shell aliases (--bg, --ink, --line, --blue …) below;
+ *   2. Tailwind/shadcn via the HSL triplets in index.css, derived from the
+ *      same values;
+ *   3. terminals/code panes via the --terminal-* tokens.
+ * Do not add literal hex colours to pages or components — add a token here.
+ */
+
+:root {
+  /* surfaces */
+  --bg-page: #f5f5f7;
+  --bg-elevated: #ffffff;
+  --bg-elevated-2: #f5f5f7;
+  --nav-bg: rgba(251, 251, 253, 0.8);
+
+  /* text */
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #86868b;
+  --text-quaternary: #d2d2d7;
+
+  /* lines + fills */
+  --border-hairline: #d2d2d7;
+  --border-strong: #c7c7cc;
+  --hover-fill: rgba(0, 0, 0, 0.04);
+  --hover-fill-strong: rgba(0, 0, 0, 0.08);
+
+  /* brand + accents */
+  --apple-blue: #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-link: #0066cc;
+  --danger: #ff3b30;
+  --danger-bg: #fff1f0;
+  --danger-border: rgba(255, 59, 48, 0.35);
+  --accent-cyan: #32ade6;
+  --accent-green: #34c759;
+  --accent-amber: #ff9f0a;
+  --accent-purple: #af52de;
+  --on-accent: #ffffff;
+  --btn-secondary: #6e6e73;
+  --btn-secondary-hover: #5a5a5e;
+  --disabled-bg: #dcdce1;
+  --disabled-text: #86868b;
+
+  /* text-safe accent shades for small text on light surfaces */
+  --green: #248a3d;
+  --amber: #bf7a00;
+  --orange: #c93400;
+  --red: #d70015;
+  --teal: #0f8fbf;
+  --purple: #8944ab;
+
+  /* semantic surfaces */
+  --warning-bg: #fff6ed;
+  --warning-border: #ffd8ba;
+  --warning-text: #8b3d00;
+  --success-bg: #e8f8ec;
+  --success-border: #b8ecc4;
+  --info-bg: #eaf6fc;
+  --info-border: #bfe6f5;
+
+  /* terminal / code panes — dark in both themes */
+  --terminal-bg: #0d0d0f;
+  --terminal-bar: #1b1b1e;
+  --terminal-text: #f5f5f7;
+  --terminal-text-dim: #86868b;
+  --terminal-hover: rgba(255, 255, 255, 0.1);
+  --terminal-dot-close: #ff5f57;
+  --terminal-dot-min: #febc2e;
+  --terminal-dot-max: #28c840;
+  --terminal-caret: #5af78e;
+  --terminal-selection: rgba(87, 199, 255, 0.27);
+  --tok-key: #5af78e;
+  --tok-str: #57c7ff;
+  --tok-num: #f3f99d;
+  --tok-kw: #ff6ac1;
+  --tok-punct: #9aedfe;
+  --tok-plain: #f1f1f0;
+
+  /* elevation + hero glow */
+  --card-shadow: 0 15px 50px rgba(0, 0, 0, 0.04);
+  --pop-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  --scrim: rgba(0, 0, 0, 0.4);
+  --hero-glow-a: rgba(0, 113, 227, 0.14);
+  --hero-glow-b: rgba(50, 173, 230, 0.12);
+
+  /* radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-base: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-pill: 980px;
+
+  /* motion */
+  --ease-apple: cubic-bezier(0.28, 0.11, 0.32, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 300ms;
+
+  /* type */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+  --font-hero: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, "JetBrains Mono Variable", monospace;
+
+  /* focus */
+  --focus-outline: rgba(0, 113, 227, 0.45);
+
+  /* ── shell aliases (axiom-shell.css / axiom-login.css vocabulary) ── */
+  --bg: var(--bg-page);
+  --bg-2: var(--bg-elevated);
+  --bg-3: var(--bg-elevated-2);
+  --bar: var(--nav-bg);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --ink-4: var(--text-quaternary);
+  --line: var(--border-hairline);
+  --line-2: var(--border-strong);
+  --hover: var(--hover-fill);
+  --active: var(--hover-fill-strong);
+  --blue: var(--apple-link);
+  --blue-btn: var(--apple-blue);
+  --blue-btn-h: var(--apple-blue-hover);
+}
+
+:root[data-theme="dark"],
+:root.dark {
+  --bg-page: #000000;
+  --bg-elevated: #1d1d1f;
+  --bg-elevated-2: #2c2c2e;
+  --nav-bg: rgba(22, 22, 23, 0.8);
+
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #86868b;
+  --text-quaternary: #48484a;
+
+  --border-hairline: rgba(255, 255, 255, 0.16);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --hover-fill: rgba(255, 255, 255, 0.06);
+  --hover-fill-strong: rgba(255, 255, 255, 0.1);
+
+  --apple-link: #2997ff;
+  --danger: #ff453a;
+  --danger-bg: rgba(255, 69, 58, 0.14);
+  --danger-border: rgba(255, 69, 58, 0.35);
+  --accent-cyan: #64d2ff;
+  --accent-green: #30d158;
+  --accent-amber: #ff9f0a;
+  --accent-purple: #bf5af2;
+  --btn-secondary: #737378;
+  --btn-secondary-hover: #7e7e84;
+  --disabled-bg: #3a3a3d;
+  --disabled-text: #9a9aa0;
+
+  --green: #30d158;
+  --amber: #ffd60a;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+  --teal: #64d2ff;
+  --purple: #bf5af2;
+
+  --warning-bg: rgba(255, 159, 10, 0.12);
+  --warning-border: rgba(255, 159, 10, 0.35);
+  --warning-text: #ffd60a;
+  --success-bg: rgba(48, 209, 88, 0.14);
+  --success-border: rgba(48, 209, 88, 0.35);
+  --info-bg: rgba(100, 210, 255, 0.14);
+  --info-border: rgba(100, 210, 255, 0.35);
+
+  --terminal-bg: #000000;
+  --terminal-bar: #1d1d1f;
+
+  --card-shadow: none;
+  --pop-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --hero-glow-a: rgba(0, 113, 227, 0.18);
+  --hero-glow-b: rgba(50, 173, 230, 0.16);
+}
+
+::selection {
+  background: var(--apple-blue);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

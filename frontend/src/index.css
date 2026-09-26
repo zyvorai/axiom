@@ -2,105 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mono only as fallback off Apple platforms — UI text is system SF Pro. */
-@import "@fontsource-variable/jetbrains-mono/wght.css";
-
 /* --------------------------------------------------------------------- */
-/* One apple.com-flat palette, light and dark, ported from the           */
-/* AxiomApp.jsx reference design (see axiom-shell.css for the full       */
-/* component vocabulary — .bar/.side/.card/.tbl/etc). Light: #f5f5f7 /   */
-/* #1d1d1f / Action Blue #0071e3. Dark: pure black #000 / #1d1d1f panel  */
-/* / Apple system blue #2997ff — no more GitHub-Primer-dark mismatch.    */
-/* Type: apple.com SF Pro stack everywhere (no Inter).                    */
+/* Tailwind/shadcn colour bridge. The source of truth is                  */
+/* styles/tokens.css (Netra design system). The HSL triplets below are    */
+/* derived from those values so `bg-primary/50`-style opacity modifiers   */
+/* keep working; change a colour in tokens.css first, then mirror it here.*/
+/* Fonts, radii, motion and shell/terminal tokens live only in tokens.css.*/
 /* --------------------------------------------------------------------- */
 
 @layer base {
     :root {
-        /* Apple gray canvas (#f5f5f7) + white cards */
+        /* #f5f5f7 canvas, #fff cards, #1d1d1f text, Action Blue #0071e3 */
         --background: 240 5% 96%;
-        --foreground: 240 6% 10%;
-        /* Match canvas — no separate “card” surface */
-        --card: 240 5% 96%;
-        --card-foreground: 240 6% 10%;
+        --foreground: 240 3% 12%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 3% 12%;
         --popover: 0 0% 100%;
-        --popover-foreground: 240 6% 10%;
-        /* Apple Action Blue #0071e3 */
+        --popover-foreground: 240 3% 12%;
         --primary: 211 100% 45%;
         --primary-foreground: 0 0% 100%;
         --secondary: 240 5% 96%;
         --secondary-foreground: 240 2% 44%;
         --muted: 240 5% 94%;
         --muted-foreground: 240 2% 44%;
-        --accent: 240 5% 96%;
-        --accent-foreground: 240 6% 10%;
-        --destructive: 4 76% 40%;
+        --accent: 240 5% 94%;
+        --accent-foreground: 240 3% 12%;
+        --destructive: 3 100% 59%;
         --destructive-foreground: 0 0% 100%;
         --success: 135 59% 34%;
         --warning: 38 100% 37%;
         --info: 211 100% 45%;
-        --danger: 4 76% 40%;
-        --border: 240 5% 88%;
-        --input: 240 5% 88%;
+        --danger: 3 100% 59%;
+        --border: 240 6% 83%;
+        --input: 240 6% 83%;
         --ring: 211 100% 45%;
-        --radius: 0.9rem;
+        --radius: 1rem;
         --brand: 211 100% 45%;
-        --brand-hex: hsl(211 100% 45%);
+        --brand-hex: var(--apple-blue);
         --zeus: 187 92% 45%;
 
-        --glass-bg: 255 255 255 / 1;
-        --glass-border: 0 0 0 / 0.08;
-        --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
-        --grid-color: 0 0 0 / 0.035;
 
         --k-ok: 142 70% 30%;
         --k-warn: 32 90% 40%;
-        --k-err: 4 76% 40%;
+        --k-err: 3 100% 59%;
         --k-info: 211 100% 45%;
 
         --chart-1: 211 100% 45%;
         --chart-2: 240 2% 44%;
         --chart-3: 142 70% 30%;
         --chart-4: 32 90% 40%;
-        --chart-5: 4 76% 40%;
+        --chart-5: 3 100% 59%;
 
-        --i17-cosmic: hsl(211 100% 45%);
-        --i17-deep-blue: hsl(211 100% 32%);
-        --i17-sky-blue: hsl(211 100% 58%);
-        --i17-lavender: hsl(240 2% 44%);
-        --i17-sage: hsl(142 70% 30%);
-        --i17-mist: hsl(240 5% 84%);
-        --i17-white: #ffffff;
-        --i17-silver: #d2d2d7;
-        --i17-gold: hsl(32 90% 40%);
 
-        --fs-xs: 11px; --fs-sm: 13px; --fs-base: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px;
-        --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
-        --lh-tight: 1.2; --lh-normal: 1.5;
-        --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
-        --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 300ms;
-        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        --font-hero: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Mono", "JetBrains Mono Variable", "Roboto Mono", monospace;
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 
-    /* Apple.com-flat dark — pure black canvas #000, #1d1d1f panel,
-       hairline borders, system blue #2997ff, system green #30d158. */
-    .dark {
+    /* pure black canvas, #1d1d1f panels, hairline borders, system green */
+    .dark,
+    :root[data-theme="dark"] {
         --background: 0 0% 0%;
         --foreground: 240 9% 96%;
         --card: 240 3% 12%;
         --card-foreground: 240 9% 96%;
         --popover: 240 3% 12%;
         --popover-foreground: 240 9% 96%;
-        --primary: 209 100% 58%;
+        /* netra keeps the fill blue at #0071e3 in dark; links use --apple-link */
+        --primary: 211 100% 45%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 240 3% 12%;
+        --secondary: 240 3% 18%;
         --secondary-foreground: 240 9% 96%;
-        --muted: 240 3% 12%;
-        --muted-foreground: 240 2% 65%;
-        --accent: 240 3% 17%;
+        --muted: 240 3% 18%;
+        --muted-foreground: 240 3% 64%;
+        --accent: 240 3% 18%;
         --accent-foreground: 240 9% 96%;
         --destructive: 3 100% 61%;
         --destructive-foreground: 0 0% 100%;
@@ -108,17 +81,14 @@
         --warning: 50 100% 52%;
         --info: 209 100% 58%;
         --danger: 3 100% 61%;
-        --border: 0 0% 100% / 0.1;
-        --input: 0 0% 100% / 0.1;
+        /* solid (not alpha) so `border-border/50` works; reads as ~rgba(255,255,255,.16) on #000/#1d1d1f */
+        --border: 240 3% 20%;
+        --input: 240 3% 20%;
         --ring: 209 100% 58%;
         --brand: 209 100% 58%;
-        --brand-hex: #2997ff;
+        --brand-hex: var(--apple-link);
         --zeus: 187 92% 50%;
 
-        --glass-bg: 255 255 255 / 0.03;
-        --glass-border: 255 255 255 / 0.08;
-        --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
-        --grid-color: 255 255 255 / 0.035;
 
         --k-ok: 135 64% 50%;
         --k-warn: 50 100% 52%;
@@ -131,16 +101,6 @@
         --chart-4: 50 100% 52%;
         --chart-5: 3 100% 61%;
 
-        --i17-cosmic: #2997ff;
-        --i17-deep-blue: hsl(209 100% 40%);
-        --i17-sky-blue: hsl(209 100% 70%);
-        --i17-lavender: hsl(280 60% 72%);
-        --i17-sage: hsl(135 55% 55%);
-        --i17-mist: hsl(240 3% 35%);
-        --i17-white: #f5f5f7;
-        --i17-silver: #a1a1a6;
-        --i17-gold: hsl(50 90% 55%);
-        --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
     }
 }
 
@@ -159,7 +119,7 @@
         font-family: var(--font-display);
         font-size: 14px;
         font-weight: 400;
-        letter-spacing: -0.016em;
+        letter-spacing: -0.011em;
         line-height: 1.42859;
         font-synthesis: none;
         -webkit-font-smoothing: antialiased;
@@ -172,36 +132,6 @@
 }
 
 @layer components {
-    /* Flat — no cards. Sections are open canvas; hairlines live on children. */
-    .glass {
-        background: transparent;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-    }
-    .dark .glass {
-        box-shadow: none;
-    }
-    .glass-inset {
-        background: transparent;
-        border: none;
-    }
-    .specular {
-        position: relative;
-        isolation: isolate;
-    }
-    .specular::before {
-        content: none;
-    }
-    .grid-bg {
-        background-image:
-            linear-gradient(rgb(var(--grid-color)) 1px, transparent 1px),
-            linear-gradient(90deg, rgb(var(--grid-color)) 1px, transparent 1px);
-        background-size: 56px 56px;
-    }
-    .noise::after {
-        content: none;
-    }
     .status-dot {
         display: inline-block;
         width: 8px;
@@ -260,12 +190,6 @@
         line-height: 1.33334;
     }
 
-    .glow-green,
-    .glow-yellow,
-    .glow-red,
-    .glow-blue {
-        box-shadow: none;
-    }
 }
 
 @layer utilities {
@@ -280,17 +204,6 @@
     .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
 
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: none; }
-}
-.fade-up {
-    animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.glass {
-    transition: none;
-}
 
 @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -300,24 +213,24 @@
     background-image: linear-gradient(
         100deg,
         hsl(var(--muted)) 30%,
-        hsl(0 0% 100%) 50%,
+        hsl(var(--accent)) 50%,
         hsl(var(--muted)) 70%
     );
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
 }
 
-/* macOS Terminal window for manifests */
+/* Terminal window for manifests — colours come from --terminal-* tokens */
 .macos-term {
-    border-radius: 10px;
-    background: #1c1c1e;
+    border-radius: var(--radius-2xl);
+    background: var(--terminal-bg);
     box-shadow:
         0 0 0 0.5px rgb(255 255 255 / 0.08),
         0 12px 40px -12px rgb(0 0 0 / 0.45);
     overflow: hidden;
 }
 .macos-term-chrome {
-    background: linear-gradient(180deg, #3a3a3c 0%, #2c2c2e 100%);
+    background: var(--terminal-bar);
     border-bottom: 0.5px solid rgb(0 0 0 / 0.45);
 }
 .macos-term-dot {
@@ -327,17 +240,17 @@
     border-radius: 999px;
     box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
 }
-.macos-term-dot-close { background: #ff5f57; }
-.macos-term-dot-min { background: #febc2e; }
-.macos-term-dot-max { background: #28c840; }
+.macos-term-dot-close { background: var(--terminal-dot-close); }
+.macos-term-dot-min { background: var(--terminal-dot-min); }
+.macos-term-dot-max { background: var(--terminal-dot-max); }
 .macos-term-title {
     color: rgb(255 255 255 / 0.55);
     letter-spacing: -0.01em;
 }
 .macos-term-body {
-    background: #0d0d0f !important;
-    color: #f5f5f7 !important;
-    caret-color: #5af78e;
+    background: var(--terminal-bg) !important;
+    color: var(--terminal-text) !important;
+    caret-color: var(--terminal-caret);
 }
 .macos-term-body:focus-visible {
     outline: none;
@@ -349,24 +262,13 @@
     overflow-y: auto !important;
 }
 
-/* Colorful Terminal Pro–style JSON syntax */
-.code-pane .tok-key { color: #5af78e; }
-.code-pane .tok-str { color: #57c7ff; }
-.code-pane .tok-num { color: #f3f99d; }
-.code-pane .tok-kw { color: #ff6ac1; }
-.code-pane .tok-punct { color: #9aedfe; }
-.code-pane .tok-plain { color: #f1f1f0; }
+/* JSON syntax colours */
+.code-pane .tok-key { color: var(--tok-key); }
+.code-pane .tok-str { color: var(--tok-str); }
+.code-pane .tok-num { color: var(--tok-num); }
+.code-pane .tok-kw { color: var(--tok-kw); }
+.code-pane .tok-punct { color: var(--tok-punct); }
+.code-pane .tok-plain { color: var(--tok-plain); }
 .code-pane .tok-ws { color: inherit; }
 
-.dark .glass-tint-sky,
-.dark .glass-tint-sage,
-.dark .glass-tint-gold,
-.dark .glass-tint-lavender,
-.glass-tint-sky,
-.glass-tint-sage,
-.glass-tint-gold,
-.glass-tint-lavender {
-    border: none;
-    background: transparent;
-}
 

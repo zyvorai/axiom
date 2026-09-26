@@ -7,10 +7,23 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Netra radius scale (styles/tokens.css). Cards = 3xl, tiles = xl,
+      // inputs = md, buttons/badges = full.
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        xs: 'var(--radius-xs)',
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        '3xl': 'var(--radius-3xl)',
+      },
+      boxShadow: {
+        card: 'var(--card-shadow)',
+        pop: 'var(--pop-shadow)',
+      },
+      transitionTimingFunction: {
+        apple: 'var(--ease-apple)',
       },
       fontFamily: {
         sans: ['var(--font-display)'],
@@ -70,22 +83,53 @@ module.exports = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))'
         },
-        brand: {
-          DEFAULT: 'var(--brand-hex)',
-          cosmic: 'var(--i17-cosmic)',
-          sky: 'var(--i17-sky-blue)',
+        // Netra accents/soft surfaces (styles/tokens.css) — use these instead of
+        // raw palette classes (text-rose-400, bg-white/5 …). Plain var() colours,
+        // so no /opacity modifier: use the -soft surfaces for tints.
+        line: 'var(--line)',
+        // Shell text ramp (--ink*) for pages that render outside shadcn tokens
+        ink: {
+          DEFAULT: 'var(--ink)',
+          '2': 'var(--ink-2)',
+          '3': 'var(--ink-3)',
+          '4': 'var(--ink-4)',
         },
-        i17: {
-          cosmic: 'var(--i17-cosmic)',
-          deepblue: 'var(--i17-deep-blue)',
-          sky: 'var(--i17-sky-blue)',
-          lavender: 'var(--i17-lavender)',
-          sage: 'var(--i17-sage)',
-          mist: 'var(--i17-mist)',
-          white: 'var(--i17-white)',
-          silver: 'var(--i17-silver)',
-          gold: 'var(--i17-gold)',
-        }
+        tone: {
+          blue: 'var(--apple-blue)',
+          link: 'var(--apple-link)',
+          cyan: 'var(--accent-cyan)',
+          green: 'var(--green)',
+          amber: 'var(--amber)',
+          orange: 'var(--orange)',
+          red: 'var(--red)',
+          purple: 'var(--accent-purple)',
+          teal: 'var(--teal)',
+        },
+        // Terminal / code panes — dark in both themes (--terminal-* tokens)
+        term: {
+          bg: 'var(--terminal-bg)',
+          bar: 'var(--terminal-bar)',
+          text: 'var(--terminal-text)',
+          dim: 'var(--terminal-text-dim)',
+          hover: 'var(--terminal-hover)',
+          key: 'var(--tok-key)',
+          str: 'var(--tok-str)',
+          num: 'var(--tok-num)',
+          kw: 'var(--tok-kw)',
+          punct: 'var(--tok-punct)',
+          plain: 'var(--tok-plain)',
+        },
+        soft: {
+          danger: 'var(--danger-bg)',
+          'danger-border': 'var(--danger-border)',
+          warning: 'var(--warning-bg)',
+          'warning-border': 'var(--warning-border)',
+          'warning-text': 'var(--warning-text)',
+          success: 'var(--success-bg)',
+          'success-border': 'var(--success-border)',
+          info: 'var(--info-bg)',
+          'info-border': 'var(--info-border)',
+        },
       },
       keyframes: {
         'accordion-down': {
