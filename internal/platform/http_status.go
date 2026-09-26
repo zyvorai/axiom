@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // StatusError wraps err with an explicit HTTP status code, for providers
@@ -53,4 +54,33 @@ func HTTPStatus(err error) int {
 		return code
 	}
 	return http.StatusInternalServerError
+}
+
+// httpStatusFromMessage is a lightweight message-phrasing heuristic for provider
+// errors that are plain fmt.Errorf values with no structured type. It matches the
+// phrasing the providers use consistently ("X not found", "X is required",
+// "X already exists", "cannot ...", "invalid ...") so a hand-written validation
+// error is a 4xx rather than reading as a server outage. The demo build uses it
+// on its own; the kubernetes build tries real *apierrors.StatusError values first
+// and falls back to this.
+func httpStatusFromMessage(err error) (int, bool) {
+	msg := strings.ToLower(err.Error())
+	switch {
+	case strings.Contains(msg, "not found"):
+		return http.StatusNotFound, true
+	case strings.Contains(msg, "already exists"):
+		return http.StatusConflict, true
+	case strings.Contains(msg, "required") ||
+		strings.Contains(msg, "must be") ||
+		strings.Contains(msg, "must not") ||
+		strings.Contains(msg, "unsupported") ||
+		strings.Contains(msg, "not supported") ||
+		strings.HasPrefix(msg, "invalid ") ||
+		strings.HasPrefix(msg, "unknown ") ||
+		strings.Contains(msg, ": invalid "):
+		return http.StatusBadRequest, true
+	case strings.HasPrefix(msg, "cannot "):
+		return http.StatusForbidden, true
+	}
+	return 0, false
 }

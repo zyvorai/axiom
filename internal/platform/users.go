@@ -210,6 +210,10 @@ func (h *UserHub) Create(ctx context.Context, username, password, role string, n
 	if username == "" {
 		return UserView{}, fmt.Errorf("username is required")
 	}
+	// HTTP Basic splits credentials on the first ':', so such an account could be created but never sign in.
+	if strings.ContainsAny(username, ":\x00\r\n") {
+		return UserView{}, fmt.Errorf("username must not contain ':' or control characters")
+	}
 	if len(password) < 8 {
 		return UserView{}, fmt.Errorf("password must be at least 8 characters")
 	}

@@ -29,5 +29,8 @@ func httpStatusFromKnownError(err error) (int, bool) {
 	case apierrors.IsTooManyRequests(err):
 		return http.StatusTooManyRequests, true
 	}
-	return 0, false
+	// Hand-written validation errors ("X is required", "unsupported kind") are not
+	// apierrors; without this they read as HTTP 500 — the same request the demo build
+	// answers with 400.
+	return httpStatusFromMessage(err)
 }
