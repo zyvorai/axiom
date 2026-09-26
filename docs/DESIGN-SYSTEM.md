@@ -269,8 +269,10 @@ The UI is audited with axe-core (WCAG 2.0 A/AA) on every route in both themes; t
 
 - **Contrast:** text must be >=4.5:1 on the surface it sits on. Light-theme text is `#515154` (secondary) / `#636366` (tertiary) — darker than netra's values, which failed at 3.3–3.6:1 — dark tertiary is `#8e8e93`, and the small-text accents (`--green`, `--amber`, `--teal`) have darker light-theme shades. Re-run the audit if you touch tokens.
 - **Names:** every icon-only button/checkbox/switch/select needs `aria-label` (and a `title` tooltip for buttons); put the resource name in it (`Delete secret ${s.name}`). Every form field needs an associated `<label htmlFor>` (see `Field` in `Settings.jsx`).
-- **Scroll regions** that contain no focusable content get `tabIndex={0}`, `role="region"` and an `aria-label` so they can be scrolled by keyboard.
+- **Scroll regions** (any `overflow-auto`/`-x-auto`/`-y-auto` element, `<div>` or `<pre>`) get `tabIndex={0}`, `role="region"` and an `aria-label` so they can be scrolled by keyboard.
 - **Page titles:** `PageHeader` / `DetailHeader` set the tab title through `lib/pageTitle.js` (`usePageTitle(title, section)` → "Nodes · Axiom", "checkout · Service · Axiom"). A page without either header (Overview, Ops tabs) calls the hook itself.
+- **Tap targets:** the shadcn `Checkbox` stays 16px visually, but an invisible `::after` extends its click/tap area to 26px.
+- **Enforcement:** `npm run lint` (run in CI) chains `lint:design` (colour tokens) and `lint:a11y` (`scripts/lint-a11y.js`, a JSX-parsing check for unfocusable scroll containers and unnamed icon-only buttons). It does not replace an axe-core sweep — contrast and label association need a rendered DOM. Silence a deliberate exception with `// a11y-ok: <reason>` on the line above.
 - **Link buttons:** the shell resets `a`/`button` colour inside `:where(.ax)` (zero specificity), so `.btn-*` and Tailwind colour utilities win on `<a>` too — don't re-add a `.ax a { color: … }` rule.
 
 ## Routing and loading

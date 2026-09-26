@@ -25,6 +25,10 @@ jobs:
       - name: Build frontend and refresh internal/ui/dist
         run: ./scripts/sync-ui.sh
 
+      - name: Design-token and accessibility lint (frontend)
+        working-directory: frontend
+        run: npm run lint
+
       - name: go vet (demo build)
         run: go vet ./cmd/... ./internal/...
 

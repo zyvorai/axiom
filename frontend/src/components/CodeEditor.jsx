@@ -27,7 +27,12 @@ function tokenizeJson(src) {
 function Highlighted({ value }) {
     const tokens = useMemo(() => tokenizeJson(value || ""), [value]);
     return (
-        <pre className="code-pane max-h-[65vh] min-h-[65vh] overflow-auto whitespace-pre px-4 py-3 text-[12.5px] leading-[1.55]">
+        <pre
+            className="code-pane max-h-[65vh] min-h-[65vh] overflow-auto whitespace-pre px-4 py-3 text-[12.5px] leading-[1.55]"
+            tabIndex={0}
+            role="region"
+            aria-label="Manifest (read-only)"
+        >
             {tokens.map((tok, i) => (
                 <span key={i} className={`tok-${tok.t}`}>
                     {tok.v}
