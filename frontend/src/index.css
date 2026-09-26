@@ -27,7 +27,7 @@
         --muted-foreground: 240 2% 39%;
         --accent: 240 5% 94%;
         --accent-foreground: 240 3% 12%;
-        --destructive: 3 100% 59%;
+        --destructive: 4 71% 46%; /* white label >=5.3:1 (netra's #ff3b30 was 3.4:1) */
         --destructive-foreground: 0 0% 100%;
         --success: 134 67% 29%;
         --warning: 39 100% 28%;
@@ -63,7 +63,7 @@
         --muted-foreground: 240 3% 64%;
         --accent: 240 3% 18%;
         --accent-foreground: 240 9% 96%;
-        --destructive: 3 100% 61%;
+        --destructive: 4 71% 46%;
         --destructive-foreground: 0 0% 100%;
         --success: 135 64% 50%;
         --warning: 50 100% 52%;
@@ -193,4 +193,20 @@
 .code-pane .tok-plain { color: var(--tok-plain); }
 .code-pane .tok-ws { color: inherit; }
 
-
+/* Sonner's built-in "rich colours" text is 4.2-4.3:1 on its tints. Re-point its palette at our
+   text-safe tokens (>=4.9:1 in both themes). `:root` adds specificity because Sonner injects its
+   stylesheet at runtime, after ours. */
+:root [data-sonner-toaster][data-sonner-theme] {
+    --success-bg: var(--toast-success-bg);
+    --success-border: var(--toast-success-border);
+    --success-text: var(--green);
+    --info-bg: var(--toast-info-bg);
+    --info-border: var(--toast-info-border);
+    --info-text: var(--apple-link);
+    --warning-bg: var(--toast-warning-bg);
+    --warning-border: var(--toast-warning-border);
+    --warning-text: var(--toast-warning-text);
+    --error-bg: var(--danger-bg);
+    --error-border: var(--danger-border);
+    --error-text: var(--red);
+}

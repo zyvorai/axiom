@@ -141,6 +141,16 @@
   /* focus */
   --focus-outline: rgba(0, 113, 227, 0.45);
 
+  /* Aliases for the toast palette: Sonner redefines --success-bg/--warning-text/… on its own
+     container, so index.css reads our values through these root-level names instead. */
+  --toast-success-bg: var(--success-bg);
+  --toast-success-border: var(--success-border);
+  --toast-info-bg: var(--info-bg);
+  --toast-info-border: var(--info-border);
+  --toast-warning-bg: var(--warning-bg);
+  --toast-warning-border: var(--warning-border);
+  --toast-warning-text: var(--warning-text);
+
   /* ── shell aliases (axiom-shell.css / axiom-login.css vocabulary) ── */
   --bg: var(--bg-page);
   --bg-2: var(--bg-elevated);
@@ -193,9 +203,9 @@
   --green: #30d158;
   --amber: #ffd60a;
   --orange: #ff9f0a;
-  --red: #ff453a;
+  --red: #ff6961; /* text-safe red (>=4.9:1 on cards and the tinted error surface); --danger stays the fill */
   --teal: #64d2ff;
-  --purple: #bf5af2;
+  --purple: #d18cf7;
 
   --warning-bg: rgba(255, 159, 10, 0.12);
   --warning-border: rgba(255, 159, 10, 0.35);
