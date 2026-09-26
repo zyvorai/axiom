@@ -74,6 +74,17 @@ func (s *Server) atlasProxy(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) atlasCreateVolume(w http.ResponseWriter, r *http.Request) {
 	atlas := s.atlasClient()
+	if (atlas == nil || !atlas.Enabled()) && s.mode == "demo" {
+		// The demo summary presents a connected fabric, so accept the request the way a gateway would.
+		var req platform.CreateAtlasVolumeRequest
+		if err := decode(r, &req); err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+		platform.RecordAxiomAudit("atlas.volume.create", req.Namespace+"/"+req.Name, req.Policy, s.auditUser(r))
+		writeJSON(w, http.StatusAccepted, map[string]any{"status": "accepted", "demo": true, "name": req.Name})
+		return
+	}
 	if atlas == nil || !atlas.Enabled() {
 		fail(w, http.StatusServiceUnavailable, fmt.Errorf("atlas not configured — set it in Settings → Integrations"))
 		return

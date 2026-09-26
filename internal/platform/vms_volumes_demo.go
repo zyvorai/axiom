@@ -24,6 +24,12 @@ func demoVMExists(ns, name string) bool {
 	return false
 }
 
+func (d *DemoProvider) vmExists(ns, name string) bool {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.vmExistsLocked(ns, name)
+}
+
 func (d *DemoProvider) vmExistsLocked(ns, name string) bool {
 	if demoVMExists(ns, name) {
 		return true

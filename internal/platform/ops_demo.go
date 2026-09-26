@@ -85,13 +85,25 @@ func (d *DemoProvider) CreateSecret(ctx context.Context, req CreateSecretRequest
 	if req.Namespace == "" || req.Name == "" {
 		return SecretDetail{}, fmt.Errorf("namespace and name are required")
 	}
+	if len(req.Data) == 0 && len(req.Keys) == 0 {
+		return SecretDetail{}, fmt.Errorf("at least one data/keys entry is required") // same rule as the Kubernetes provider
+	}
 	typ := req.Type
 	if typ == "" {
 		typ = "Opaque"
 	}
-	keys := make([]SecretKeyInfo, 0, len(req.Data))
-	values := map[string]string{}
+	entries := map[string]string{}
 	for k, v := range req.Data {
+		entries[k] = v
+	}
+	for k, v := range req.Keys { // alias accepted from Aether-style clients
+		if _, exists := entries[k]; !exists {
+			entries[k] = v
+		}
+	}
+	keys := make([]SecretKeyInfo, 0, len(entries))
+	values := map[string]string{}
+	for k, v := range entries {
 		keys = append(keys, SecretKeyInfo{Key: k, Size: len(v)})
 		values[k] = v
 	}
@@ -784,6 +796,9 @@ func (d *DemoProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPA
 		minReplicas = 1
 	}
 	maxReplicas := req.MaxReplicas
+	if maxReplicas > 0 && maxReplicas < minReplicas {
+		return HPASummary{}, fmt.Errorf("maxReplicas (%d) must be at least minReplicas (%d)", maxReplicas, minReplicas)
+	}
 	if maxReplicas < minReplicas {
 		maxReplicas = minReplicas
 	}

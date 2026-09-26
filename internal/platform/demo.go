@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -123,9 +124,15 @@ func (d *DemoProvider) ListWorkloads(ctx context.Context, ns string) ([]Workload
 // synchronously materialize pod objects in the caller's process.
 const maxDemoReplicas = 1000
 
+// dnsLabelRE is what the API server enforces for most object names (RFC 1123 label).
+var dnsLabelRE = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$`)
+
 func (d *DemoProvider) Launch(ctx context.Context, req LaunchRequest) (Workload, error) {
 	if req.Name == "" || req.Image == "" {
 		return Workload{}, errors.New("name and image are required")
+	}
+	if !dnsLabelRE.MatchString(req.Name) {
+		return Workload{}, fmt.Errorf("invalid name %q: use lowercase letters, numbers and '-' (max 63)", req.Name)
 	}
 	if req.Namespace == "" {
 		req.Namespace = "default"

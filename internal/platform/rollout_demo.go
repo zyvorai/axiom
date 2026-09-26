@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"net/http"
 )
 
 type demoRolloutState struct {
@@ -71,7 +72,7 @@ func (d *DemoProvider) RolloutAction(ctx context.Context, ns, kind, name, action
 		d.rebuildPodsLocked(w)
 	case "undo":
 		if len(rs.history) < 2 {
-			return fmt.Errorf("no previous revision to undo to")
+			return NewStatusError(http.StatusConflict, fmt.Errorf("no previous revision to undo to"))
 		}
 		rs.history = rs.history[1:]
 		rs.history[0].Status = "active"

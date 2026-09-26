@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -43,6 +44,12 @@ func (d *DemoProvider) HelmRollback(ctx context.Context, ns, name string, revisi
 	r, ok := demoHelmReleases[key]
 	if !ok {
 		return HelmActionResult{}, fmt.Errorf("release %s/%s not found", ns, name)
+	}
+	if revision <= 0 { // like `helm rollback` with no revision: go to the previous one
+		revision = r.Revision - 1
+		if revision < 1 {
+			return HelmActionResult{}, NewStatusError(http.StatusConflict, fmt.Errorf("release %s/%s has no previous revision", ns, name))
+		}
 	}
 	r.Revision = revision
 	r.Status = "deployed"
@@ -106,7 +113,7 @@ func (d *DemoProvider) CreateVMSnapshot(ctx context.Context, req CreateVMSnapsho
 	if req.Namespace == "" || req.VM == "" {
 		return VMSnapshot{}, fmt.Errorf("namespace and vm are required")
 	}
-	if !demoVMExists(req.Namespace, req.VM) {
+	if !d.vmExists(req.Namespace, req.VM) {
 		return VMSnapshot{}, fmt.Errorf("vm %s/%s not found", req.Namespace, req.VM)
 	}
 	name := req.Name
@@ -125,7 +132,7 @@ func (d *DemoProvider) CreateVMSnapshot(ctx context.Context, req CreateVMSnapsho
 }
 
 func (d *DemoProvider) LiveMigrateVM(ctx context.Context, ns, name string) (HelmActionResult, error) {
-	if !demoVMExists(ns, name) {
+	if !d.vmExists(ns, name) {
 		return HelmActionResult{}, fmt.Errorf("vm %s/%s not found", ns, name)
 	}
 	return HelmActionResult{OK: true, Action: "migrate", Message: fmt.Sprintf("demo migrate %s/%s", ns, name)}, nil
