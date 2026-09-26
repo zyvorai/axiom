@@ -39,6 +39,39 @@ npm run test:visual:update    # refresh baselines after an intentional UI change
 
 See `docs/DESIGN-SYSTEM.md` → *Visual regression*.
 
+## Functional specs (state-changing flows)
+
+`tests/flows-*.spec.js` submit the create / edit / delete / action flows through the real UI and
+verify the result three ways: the mutating request came back 2xx, the UI shows the change, and an
+independent API read (Basic auth, not the page's session) agrees. Any mutating call that returns
+>= 400 or any console error fails the test unless the test declared it expected. Every test uses
+uniquely named resources and cleans up.
+
+| Spec | Covers |
+| --- | --- |
+| `flows-core` | namespaces |
+| `flows-config` | ConfigMaps, Secrets (edit values), HPA, NetworkPolicy / Apply dialog, Atlas volume, read-only pages |
+| `flows-workloads` | Run wizard (form / intent / validate), scale, rollout, delete, pods, jobs / cronjobs, nodes |
+| `flows-ops` | VMs, backups / Velero, Atlas, Helm, GitOps, agent runs, RBAC |
+| `flows-admin` | Users (incl. real sign-in of created users), Settings integrations + Test buttons, clusters |
+| `flows-integrations` | PacketWolf (mock server), plugin page, OIDC / SAML / LDAP against in-process mock IdPs |
+
+```sh
+make ui && go build -o bin/zyvor-axiom ./cmd/zyvor-axiom
+AXIOM_MODE=demo AXIOM_USERNAME=demo AXIOM_PASSWORD=demo AXIOM_ADDR=:5091 ./bin/zyvor-axiom &
+cd e2e && AXIOM_E2E_BASE_URL=http://localhost:5091 npx playwright test
+BROWSERS=all ...   # also Firefox and WebKit (npx playwright install firefox webkit)
+```
+
+`flows-integrations` ignores `AXIOM_E2E_BASE_URL`: it starts its own servers (from a copy of
+`bin/zyvor-axiom`) with the environment each flow needs. Known product bugs are declared with
+`fixme(...)` and run only with `AXIOM_E2E_RUN_FIXME=1`.
+
+**What a pass proves.** The demo backend is in-memory, so these specs prove the UI-to-API contract
+and UI behaviour, not the Kubernetes implementation. That is covered by the fake-clientset tests in
+`internal/platform/*_kubernetes_test.go` (`go test -modfile=go.production.mod -tags kubernetes ./internal/...`).
+Real IdPs (Keycloak, Okta, AD), real cluster behaviour and real Slack / Atlas are not exercised.
+
 ## Why `workers: 1`
 
 Axiom's login rate limiter (`internal/auth/ratelimit.go`) counts every

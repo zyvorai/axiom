@@ -55,7 +55,7 @@ test("create nikola from UX and exercise ops (keep it)", async ({ page }) => {
   // --- Restart ---
   await openWorkloadMenu(page, NAME);
   await page.getByRole("menuitem", { name: /Restart/ }).click();
-  await expect(page.getByText(/restart requested/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /restart requested/i }).first()).toBeVisible({ timeout: 15000 });
   results.push("restart ok");
   await page.waitForTimeout(1500);
 
@@ -66,7 +66,7 @@ test("create nikola from UX and exercise ops (keep it)", async ({ page }) => {
   await expect(scaleDialog).toBeVisible();
   await scaleDialog.locator('input[type="number"]').fill("2");
   await scaleDialog.getByRole("button", { name: "Scale" }).click();
-  await expect(page.getByText(/scaled to 2/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /scaled to 2/i }).first()).toBeVisible({ timeout: 15000 });
   results.push("scale→2 ok");
   await page.waitForTimeout(1500);
 
@@ -76,7 +76,7 @@ test("create nikola from UX and exercise ops (keep it)", async ({ page }) => {
   const rollout = page.getByRole("dialog").filter({ hasText: /Rollout/ });
   await expect(rollout).toBeVisible({ timeout: 15000 });
   await rollout.getByRole("button", { name: "restart", exact: true }).click();
-  await expect(page.getByText(/restart requested/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /restart requested/i }).first()).toBeVisible({ timeout: 15000 });
   await page.keyboard.press("Escape");
   results.push("rollout restart ok");
   await page.waitForTimeout(1000);
@@ -87,19 +87,19 @@ test("create nikola from UX and exercise ops (keep it)", async ({ page }) => {
   scaleDialog = page.getByRole("dialog").filter({ hasText: /Scale/ });
   await scaleDialog.locator('input[type="number"]').fill("1");
   await scaleDialog.getByRole("button", { name: "Scale" }).click();
-  await expect(page.getByText(/scaled to 1/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /scaled to 1/i }).first()).toBeVisible({ timeout: 15000 });
   results.push("scale→1 ok");
   await page.waitForTimeout(1500);
 
   // --- Stop / Start ---
   await openWorkloadMenu(page, NAME);
   await page.getByRole("menuitem", { name: /^Stop$/ }).click();
-  await expect(page.getByText(/stop requested/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /stop requested/i }).first()).toBeVisible({ timeout: 15000 });
   results.push("stop ok");
   await page.waitForTimeout(2500);
   await openWorkloadMenu(page, NAME);
   await page.getByRole("menuitem", { name: /^Start$/ }).click();
-  await expect(page.getByText(/start requested/i)).toBeVisible({ timeout: 15000 });
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: /start requested/i }).first()).toBeVisible({ timeout: 15000 });
   results.push("start ok");
   await page.waitForTimeout(3000);
 

@@ -21,7 +21,16 @@ module.exports = defineConfig({
   },
   // Visual regression is opt-in (VISUAL=1): screenshot baselines are per-OS, see tests/visual.spec.js.
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled", caret: "hide" } },
+  // BROWSERS=all also runs the functional specs in Firefox and WebKit (Safari's engine).
   projects: process.env.VISUAL
     ? [{ name: "visual", testMatch: /visual\.spec\.js/, use: { ...devices["Desktop Chrome"] } }]
-    : [{ name: "chromium", testIgnore: /visual\.spec\.js/, use: { ...devices["Desktop Chrome"] } }],
+    : [
+        { name: "chromium", testIgnore: /visual\.spec\.js/, use: { ...devices["Desktop Chrome"] } },
+        ...(process.env.BROWSERS === "all"
+          ? [
+              { name: "firefox", testIgnore: /visual\.spec\.js/, use: { ...devices["Desktop Firefox"] } },
+              { name: "webkit", testIgnore: /visual\.spec\.js/, use: { ...devices["Desktop Safari"] } },
+            ]
+          : []),
+      ],
 });
