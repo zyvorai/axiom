@@ -2,6 +2,7 @@ package platform
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -34,5 +35,22 @@ func TestHTTPStatusExplicitStatusError(t *testing.T) {
 func TestNewStatusErrorNilIsNil(t *testing.T) {
 	if err := NewStatusError(http.StatusNotFound, nil); err != nil {
 		t.Fatalf("NewStatusError(_, nil) = %v, want nil", err)
+	}
+}
+
+// The Kubernetes build only recognises real apierrors, so provider code that reports a
+// hand-written "not found" (e.g. GetNode scanning a node list) must say 404 explicitly,
+// or a missing resource looks like a 500 server error to the client.
+func TestNotFoundfReports404AndKeepsMessage(t *testing.T) {
+	err := notFoundf("node %s not found", "worker-9")
+	if got := HTTPStatus(err); got != http.StatusNotFound {
+		t.Fatalf("HTTPStatus(notFoundf) = %d, want %d", got, http.StatusNotFound)
+	}
+	if err.Error() != "node worker-9 not found" {
+		t.Fatalf("message = %q, want %q", err.Error(), "node worker-9 not found")
+	}
+	wrapped := fmt.Errorf("get node: %w", err)
+	if got := HTTPStatus(wrapped); got != http.StatusNotFound {
+		t.Fatalf("HTTPStatus(wrapped notFoundf) = %d, want %d", got, http.StatusNotFound)
 	}
 }

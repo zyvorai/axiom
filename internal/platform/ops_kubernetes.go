@@ -895,7 +895,7 @@ func (k *KubernetesProvider) VMConsole(ctx context.Context, ns, name string) (VM
 		}
 	}
 	if found == nil {
-		return VMConsoleInfo{}, fmt.Errorf("vm %s/%s not found", ns, name)
+		return VMConsoleInfo{}, notFoundf("vm %s/%s not found", ns, name)
 	}
 	return VMConsoleInfo{
 		Namespace: found.Namespace, Name: found.Name, Ready: found.Ready,

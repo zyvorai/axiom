@@ -128,7 +128,7 @@ func (k *KubernetesProvider) GetNode(ctx context.Context, name string) (Node, er
 			return n, nil
 		}
 	}
-	return Node{}, fmt.Errorf("node %s not found", name)
+	return Node{}, notFoundf("node %s not found", name)
 }
 
 func (k *KubernetesProvider) WorkloadNetworkGuard(ctx context.Context, ns, kind, name string) (NetworkGuardSummary, error) {

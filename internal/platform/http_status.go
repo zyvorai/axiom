@@ -2,6 +2,7 @@ package platform
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -23,6 +24,14 @@ func NewStatusError(code int, err error) error {
 		return nil
 	}
 	return &StatusError{Code: code, Err: err}
+}
+
+// notFoundf is fmt.Errorf that reports 404. The Kubernetes build only classifies real
+// *apierrors.StatusError values, so a hand-written "X not found" from a provider that
+// looked something up itself (a node in a list, a user in a ConfigMap) would otherwise
+// fall through to 500 and read as a server outage to the client.
+func notFoundf(format string, a ...any) error {
+	return NewStatusError(http.StatusNotFound, fmt.Errorf(format, a...))
 }
 
 // HTTPStatus picks the HTTP status code internal/api should report for a

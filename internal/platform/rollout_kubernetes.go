@@ -182,7 +182,7 @@ func (k *KubernetesProvider) undoDeployment(ctx context.Context, ns, name string
 		}
 	}
 	if target == nil {
-		return fmt.Errorf("revision %d not found", targetRev)
+		return notFoundf("revision %d not found", targetRev)
 	}
 	patch := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"deployment.kubernetes.io/revision":"%d"}}}}}`, targetRev)
 	_, err = k.client.AppsV1().Deployments(ns).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{FieldManager: "axiom-rollout"})

@@ -168,7 +168,7 @@ func (s *K8sUserStore) Update(ctx context.Context, u User) error {
 			return err
 		}
 		if _, exists := m[key]; !exists {
-			return fmt.Errorf("user %q not found", u.Username)
+			return notFoundf("user %q not found", u.Username)
 		}
 		m[key] = u
 		return s.save(ctx, m, sec)
@@ -185,7 +185,7 @@ func (s *K8sUserStore) Delete(ctx context.Context, username string) error {
 			return err
 		}
 		if _, ok := m[key]; !ok {
-			return fmt.Errorf("user %q not found", username)
+			return notFoundf("user %q not found", username)
 		}
 		delete(m, key)
 		return s.save(ctx, m, sec)
