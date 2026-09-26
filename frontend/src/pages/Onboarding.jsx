@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import PageHeader from "@/components/PageHeader";
+import { usePageTitle } from "@/lib/pageTitle";
 import { Check, ShieldCheck, Cloudy, Radar, KeyRound, Database, Activity, ArrowRight } from "lucide-react";
 
 function useSetupStatus() {
@@ -26,6 +27,7 @@ function useSetupStatus() {
 }
 
 export default function Onboarding() {
+    usePageTitle("Getting started");
     const status = useSetupStatus();
     const { user } = useAuth();
 
@@ -112,13 +114,11 @@ export default function Onboarding() {
     const doneCount = steps.filter((s) => s.done).length;
 
     return (
-        <div className="page">
-            <PageHeader
-                title="Getting started"
-                description={`${user ? `Welcome, ${user.name}. ` : ""}Six steps to take this cluster from lab defaults to something you'd trust in production. Two are required.`}
-            />
-            <div className="card">
-                <div className="progress-row">
+        <div className="page rhythm">
+            <section className="hero hero-media">
+                <h1>Getting started</h1>
+                <p>{`${user ? `Welcome, ${user.name}. ` : ""}Six steps to take this cluster from lab defaults to something you'd trust in production. Two are required.`}</p>
+                <div className="progress-row mx-auto mt-8 max-w-[420px]" role="group" aria-label="Setup progress">
                     <span>
                         {doneCount} of {steps.length} complete
                     </span>
@@ -126,7 +126,9 @@ export default function Onboarding() {
                         <i style={{ width: `${(doneCount / steps.length) * 100}%` }} />
                     </div>
                 </div>
-                <div className="mt-2">
+            </section>
+            <div className="card media">
+                <div>
                     {steps.map((s, i) => (
                         <div key={s.title} className={`check ${s.done ? "done" : ""}`}>
                             <div className="n">{s.done ? <Check size={15} /> : i + 1}</div>
