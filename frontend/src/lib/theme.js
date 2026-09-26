@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const STORAGE_KEY = "axiom-theme";
 const LEGACY_KEY = "kubecloud.theme";
-const THEME_COLOR = { dark: "#000000", light: "#f5f5f7" };
 
 const ThemeContext = createContext({ theme: "dark", setTheme: () => {} });
 
@@ -20,9 +19,11 @@ function applyTheme(theme) {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.dataset.theme = theme;
+    // browser chrome follows the page canvas token (public/index.html's pre-paint
+    // script must keep literal values: it runs before any CSS is loaded)
     document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", THEME_COLOR[theme]);
+        ?.setAttribute("content", getComputedStyle(root).getPropertyValue("--bg-page").trim());
 }
 
 export function ThemeProvider({ children }) {

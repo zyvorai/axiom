@@ -81,7 +81,7 @@
         --warning: 50 100% 52%;
         --info: 209 100% 58%;
         --danger: 3 100% 61%;
-        /* solid (not alpha) so `border-border/50` works; reads as ~rgba(255,255,255,.16) on #000/#1d1d1f */
+        /* solid (not alpha) so `border-border/50` works; reads as ~16% white on the dark surfaces */
         --border: 240 3% 20%;
         --input: 240 3% 20%;
         --ring: 209 100% 58%;
@@ -195,11 +195,8 @@
 @layer utilities {
     .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
     .scrollbar-thin::-webkit-scrollbar-thumb {
-        background: rgb(0 0 0 / 0.12);
+        background: var(--scrollbar-thumb);
         border-radius: 999px;
-    }
-    .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-        background: rgb(255 255 255 / 0.14);
     }
     .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
@@ -225,26 +222,26 @@
     border-radius: var(--radius-2xl);
     background: var(--terminal-bg);
     box-shadow:
-        0 0 0 0.5px rgb(255 255 255 / 0.08),
-        0 12px 40px -12px rgb(0 0 0 / 0.45);
+        0 0 0 0.5px var(--terminal-ring),
+        var(--terminal-shadow);
     overflow: hidden;
 }
 .macos-term-chrome {
     background: var(--terminal-bar);
-    border-bottom: 0.5px solid rgb(0 0 0 / 0.45);
+    border-bottom: 0.5px solid var(--terminal-bar-border);
 }
 .macos-term-dot {
     display: inline-block;
     width: 12px;
     height: 12px;
     border-radius: 999px;
-    box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
+    box-shadow: inset 0 0 0 0.5px var(--terminal-dot-inset);
 }
 .macos-term-dot-close { background: var(--terminal-dot-close); }
 .macos-term-dot-min { background: var(--terminal-dot-min); }
 .macos-term-dot-max { background: var(--terminal-dot-max); }
 .macos-term-title {
-    color: rgb(255 255 255 / 0.55);
+    color: var(--terminal-title);
     letter-spacing: -0.01em;
 }
 .macos-term-body {

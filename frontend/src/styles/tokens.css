@@ -88,6 +88,24 @@
   --tok-punct: #9aedfe;
   --tok-plain: #f1f1f0;
 
+  /* brand mark (Zyvor orange) — fixed identity colour, same in both themes */
+  --brand-mark-a: hsl(28 96% 56%);
+  --brand-mark-b: hsl(20 92% 50%);
+
+  /* terminal window chrome (dark in both themes) */
+  --terminal-ring: rgba(255, 255, 255, 0.08);
+  --terminal-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.45);
+  --terminal-bar-border: rgba(0, 0, 0, 0.45);
+  --terminal-dot-inset: rgba(0, 0, 0, 0.25);
+  --terminal-title: rgba(255, 255, 255, 0.55);
+
+  /* accent details: blue glow, card top hairline, metric-tile rule */
+  --accent-glow: rgba(0, 113, 227, 0.35);
+  --accent-rule: rgba(0, 113, 227, 0.45);
+  --accent-hairline: linear-gradient(90deg, transparent, rgba(0, 113, 227, 0.25), rgba(50, 173, 230, 0.2), transparent);
+  --mark-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 28px -16px rgba(0, 0, 0, 0.45);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+
   /* elevation + hero glow */
   --card-shadow: 0 15px 50px rgba(0, 0, 0, 0.04);
   --pop-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
@@ -187,6 +205,8 @@
   --terminal-bar: #1d1d1f;
 
   --card-shadow: none;
+  --card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.14);
   --pop-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   --hero-glow-a: rgba(0, 113, 227, 0.18);
   --hero-glow-b: rgba(50, 173, 230, 0.16);

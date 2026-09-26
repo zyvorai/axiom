@@ -17,8 +17,8 @@ export default function ZyvorMark({ size = 36, className = "", idPrefix = "zyvor
         >
             <defs>
                 <linearGradient id={grad} x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stopColor="hsl(28 96% 56%)" />
-                    <stop offset="1" stopColor="hsl(20 92% 50%)" />
+                    <stop offset="0" stopColor="var(--brand-mark-a)" />
+                    <stop offset="1" stopColor="var(--brand-mark-b)" />
                 </linearGradient>
             </defs>
             <rect width="64" height="64" rx="15" fill={`url(#${grad})`} />
