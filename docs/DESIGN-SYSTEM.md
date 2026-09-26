@@ -36,7 +36,7 @@ Type is the system stack (`--font-display` body/UI, `--font-hero` headlines; `-a
 
 ### Using colours in code
 
-Pages and components must not contain hex literals or raw Tailwind palette classes — `npm run lint:design` (`frontend/scripts/lint-design.sh`) fails on them. Use:
+`styles/tokens.css` is the **only** file allowed to define colours. `npm run lint:design` (`frontend/scripts/lint-design.sh`) fails on hex literals (JS and all CSS), `rgb()`/`rgba()`/`hsl()`/`oklch()` values (`hsl(var(--x))` is fine) and raw Tailwind palette classes (`text-rose-400`, `bg-white`, …) anywhere under `src/`. Need a new shadow, glow or tint? Add a token, then reference it. Use:
 
 | Need | Use |
 |------|-----|
@@ -45,6 +45,7 @@ Pages and components must not contain hex literals or raw Tailwind palette class
 | Tinted alert surfaces | `bg-soft-danger\|warning\|success\|info` with `border-soft-*-border` |
 | Terminals / code panes (dark in both themes) | `bg-term-bg`, `text-term-plain\|dim\|key\|str\|punct`; xterm.js reads the same tokens via `lib/terminalTheme.js` |
 | One-off dynamic colour | a CSS variable, e.g. `style={{"--c": "var(--green)"}}` |
+| Link / icon text in the accent blue | `text-tone-link` (theme-aware link blue). **Not** `text-primary` — that is the blue *fill* (`#0071e3`), 3.5:1 on dark |
 
 Tone/soft/term colours are plain `var()` colours, so they don't take a `/opacity` modifier; use the `soft-*` surfaces for tints.
 
@@ -261,6 +262,20 @@ Two themes via the top-bar toggle or **Settings → Appearance** (`lib/theme.js`
 - **Dark** — `#000` canvas, `#1d1d1f` cards, `#f5f5f7` text, link blue `#2997ff`
 
 Default is dark. ⌘K → "Toggle light/dark mode" also switches.
+
+## Accessibility conventions
+
+The UI is audited with axe-core (WCAG 2.0 A/AA) on every route in both themes; the target is **zero** violations. What that requires in code:
+
+- **Contrast:** text must be >=4.5:1 on the surface it sits on. Light-theme text is `#515154` (secondary) / `#636366` (tertiary) — darker than netra's values, which failed at 3.3–3.6:1 — dark tertiary is `#8e8e93`, and the small-text accents (`--green`, `--amber`, `--teal`) have darker light-theme shades. Re-run the audit if you touch tokens.
+- **Names:** every icon-only button/checkbox/switch/select needs `aria-label` (and a `title` tooltip for buttons); put the resource name in it (`Delete secret ${s.name}`). Every form field needs an associated `<label htmlFor>` (see `Field` in `Settings.jsx`).
+- **Scroll regions** that contain no focusable content get `tabIndex={0}`, `role="region"` and an `aria-label` so they can be scrolled by keyboard.
+- **Page titles:** `PageHeader` / `DetailHeader` set the tab title through `lib/pageTitle.js` (`usePageTitle(title, section)` → "Nodes · Axiom", "checkout · Service · Axiom"). A page without either header (Overview, Ops tabs) calls the hook itself.
+- **Link buttons:** the shell resets `a`/`button` colour inside `:where(.ax)` (zero specificity), so `.btn-*` and Tailwind colour utilities win on `<a>` too — don't re-add a `.ax a { color: … }` rule.
+
+## Routing and loading
+
+Every page except the login is loaded with `React.lazy` (`App.js`) behind a `Suspense` boundary in `AppShell.jsx`, so the sidebar and top bar stay mounted while a page chunk loads (main bundle ≈ 168 kB gzipped). Unknown URLs render `pages/NotFound.jsx` inside the shell rather than redirecting to the Overview.
 
 ## Page headers
 
