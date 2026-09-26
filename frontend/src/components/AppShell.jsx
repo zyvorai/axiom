@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet } from "react-router-dom";
 import "@/axiom-shell.css";
 import Sidebar from "@/components/Sidebar";
@@ -6,6 +6,7 @@ import TopBar from "@/components/TopBar";
 import CommandPalette from "@/components/CommandPalette";
 import ViewerBanner from "@/components/ViewerBanner";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/sidebar";
 
 const MOBILE_BREAKPOINT = 900;
@@ -43,7 +44,16 @@ export default function AppShell() {
                     />
                     <main className="main">
                         <ViewerBanner />
-                        <Outlet />
+                        <Suspense
+                            fallback={
+                                <div className="page" aria-busy="true">
+                                    <Skeleton className="h-16 w-1/3" />
+                                    <Skeleton className="mt-6 h-64 w-full rounded-3xl" />
+                                </div>
+                            }
+                        >
+                            <Outlet />
+                        </Suspense>
                     </main>
                 </div>
             </div>

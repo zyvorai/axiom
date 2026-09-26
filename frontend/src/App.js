@@ -1,48 +1,49 @@
+import { lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import "@/App.css";
 import { ThemeProvider } from "@/lib/theme";
 import { ClusterProvider } from "@/lib/cluster";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import AppShell from "@/components/AppShell";
 import Login from "@/pages/Login";
-import Overview from "@/pages/Overview";
-import Onboarding from "@/pages/Onboarding";
-import Nodes from "@/pages/Nodes";
-import NodeDetail from "@/pages/NodeDetail";
-import Workloads from "@/pages/Workloads";
-import Pods from "@/pages/Pods";
-import Networking from "@/pages/Networking";
-import VirtualMachines from "@/pages/VirtualMachines";
-import VMDetail from "@/pages/VMDetail";
-import Storage from "@/pages/Storage";
-import Atlas from "@/pages/Atlas";
-import Namespaces from "@/pages/Namespaces";
-import NamespaceDetail from "@/pages/NamespaceDetail";
-import Services from "@/pages/Services";
-import ServiceDetail from "@/pages/ServiceDetail";
-import Ingresses from "@/pages/Ingresses";
-import ConfigMaps from "@/pages/ConfigMaps";
-import ConfigMapDetail from "@/pages/ConfigMapDetail";
-import Quotas from "@/pages/Quotas";
-import HPA from "@/pages/HPA";
-import CustomResources from "@/pages/CustomResources";
-import PluginView from "@/pages/PluginView";
-import PlatformIntents from "@/pages/PlatformIntents";
-import WorkloadDetail from "@/pages/WorkloadDetail";
-import PodDetail from "@/pages/PodDetail";
-import Logs from "@/pages/Logs";
-import Events from "@/pages/Events";
-import Jobs from "@/pages/Jobs";
-import JobDetail from "@/pages/JobDetail";
-import CronJobDetail from "@/pages/CronJobDetail";
-import Secrets from "@/pages/Secrets";
-import SecretDetail from "@/pages/SecretDetail";
-import Backups from "@/pages/Backups";
-import Alerts from "@/pages/Alerts";
-import Ops from "@/pages/Ops";
-import Settings from "@/pages/Settings";
-import Users from "@/pages/Users";
+const Overview = lazy(() => import("@/pages/Overview"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const Nodes = lazy(() => import("@/pages/Nodes"));
+const NodeDetail = lazy(() => import("@/pages/NodeDetail"));
+const Workloads = lazy(() => import("@/pages/Workloads"));
+const Pods = lazy(() => import("@/pages/Pods"));
+const Networking = lazy(() => import("@/pages/Networking"));
+const VirtualMachines = lazy(() => import("@/pages/VirtualMachines"));
+const VMDetail = lazy(() => import("@/pages/VMDetail"));
+const Storage = lazy(() => import("@/pages/Storage"));
+const Atlas = lazy(() => import("@/pages/Atlas"));
+const Namespaces = lazy(() => import("@/pages/Namespaces"));
+const NamespaceDetail = lazy(() => import("@/pages/NamespaceDetail"));
+const Services = lazy(() => import("@/pages/Services"));
+const ServiceDetail = lazy(() => import("@/pages/ServiceDetail"));
+const Ingresses = lazy(() => import("@/pages/Ingresses"));
+const ConfigMaps = lazy(() => import("@/pages/ConfigMaps"));
+const ConfigMapDetail = lazy(() => import("@/pages/ConfigMapDetail"));
+const Quotas = lazy(() => import("@/pages/Quotas"));
+const HPA = lazy(() => import("@/pages/HPA"));
+const CustomResources = lazy(() => import("@/pages/CustomResources"));
+const PluginView = lazy(() => import("@/pages/PluginView"));
+const PlatformIntents = lazy(() => import("@/pages/PlatformIntents"));
+const WorkloadDetail = lazy(() => import("@/pages/WorkloadDetail"));
+const PodDetail = lazy(() => import("@/pages/PodDetail"));
+const Logs = lazy(() => import("@/pages/Logs"));
+const Events = lazy(() => import("@/pages/Events"));
+const Jobs = lazy(() => import("@/pages/Jobs"));
+const JobDetail = lazy(() => import("@/pages/JobDetail"));
+const CronJobDetail = lazy(() => import("@/pages/CronJobDetail"));
+const Secrets = lazy(() => import("@/pages/Secrets"));
+const SecretDetail = lazy(() => import("@/pages/SecretDetail"));
+const Backups = lazy(() => import("@/pages/Backups"));
+const Alerts = lazy(() => import("@/pages/Alerts"));
+const Ops = lazy(() => import("@/pages/Ops"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Users = lazy(() => import("@/pages/Users"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function Protected({ children }) {
     const { user, ready } = useAuth();
@@ -112,7 +113,7 @@ export default function App() {
                                 <Route path="/ops/:tab" element={<Ops />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/users" element={<Users />} />
-                                <Route path="*" element={<Navigate to="/overview" replace />} />
+                                <Route path="*" element={<NotFound />} />
                             </Route>
                         </Routes>
                     </BrowserRouter>
