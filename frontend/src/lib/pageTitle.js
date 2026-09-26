@@ -8,7 +8,9 @@ const BASE = "Axiom";
  * and a workload both called "checkout", or an Ops tab).
  */
 /** Fallback title for a route ("Jobs & CronJobs · Axiom"); pages refine it with usePageTitle. */
-export function defaultTitle(pathname, navItems) {
+export function defaultTitle(rawPathname, navItems) {
+    // /cronjobs/:ns/:name is a Jobs page that has no nav entry of its own
+    const pathname = rawPathname.replace(/^\/cronjobs(?=\/|$)/, "/jobs");
     const match = [...navItems]
         .filter((n) => pathname === n.to || pathname.startsWith(n.to + "/"))
         .sort((a, b) => b.to.length - a.to.length)[0];

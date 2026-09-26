@@ -188,13 +188,18 @@ export default function NodeDetail() {
     const { name } = useParams();
     const navigate = useNavigate();
     const [node, setNode] = useState(null);
+    const [loadError, setLoadError] = useState(null); // HTTP status of a failed load (0 = no response)
     const [busy, setBusy] = useState("");
 
     const load = () => api.get(`/nodes/${encodeURIComponent(name)}`).then((r) => setNode(r.data));
 
     useEffect(() => {
         let alive = true;
-        api.get(`/nodes/${encodeURIComponent(name)}`).then((r) => alive && setNode(r.data));
+        setNode(null);
+        setLoadError(null);
+        api.get(`/nodes/${encodeURIComponent(name)}`)
+            .then((r) => alive && setNode(r.data))
+            .catch((e) => alive && setLoadError(e?.response?.status ?? 0));
         return () => {
             alive = false;
         };
@@ -212,6 +217,21 @@ export default function NodeDetail() {
             setBusy("");
         }
     };
+
+    // 404/403 are answers, not outages: say so (5xx/offline keep the skeleton; the shell shows the retry banner)
+    if (loadError === 404 || loadError === 403) {
+        return (
+            <div className="page space-y-4">
+                <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/nodes")}>
+                    <ArrowLeft className="h-3.5 w-3.5" /> Nodes
+                </button>
+                <GlassCard className="empty">
+                    Node <span className="mono text-foreground">{name}</span>{" "}
+                    {loadError === 404 ? "was not found." : "isn't available with your current permissions."}
+                </GlassCard>
+            </div>
+        );
+    }
 
     if (!node) return (
         <div className="page">
