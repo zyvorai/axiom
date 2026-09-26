@@ -44,6 +44,7 @@ const Ops = lazy(() => import("@/pages/Ops"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Users = lazy(() => import("@/pages/Users"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+import "@/styles/accessibility.css"; // keep last: forced-colours / reduced-motion overrides must win the cascade
 
 function Protected({ children }) {
     const { user, ready } = useAuth();

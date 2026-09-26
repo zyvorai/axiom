@@ -1,0 +1,127 @@
+/*
+ * User-preference modes: forced colours (Windows High Contrast) and reduced motion.
+ * Imported LAST (App.js) so it wins the cascade over the shell/login/shadcn styles.
+ * Only system colour keywords here (ButtonText, CanvasText, Highlight, GrayText, LinkText,
+ * Canvas) — that is what forced-colours mode expects; the design-lint allows them.
+ */
+
+/* ── Reduced motion ──────────────────────────────────────────────────────────────────────
+   The shell already disables motion under `.ax`, but dialogs, toasts and menus render in
+   portals outside it, and tailwindcss-animate/Sonner animate them. Apply it globally. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Forced colours ──────────────────────────────────────────────────────────────────────
+   The system drops backgrounds, shadows and gradients, so anything that conveys state only
+   through them disappears: button boundaries, the active nav item, the selected tab, progress
+   fills, status dots. Give each an explicit, system-coloured border/outline instead. */
+@media (forced-colors: active) {
+  /* buttons and button-styled links need a boundary (their fill is gone) */
+  button:not([role="tab"]):not([role="checkbox"]):not([role="switch"]):not([role="combobox"]):not(.item):not(.grp-h),
+  a.btn,
+  .login-cta-primary,
+  .login-cta-secondary,
+  .login-btn-primary,
+  .skip-link {
+    border: 1px solid ButtonText;
+  }
+  button:disabled,
+  .btn:disabled,
+  .login-btn-primary:disabled,
+  .login-input:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  .btn-fill,
+  .btn-line,
+  .btn-danger,
+  .btn-success {
+    box-shadow: none;
+  }
+
+  /* focus must always be visible */
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  /* active sidebar item: fill is gone, so outline it and keep the rail */
+  .item[aria-current="page"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  .item[aria-current="page"]::before {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+
+  /* tabs: unselected must not draw the underline, selected draws a thick one */
+  .tabs button,
+  [role="tab"] {
+    border-bottom-color: Canvas;
+  }
+  .tabs button[aria-selected="true"],
+  [role="tab"][aria-selected="true"],
+  [role="tab"][data-state="active"] {
+    border-bottom: 3px solid Highlight;
+  }
+
+  /* wizard steps: the current one is announced via aria-current="step"; show it too */
+  [aria-current="step"] {
+    border: 2px solid Highlight !important; /* beats the compound button rule above */
+  }
+
+  /* progress meters and step markers */
+  .meter {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  .meter i {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  .check .n {
+    border: 1px solid CanvasText;
+  }
+  .check.done .n {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  /* status indicators are colour-only decoration next to a text label: keep their colour */
+  .pill i,
+  .status-dot,
+  .cluster i,
+  .ic .dot {
+    forced-color-adjust: none;
+  }
+  .pill,
+  .seg,
+  .search,
+  .cluster {
+    border: 1px solid CanvasText;
+  }
+  .seg button[aria-pressed="true"] {
+    border: 2px solid Highlight;
+  }
+
+  /* decorative glows / hairlines add nothing here */
+  .card::after,
+  .head::before,
+  .hero::before,
+  .detail-head::before,
+  .login-chapter-hero::before {
+    display: none;
+  }
+}

@@ -16,6 +16,7 @@ export default function Stepper({ steps, active, onSelect, className }) {
                         key={s.key}
                         type={onSelect ? "button" : undefined}
                         onClick={onSelect ? () => onSelect(s.key) : undefined}
+                        aria-current={isActive ? "step" : undefined}
                         className={cn(
                             "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
                             onSelect && "cursor-pointer hover:bg-muted",
@@ -25,7 +26,7 @@ export default function Stepper({ steps, active, onSelect, className }) {
                         <span
                             className={cn(
                                 "mono text-[11px] tabular-nums",
-                                isActive ? "text-tone-link" : "text-muted-foreground/70"
+                                isActive ? "text-tone-link" : "text-muted-foreground"
                             )}
                         >
                             {String(i + 1).padStart(2, "0")}
