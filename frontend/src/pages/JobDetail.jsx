@@ -69,7 +69,7 @@ export default function JobDetail() {
                 name={nm}
                 meta={
                     <>
-                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-primary hover:underline">
+                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-tone-link hover:underline">
                             {ns}
                         </Link>
                         <span>·</span>
@@ -96,7 +96,7 @@ export default function JobDetail() {
                             value: job.ownerCronJob ? (
                                 <Link
                                     to={`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(job.ownerCronJob)}`}
-                                    className="text-primary hover:underline"
+                                    className="text-tone-link hover:underline"
                                 >
                                     {job.ownerCronJob}
                                 </Link>

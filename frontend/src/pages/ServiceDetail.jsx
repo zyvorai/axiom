@@ -76,7 +76,7 @@ export default function ServiceDetail() {
                 name={nm}
                 meta={
                     <>
-                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-primary hover:underline">
+                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-tone-link hover:underline">
                             {ns}
                         </Link>
                         <span>·</span>
@@ -117,7 +117,7 @@ export default function ServiceDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <Network className="h-4 w-4 text-primary" /> Endpoints ({(svc.endpoints || []).length})
+                    <Network className="h-4 w-4 text-tone-link" /> Endpoints ({(svc.endpoints || []).length})
                 </div>
                 {(svc.endpoints || []).length === 0 ? (
                     <div className="px-4 py-8 text-center text-sm text-muted-foreground">No endpoints.</div>

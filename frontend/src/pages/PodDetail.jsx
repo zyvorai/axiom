@@ -208,7 +208,7 @@ function MetricsPanel({ namespace, name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-primary" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-tone-link" /> CPU
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>

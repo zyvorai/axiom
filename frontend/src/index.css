@@ -22,15 +22,15 @@
         --primary: 211 100% 45%;
         --primary-foreground: 0 0% 100%;
         --secondary: 240 5% 96%;
-        --secondary-foreground: 240 2% 44%;
+        --secondary-foreground: 240 2% 32%;
         --muted: 240 5% 94%;
-        --muted-foreground: 240 2% 44%;
+        --muted-foreground: 240 2% 39%;
         --accent: 240 5% 94%;
         --accent-foreground: 240 3% 12%;
         --destructive: 3 100% 59%;
         --destructive-foreground: 0 0% 100%;
-        --success: 135 59% 34%;
-        --warning: 38 100% 37%;
+        --success: 134 67% 29%;
+        --warning: 39 100% 28%;
         --info: 211 100% 45%;
         --danger: 3 100% 59%;
         --border: 240 6% 83%;
@@ -43,7 +43,7 @@
 
 
         --k-ok: 142 70% 30%;
-        --k-warn: 32 90% 40%;
+        --k-warn: 32 90% 33%;
         --k-err: 3 100% 59%;
         --k-info: 211 100% 45%;
 

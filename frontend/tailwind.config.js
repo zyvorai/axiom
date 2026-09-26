@@ -102,7 +102,7 @@ module.exports = {
           amber: 'var(--amber)',
           orange: 'var(--orange)',
           red: 'var(--red)',
-          purple: 'var(--accent-purple)',
+          purple: 'var(--purple)',
           teal: 'var(--teal)',
         },
         // Terminal / code panes — dark in both themes (--terminal-* tokens)

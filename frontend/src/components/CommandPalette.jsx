@@ -114,7 +114,7 @@ export default function CommandPalette() {
                             data-testid={PALETTE.item(to.slice(1))}
                             onSelect={() => run(() => navigate(to))}
                         >
-                            <Icon className="mr-2 h-4 w-4 text-primary" />
+                            <Icon className="mr-2 h-4 w-4 text-tone-link" />
                             {label}
                         </CommandItem>
                     ))}
@@ -185,7 +185,7 @@ export default function CommandPalette() {
                                     value={`service ${s.name} ${s.namespace}`}
                                     onSelect={() => run(() => navigate(`/services/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`))}
                                 >
-                                    <Network className="mr-2 h-4 w-4 text-primary" />
+                                    <Network className="mr-2 h-4 w-4 text-tone-link" />
                                     {s.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{s.namespace}</span>
                                 </CommandItem>
@@ -257,7 +257,7 @@ export default function CommandPalette() {
                                     value={`cronjob ${c.name} ${c.namespace}`}
                                     onSelect={() => run(() => navigate(`/cronjobs/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`))}
                                 >
-                                    <CalendarClock className="mr-2 h-4 w-4 text-primary" />
+                                    <CalendarClock className="mr-2 h-4 w-4 text-tone-link" />
                                     {c.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{c.namespace} · cron</span>
                                 </CommandItem>
@@ -311,7 +311,7 @@ export default function CommandPalette() {
                             })
                         }
                     >
-                        <LogOut className="mr-2 h-4 w-4 text-primary" />
+                        <LogOut className="mr-2 h-4 w-4 text-tone-link" />
                         Sign out
                     </CommandItem>
                 </CommandGroup>

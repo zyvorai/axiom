@@ -7,7 +7,7 @@ export default function ViewerBanner() {
 
     return (
         <div className="flex items-center gap-2 rounded-2xl border border-soft-info-border bg-soft-info px-4 py-2.5 text-xs text-muted-foreground">
-            <Eye className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <Eye className="h-3.5 w-3.5 shrink-0 text-tone-link" />
             You're signed in as a <span className="font-medium text-foreground">Viewer</span> — read-only access. Every create, edit, and delete action is disabled server-side.
         </div>
     );

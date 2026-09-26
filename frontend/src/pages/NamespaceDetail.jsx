@@ -237,7 +237,7 @@ export default function NamespaceDetail() {
                                             <TableCell className="mono text-sm">
                                                 <Link
                                                     to={`/services/${encodeURIComponent(ns)}/${encodeURIComponent(s.name)}`}
-                                                    className="text-primary hover:underline"
+                                                    className="text-tone-link hover:underline"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
                                                     {s.name}
@@ -267,7 +267,7 @@ export default function NamespaceDetail() {
                     </GlassCard>
                     <p className="mt-3 text-xs text-muted-foreground">
                         Prefer the cluster-wide list?{" "}
-                        <Link to="/services" className="text-primary underline-offset-2 hover:underline">
+                        <Link to="/services" className="text-tone-link underline-offset-2 hover:underline">
                             Open Services
                         </Link>
                     </p>

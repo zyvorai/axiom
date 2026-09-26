@@ -141,7 +141,7 @@ export default function VMDetail() {
                 name={nm}
                 meta={
                     <>
-                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-primary hover:underline">
+                        <Link to={`/namespaces/${encodeURIComponent(ns)}`} className="mono text-tone-link hover:underline">
                             {ns}
                         </Link>
                         <span>·</span>
@@ -195,7 +195,7 @@ export default function VMDetail() {
                         {
                             label: "Node",
                             value: vm.node ? (
-                                <Link to={`/nodes/${encodeURIComponent(vm.node)}`} className="text-primary hover:underline">
+                                <Link to={`/nodes/${encodeURIComponent(vm.node)}`} className="text-tone-link hover:underline">
                                     {vm.node}
                                 </Link>
                             ) : (

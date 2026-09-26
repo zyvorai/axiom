@@ -118,7 +118,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
         <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="h-4 w-4 text-primary" /> {title}
+                    <Icon className="h-4 w-4 text-tone-link" /> {title}
                 </div>
                 <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
                     <Plus className="mr-1 h-3.5 w-3.5" /> New

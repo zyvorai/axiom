@@ -21,7 +21,7 @@ export default function FeatureTile({
         return (
             <div className={cn("py-3", className)} {...rest}>
                 <div className="flex items-center gap-1 text-[11px] tracking-[-0.01em] text-muted-foreground">
-                    {Icon && <Icon className={cn("h-3 w-3 text-primary", iconClassName)} />} {label}
+                    {Icon && <Icon className={cn("h-3 w-3 text-tone-link", iconClassName)} />} {label}
                 </div>
                 <div className={cn("mt-1 text-xl tracking-[-0.02em] text-foreground", mono && "mono")}>{value}</div>
                 {sublabel && <div className="mt-0.5 text-xs text-muted-foreground">{sublabel}</div>}
@@ -33,7 +33,7 @@ export default function FeatureTile({
         <div className={cn("py-4", className)} {...rest}>
             <div className="flex items-center justify-between">
                 <div className="text-[11px] font-semibold tracking-[0.08em] uppercase text-muted-foreground">{label}</div>
-                {Icon && <Icon className={cn("h-3.5 w-3.5 text-primary", iconClassName)} />}
+                {Icon && <Icon className={cn("h-3.5 w-3.5 text-tone-link", iconClassName)} />}
             </div>
             <div className={cn("mt-2 text-[clamp(28px,2.6vw,40px)] font-semibold leading-none tracking-[-0.03em] tabular-nums", mono && "mono")}>{value}</div>
             {sublabel && <div className="mt-2 text-xs text-muted-foreground">{sublabel}</div>}

@@ -72,7 +72,7 @@ export default function Events() {
                                         <td>{e.message}</td>
                                         <td className="mono">
                                             {href ? (
-                                                <Link to={href} className="text-primary hover:underline">
+                                                <Link to={href} className="text-tone-link hover:underline">
                                                     {e.namespace}/{e.object}
                                                 </Link>
                                             ) : (
