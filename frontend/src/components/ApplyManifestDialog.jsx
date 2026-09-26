@@ -46,7 +46,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass max-w-lg">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
@@ -60,7 +60,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                     />
                 </MacTerm>
                 {result && (
-                    <div className={`rounded-lg border px-3 py-2 text-xs ${result.valid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-rose-500/30 bg-rose-500/10 text-rose-300"}`}>
+                    <div className={`rounded-lg border px-3 py-2 text-xs ${result.valid ? "border-soft-success-border bg-soft-success text-tone-green" : "border-soft-danger-border bg-soft-danger text-tone-red"}`}>
                         {result.valid
                             ? `Applied ${result.kind || "manifest"}${result.name ? ` ${result.namespace ? `${result.namespace}/` : ""}${result.name}` : ""}`
                             : (result.errors || [result.message]).filter(Boolean).join(", ")}

@@ -56,7 +56,7 @@ export default function CodeEditor({ value, onChange, editable = true, className
                         type="button"
                         size="sm"
                         variant="ghost"
-                        className="h-6 gap-1 rounded-md px-1.5 text-[11px] text-white/55 hover:bg-white/10 hover:text-white/90"
+                        className="h-6 gap-1 rounded-md px-1.5 text-[11px] text-term-dim hover:bg-term-hover hover:text-term-text"
                         onClick={() => setEditing((e) => !e)}
                     >
                         {editing ? (

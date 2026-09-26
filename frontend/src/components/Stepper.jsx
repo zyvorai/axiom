@@ -25,7 +25,7 @@ export default function Stepper({ steps, active, onSelect, className }) {
                         <span
                             className={cn(
                                 "mono text-[11px] tabular-nums",
-                                isActive ? "text-i17-cosmic" : "text-muted-foreground/70"
+                                isActive ? "text-primary" : "text-muted-foreground/70"
                             )}
                         >
                             {String(i + 1).padStart(2, "0")}

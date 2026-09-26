@@ -1,3 +1,4 @@
+import { useId } from "react";
 import {
     Area,
     AreaChart,
@@ -7,15 +8,16 @@ import {
     YAxis,
 } from "recharts";
 
-export default function Sparkline({ data, color = "#0A84FF", formatter, domain, height = 80 }) {
+export default function Sparkline({ data, color = "var(--apple-blue)", formatter, domain, height = 80 }) {
+    const gradientId = `sp-${useId().replace(/:/g, "")}`;
     const rows = (data || []).map((v, i) => ({ i, v }));
     const fmt = formatter || ((v) => `${v}%`);
     return (
         <ResponsiveContainer width="100%" height={height}>
             <AreaChart data={rows} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                 <defs>
-                    <linearGradient id={`sp-${color}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={color} stopOpacity={0.55} />
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity={0.4} />
                         <stop offset="100%" stopColor={color} stopOpacity={0} />
                     </linearGradient>
                 </defs>
@@ -24,17 +26,17 @@ export default function Sparkline({ data, color = "#0A84FF", formatter, domain, 
                     dataKey="v"
                     stroke={color}
                     strokeWidth={2}
-                    fill={`url(#sp-${color})`}
+                    fill={`url(#${gradientId})`}
                     isAnimationActive={false}
                 />
                 <XAxis dataKey="i" hide />
                 <YAxis hide domain={domain || [0, 100]} />
                 <Tooltip
                     contentStyle={{
-                        background: "rgba(20,20,22,0.85)",
-                        border: "1px solid rgba(255,255,255,0.1)",
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--line-2)",
                         borderRadius: 12,
-                        color: "#fff",
+                        color: "var(--ink)",
                     }}
                     formatter={fmt}
                     labelFormatter={() => ""}

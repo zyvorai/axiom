@@ -21,10 +21,10 @@ export default function SegmentedProgress({ segments, className }) {
                         // arbitrary-value class: Tailwind's theme() helper
                         // resolves at build time to a fixed hex, which would
                         // freeze this stripe to one theme instead of
-                        // tracking the live --i17-cosmic value per light/dark.
+                        // tracking the live --apple-blue value per light/dark.
                         style.backgroundImage =
-                            "repeating-linear-gradient(135deg, var(--i17-cosmic) 0, var(--i17-cosmic) 4px, transparent 4px, transparent 8px)";
-                        style.backgroundColor = "rgb(var(--glass-bg))";
+                            "repeating-linear-gradient(135deg, var(--apple-blue) 0, var(--apple-blue) 4px, transparent 4px, transparent 8px)";
+                        style.backgroundColor = "var(--bg-elevated-2)";
                     }
                     return (
                         <div
@@ -32,7 +32,7 @@ export default function SegmentedProgress({ segments, className }) {
                             style={style}
                             className={cn(
                                 "h-full first:rounded-l-full last:rounded-r-full",
-                                s.tone === "done" && "bg-i17-cosmic",
+                                s.tone === "done" && "bg-primary",
                                 s.tone === "pending" && "bg-muted-foreground/20"
                             )}
                             title={`${s.label}: ${s.value}`}
@@ -46,8 +46,8 @@ export default function SegmentedProgress({ segments, className }) {
                         <span
                             className={cn(
                                 "h-2 w-2 rounded-full",
-                                s.tone === "done" && "bg-i17-cosmic",
-                                s.tone === "active" && "bg-i17-cosmic/50",
+                                s.tone === "done" && "bg-primary",
+                                s.tone === "active" && "bg-primary/50",
                                 s.tone === "pending" && "bg-muted-foreground/30"
                             )}
                         />

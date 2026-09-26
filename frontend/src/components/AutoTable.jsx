@@ -62,10 +62,10 @@ function renderColumnValue(row, col) {
 function TableChrome({ title, Icon, count }) {
     return (
         <div className="card-h">
-            <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15 }}>
-                <Icon className="h-4 w-4" style={{ color: "var(--blue)" }} /> {title}
+            <h2 className="flex items-center gap-2 text-[15px]">
+                <Icon className="h-4 w-4 text-tone-link" /> {title}
             </h2>
-            <span className="r" style={{ fontSize: 12.5, color: "var(--ink-3)" }}>{count}</span>
+            <span className="r text-[12.5px] text-ink-3">{count}</span>
         </div>
     );
 }
@@ -80,7 +80,7 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                 {(!rows || rows.length === 0) ? (
                     <div className="empty">{emptyHint}</div>
                 ) : (
-                    <div style={{ overflowX: "auto" }}>
+                    <div className="overflow-x-auto">
                         <table className="tbl">
                             <thead>
                                 <tr>
@@ -132,15 +132,12 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                             <div
                                 key={row.id ?? i}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                style={{
-                                    display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 24px",
-                                    borderBottom: "1px solid var(--line)", paddingBottom: 12, cursor: onRowClick ? "pointer" : undefined,
-                                }}
+                                className={onRowClick ? "data-row clickable" : "data-row"}
                             >
-                                <div className="mono" style={{ minWidth: 160, flex: 1, fontSize: 13.5 }}>{String(name)}</div>
+                                <div className="mono min-w-[160px] flex-1 text-[13.5px]">{String(name)}</div>
                                 {fields.slice(0, 5).map(([k, v]) => (
-                                    <div key={k} style={{ fontSize: 12, color: "var(--ink-3)" }}>
-                                        {pretty(k)}: <span className="mono" style={{ color: "var(--ink)" }}>{formatValue(v)}</span>
+                                    <div key={k} className="text-[12px] text-ink-3">
+                                        {pretty(k)}: <span className="mono text-ink">{formatValue(v)}</span>
                                     </div>
                                 ))}
                                 {statusKey && <StatusBadge status={String(row[statusKey])} />}

@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 /** Flat key=value text chip (no border box). */
 export default function KvChip({ name, value, tone = "sky", className }) {
     const tones = {
-        sky: "text-sky-700 dark:text-sky-300",
-        sage: "text-emerald-700 dark:text-emerald-300",
-        gold: "text-amber-700 dark:text-amber-300",
-        lavender: "text-violet-700 dark:text-violet-300",
-        rose: "text-rose-700 dark:text-rose-300",
+        sky: "text-tone-link dark:text-tone-link",
+        sage: "text-tone-green dark:text-tone-green",
+        gold: "text-tone-amber dark:text-tone-amber",
+        lavender: "text-tone-purple dark:text-tone-purple",
+        rose: "text-tone-red dark:text-tone-red",
         muted: "text-muted-foreground",
     };
     return (

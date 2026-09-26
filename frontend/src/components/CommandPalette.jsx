@@ -114,7 +114,7 @@ export default function CommandPalette() {
                             data-testid={PALETTE.item(to.slice(1))}
                             onSelect={() => run(() => navigate(to))}
                         >
-                            <Icon className="mr-2 h-4 w-4 text-i17-cosmic" />
+                            <Icon className="mr-2 h-4 w-4 text-primary" />
                             {label}
                         </CommandItem>
                     ))}
@@ -129,7 +129,7 @@ export default function CommandPalette() {
                                     value={`pod ${p.name} ${p.namespace}`}
                                     onSelect={() => run(() => navigate(`/pods/${p.namespace}/${encodeURIComponent(p.name)}`))}
                                 >
-                                    <Box className="mr-2 h-4 w-4 text-i17-sage" />
+                                    <Box className="mr-2 h-4 w-4 text-tone-green" />
                                     {p.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{p.namespace}</span>
                                 </CommandItem>
@@ -147,7 +147,7 @@ export default function CommandPalette() {
                                     value={`workload ${w.name} ${w.namespace} ${w.kind}`}
                                     onSelect={() => run(() => navigate(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`))}
                                 >
-                                    <BoxesIcon className="mr-2 h-4 w-4 text-i17-gold" />
+                                    <BoxesIcon className="mr-2 h-4 w-4 text-tone-amber" />
                                     {w.name}
                                     <span className="ml-auto text-xs text-muted-foreground">
                                         {w.namespace} · {w.kind}
@@ -167,7 +167,7 @@ export default function CommandPalette() {
                                     value={`namespace ${n.name}`}
                                     onSelect={() => run(() => navigate(`/namespaces/${encodeURIComponent(n.name)}`))}
                                 >
-                                    <FolderTree className="mr-2 h-4 w-4 text-i17-sky" />
+                                    <FolderTree className="mr-2 h-4 w-4 text-tone-link" />
                                     {n.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{n.pods ?? 0} pods</span>
                                 </CommandItem>
@@ -185,7 +185,7 @@ export default function CommandPalette() {
                                     value={`service ${s.name} ${s.namespace}`}
                                     onSelect={() => run(() => navigate(`/services/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`))}
                                 >
-                                    <Network className="mr-2 h-4 w-4 text-i17-cosmic" />
+                                    <Network className="mr-2 h-4 w-4 text-primary" />
                                     {s.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{s.namespace}</span>
                                 </CommandItem>
@@ -203,7 +203,7 @@ export default function CommandPalette() {
                                     value={`configmap ${c.name} ${c.namespace}`}
                                     onSelect={() => run(() => navigate(`/configmaps/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`))}
                                 >
-                                    <FileCog className="mr-2 h-4 w-4 text-i17-sky" />
+                                    <FileCog className="mr-2 h-4 w-4 text-tone-link" />
                                     {c.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{c.namespace}</span>
                                 </CommandItem>
@@ -221,7 +221,7 @@ export default function CommandPalette() {
                                     value={`secret ${s.name} ${s.namespace}`}
                                     onSelect={() => run(() => navigate(`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`))}
                                 >
-                                    <KeySquare className="mr-2 h-4 w-4 text-i17-lavender" />
+                                    <KeySquare className="mr-2 h-4 w-4 text-tone-purple" />
                                     {s.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{s.namespace}</span>
                                 </CommandItem>
@@ -239,7 +239,7 @@ export default function CommandPalette() {
                                     value={`vm ${v.name} ${v.namespace}`}
                                     onSelect={() => run(() => navigate(`/vms/${encodeURIComponent(v.namespace)}/${encodeURIComponent(v.name)}`))}
                                 >
-                                    <Monitor className="mr-2 h-4 w-4 text-i17-gold" />
+                                    <Monitor className="mr-2 h-4 w-4 text-tone-amber" />
                                     {v.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{v.namespace}</span>
                                 </CommandItem>
@@ -257,7 +257,7 @@ export default function CommandPalette() {
                                     value={`cronjob ${c.name} ${c.namespace}`}
                                     onSelect={() => run(() => navigate(`/cronjobs/${encodeURIComponent(c.namespace)}/${encodeURIComponent(c.name)}`))}
                                 >
-                                    <CalendarClock className="mr-2 h-4 w-4 text-i17-cosmic" />
+                                    <CalendarClock className="mr-2 h-4 w-4 text-primary" />
                                     {c.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{c.namespace} · cron</span>
                                 </CommandItem>
@@ -268,7 +268,7 @@ export default function CommandPalette() {
                                     value={`job ${j.name} ${j.namespace}`}
                                     onSelect={() => run(() => navigate(`/jobs/${encodeURIComponent(j.namespace)}/${encodeURIComponent(j.name)}`))}
                                 >
-                                    <BoxesIcon className="mr-2 h-4 w-4 text-i17-sage" />
+                                    <BoxesIcon className="mr-2 h-4 w-4 text-tone-green" />
                                     {j.name}
                                     <span className="ml-auto text-xs text-muted-foreground">{j.namespace}</span>
                                 </CommandItem>
@@ -285,7 +285,7 @@ export default function CommandPalette() {
                             data-testid={PALETTE.item(`cluster-${c.name}`)}
                             onSelect={() => run(() => activate(c.name))}
                         >
-                            <Layers className="mr-2 h-4 w-4 text-i17-sky" />
+                            <Layers className="mr-2 h-4 w-4 text-tone-link" />
                             {c.label || c.name}
                             <span className="ml-auto text-xs text-muted-foreground">{c.current ? "current" : ""}</span>
                         </CommandItem>
@@ -298,7 +298,7 @@ export default function CommandPalette() {
                         data-testid={PALETTE.item("theme")}
                         onSelect={() => run(() => setTheme(theme === "dark" ? "light" : "dark"))}
                     >
-                        <SunMoon className="mr-2 h-4 w-4 text-i17-gold" />
+                        <SunMoon className="mr-2 h-4 w-4 text-tone-amber" />
                         Toggle {theme === "dark" ? "light" : "dark"} mode
                     </CommandItem>
                     <CommandItem
@@ -311,7 +311,7 @@ export default function CommandPalette() {
                             })
                         }
                     >
-                        <LogOut className="mr-2 h-4 w-4 text-i17-cosmic" />
+                        <LogOut className="mr-2 h-4 w-4 text-primary" />
                         Sign out
                     </CommandItem>
                 </CommandGroup>

@@ -42,15 +42,14 @@ export default function TopBar({ onToggleSidebar }) {
                     <Search size={14} />
                     <span className="hidden sm:inline">Search</span>
                     <kbd>
-                        <Command size={10} style={{ display: "inline", verticalAlign: "-1px" }} />K
+                        <Command size={10} className="inline align-[-1px]" />K
                     </kbd>
                 </button>
 
                 <button
                     type="button"
                     data-testid={NAV.connect}
-                    className="btn btn-line"
-                    style={{ height: 30 }}
+                    className="btn btn-line h-[30px]"
                     onClick={() =>
                         toast.info("Sample data mode", {
                             description: "Point KUBECONFIG at this dashboard to switch to a live cluster.",

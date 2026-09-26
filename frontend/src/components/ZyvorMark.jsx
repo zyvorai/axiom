@@ -1,6 +1,6 @@
 // zyvor.dev's actual brand mark: an orange gradient tile with a white Z
 // stroke, matching the logo used on zyvor.dev itself. Deliberately a fixed
-// brand orange rather than the app's own theme accent (i17-cosmic) — this
+// brand orange rather than the app's own theme accent (--apple-blue) — this
 // identifies the parent Zyvor brand, not the Axiom product, so it doesn't
 // change with the light/dark theme toggle.
 export default function ZyvorMark({ size = 36, className = "", idPrefix = "zyvor-mark" }) {
@@ -25,7 +25,7 @@ export default function ZyvorMark({ size = 36, className = "", idPrefix = "zyvor
             <path
                 d="M18.5,20.5 45.5,20.5 18.5,43.5 45.5,43.5"
                 fill="none"
-                stroke="#ffffff"
+                stroke="var(--on-accent)"
                 strokeWidth="8.3"
                 strokeLinecap="round"
                 strokeLinejoin="round"

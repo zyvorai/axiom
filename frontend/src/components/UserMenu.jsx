@@ -28,18 +28,18 @@ export default function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     data-testid={USER_MENU.trigger}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-i17-lavender via-i17-sky to-i17-deepblue text-[11px] font-semibold text-white ring-1 ring-white/20 transition-transform hover:scale-105"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground transition-transform hover:scale-105"
                 >
                     {user.initials}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass w-60 rounded-2xl p-2">
+            <DropdownMenuContent align="end" className="w-60 rounded-2xl p-2">
                 <DropdownMenuLabel className="px-2 py-1.5">
                     <div className="text-sm font-medium">{user.name}</div>
                     <div className="text-xs font-normal text-muted-foreground">{user.role}</div>
                 </DropdownMenuLabel>
                 <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                    <ShieldCheck className="h-3 w-3 text-i17-sage" />
+                    <ShieldCheck className="h-3 w-3 text-tone-green" />
                     {user.authMethod === "oidc" ? "SSO" : "Local"} · {user.mode}
                 </div>
                 <DropdownMenuSeparator className="bg-muted" />

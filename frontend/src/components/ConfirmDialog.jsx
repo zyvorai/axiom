@@ -44,7 +44,7 @@ export function ConfirmProvider({ children }) {
         <ConfirmContext.Provider value={confirm}>
             {children}
             <AlertDialog open={!!state} onOpenChange={(open) => !open && settle(false)}>
-                <AlertDialogContent className="glass">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{state?.title}</AlertDialogTitle>
                         <AlertDialogDescription>{state?.description}</AlertDialogDescription>
