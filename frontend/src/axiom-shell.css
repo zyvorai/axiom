@@ -796,6 +796,25 @@
   color: var(--ink);
   background: var(--bg-3);
 }
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 999px;
+}
+.status-dot.ok {
+  background: var(--green);
+}
+.status-dot.warn {
+  background: var(--amber);
+}
+.status-dot.err {
+  background: var(--red);
+}
+.status-dot.info {
+  background: var(--blue-btn);
+}
 .pill i {
   width: 6px;
   height: 6px;

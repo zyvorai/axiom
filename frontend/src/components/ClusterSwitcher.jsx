@@ -14,8 +14,8 @@ export default function ClusterSwitcher() {
             className="block text-left transition-colors duration-200 ease-apple"
             title="Open clusters in Settings"
         >
-            <div className="rail-apple-meta text-muted-foreground">Cluster</div>
-            <div className="rail-apple-cluster mt-0.5 truncate text-foreground hover:text-tone-link">
+            <div className="text-[11px] leading-[1.36] tracking-[-0.008em] text-muted-foreground">Cluster</div>
+            <div className="mt-0.5 truncate text-[12px] font-medium leading-[1.33] tracking-[-0.01em] text-foreground hover:text-tone-link">
                 {active.label || active.name}
             </div>
         </Link>

@@ -14,8 +14,6 @@ export default function FeatureTile({
     color = "var(--apple-blue)",
     mono = false,
     size = "default",
-    // kept so existing call sites don't break; the tile is always boxed now
-    nested = false, // eslint-disable-line no-unused-vars
     className,
     ...rest
 }) {

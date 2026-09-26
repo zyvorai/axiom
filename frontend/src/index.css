@@ -37,21 +37,9 @@
         --input: 240 6% 83%;
         --ring: 211 100% 45%;
         --radius: 1rem;
-        --brand: 211 100% 45%;
-        --brand-hex: var(--apple-blue);
-        --zeus: 187 92% 45%;
 
 
-        --k-ok: 142 70% 30%;
-        --k-warn: 32 90% 33%;
-        --k-err: 3 100% 59%;
-        --k-info: 211 100% 45%;
 
-        --chart-1: 211 100% 45%;
-        --chart-2: 240 2% 44%;
-        --chart-3: 142 70% 30%;
-        --chart-4: 32 90% 40%;
-        --chart-5: 3 100% 59%;
 
 
         --focus-ring: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
@@ -85,21 +73,9 @@
         --border: 240 3% 20%;
         --input: 240 3% 20%;
         --ring: 209 100% 58%;
-        --brand: 209 100% 58%;
-        --brand-hex: var(--apple-link);
-        --zeus: 187 92% 50%;
 
 
-        --k-ok: 135 64% 50%;
-        --k-warn: 50 100% 52%;
-        --k-err: 3 100% 61%;
-        --k-info: 209 100% 58%;
 
-        --chart-1: 209 100% 58%;
-        --chart-2: 240 2% 65%;
-        --chart-3: 135 64% 50%;
-        --chart-4: 50 100% 52%;
-        --chart-5: 3 100% 61%;
 
     }
 }
@@ -132,63 +108,12 @@
 }
 
 @layer components {
-    .status-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-    }
-    .status-dot.ok    { background: hsl(var(--k-ok)); }
-    .status-dot.warn  { background: hsl(var(--k-warn)); }
-    .status-dot.err   { background: hsl(var(--k-err)); }
-    .status-dot.info  { background: hsl(var(--k-info)); }
 
     .mono {
         font-family: var(--font-mono);
         font-feature-settings: "ss01", "ss02", "cv01";
     }
 
-    /* apple.com type inherits global SF Pro; keep sizing helpers for the rail */
-    .rail-apple {
-        font-family: var(--font-display);
-        font-size: 12px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        line-height: 1.33334;
-        -webkit-font-smoothing: antialiased;
-    }
-    .rail-apple-group {
-        font-family: inherit;
-        font-size: 11px;
-        font-weight: 400;
-        letter-spacing: -0.008em;
-        line-height: 1.36364;
-    }
-    .rail-apple-link {
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        line-height: 1.33334;
-    }
-    .rail-apple-link[aria-current="page"],
-    .rail-apple-link.is-active {
-        font-weight: 500;
-    }
-    .rail-apple-meta {
-        font-family: inherit;
-        font-size: 11px;
-        font-weight: 400;
-        letter-spacing: -0.008em;
-        line-height: 1.36364;
-    }
-    .rail-apple-cluster {
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        line-height: 1.33334;
-    }
 
 }
 

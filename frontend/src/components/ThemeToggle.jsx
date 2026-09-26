@@ -13,8 +13,7 @@ export default function ThemeToggle() {
             aria-label="Toggle theme"
         >
             <span
-                className="absolute top-1 flex h-7 w-7 items-center justify-center rounded-full bg-card shadow-pop transition-transform duration-300 ease-apple"
-                style={{ transform: isDark ? "translateX(28px)" : "translateX(0)" }}
+                className={`absolute top-1 flex h-7 w-7 items-center justify-center rounded-full bg-card shadow-pop transition-transform duration-300 ease-apple ${isDark ? "translate-x-7" : "translate-x-0"}`}
             >
                 {isDark ? (
                     <Moon className="h-3.5 w-3.5 text-tone-link" />

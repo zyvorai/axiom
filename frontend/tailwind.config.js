@@ -76,13 +76,6 @@ module.exports = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))'
-        },
         // Netra accents/soft surfaces (styles/tokens.css) — use these instead of
         // raw palette classes (text-rose-400, bg-white/5 …). Plain var() colours,
         // so no /opacity modifier: use the -soft surfaces for tints.
