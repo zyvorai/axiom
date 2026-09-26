@@ -1373,6 +1373,29 @@
   }
 }
 @media (max-width: 760px) {
+  /* compact top bar: everything must fit a ~360px viewport, otherwise the bar's
+     overflow makes mobile browsers widen the layout viewport for the whole page */
+  .bar {
+    padding: 0 10px;
+    gap: 4px;
+  }
+  .brand {
+    margin-right: 0;
+  }
+  .brand-name,
+  .bar-r .btn,
+  .search kbd {
+    display: none;
+  }
+  .cluster {
+    max-width: 112px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .search {
+    min-width: 0;
+    padding: 0 10px;
+  }
   .stats.c3 {
     grid-template-columns: 1fr;
   }
