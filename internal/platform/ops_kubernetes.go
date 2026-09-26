@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -245,6 +246,10 @@ func (k *KubernetesProvider) RestoreBackup(ctx context.Context, req RestoreBacku
 	if size == "" {
 		size = "10Gi"
 	}
+	sizeQty, err := resource.ParseQuantity(size) // user input: MustParse would panic the handler
+	if err != nil {
+		return Volume{}, fmt.Errorf("invalid size: %w", err)
+	}
 	modes := []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}
 	if len(req.AccessModes) > 0 {
 		modes = modes[:0]
@@ -258,7 +263,7 @@ func (k *KubernetesProvider) RestoreBackup(ctx context.Context, req RestoreBacku
 			AccessModes: modes,
 			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
-					corev1.ResourceStorage: resource.MustParse(size),
+					corev1.ResourceStorage: sizeQty,
 				},
 			},
 			DataSource: &corev1.TypedLocalObjectReference{
@@ -818,10 +823,40 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 	}, nil
 }
 
+// errMultiDocument is returned for a manifest holding several YAML documents. Validate and
+// apply handle exactly one object; parsing "a --- b" as one document used to apply only the
+// first and report success, silently dropping the rest.
+const errMultiDocument = "multiple YAML documents are not supported: apply one object at a time"
+
+// hasMultipleDocuments reports whether manifest has more than one non-empty YAML document.
+func hasMultipleDocuments(manifest string) bool {
+	docs := 0
+	for _, part := range regexp.MustCompile(`(?m)^---[ \t]*$`).Split(manifest, -1) {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
+			continue
+		}
+		onlyComments := true
+		for _, line := range strings.Split(trimmed, "\n") {
+			if l := strings.TrimSpace(line); l != "" && !strings.HasPrefix(l, "#") {
+				onlyComments = false
+				break
+			}
+		}
+		if !onlyComments {
+			docs++
+		}
+	}
+	return docs > 1
+}
+
 func (k *KubernetesProvider) ValidateManifest(ctx context.Context, manifest string) (ValidateResult, error) {
 	manifest = strings.TrimSpace(manifest)
 	if manifest == "" {
 		return ValidateResult{Valid: false, Errors: []string{"empty manifest"}}, nil
+	}
+	if hasMultipleDocuments(manifest) {
+		return ValidateResult{Valid: false, Errors: []string{errMultiDocument}}, nil
 	}
 	var obj unstructured.Unstructured
 	if err := json.Unmarshal([]byte(manifest), &obj.Object); err != nil {
@@ -1389,6 +1424,9 @@ func (k *KubernetesProvider) CreateHPA(ctx context.Context, req CreateHPARequest
 		minReplicas = 1
 	}
 	maxReplicas := req.MaxReplicas
+	if maxReplicas > 0 && maxReplicas < minReplicas {
+		return HPASummary{}, fmt.Errorf("maxReplicas (%d) must be at least minReplicas (%d)", maxReplicas, minReplicas)
+	}
 	if maxReplicas < minReplicas {
 		maxReplicas = minReplicas
 	}
@@ -1511,6 +1549,9 @@ func (k *KubernetesProvider) ApplyManifest(ctx context.Context, manifest string)
 	manifest = strings.TrimSpace(manifest)
 	if manifest == "" {
 		return ApplyResult{Valid: false, Errors: []string{"empty manifest"}}, nil
+	}
+	if hasMultipleDocuments(manifest) {
+		return ApplyResult{Valid: false, Errors: []string{errMultiDocument}}, nil
 	}
 	var obj unstructured.Unstructured
 	if err := json.Unmarshal([]byte(manifest), &obj.Object); err != nil {

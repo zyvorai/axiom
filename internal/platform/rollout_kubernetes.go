@@ -5,6 +5,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -116,6 +117,11 @@ func (k *KubernetesProvider) RolloutAction(ctx context.Context, ns, kind, name, 
 			return k.restartStatefulSet(ctx, ns, name)
 		}
 		return fmt.Errorf("action %s not supported for StatefulSet", action)
+	case "daemonset":
+		if action == "restart" {
+			return k.Restart(ctx, ns, kind, name)
+		}
+		return fmt.Errorf("action %s not supported for DaemonSet", action)
 	default:
 		return fmt.Errorf("rollout not supported for %s", kind)
 	}
@@ -155,12 +161,15 @@ func (k *KubernetesProvider) restartStatefulSet(ctx context.Context, ns, name st
 }
 
 func (k *KubernetesProvider) undoDeployment(ctx context.Context, ns, name string) error {
+	if _, err := k.client.AppsV1().Deployments(ns).Get(ctx, name, metav1.GetOptions{}); err != nil {
+		return err // a missing Deployment is a 404, not "no previous revision"
+	}
 	history, err := k.deploymentRevisionHistory(ctx, ns, name)
 	if err != nil {
 		return err
 	}
 	if len(history) < 2 {
-		return fmt.Errorf("no previous revision to undo to")
+		return NewStatusError(http.StatusConflict, fmt.Errorf("no previous revision to undo to"))
 	}
 	targetRev := history[1].Revision
 	rsList, err := k.client.AppsV1().ReplicaSets(ns).List(ctx, metav1.ListOptions{})

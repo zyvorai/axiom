@@ -271,7 +271,7 @@ func (k *KubernetesProvider) Launch(ctx context.Context, req LaunchRequest) (Wor
 		if req.CPU != "" {
 			q, err := resource.ParseQuantity(req.CPU)
 			if err != nil {
-				return Workload{}, fmt.Errorf("cpu: %w", err)
+				return Workload{}, fmt.Errorf("invalid cpu: %w", err)
 			}
 			container.Resources.Requests[corev1.ResourceCPU] = q
 			container.Resources.Limits[corev1.ResourceCPU] = q
@@ -279,7 +279,7 @@ func (k *KubernetesProvider) Launch(ctx context.Context, req LaunchRequest) (Wor
 		if req.Memory != "" {
 			q, err := resource.ParseQuantity(req.Memory)
 			if err != nil {
-				return Workload{}, fmt.Errorf("memory: %w", err)
+				return Workload{}, fmt.Errorf("invalid memory: %w", err)
 			}
 			container.Resources.Requests[corev1.ResourceMemory] = q
 			container.Resources.Limits[corev1.ResourceMemory] = q
@@ -350,6 +350,8 @@ func (k *KubernetesProvider) storeAndScale(ctx context.Context, ns, kind, name s
 		if stopping && current > 0 {
 			obj.Annotations[lastReplicasAnnotation] = strconv.Itoa(int(current))
 			target = 0
+		} else if !stopping && current > 0 {
+			target = current // already running: Start must not change the replica count
 		} else if !stopping {
 			target = 3
 			if saved, err := strconv.Atoi(obj.Annotations[lastReplicasAnnotation]); err == nil && saved > 0 {
@@ -374,6 +376,8 @@ func (k *KubernetesProvider) storeAndScale(ctx context.Context, ns, kind, name s
 		if stopping && current > 0 {
 			obj.Annotations[lastReplicasAnnotation] = strconv.Itoa(int(current))
 			target = 0
+		} else if !stopping && current > 0 {
+			target = current // already running: Start must not change the replica count
 		} else if !stopping {
 			target = 3
 			if saved, err := strconv.Atoi(obj.Annotations[lastReplicasAnnotation]); err == nil && saved > 0 {
@@ -746,20 +750,16 @@ func (k *KubernetesProvider) Drain(ctx context.Context, name string) error {
 	if err != nil {
 		return err
 	}
-	var errs []string
+	var errs []error
 	for _, p := range pods.Items {
 		if isDaemonSetPod(&p) || isMirrorPod(&p) || p.Namespace == "kube-system" {
 			continue
 		}
-		err := k.EvictPod(ctx, p.Namespace, p.Name)
-		if err != nil {
-			errs = append(errs, p.Namespace+"/"+p.Name+": "+err.Error())
+		if err := k.EvictPod(ctx, p.Namespace, p.Name); err != nil {
+			errs = append(errs, fmt.Errorf("%s/%s: %w", p.Namespace, p.Name, err)) // %w keeps the apierror, so HTTPStatus still sees 429/404
 		}
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "; "))
-	}
-	return nil
+	return errors.Join(errs...)
 }
 func isDaemonSetPod(p *corev1.Pod) bool {
 	for _, o := range p.OwnerReferences {

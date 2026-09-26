@@ -65,6 +65,7 @@ func integrationsFromCM(cm *corev1.ConfigMap) Integrations {
 		ProbePodName:      d["probePodName"],
 		ProbePodContainer: d["probePodContainer"],
 		ProbeURL:          d["probeUrl"],
+		NotifyOnWarnings:  d["notifyOnWarnings"] == "true",
 	}
 }
 
@@ -84,6 +85,7 @@ func integrationsToCMData(in Integrations) map[string]string {
 		"probePodName":       in.ProbePodName,
 		"probePodContainer":  in.ProbePodContainer,
 		"probeUrl":           in.ProbeURL,
+		"notifyOnWarnings":   strconv.FormatBool(in.NotifyOnWarnings),
 	}
 }
 
@@ -100,6 +102,8 @@ func (s *K8sIntegrationStore) Load(ctx context.Context) (Integrations, bool, err
 	if err == nil {
 		out.AtlasToken = string(sec.Data["atlasToken"])
 		out.PostgresPassword = string(sec.Data["postgresPassword"])
+		out.SlackWebhookURL = string(sec.Data["slackWebhookUrl"]) // webhook URLs are credentials: Secret, not ConfigMap
+		out.AlertWebhookURL = string(sec.Data["alertWebhookUrl"])
 	} else if !apierrors.IsNotFound(err) {
 		return Integrations{}, false, err
 	}
@@ -135,6 +139,8 @@ func (s *K8sIntegrationStore) Save(ctx context.Context, in Integrations) error {
 		Data: map[string][]byte{
 			"atlasToken":       []byte(in.AtlasToken),
 			"postgresPassword": []byte(in.PostgresPassword),
+			"slackWebhookUrl":  []byte(in.SlackWebhookURL),
+			"alertWebhookUrl":  []byte(in.AlertWebhookURL),
 		},
 	}
 	if _, err := s.client.CoreV1().Secrets(s.ns).Update(ctx, sec, metav1.UpdateOptions{}); err != nil {
