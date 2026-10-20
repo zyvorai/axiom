@@ -40,10 +40,14 @@ func (s *Server) registerCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sp.Register(req.Name, req.Label, p, server)
-	_ = platform.SaveRemoteCluster(r.Context(), s.mode, s.provider, req.Name, req.Label, req.Kubeconfig)
+	resp := map[string]any{"ok": true, "name": req.Name, "label": req.Label, "server": server}
+	if err := platform.SaveRemoteCluster(r.Context(), s.mode, s.provider, req.Name, req.Label, req.Kubeconfig); err != nil {
+		resp["persisted"] = false
+		resp["warning"] = "cluster registered but could not be persisted; it will be lost on restart: " + err.Error()
+	}
 	platform.RecordAxiomAudit("cluster.register", req.Name, req.Label, s.auditUser(r))
 	EmitStateChanged("cluster", "register")
-	writeJSON(w, http.StatusCreated, map[string]any{"ok": true, "name": req.Name, "label": req.Label, "server": server})
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 func (s *Server) unregisterCluster(w http.ResponseWriter, r *http.Request) {
@@ -57,8 +61,12 @@ func (s *Server) unregisterCluster(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	_ = platform.DeleteRemoteCluster(r.Context(), s.mode, s.provider, name)
+	resp := map[string]any{"ok": true}
+	if err := platform.DeleteRemoteCluster(r.Context(), s.mode, s.provider, name); err != nil {
+		resp["persisted"] = false
+		resp["warning"] = "cluster unregistered but removal could not be persisted; it may reappear on restart: " + err.Error()
+	}
 	platform.RecordAxiomAudit("cluster.unregister", name, "", s.auditUser(r))
 	EmitStateChanged("cluster", "unregister")
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+	writeJSON(w, http.StatusOK, resp)
 }
