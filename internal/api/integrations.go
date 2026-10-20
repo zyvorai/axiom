@@ -37,7 +37,7 @@ func (s *Server) putIntegrations(w http.ResponseWriter, r *http.Request) {
 	s.auth.OIDCIssuer = cur.OIDCIssuer
 	s.auth.OIDCLogin = cur.OIDCLoginURL
 	s.auth.OIDCClient = cur.OIDCClientID
-	platform.RecordAxiomAudit("integrations.update", "settings", s.auditUser(r), "")
+	platform.RecordAxiomAudit("integrations.update", "settings", "", s.auditUser(r))
 	writeJSON(w, http.StatusOK, view)
 }
 

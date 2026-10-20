@@ -23,5 +23,20 @@ func proxyPodWindow(w http.ResponseWriter, r *http.Request, target, ns, name str
 	if r.URL.Path == "" {
 		r.URL.Path = "/"
 	}
+	stripWindowCredentials(r)
 	proxy.ServeHTTP(w, r)
+}
+
+// stripWindowCredentials removes the operator's Axiom credentials from a
+// request before it is forwarded to a workload, so a pod listening on the
+// proxied port never receives the console session or Basic credentials.
+func stripWindowCredentials(r *http.Request) {
+	r.Header.Del("Authorization")
+	r.Header.Del("Cookie")
+	q := r.URL.Query()
+	if q.Has("access_token") || q.Has("axiom_session") {
+		q.Del("access_token")
+		q.Del("axiom_session")
+		r.URL.RawQuery = q.Encode()
+	}
 }
