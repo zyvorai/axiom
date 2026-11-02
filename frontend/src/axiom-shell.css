@@ -782,7 +782,8 @@
 /* stats — netra metric tiles: 2px blue top rule */
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* auto-fit: 3 tiles fill the row instead of leaving a dead fourth column */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 .stat {
@@ -962,10 +963,10 @@
 .tbl th {
   text-align: left;
   font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
   padding: 0 12px 12px;
   border-bottom: 1px solid var(--line-2);
 }
@@ -1610,4 +1611,16 @@
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Hit areas: tiny controls (row checkboxes, icon buttons) get a >=32px target
+   without changing their visual size — apple.com-style generous touch targets. */
+.ax button[role="checkbox"],
+.ax .btn-sm:not(:has(*:not(svg))) {
+  position: relative;
+}
+.ax button[role="checkbox"]::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
 }

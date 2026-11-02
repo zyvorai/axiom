@@ -207,7 +207,7 @@ export default function PodTerminal({ namespace, name, containers }) {
             <MacTerm
                 title={`${namespace}/${name} — ${shell}`}
                 actions={
-                    <span className="mono text-[10px] text-term-dim">
+                    <span className="mono text-[11px] text-term-dim">
                         <span className={`status-dot mr-1.5 inline-block align-middle ${status === "connected" ? "ok animate-pulse" : status === "error" ? "err" : "info"}`} />
                         {status}
                     </span>

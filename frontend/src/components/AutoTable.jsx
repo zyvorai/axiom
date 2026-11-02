@@ -43,7 +43,7 @@ function renderColumnValue(row, col) {
     if (col.type === "status") return <StatusBadge status={String(raw ?? "unknown")} />;
     if (col.type === "badge") {
         return (
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-[11px]">
                 {formatValue(raw)}
             </Badge>
         );

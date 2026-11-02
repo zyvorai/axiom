@@ -143,7 +143,7 @@ function TaintsPanel({ name, taints, onChanged }) {
                             {t.key}
                             {t.value ? `=${t.value}` : ""}:{t.effect}
                         </Badge>
-                        <Button size="sm" variant="ghost" aria-label={`Remove taint ${t.key}`} title={`Remove taint ${t.key}`} onClick={() => remove(t)} className="h-7 px-2 text-muted-foreground hover:text-tone-red">
+                        <Button size="sm" variant="ghost" aria-label={`Remove taint ${t.key}`} title={`Remove taint ${t.key}`} onClick={() => remove(t)} className="h-8 px-2 text-muted-foreground hover:text-tone-red">
                             <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                     </div>

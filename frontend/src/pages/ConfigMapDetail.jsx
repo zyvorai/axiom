@@ -137,7 +137,7 @@ export default function ConfigMapDetail() {
                     entries.map(([key, value]) => (
                         <div key={key} className="border-b px-4 py-3 last:border-none">
                             <div className="mb-1">
-                                <Badge variant="outline" className="mono text-[10px]">
+                                <Badge variant="outline" className="mono text-[11px]">
                                     {key}
                                 </Badge>
                             </div>

@@ -108,7 +108,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                                 ["Available", status.available],
                             ].map(([label, value]) => (
                                 <div key={label} className="border-y border-border p-2.5">
-                                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
+                                    <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</div>
                                     <div className="mono mt-1 truncate text-sm">{value}</div>
                                 </div>
                             ))}
@@ -239,7 +239,7 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" disabled={!!busy} aria-label={`Actions for ${w.name}`} title={`Actions for ${w.name}`} className="h-7 w-7 p-0 text-muted-foreground">
+                <Button size="sm" variant="ghost" disabled={!!busy} aria-label={`Actions for ${w.name}`} title={`Actions for ${w.name}`} className="h-8 w-8 p-0 text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>

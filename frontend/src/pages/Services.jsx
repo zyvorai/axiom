@@ -90,7 +90,7 @@ export default function Services() {
                                     <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(s.ports || []).map((p, i) => (
-                                                <Badge key={i} variant="outline" className="mono text-[10px] bg-muted/30">
+                                                <Badge key={i} variant="outline" className="mono text-[11px] bg-muted/30">
                                                     {p.port}
                                                     {p.targetPort ? `→${p.targetPort}` : ""}/{p.protocol || "TCP"}
                                                 </Badge>

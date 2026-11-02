@@ -48,7 +48,7 @@ function ResourceMap({ map }) {
     return (
         <div className="flex flex-wrap gap-1">
             {entries.map(([k, v]) => (
-                <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
+                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
                     {k}={v}
                 </Badge>
             ))}
@@ -125,7 +125,7 @@ export default function Quotas() {
                                 <div className="space-y-1.5">
                                     {(r.limits || []).map((l, i) => (
                                         <div key={i} className="flex flex-wrap items-center gap-1.5">
-                                            <Badge className="text-[10px] bg-muted text-foreground border-none">{l.type}</Badge>
+                                            <Badge className="text-[11px] bg-muted text-foreground border-none">{l.type}</Badge>
                                             {l.default && <span className="mono text-[11px] text-muted-foreground">default: {l.default}</span>}
                                             {l.defaultRequest && <span className="mono text-[11px] text-muted-foreground">request: {l.defaultRequest}</span>}
                                             {l.max && <span className="mono text-[11px] text-muted-foreground">max: {l.max}</span>}
@@ -171,7 +171,7 @@ export default function Quotas() {
                                     <div className="mono">
                                         {r.name}
                                         {r.globalDefault && (
-                                            <Badge className="ml-2 text-[10px] bg-muted text-foreground border-none">default</Badge>
+                                            <Badge className="ml-2 text-[11px] bg-muted text-foreground border-none">default</Badge>
                                         )}
                                     </div>
                                     {r.description && <div className="text-[11px] text-muted-foreground">{r.description}</div>}

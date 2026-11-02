@@ -283,7 +283,7 @@ function TerminalSessions({ namespace, name, containers }) {
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                <Button size="sm" variant="ghost" onClick={addSession} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" title="New shell">
+                <Button size="sm" variant="ghost" onClick={addSession} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="New shell">
                     <Plus className="h-3.5 w-3.5" />
                 </Button>
             </div>
@@ -533,7 +533,7 @@ export default function PodDetail() {
                                         return (
                                             <div key={i} className="flex items-center justify-between border-b border-border px-4 py-3 text-xs last:border-none">
                                                 <span className="mono text-tone-purple">{v.name}</span>
-                                                <Badge variant="outline" className="border-border bg-muted text-[10px] text-tone-purple">
+                                                <Badge variant="outline" className="border-border bg-muted text-[11px] text-tone-purple">
                                                     {kind}
                                                 </Badge>
                                             </div>
@@ -592,7 +592,7 @@ export default function PodDetail() {
                                         <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
                                             <div className="mono text-sm">
                                                 {info.name}
-                                                {info.init && <Badge variant="outline" className="ml-2 bg-muted/30 text-[10px]">init</Badge>}
+                                                {info.init && <Badge variant="outline" className="ml-2 bg-muted/30 text-[11px]">init</Badge>}
                                             </div>
                                             {info.state && <StatusBadge status={info.ready ? "Running" : info.state} />}
                                         </div>

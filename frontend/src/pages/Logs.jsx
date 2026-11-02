@@ -137,7 +137,7 @@ export default function Logs() {
             <MacTerm
                 title={running ? `logs — ${selected}` : `logs — idle`}
                 actions={
-                    <span className="mono text-[10px] text-term-dim">
+                    <span className="mono text-[11px] text-term-dim">
                         <span className={`status-dot mr-1.5 inline-block align-middle ${running ? "ok animate-pulse" : "info"}`} />
                         {lines.length} lines
                     </span>

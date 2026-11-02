@@ -106,7 +106,7 @@ export default function SecretDetail() {
                             {ns}
                         </Link>
                         <span>·</span>
-                        <Badge variant="secondary" className="mono text-[10px]">
+                        <Badge variant="secondary" className="mono text-[11px]">
                             {detail.type || "Opaque"}
                         </Badge>
                         <span>·</span>
@@ -160,7 +160,7 @@ export default function SecretDetail() {
                         return (
                             <div key={key} className="border-b px-4 py-3 last:border-none">
                                 <div className="mb-1 flex items-center gap-2">
-                                    <Badge variant="outline" className="mono text-[10px]">
+                                    <Badge variant="outline" className="mono text-[11px]">
                                         {key}
                                     </Badge>
                                     {size != null && <span className="text-[11px] text-muted-foreground">{size} bytes</span>}

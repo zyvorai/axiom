@@ -46,7 +46,7 @@ function ConsolePanel({ vm }) {
         <div className="space-y-4 border-y border-border bg-muted p-6">
             <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
             <div>
-                <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
+                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2">
                     <code className="mono flex-1 truncate text-xs">{info.virtctl}</code>
                     <button type="button" onClick={copy} className="text-muted-foreground hover:text-foreground">
@@ -56,7 +56,7 @@ function ConsolePanel({ vm }) {
             </div>
             {info.vncPath && (
                 <div>
-                    <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
+                    <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
                     <code className="mono block truncate text-[11px] text-muted-foreground">{info.vncPath}</code>
                 </div>
             )}

@@ -284,7 +284,7 @@ export default function Secrets() {
                                     <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(s.keys || []).map((k) => (
-                                                <Badge key={k} variant="outline" className="mono text-[10px] bg-muted/30">
+                                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
                                                     {k}
                                                 </Badge>
                                             ))}

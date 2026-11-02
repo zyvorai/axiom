@@ -82,7 +82,7 @@ export default function Ingresses() {
                                     <td>
                                         <div className="flex flex-wrap gap-1">
                                             {(i.hosts || []).map((h) => (
-                                                <Badge key={h} variant="outline" className="mono text-[10px] bg-muted/30">
+                                                <Badge key={h} variant="outline" className="mono text-[11px] bg-muted/30">
                                                     {h}
                                                 </Badge>
                                             ))}

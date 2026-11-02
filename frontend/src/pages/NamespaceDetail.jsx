@@ -194,7 +194,7 @@ export default function NamespaceDetail() {
                                         >
                                             <TableCell className="mono text-sm">{w.name}</TableCell>
                                             <TableCell>
-                                                <Badge variant="secondary" className="font-mono text-[10px]">
+                                                <Badge variant="secondary" className="font-mono text-[11px]">
                                                     {w.kind}
                                                 </Badge>
                                             </TableCell>
@@ -250,7 +250,7 @@ export default function NamespaceDetail() {
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
                                                     {(s.ports || []).map((p, i) => (
-                                                        <Badge key={i} variant="outline" className="mono text-[10px] bg-muted/30">
+                                                        <Badge key={i} variant="outline" className="mono text-[11px] bg-muted/30">
                                                             {p.port}
                                                             {p.targetPort ? `→${p.targetPort}` : ""}/{p.protocol || "TCP"}
                                                         </Badge>

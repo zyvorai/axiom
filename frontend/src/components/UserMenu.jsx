@@ -38,7 +38,7 @@ export default function UserMenu() {
                     <div className="text-sm font-medium">{user.name}</div>
                     <div className="text-xs font-normal text-muted-foreground">{user.role}</div>
                 </DropdownMenuLabel>
-                <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[11px] uppercase tracking-widest text-muted-foreground">
                     <ShieldCheck className="h-3 w-3 text-tone-green" />
                     {user.authMethod === "oidc" ? "SSO" : "Local"} · {user.mode}
                 </div>

@@ -59,12 +59,12 @@ function ConsolePanel({ vm }) {
             </div>
             {info.wsPath && (
                 <div>
-                    <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Browser WebSocket proxy</div>
+                    <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Browser WebSocket proxy</div>
                     <code className="mono block truncate text-[11px] text-tone-green">{info.wsPath}</code>
                 </div>
             )}
             <div>
-                <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
+                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
                     <code className="mono flex-1 truncate text-xs text-tone-green">{info.virtctl}</code>
                     <button onClick={copy} aria-label="Copy" title="Copy" className="text-muted-foreground hover:text-foreground">
@@ -73,7 +73,7 @@ function ConsolePanel({ vm }) {
                 </div>
             </div>
             <div>
-                <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
+                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
                 <code className="mono block truncate text-[11px] text-muted-foreground">{info.vncPath}</code>
             </div>
         </div>
