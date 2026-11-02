@@ -15,7 +15,8 @@
 # Usage:
 #   ./scripts/deploy-remote.sh <host> [user] [password]
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick        # skip image rebuild
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --build        # build the image on the host from source (instead of pulling GHCR)
+#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick        # same as the default (no image build); kept for compatibility
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --skip-images  # manifests only
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --with-atlas   # also deploy + wire ../atlas
 #   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
@@ -25,7 +26,8 @@
 #   DEPLOY_DIR                 absolute remote checkout (overrides layout)
 #   DEPLOYMENTS_SUBDIR         default: .deployment
 #   AXIOM_CHECKOUT             default: axiom
-#   AXIOM_IMAGE_TAG            default: dev
+#   AXIOM_IMAGE                image to run (default: the manifest's ghcr.io/zyvorai/axiom:<version>)
+#   AXIOM_IMAGE_TAG            tag for --build local images (default: dev)
 #   AXIOM_NODE_PORT            default: 30590
 #   ATLAS_REPO                 path to the atlas checkout (default: ../atlas next to this repo)
 #   ATLAS_NODE_PORT            default: 30510 (must match ../atlas/deploy/k8s/atlas-gateway.yaml)
@@ -44,7 +46,8 @@ AXIOM_DEPLOY_START=${SECONDS}
 
 QUICK_MODE=false
 UNINSTALL_MODE=false
-SKIP_IMAGES=false
+SKIP_IMAGES=true   # default: pull the published GHCR image; --build builds locally
+BUILD_LOCAL=false
 SKIP_SYNC=false
 DRY_RUN=false
 WITH_ATLAS=false
@@ -52,6 +55,7 @@ POSITIONAL=()
 for arg in "$@"; do
   case "$arg" in
     --quick)       QUICK_MODE=true; SKIP_IMAGES=true ;;
+    --build)       BUILD_LOCAL=true; SKIP_IMAGES=false ;;
     --skip-images) SKIP_IMAGES=true ;;
     --skip-sync)   SKIP_SYNC=true ;;
     --uninstall)   UNINSTALL_MODE=true ;;
@@ -135,7 +139,7 @@ fi
 axiom_ui_set_total 7
 axiom_ui_banner "Zyvor Axiom Remote Deploy" "${USER}@${HOST}"
 axiom_ui_kv "Checkout" "${DEPLOYMENTS_SUBDIR}/${AXIOM_CHECKOUT}"
-axiom_ui_kv "Image tag" "${AXIOM_IMAGE_TAG}"
+axiom_ui_kv "Image" "$($BUILD_LOCAL && echo "zyvor-axiom:${AXIOM_IMAGE_TAG} (local build)" || echo "${AXIOM_IMAGE:-GHCR image from deploy/k8s/deployment.yaml}")"
 axiom_ui_kv "HTTPS" "https://${HOST}:${NODE_PORT} (self-signed)"
 axiom_ui_kv "Mode" "$($UNINSTALL_MODE && echo uninstall || ($SKIP_IMAGES && echo skip-images || echo full))"
 
@@ -144,7 +148,7 @@ if $DRY_RUN; then
   axiom_ui_panel "Would run" \
     "Rsync → ${REMOTE_DIR}" \
     "Generate/reuse self-signed TLS → Secret zyvor-axiom-tls" \
-    "Build zyvor-axiom:${AXIOM_IMAGE_TAG} (unless --skip-images)" \
+    "Pull the GHCR image (or build zyvor-axiom:${AXIOM_IMAGE_TAG} with --build)" \
     "kubectl apply deploy/k8s/*" \
     "Verify https://${HOST}:${NODE_PORT}/api/v1/health (curl -k)"
   exit 0
@@ -219,7 +223,7 @@ info "Secret zyvor-axiom-auth applied (user=${AXIOM_USERNAME})"
 # ── Images ──
 step 5 7 "Build + import container image"
 if $SKIP_IMAGES; then
-  warn "Skipping image builds (--quick / --skip-images)"
+  warn "Not building an image: using the published GHCR image (pass --build to build locally)"
 else
   _ssh "export AXIOM_IMAGE_TAG='${AXIOM_IMAGE_TAG}'; ${REMOTE_SH_PREFIX}; . scripts/lib/deploy-remote-images.sh; axiom_build_all_images"
   info "Image imported into k3s"
@@ -227,7 +231,7 @@ fi
 
 # ── Apply manifests ──
 step 6 7 "Apply Kubernetes manifests"
-_ssh "export AXIOM_IMAGE_TAG='${AXIOM_IMAGE_TAG}' AXIOM_NODE_PORT='${NODE_PORT}'; ${REMOTE_SH_PREFIX}; \
+_ssh "export AXIOM_IMAGE_TAG='${AXIOM_IMAGE_TAG}' AXIOM_NODE_PORT='${NODE_PORT}' AXIOM_BUILD_LOCAL='${BUILD_LOCAL}' AXIOM_IMAGE='${AXIOM_IMAGE:-}'; ${REMOTE_SH_PREFIX}; \
 python3 - <<'PY'
 from pathlib import Path
 import os, re
@@ -237,14 +241,18 @@ node_port = os.environ['AXIOM_NODE_PORT']
 
 dep = Path('deploy/k8s/deployment.yaml')
 text = dep.read_text()
-text = re.sub(r'image: zyvor-axiom:[^\s]+', f'image: zyvor-axiom:{tag}', text)
+pat = r'image: (?:zyvor-axiom|ghcr\.io/zyvorai/axiom):[^\s]+'
+if os.environ.get('AXIOM_BUILD_LOCAL') == 'true':
+    text = re.sub(pat, f'image: zyvor-axiom:{tag}', text)
+elif os.environ.get('AXIOM_IMAGE'):
+    text = re.sub(pat, 'image: ' + os.environ['AXIOM_IMAGE'], text)
 dep.write_text(text)
 
 np = Path('deploy/k8s/nodeport.yaml')
 np_text = np.read_text()
 np_text = re.sub(r'nodePort: [0-9]+', f'nodePort: {node_port}', np_text)
 np.write_text(np_text)
-print(f'deployment image -> zyvor-axiom:{tag}')
+print('deployment image -> ' + re.search(r'image: (\S+)', text).group(1))
 print(f'nodeport -> {node_port}')
 PY
 kubectl apply -f deploy/k8s/rbac.yaml

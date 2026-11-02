@@ -13,7 +13,8 @@ stringData:
   username: demo
   password: demo
 ---
-# Image tag is patched by scripts/deploy-remote.sh (default: zyvor-axiom:dev).
+# Default: the published GHCR image. scripts/deploy-remote.sh --build swaps in a locally built zyvor-axiom:<tag>;
+# AXIOM_IMAGE=<ref> overrides the image.
 # For registry deploys, set image to ghcr.io/zyvorai/axiom:<version>.
 # Remote deploy always mounts zyvor-axiom-tls (self-signed) — HTTPS only.
 apiVersion: apps/v1
@@ -34,7 +35,7 @@ spec:
       serviceAccountName: zyvor-axiom
       containers:
         - name: zyvor-axiom
-          image: zyvor-axiom:dev
+          image: ghcr.io/zyvorai/axiom:0.2.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: https

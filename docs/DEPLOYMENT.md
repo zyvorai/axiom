@@ -154,7 +154,7 @@ make deploy-remote H=<ephemeral-ip> U=zyvorai
 |---------|---------|
 | Remote SSH user | `zyvorai` (override: 2nd arg or `DEPLOY_USER`) |
 | Remote checkout | `~/.deployment/axiom` |
-| Image | `zyvor-axiom:dev` (local k3s import) |
+| Image | `ghcr.io/zyvorai/axiom:<version>` (published; `--build` uses a local `zyvor-axiom:dev` import) |
 | NodePort | `30590` (HTTPS; use `30591` if `30590` is taken) |
 | Lab login | `demo` / `demo` (shown automatically when SSO is off) |
 | TLS | Self-signed, reused under `.run/tls/` |
