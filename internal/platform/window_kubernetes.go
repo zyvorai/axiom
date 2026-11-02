@@ -5,6 +5,7 @@ package platform
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -16,6 +17,22 @@ func (k *KubernetesProvider) PodProxyTarget(ctx context.Context, ns, podName str
 	}
 	if p.Status.PodIP == "" {
 		return "", fmt.Errorf("pod has no IP yet")
+	}
+	if p.Spec.HostNetwork {
+		// A hostNetwork pod's IP is the node's: proxying would reach any
+		// node-local service (kubelet, etcd, CNI debug ports).
+		return "", NewStatusError(http.StatusForbidden, fmt.Errorf("pod uses the host network and cannot be proxied"))
+	}
+	declared := false
+	for _, c := range p.Spec.Containers {
+		for _, cp := range c.Ports {
+			if cp.ContainerPort == port {
+				declared = true
+			}
+		}
+	}
+	if !declared {
+		return "", NewStatusError(http.StatusForbidden, fmt.Errorf("port %d is not a declared container port of this pod", port))
 	}
 	return fmt.Sprintf("http://%s:%d", p.Status.PodIP, port), nil
 }

@@ -132,25 +132,44 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		limiter.RecordSuccess(key)
-		if id.Role == "viewer" && isMutatingMethod(r.Method) {
+		deny := func(code int, msg string) {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			_, _ = w.Write([]byte(`{"error":"read-only user: this account cannot perform write actions"}`))
+			w.WriteHeader(code)
+			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
+		}
+		if id.Role == "viewer" && isMutatingMethod(r.Method) {
+			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
-		if id.Role == "operator" && isMutatingMethod(r.Method) && isAdminOnlyPath(r.URL.Path) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			_, _ = w.Write([]byte(`{"error":"operator role cannot manage users, integrations, or cluster registry"}`))
+		if id.Role == "viewer" && isInteractivePath(r.URL.Path) {
+			deny(http.StatusForbidden, "read-only user: shells, consoles and the pod proxy require the operator role")
+			return
+		}
+		if sns, isVals := secretValuesTarget(r); isVals {
+			if id.Role == "viewer" {
+				deny(http.StatusForbidden, "read-only user: reading secret values requires the operator role")
+				return
+			}
+			if id.Role != "admin" && strings.EqualFold(sns, axiomNamespace) {
+				deny(http.StatusForbidden, "secret values in the Axiom namespace require the admin role")
+				return
+			}
+		}
+		if id.Role == "operator" && ((isMutatingMethod(r.Method) && isAdminOnlyPath(r.URL.Path)) || isOperatorForbidden(r)) {
+			deny(http.StatusForbidden, "operator role cannot manage users, integrations, RBAC, Helm installs, or the cluster registry")
 			return
 		}
 		if id.namespaceRestricted() {
-			if ns, scoped := namespaceOfRequest(r); scoped {
-				if ns == "" || strings.EqualFold(ns, "all") || !id.allowsNamespace(ns) {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusForbidden)
-					_, _ = w.Write([]byte(`{"error":"this account is restricted to specific namespaces"}`))
-					return
+			if restrictedDenied(r) {
+				deny(http.StatusForbidden, "this account is restricted to specific namespaces")
+				return
+			}
+			if nss, scoped := namespacesOfRequest(r); scoped {
+				for _, ns := range nss {
+					if ns == "" || strings.EqualFold(ns, "all") || !id.allowsNamespace(ns) {
+						deny(http.StatusForbidden, "this account is restricted to specific namespaces")
+						return
+					}
 				}
 			}
 		}
@@ -206,29 +225,6 @@ var namespacedResourcePrefixes = []string{
 	// philosophy, versus leaving CRD instances readable across every
 	// namespace.
 	"/api/v1/crds",
-}
-
-// namespaceOfRequest returns the namespace a request targets and whether
-// this route is namespace-scoped at all. For a matched route with no
-// namespace given (neither query param nor path segment), it returns
-// ("", true) — meaning "all namespaces" — which a namespace-restricted
-// identity must never be allowed.
-func namespaceOfRequest(r *http.Request) (string, bool) {
-	prefix, ok := matchNamespacedPrefix(r.URL.Path)
-	if !ok {
-		return "", false
-	}
-	if vals, present := r.URL.Query()["namespace"]; present && len(vals) > 0 {
-		return vals[0], true
-	}
-	rest := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, prefix), "/")
-	if rest == "" {
-		return "", true
-	}
-	if seg, _, found := strings.Cut(rest, "/"); found {
-		return seg, true
-	}
-	return rest, true
 }
 
 func matchNamespacedPrefix(path string) (string, bool) {

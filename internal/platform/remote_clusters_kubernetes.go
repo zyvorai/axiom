@@ -111,7 +111,12 @@ func (s *k8sRemoteClusterStore) List(ctx context.Context) ([]RemoteCluster, erro
 }
 
 func (s *k8sRemoteClusterStore) Upsert(ctx context.Context, c RemoteCluster) error {
-	list, _ := s.List(ctx)
+	list, err := s.List(ctx)
+	if err != nil {
+		// Never fall through with an empty list: save() would overwrite the
+		// Secret with just this one cluster and silently drop the rest.
+		return err
+	}
 	found := false
 	for i := range list {
 		if list[i].Name == c.Name {

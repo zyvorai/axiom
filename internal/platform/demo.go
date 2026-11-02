@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"io"
 	"regexp"
 	"sort"
@@ -583,8 +584,8 @@ func (d *DemoProvider) CreateNamespace(ctx context.Context, name string) (Namesp
 }
 
 func (d *DemoProvider) DeleteNamespace(ctx context.Context, name string) error {
-	if name == "default" {
-		return errors.New("cannot delete default namespace in demo")
+	if protectedNamespace(name) {
+		return NewStatusError(http.StatusForbidden, fmt.Errorf("namespace %q is protected and cannot be deleted from Axiom", name))
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()

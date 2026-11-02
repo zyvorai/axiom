@@ -839,15 +839,20 @@ func (w lockedWSWriter) Write(p []byte) (int, error) {
 }
 
 type terminalSizeQueue struct {
-	ch chan remotecommand.TerminalSize
+	ch   chan remotecommand.TerminalSize
+	done <-chan struct{}
 }
 
+// Next blocks for the next resize. The channel is never closed (the reader
+// goroutine sends on it, and closing a channel with a live sender panics and
+// takes the whole process down); the session ending is signalled via done.
 func (q *terminalSizeQueue) Next() *remotecommand.TerminalSize {
-	s, ok := <-q.ch
-	if !ok {
+	select {
+	case s := <-q.ch:
+		return &s
+	case <-q.done:
 		return nil
 	}
-	return &s
 }
 
 func (k *KubernetesProvider) ExecCommand(ctx context.Context, ns, pod, container string, command []string) (string, error) {
@@ -920,8 +925,6 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 	stdinR, stdinW := io.Pipe()
 	defer stdinR.Close()
 	defer stdinW.Close()
-	resize := &terminalSizeQueue{ch: make(chan remotecommand.TerminalSize, 4)}
-	defer close(resize.ch)
 	var writeMu sync.Mutex
 	out := lockedWSWriter{mu: &writeMu, conn: conn}
 	// Detach from the HTTP request context: some middleware cancel it when
@@ -929,6 +932,7 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 	// done, which would kill an otherwise healthy PTY mid-session.
 	streamCtx, streamCancel := context.WithCancel(context.Background())
 	defer streamCancel()
+	resize := &terminalSizeQueue{ch: make(chan remotecommand.TerminalSize, 4), done: streamCtx.Done()}
 	readErr := make(chan error, 1)
 	go func() {
 		for {
@@ -1057,6 +1061,9 @@ func (k *KubernetesProvider) CreateNamespace(ctx context.Context, name string) (
 }
 
 func (k *KubernetesProvider) DeleteNamespace(ctx context.Context, name string) error {
+	if protectedNamespace(name) {
+		return NewStatusError(http.StatusForbidden, fmt.Errorf("namespace %q is protected and cannot be deleted from Axiom", name))
+	}
 	return k.client.CoreV1().Namespaces().Delete(ctx, name, metav1.DeleteOptions{})
 }
 

@@ -1,8 +1,11 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"regexp"
 
+	"github.com/zyvorai/axiom/internal/auth"
 	"github.com/zyvorai/axiom/internal/platform"
 )
 
@@ -71,6 +74,10 @@ func (s *Server) applyManifest(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := decode(r, &req); err != nil {
 		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	if id, ok := auth.IdentityFromContext(r.Context()); ok && id.Role != "admin" && manifestTouchesRBAC(req.Manifest) {
+		fail(w, http.StatusForbidden, errors.New("applying RBAC objects (Role, RoleBinding, ClusterRole, ClusterRoleBinding, ServiceAccount) requires the admin role"))
 		return
 	}
 	v, err := s.provider.ApplyManifest(r.Context(), req.Manifest)
@@ -157,4 +164,13 @@ func (s *Server) listPersistentVolumes(w http.ResponseWriter, r *http.Request) {
 func (s *Server) listGateways(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListGateways(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)
+}
+
+var rbacKindRe = regexp.MustCompile(`(?mi)(?:^|[\s{,"'])"?kind"?\s*:\s*["']?(clusterrole|clusterrolebinding|role|rolebinding|serviceaccount)["']?\s*(?:$|[\s,}])`)
+
+// manifestTouchesRBAC is a conservative textual check (YAML or JSON, multi-doc)
+// for RBAC kinds, used to keep non-admin roles from escalating privileges
+// through the generic apply endpoint.
+func manifestTouchesRBAC(manifest string) bool {
+	return rbacKindRe.MatchString(manifest)
 }

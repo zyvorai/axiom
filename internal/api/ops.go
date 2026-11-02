@@ -6,10 +6,26 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/zyvorai/axiom/internal/auth"
 	"github.com/zyvorai/axiom/internal/platform"
 )
 
+// auditUserFromRequest attributes an action to the authenticated identity
+// (session cookie, API key or Basic), falling back to raw Basic credentials.
+func auditUserFromRequest(r *http.Request) string {
+	if id, ok := auth.IdentityFromContext(r.Context()); ok && id.User != "" {
+		return id.User
+	}
+	if u, _, ok := r.BasicAuth(); ok && u != "" {
+		return u
+	}
+	return "anonymous"
+}
+
 func (s *Server) auditUser(r *http.Request) string {
+	if id, ok := auth.IdentityFromContext(r.Context()); ok && id.User != "" {
+		return id.User
+	}
 	if u, _, ok := r.BasicAuth(); ok && u != "" {
 		return u
 	}
