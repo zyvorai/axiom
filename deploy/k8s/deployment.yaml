@@ -35,7 +35,7 @@ spec:
       serviceAccountName: zyvor-axiom
       containers:
         - name: zyvor-axiom
-          image: ghcr.io/zyvorai/axiom:0.2.1
+          image: ghcr.io/zyvorai/axiom:0.2.2
           imagePullPolicy: IfNotPresent
           ports:
             - name: https
