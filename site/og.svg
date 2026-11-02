@@ -8,4 +8,4 @@
 <text x="80" y="320" font-size="96" font-weight="700" letter-spacing="-3">Your cluster.</text>
 <text x="80" y="425" font-size="96" font-weight="700" letter-spacing="-3" fill="#4aa8ff">Finally legible.</text>
 <text x="80" y="520" font-size="32" fill="#a1a1a6">The private-cloud console for k3s and Kubernetes.</text>
-<text x="80" y="570" font-size="26" fill="#6e6e73">One Go binary · github.com/zyvorai/zyvor-axiom</text></g></svg>
+<text x="80" y="570" font-size="26" fill="#6e6e73">One Go binary · github.com/zyvorai/axiom</text></g></svg>
