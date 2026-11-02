@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -359,30 +358,26 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 		strings.TrimSpace(req.RepoURL) == "" || strings.TrimSpace(req.ChartName) == "" {
 		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
 	}
-	jobNS := "axiom-system"
-	jobName := fmt.Sprintf("axiom-helm-upgrade-%s-%d", sanitizeDNS(req.ReleaseName), time.Now().Unix()%100000)
+	if err := rejectFlagLike(req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName, req.ChartVersion); err != nil {
+		return HelmActionResult{}, err
+	}
+	jobNS, helmSA, helmImage := helmJobConfig()
+	jobName := helmJobName("upgrade", req.ReleaseName)
 	args := []string{"upgrade", req.ReleaseName, req.ChartName, "--repo", req.RepoURL, "-n", req.Namespace}
 	if req.ChartVersion != "" {
 		args = append(args, "--version", req.ChartVersion)
 	}
 	var volumes []corev1.Volume
 	var mounts []corev1.VolumeMount
+	valuesSecret := ""
 	if strings.TrimSpace(req.Values) != "" {
-		cmName := jobName + "-values"
-		_, err := k.client.CoreV1().ConfigMaps(jobNS).Create(ctx, &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: cmName, Namespace: jobNS,
-				Labels: map[string]string{"app.kubernetes.io/managed-by": "zyvor-axiom"},
-			},
-			Data: map[string]string{"values.yaml": req.Values},
-		}, metav1.CreateOptions{})
+		vol, mnt, name, err := k.createHelmValuesSecret(ctx, jobNS, jobName, req.Values)
 		if err != nil {
-			return HelmActionResult{}, fmt.Errorf("create values configmap: %w", err)
+			return HelmActionResult{}, err
 		}
-		volumes = append(volumes, corev1.Volume{
-			Name: "values", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: cmName}}},
-		})
-		mounts = append(mounts, corev1.VolumeMount{Name: "values", MountPath: "/values"})
+		valuesSecret = name
+		volumes = append(volumes, vol)
+		mounts = append(mounts, mnt)
 		args = append(args, "-f", "/values/values.yaml")
 	}
 	backoff := int32(0)
@@ -400,18 +395,20 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 			BackoffLimit: &backoff, TTLSecondsAfterFinished: &ttl,
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever, ServiceAccountName: "zyvor-axiom", Volumes: volumes,
+					RestartPolicy: corev1.RestartPolicyNever, ServiceAccountName: helmSA, Volumes: volumes,
 					Containers: []corev1.Container{{
-						Name: "helm", Image: "alpine/helm:3.14.4",
+						Name: "helm", Image: helmImage,
 						Command: append([]string{"helm"}, args...), VolumeMounts: mounts,
 					}},
 				},
 			},
 		},
 	}
-	if _, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{}); err != nil {
+	created, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
 		return HelmActionResult{}, err
 	}
+	k.adoptHelmValuesSecret(ctx, jobNS, valuesSecret, created)
 	return HelmActionResult{
 		OK: true, Action: "upgrade", JobName: jobNS + "/" + jobName,
 		Message: fmt.Sprintf("Helm upgrade started for %s/%s", req.Namespace, req.ReleaseName),

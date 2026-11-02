@@ -507,7 +507,7 @@ func TestKubernetesCreateVeleroBackupRequiresDynamicClient(t *testing.T) {
 
 // --- UpgradeHelmChart ---
 
-func TestKubernetesUpgradeHelmChartCreatesJobAndValuesConfigMap(t *testing.T) {
+func TestKubernetesUpgradeHelmChartCreatesJobAndValuesSecret(t *testing.T) {
 	ctx := context.Background()
 	k, cs := newFakeKubernetesProvider()
 	res, err := k.UpgradeHelmChart(ctx, InstallHelmRequest{
@@ -532,12 +532,16 @@ func TestKubernetesUpgradeHelmChartCreatesJobAndValuesConfigMap(t *testing.T) {
 		t.Fatalf("expected job labeled with the release name, got %+v", jobs.Items[0].Labels)
 	}
 
-	cms, err := cs.CoreV1().ConfigMaps("axiom-system").List(ctx, metav1.ListOptions{})
+	secs, err := cs.CoreV1().Secrets("axiom-system").List(ctx, metav1.ListOptions{})
 	if err != nil {
-		t.Fatalf("ConfigMaps List: %v", err)
+		t.Fatalf("Secrets List: %v", err)
 	}
-	if len(cms.Items) != 1 {
-		t.Fatalf("expected a values configmap to be created when Values is set, got %d", len(cms.Items))
+	if len(secs.Items) != 1 {
+		t.Fatalf("expected a values secret to be created when Values is set, got %d", len(secs.Items))
+	}
+	cms, _ := cs.CoreV1().ConfigMaps("axiom-system").List(ctx, metav1.ListOptions{})
+	if len(cms.Items) != 0 {
+		t.Fatalf("chart values must not go into a plaintext ConfigMap, got %d", len(cms.Items))
 	}
 }
 

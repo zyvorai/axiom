@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"sort"
 	"strings"
 	"sync"
@@ -30,8 +29,10 @@ type utilSample struct {
 }
 
 var (
-	utilMu      sync.Mutex
-	utilHistory []utilSample
+	utilMu sync.Mutex
+	// utilHistory is keyed by cluster, like the pod/node metric rings — with a
+	// single global slice, switching clusters interleaved their samples.
+	utilHistory = map[string][]utilSample{}
 )
 
 func (k *KubernetesProvider) ListVirtualMachines(ctx context.Context, ns string) ([]VirtualMachine, error) {
@@ -288,11 +289,13 @@ func (k *KubernetesProvider) Utilization(ctx context.Context) (UtilizationSeries
 	cpu, mem, err := k.readNodeMetrics(ctx)
 	source := "metrics-server"
 	if err != nil {
-		cpu, mem = 42.8, 60.0
-		source = "estimated"
+		// No metrics-server (or it failed): say so. Previously this invented
+		// 42.8% / 60% and recorded them as real samples, so the dashboard
+		// showed plausible utilization on a cluster that reported none.
+		return UtilizationSeries{Points: []UtilizationPoint{}, Source: "unavailable"}, nil
 	}
-	recordUtilization(cpu, mem)
-	points := utilizationSeries(cpu, mem)
+	recordUtilization(k.clusterKey, cpu, mem)
+	points := utilizationSeries(k.clusterKey)
 	peakCPU, peakMem := cpu, mem
 	for _, p := range points {
 		if p.CPU > peakCPU {
@@ -379,46 +382,32 @@ func parseCPUMillis(s string) int64 {
 	return int64(cores * 1000)
 }
 
-func recordUtilization(cpu, mem float64) {
+func recordUtilization(cluster string, cpu, mem float64) {
 	utilMu.Lock()
 	defer utilMu.Unlock()
 	now := time.Now().UTC()
-	if len(utilHistory) > 0 && now.Sub(utilHistory[len(utilHistory)-1].at) < 20*time.Second {
-		utilHistory[len(utilHistory)-1] = utilSample{at: now, cpu: cpu, mem: mem}
+	h := utilHistory[cluster]
+	if len(h) > 0 && now.Sub(h[len(h)-1].at) < 20*time.Second {
+		h[len(h)-1] = utilSample{at: now, cpu: cpu, mem: mem}
 		return
 	}
-	utilHistory = append(utilHistory, utilSample{at: now, cpu: cpu, mem: mem})
-	if len(utilHistory) > 48 {
-		utilHistory = utilHistory[len(utilHistory)-48:]
+	h = append(h, utilSample{at: now, cpu: cpu, mem: mem})
+	if len(h) > 48 {
+		h = h[len(h)-48:]
 	}
+	utilHistory[cluster] = h
 }
 
-func utilizationSeries(cpu, mem float64) []UtilizationPoint {
+// utilizationSeries returns only samples that were actually measured. It used
+// to pad short histories with a decorative sine-wave "24h" curve, which
+// presented invented data as history.
+func utilizationSeries(cluster string) []UtilizationPoint {
 	utilMu.Lock()
-	hist := append([]utilSample(nil), utilHistory...)
+	hist := append([]utilSample(nil), utilHistory[cluster]...)
 	utilMu.Unlock()
-	out := make([]UtilizationPoint, 0, 25)
-	if len(hist) >= 8 {
-		for _, s := range hist {
-			out = append(out, UtilizationPoint{
-				At:     s.at.Format("15:04"),
-				CPU:    round1(s.cpu),
-				Memory: round1(s.mem),
-			})
-		}
-		return out
+	out := make([]UtilizationPoint, 0, len(hist))
+	for _, s := range hist {
+		out = append(out, UtilizationPoint{At: s.at.Format("15:04"), CPU: round1(s.cpu), Memory: round1(s.mem)})
 	}
-	// Decorative 24h curve anchored on live metrics until enough samples exist.
-	now := time.Now()
-	for i := 0; i < 25; i++ {
-		t := now.Add(time.Duration(i-24) * time.Hour)
-		wave := math.Sin(float64(i)/3.2)*8 + math.Cos(float64(i)/5.1)*5
-		out = append(out, UtilizationPoint{
-			At:     t.Format("15:04"),
-			CPU:    round1(clampPct(cpu + wave)),
-			Memory: round1(clampPct(mem + wave*0.7 - 2)),
-		})
-	}
-	out[len(out)-1] = UtilizationPoint{At: "Now", CPU: round1(cpu), Memory: round1(mem)}
 	return out
 }

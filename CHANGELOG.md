@@ -5,6 +5,9 @@ All notable changes to Zyvor Axiom are documented here.
 ## [Unreleased]
 
 ### Security
+- Helm install/upgrade values are stored in a Secret owned by the Job (garbage-collected with it) instead of a permanent plaintext ConfigMap; Helm Jobs honour the Axiom namespace, `AXIOM_SERVICE_ACCOUNT` and `AXIOM_HELM_IMAGE`, get DNS-safe names of at most 63 characters, and refuse release/chart/repo/version/namespace values that start with `-`
+- One-shot exec output is capped at 1 MiB, interactive terminals at 64 concurrent sessions and 1 MiB frames
+- The VM VNC proxy re-reads the rotating ServiceAccount token and has a handshake timeout
 - Webhook/Slack errors and logs no longer contain the (secret) webhook URL
 - Registering a cluster rejects kubeconfigs that use exec/auth-provider plugins, `tokenFile`, client-cert/CA file paths, impersonation or `proxy-url`, and bounds the request body
 - OIDC: all IdP calls have a 10 s timeout; the ID token's `iss`, `aud` and `exp` are validated
@@ -18,6 +21,12 @@ All notable changes to Zyvor Axiom are documented here.
 - Login page: SSO is now a plain "Sign in with SSO"/"Sign in with SAML" text link under the password form instead of per-provider (Google/GitHub/Okta) icon buttons; added a "Remember me on this device" checkbox (persists only the username) and an inline error banner on failed sign-in.
 
 ### Fixed
+- Log follow is no longer cut off at the API timeout; every client path (in-cluster, multi-context, remote clusters) now has the same timeout and a 50 QPS / 100 burst limit
+- Persisted audit ring is trimmed (oldest first) to stay under the 1 MiB ConfigMap limit instead of silently failing to save
+- Helm release listing selects `owner=helm` Secrets and decodes only each release's newest revision
+- Utilization no longer invents 42.8%/60% when metrics-server is absent (reports `unavailable`) or pads short histories with a decorative curve, and its history is per cluster
+- Deployment "undo" is a single conflict-safe update without the spurious annotation rollout and drops `pod-template-hash`
+- Alerts ask the API server for Warning events (the 200-event cap used to apply before the filter, hiding warnings behind Normal events)
 - `CodeEditor.jsx`'s editable manifest tabs (Pod/Workload detail YAML) now open straight into edit mode instead of requiring an extra "Edit" click first, matching their documented behavior as editable tabs.
 - `DELETE /api/v1/vms/{namespace}/{name}` was rejected with a 403 in real (non-demo) deployments — the `zyvor-axiom` ClusterRole granted `get/list/watch/update/patch/create` on `kubevirt.io` VMs but not `delete`. Found by validating the enterprise write endpoints against a real cluster (`e2e/scripts/validate-enterprise-writes.sh`) rather than only the demo provider/fake clientset unit tests; VM create/list, Service/Ingress/ResourceQuota create+list+delete, fleet cluster register/activate/unregister, and Helm install/upgrade/uninstall all round-tripped correctly against the real cluster.
 

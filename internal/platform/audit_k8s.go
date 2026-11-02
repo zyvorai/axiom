@@ -61,8 +61,37 @@ func (s *K8sAuditStore) Load(ctx context.Context) ([]AuditEntry, error) {
 	return entries, nil
 }
 
+// maxAuditPersistBytes keeps the persisted ring safely under the 1 MiB
+// ConfigMap limit (the default 5000-entry ring is ~1+ MiB and would make every
+// Save fail, silently ending persistence).
+const maxAuditPersistBytes = 900 * 1024
+
+// fitAuditEntries marshals entries and, if the result exceeds maxBytes, drops
+// the OLDEST entries (the ring is oldest-first) until it fits.
+func fitAuditEntries(entries []AuditEntry, maxBytes int) ([]byte, []AuditEntry, error) {
+	for {
+		raw, err := json.Marshal(entries)
+		if err != nil {
+			return nil, nil, err
+		}
+		if len(raw) <= maxBytes || len(entries) == 0 {
+			return raw, entries, nil
+		}
+		// Drop in proportion to the overshoot (at least one entry) rather than
+		// re-marshalling once per entry.
+		drop := len(entries) - int(float64(len(entries))*float64(maxBytes)/float64(len(raw))*0.95)
+		if drop < 1 {
+			drop = 1
+		}
+		if drop > len(entries) {
+			drop = len(entries)
+		}
+		entries = entries[drop:]
+	}
+}
+
 func (s *K8sAuditStore) Save(ctx context.Context, entries []AuditEntry) error {
-	raw, err := json.Marshal(entries)
+	raw, _, err := fitAuditEntries(entries, maxAuditPersistBytes)
 	if err != nil {
 		return err
 	}

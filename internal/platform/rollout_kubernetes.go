@@ -14,6 +14,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 )
 
 func rolloutSupportedKind(kind string) bool {
@@ -193,17 +194,21 @@ func (k *KubernetesProvider) undoDeployment(ctx context.Context, ns, name string
 	if target == nil {
 		return notFoundf("revision %d not found", targetRev)
 	}
-	patch := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"deployment.kubernetes.io/revision":"%d"}}}}}`, targetRev)
-	_, err = k.client.AppsV1().Deployments(ns).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{FieldManager: "axiom-rollout"})
-	if err != nil {
+	// Same as `kubectl rollout undo`: copy the target ReplicaSet's pod template
+	// into the Deployment in ONE update, minus the controller-added
+	// pod-template-hash label (left in, it creates an extra ReplicaSet instead
+	// of reusing the old one). The old code first patched a bogus annotation
+	// into the template — a spurious rollout — and then did an unconditional
+	// Update that could 409 if the controller touched the object in between.
+	tmpl := target.Spec.Template.DeepCopy()
+	delete(tmpl.Labels, "pod-template-hash")
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		dep, err := k.client.AppsV1().Deployments(ns).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		dep.Spec.Template = *tmpl
+		_, err = k.client.AppsV1().Deployments(ns).Update(ctx, dep, metav1.UpdateOptions{})
 		return err
-	}
-	// Roll back pod template to match target RS
-	dep, err := k.client.AppsV1().Deployments(ns).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	dep.Spec.Template = target.Spec.Template
-	_, err = k.client.AppsV1().Deployments(ns).Update(ctx, dep, metav1.UpdateOptions{})
-	return err
+	})
 }

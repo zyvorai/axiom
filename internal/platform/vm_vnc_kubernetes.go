@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"k8s.io/client-go/rest"
@@ -40,14 +41,15 @@ func (k *KubernetesProvider) VMVNCProxy(w http.ResponseWriter, r *http.Request, 
 		return err
 	}
 	dialer := websocket.Dialer{
-		TLSClientConfig: tlsConfig,
-		Subprotocols:    []string{"binary.kubevirt.io", "base64.binary.kubevirt.io"},
+		TLSClientConfig:  tlsConfig,
+		Subprotocols:     []string{"binary.kubevirt.io", "base64.binary.kubevirt.io"},
+		HandshakeTimeout: 15 * time.Second, // a hung API server must not pin this handler
 	}
 	hdr := http.Header{}
-	if k.config.BearerToken != "" {
-		hdr.Set("Authorization", "Bearer "+k.config.BearerToken)
+	if tok := bearerTokenFor(k.config); tok != "" {
+		hdr.Set("Authorization", "Bearer "+tok)
 	}
-	backend, resp, err := dialer.Dial(u.String(), hdr)
+	backend, resp, err := dialer.DialContext(r.Context(), u.String(), hdr)
 	if err != nil {
 		msg := err.Error()
 		if resp != nil {

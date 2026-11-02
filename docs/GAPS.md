@@ -24,6 +24,16 @@ Known security limitations (reviewed, not yet fixed):
 - **LDAP over `ldap://` is plaintext** (no StartTLS); use `ldaps://`. `AXIOM_LDAP_BIND_DN`/`AXIOM_LDAP_BIND_PASSWORD` are read but unused.
 - **Default credentials**: the Helm chart and manifest default to `demo`/`demo`. Axiom logs a warning outside demo mode, and no longer advertises them on the login page, but does not refuse to start.
 
+Known platform limitations (reviewed, not yet fixed):
+
+- **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
+- **Generic manifest apply uses forced server-side apply**, which takes field ownership from Argo CD/Flux/Helm without warning; "Validate" and the real apply can also disagree for Roles/RoleBindings/ServiceAccounts because of RBAC verbs.
+- **Alert dispatch has no leader election**: with `replicaCount>1` every replica posts the same Slack alert, and a flapping pod re-fires every minute.
+- **Blast-radius preview and resource detail match pods by name substring** (`web` also matches `web-api-*`), and the preview's Atlas volume list can never populate (`WorkloadVolumes` is not in the Provider interface).
+- **`ListSecrets` still reads every Secret with its data**, and no list call is paginated (`Limit`/`Continue`), so very large clusters are slow.
+- **Interactive terminals have no idle timeout or ping/pong**; a client that vanishes without closing leaves its PTY until the pod exits. (Concurrent sessions are now capped at 64 and frames at 1 MiB.)
+- **Seal NetworkPolicy names omit the workload kind**, so a Deployment and StatefulSet with the same name collide; `Approve/DenyAgentRun` do not check the current state; `GetCRDInstance`/`DeleteCRDInstance` accept built-in groups (apps, batch, rbac).
+
 Other known gaps found by the functional test pass (see `e2e/README.md`):
 
 - Registered clusters are always reported `Healthy` (`internal/platform/switchable_provider.go`) — there is no probe

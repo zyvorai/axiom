@@ -298,29 +298,48 @@ func (k *KubernetesProvider) RestoreBackup(ctx context.Context, req RestoreBacku
 func strPtr(s string) *string { return &s }
 
 func (k *KubernetesProvider) ListHelmReleases(ctx context.Context, ns string) ([]HelmRelease, error) {
-	list, err := k.client.CoreV1().Secrets(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	// Helm 3 labels every release Secret owner=helm. Selecting on that avoids
+	// transferring every Secret in the cluster (with data) just to find them.
+	list, err := k.client.CoreV1().Secrets(nsSelector(ns)).List(ctx, metav1.ListOptions{LabelSelector: "owner=helm"})
 	if err != nil {
 		return nil, err
 	}
-	seen := map[string]HelmRelease{}
-	for _, s := range list.Items {
-		isHelm := s.Type == "helm.sh/release.v1" || s.Labels["owner"] == "helm"
-		if !isHelm {
-			continue
-		}
-		rel := helmReleaseFromSecret(s)
-		key := rel.Namespace + "/" + rel.Name
-		if prev, ok := seen[key]; ok {
-			if rel.Revision >= prev.Revision {
-				seen[key] = rel
-			}
-			continue
-		}
-		seen[key] = rel
+	// Pick the newest revision of each release from the labels alone, and only
+	// then gunzip/decode that one payload — a release with 50 revisions would
+	// otherwise be decoded 50 times per page load.
+	type cand struct {
+		s   corev1.Secret
+		rev int
 	}
-	out := make([]HelmRelease, 0, len(seen))
-	for _, r := range seen {
-		out = append(out, r)
+	best := map[string]cand{}
+	for _, s := range list.Items {
+		if s.Type != "helm.sh/release.v1" && s.Labels["owner"] != "helm" {
+			continue
+		}
+		name := s.Labels["name"]
+		if name == "" {
+			name = s.Annotations["meta.helm.sh/release-name"]
+		}
+		if name == "" {
+			if parts := strings.Split(s.Name, "."); len(parts) >= 5 && parts[0] == "sh" && parts[1] == "helm" {
+				name = parts[4]
+			} else {
+				name = s.Name
+			}
+		}
+		relNS := s.Namespace
+		if v := s.Annotations["meta.helm.sh/release-namespace"]; v != "" {
+			relNS = v
+		}
+		rev, _ := strconv.Atoi(s.Labels["version"])
+		key := relNS + "/" + name
+		if prev, ok := best[key]; !ok || rev >= prev.rev {
+			best[key] = cand{s: s, rev: rev}
+		}
+	}
+	out := make([]HelmRelease, 0, len(best))
+	for _, c := range best {
+		out = append(out, helmReleaseFromSecret(c.s))
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace == out[j].Namespace {
@@ -576,7 +595,7 @@ func gitOpsFluxStatus(item unstructured.Unstructured) (string, string) {
 }
 
 func (k *KubernetesProvider) ListAlerts(ctx context.Context, ns string) (AlertsResponse, error) {
-	events, err := k.ListEvents(ctx, ns)
+	events, err := k.listEvents(ctx, ns, "type=Warning")
 	if err != nil {
 		return AlertsResponse{}, err
 	}

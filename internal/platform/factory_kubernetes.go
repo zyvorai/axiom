@@ -72,7 +72,7 @@ func newKubernetesClusterRegistry(kubeconfigPath, clusterName string) (*Switchab
 		if err != nil {
 			continue
 		}
-		cfg.UserAgent = "zyvor-axiom/0.1"
+		applyClientDefaults(cfg)
 		client, err := kubernetes.NewForConfig(cfg)
 		if err != nil {
 			continue

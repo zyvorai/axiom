@@ -60,8 +60,7 @@ func NewKubernetesProvider(kubeconfig string) (*KubernetesProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.UserAgent = "zyvor-axiom/0.1"
-	cfg.Timeout = 30 * time.Second
+	applyClientDefaults(cfg)
 	client, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -776,11 +775,19 @@ func isMirrorPod(p *corev1.Pod) bool {
 }
 
 func (k *KubernetesProvider) ListEvents(ctx context.Context, ns string) ([]Event, error) {
+	return k.listEvents(ctx, ns, "")
+}
+
+// listEvents lists events, newest first, capped at 200. A non-empty
+// fieldSelector (e.g. "type=Warning") is applied by the API server BEFORE the
+// cap — filtering client-side after the cap let a burst of Normal events push
+// real Warnings out of the Alerts page and Slack dispatch.
+func (k *KubernetesProvider) listEvents(ctx context.Context, ns, fieldSelector string) ([]Event, error) {
 	selectorNS := ns
 	if ns == "" || ns == "all" {
 		selectorNS = metav1.NamespaceAll
 	}
-	events, err := k.client.CoreV1().Events(selectorNS).List(ctx, metav1.ListOptions{})
+	events, err := k.client.CoreV1().Events(selectorNS).List(ctx, metav1.ListOptions{FieldSelector: fieldSelector})
 	if err != nil {
 		return nil, err
 	}
@@ -807,7 +814,11 @@ func (k *KubernetesProvider) PodLogs(ctx context.Context, ns, pod, container str
 	if tail > 0 {
 		opts.TailLines = &tail
 	}
-	req := k.client.CoreV1().Pods(ns).GetLogs(pod, opts)
+	cs := k.client
+	if follow {
+		cs = k.streamingClient() // no body-read timeout: a followed log must not be cut at the API timeout
+	}
+	req := cs.CoreV1().Pods(ns).GetLogs(pod, opts)
 	return req.Stream(ctx)
 }
 
@@ -882,8 +893,8 @@ func (k *KubernetesProvider) ExecCommand(ctx context.Context, ns, pod, container
 	if err != nil {
 		return "", err
 	}
-	var stdout, stderr bytes.Buffer
-	if err := executor.StreamWithContext(ctx, remotecommand.StreamOptions{Stdout: &stdout, Stderr: &stderr, Tty: false}); err != nil {
+	stdout, stderr := &limitedBuffer{max: maxExecOutputBytes}, &limitedBuffer{max: maxExecOutputBytes}
+	if err := executor.StreamWithContext(ctx, remotecommand.StreamOptions{Stdout: stdout, Stderr: stderr, Tty: false}); err != nil {
 		return "", fmt.Errorf("%w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 	if stderr.Len() > 0 {
@@ -893,6 +904,12 @@ func (k *KubernetesProvider) ExecCommand(ctx context.Context, ns, pod, container
 }
 
 func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, r *http.Request, ns, pod, container, shell string) error {
+	release, ok := acquireExecWSSession()
+	if !ok {
+		http.Error(w, "too many open terminal sessions; close one and retry", http.StatusTooManyRequests)
+		return errors.New("terminal session limit reached")
+	}
+	defer release()
 	if shell == "" {
 		shell = "/bin/sh"
 	}
@@ -920,6 +937,7 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 		return err
 	}
 	defer conn.Close()
+	conn.SetReadLimit(maxExecWSInput) // a client must not be able to push arbitrarily large frames
 	IncPresence(ns, pod)
 	defer DecPresence(ns, pod)
 	stdinR, stdinW := io.Pipe()

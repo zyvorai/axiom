@@ -59,11 +59,13 @@ func (k *KubernetesProvider) HelmRollback(ctx context.Context, ns, name string, 
 }
 
 func (k *KubernetesProvider) runHelmJob(ctx context.Context, ns, release, action string, args []string) (HelmActionResult, error) {
-	jobNS := "axiom-system"
-	jobName := fmt.Sprintf("axiom-helm-%s-%s-%d", action, sanitizeDNS(release), time.Now().Unix()%100000)
+	if err := rejectFlagLike(ns, release); err != nil {
+		return HelmActionResult{}, err
+	}
+	jobNS, sa, helmImage := helmJobConfig()
+	jobName := helmJobName(action, release)
 	backoff := int32(0)
 	ttl := int32(600)
-	sa := "zyvor-axiom"
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobName,
@@ -83,7 +85,7 @@ func (k *KubernetesProvider) runHelmJob(ctx context.Context, ns, release, action
 					ServiceAccountName: sa,
 					Containers: []corev1.Container{{
 						Name:    "helm",
-						Image:   "alpine/helm:3.14.4",
+						Image:   helmImage,
 						Command: append([]string{"helm"}, args...),
 					}},
 				},
@@ -114,8 +116,11 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
 	}
 
-	jobNS := "axiom-system"
-	jobName := fmt.Sprintf("axiom-helm-install-%s-%d", sanitizeDNS(req.ReleaseName), time.Now().Unix()%100000)
+	if err := rejectFlagLike(req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName, req.ChartVersion); err != nil {
+		return HelmActionResult{}, err
+	}
+	jobNS, helmSA, helmImage := helmJobConfig()
+	jobName := helmJobName("install", req.ReleaseName)
 
 	// No --wait here (unlike uninstall/rollback): install is already framed
 	// to the caller as "started", not a synchronous result, and --wait would
@@ -130,24 +135,15 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 
 	var volumes []corev1.Volume
 	var mounts []corev1.VolumeMount
+	valuesSecret := ""
 	if strings.TrimSpace(req.Values) != "" {
-		cmName := jobName + "-values"
-		_, err := k.client.CoreV1().ConfigMaps(jobNS).Create(ctx, &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      cmName,
-				Namespace: jobNS,
-				Labels:    map[string]string{"app.kubernetes.io/managed-by": "zyvor-axiom"},
-			},
-			Data: map[string]string{"values.yaml": req.Values},
-		}, metav1.CreateOptions{})
+		vol, mnt, name, err := k.createHelmValuesSecret(ctx, jobNS, jobName, req.Values)
 		if err != nil {
-			return HelmActionResult{}, fmt.Errorf("create values configmap: %w", err)
+			return HelmActionResult{}, err
 		}
-		volumes = append(volumes, corev1.Volume{
-			Name:         "values",
-			VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: cmName}}},
-		})
-		mounts = append(mounts, corev1.VolumeMount{Name: "values", MountPath: "/values"})
+		valuesSecret = name
+		volumes = append(volumes, vol)
+		mounts = append(mounts, mnt)
 		args = append(args, "-f", "/values/values.yaml")
 	}
 
@@ -169,11 +165,11 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					RestartPolicy:      corev1.RestartPolicyNever,
-					ServiceAccountName: "zyvor-axiom",
+					ServiceAccountName: helmSA,
 					Volumes:            volumes,
 					Containers: []corev1.Container{{
 						Name:         "helm",
-						Image:        "alpine/helm:3.14.4",
+						Image:        helmImage,
 						Command:      append([]string{"helm"}, args...),
 						VolumeMounts: mounts,
 					}},
@@ -181,10 +177,11 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 			},
 		},
 	}
-	_, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
+	created, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		return HelmActionResult{}, err
 	}
+	k.adoptHelmValuesSecret(ctx, jobNS, valuesSecret, created)
 	return HelmActionResult{
 		OK: true, Action: "install", JobName: jobNS + "/" + jobName,
 		Message: fmt.Sprintf("Helm install started for %s/%s", req.Namespace, req.ReleaseName),

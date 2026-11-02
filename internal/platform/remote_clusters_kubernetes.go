@@ -30,7 +30,7 @@ func ProviderFromKubeconfigYAML(kubeconfigYAML, name string) (Provider, string, 
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid kubeconfig: %w", err)
 	}
-	cfg.UserAgent = "zyvor-axiom/0.1"
+	applyClientDefaults(cfg)
 	client, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, "", err

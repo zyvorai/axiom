@@ -760,7 +760,7 @@ func TestKubernetesInstallHelmChartCreatesJobWithLiteralArgs(t *testing.T) {
 	}
 }
 
-func TestKubernetesInstallHelmChartValuesGoToMountedConfigMap(t *testing.T) {
+func TestKubernetesInstallHelmChartValuesGoToMountedSecret(t *testing.T) {
 	ctx := context.Background()
 	k, cs := newFakeKubernetesProvider()
 	values := "replicaCount: 3\nimage:\n  tag: v9\n"
@@ -770,17 +770,21 @@ func TestKubernetesInstallHelmChartValuesGoToMountedConfigMap(t *testing.T) {
 		t.Fatalf("InstallHelmChart: %v", err)
 	}
 	jobs, _ := cs.BatchV1().Jobs("axiom-system").List(ctx, metav1.ListOptions{})
+	secs, _ := cs.CoreV1().Secrets("axiom-system").List(ctx, metav1.ListOptions{})
 	cms, _ := cs.CoreV1().ConfigMaps("axiom-system").List(ctx, metav1.ListOptions{})
-	if len(jobs.Items) != 1 || len(cms.Items) != 1 {
-		t.Fatalf("expected 1 job + 1 configmap, got %d/%d", len(jobs.Items), len(cms.Items))
+	if len(jobs.Items) != 1 || len(secs.Items) != 1 {
+		t.Fatalf("expected 1 job + 1 secret, got %d/%d", len(jobs.Items), len(secs.Items))
 	}
-	cm := cms.Items[0]
-	if cm.Data["values.yaml"] != values {
-		t.Fatalf("values not stored verbatim in the configmap: %+v", cm.Data)
+	if len(cms.Items) != 0 {
+		t.Fatalf("chart values (often passwords) must not be stored in a plaintext ConfigMap, got %d", len(cms.Items))
+	}
+	sec := secs.Items[0]
+	if string(sec.Data["values.yaml"]) != values && sec.StringData["values.yaml"] != values {
+		t.Fatalf("values not stored verbatim in the secret: %+v", sec)
 	}
 	pod := jobs.Items[0].Spec.Template.Spec
-	if len(pod.Volumes) != 1 || pod.Volumes[0].ConfigMap == nil || pod.Volumes[0].ConfigMap.Name != cm.Name {
-		t.Fatalf("job must mount the values configmap %q: %+v", cm.Name, pod.Volumes)
+	if len(pod.Volumes) != 1 || pod.Volumes[0].Secret == nil || pod.Volumes[0].Secret.SecretName != sec.Name {
+		t.Fatalf("job must mount the values secret %q: %+v", sec.Name, pod.Volumes)
 	}
 	cmd := strings.Join(pod.Containers[0].Command, " ")
 	if !strings.HasSuffix(cmd, "-f /values/values.yaml") {
