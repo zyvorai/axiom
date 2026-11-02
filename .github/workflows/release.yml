@@ -1,4 +1,8 @@
-name: Release image
+name: Release binaries
+
+# Binary-only releases: no container image is published. Pushing a v* tag
+# builds the Kubernetes-enabled binary for each platform and attaches the
+# archives plus SHA256SUMS to a GitHub Release.
 
 on:
   push:
@@ -6,68 +10,71 @@ on:
       - "v*"
 
 permissions:
-  contents: read
-  packages: write
-  id-token: write # required for cosign keyless signing (Sigstore/Fulcio via GitHub OIDC)
+  contents: write
 
 jobs:
-  build-and-publish:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: linux,  goarch: amd64 }
+          - { goos: linux,  goarch: arm64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build and embed the UI
+        run: ./scripts/sync-ui.sh
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          NAME="zyvor-axiom_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p "dist/${NAME}"
+          go build -modfile=go.production.mod -tags kubernetes -trimpath \
+            -ldflags="-s -w -X github.com/zyvorai/axiom/internal/api.buildVersion=${VERSION#v}" \
+            -o "dist/${NAME}/zyvor-axiom" ./cmd/zyvor-axiom
+          cp README.md "dist/${NAME}/"
+          tar -C dist -czf "dist/${NAME}.tar.gz" "${NAME}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*.tar.gz
+
+  release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: actions/download-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          pattern: archive-*
+          merge-multiple: true
+          path: dist
 
-      - name: Determine version from tag
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum *.tar.gz > SHA256SUMS
 
-      - name: Build and push
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          build-args: |
-            AXIOM_VERSION=${{ steps.version.outputs.version }}
-          tags: |
-            ghcr.io/zyvorai/axiom:${{ steps.version.outputs.version }}
-            ghcr.io/zyvorai/axiom:latest
-
-      # Visible, not yet a merge/release gate — see SECURITY.md.
-      - name: Scan published image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        continue-on-error: true
-        with:
-          image-ref: ghcr.io/zyvorai/axiom:${{ steps.version.outputs.version }}
-          format: table
-          severity: CRITICAL,HIGH
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
-      # Keyless signing via Sigstore/Fulcio, using this workflow's own
-      # GitHub OIDC token as identity — no private key to generate,
-      # store, or rotate. Verify with:
-      #   cosign verify ghcr.io/zyvorai/axiom:<version> \
-      #     --certificate-identity-regexp 'https://github.com/zyvorai/axiom/.*' \
-      #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
-      - name: Sign published image
-        run: cosign sign --yes "ghcr.io/zyvorai/axiom@${{ steps.build.outputs.digest }}"
-
-      - name: Generate SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          image: ghcr.io/zyvorai/axiom:${{ steps.version.outputs.version }}
-          format: spdx-json
-          output-file: axiom-${{ steps.version.outputs.version }}.sbom.spdx.json
-          upload-artifact: true
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Zyvor Axiom ${GITHUB_REF_NAME}" \
+            --generate-notes
