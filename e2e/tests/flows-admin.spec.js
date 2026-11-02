@@ -247,7 +247,7 @@ test.describe("users", () => {
 
       const noUsers = await apiAs(page, name, pw, "POST", "/users", { username: "x", password: "password1" });
       expect(noUsers.status).toBe(403);
-      expect(noUsers.data.error).toMatch(/operator role cannot manage users, integrations, or cluster registry/);
+      expect(noUsers.data.error).toMatch(/operator role cannot manage users, integrations, RBAC, Helm installs, or the cluster registry/);
       const noSettings = await apiAs(page, name, pw, "PUT", "/integrations", { atlasUrl: "http://x" });
       expect(noSettings.status).toBe(403);
       // Reads are fine.
