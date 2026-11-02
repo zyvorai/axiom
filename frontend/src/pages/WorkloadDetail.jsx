@@ -13,6 +13,7 @@ import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save } from "lucide-react";
 import { toast } from "sonner";
 import CodeEditor from "@/components/CodeEditor";
 import KvChip, { toneForKey } from "@/components/KvChip";
+import FeatureTile from "@/components/FeatureTile";
 
 export default function WorkloadDetail() {
     const { namespace, kind, name } = useParams();
@@ -21,6 +22,24 @@ export default function WorkloadDetail() {
     const [error, setError] = useState(null);
     const [manifestText, setManifestText] = useState("");
     const [saving, setSaving] = useState(false);
+    const [summary, setSummary] = useState(null);
+
+    // Replica/status summary comes from the workloads list (the detail
+    // endpoint only returns the manifest). Best-effort: the page works without it.
+    useEffect(() => {
+        let alive = true;
+        api
+            .get("/workloads")
+            .then((r) => {
+                if (!alive) return;
+                const row = (r.data || []).find((w) => w.namespace === namespace && w.name === name && w.kind === kind);
+                setSummary(row || null);
+            })
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [namespace, kind, name]);
 
     useEffect(() => {
         let alive = true;
@@ -84,7 +103,36 @@ export default function WorkloadDetail() {
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
 
-            <DetailHeader eyebrow={kind} name={detail.name} meta={<span>{detail.namespace}</span>} />
+            <DetailHeader
+                eyebrow={`${kind} · ${detail.namespace}`}
+                name={detail.name}
+                meta={
+                    summary ? (
+                        <>
+                            <StatusBadge status={summary.status} />
+                            {summary.image && (
+                                <>
+                                    <span>·</span>
+                                    <span className="mono">{summary.image}</span>
+                                </>
+                            )}
+                            <span>·</span>
+                            <span>{summary.age}</span>
+                        </>
+                    ) : (
+                        <span>{detail.namespace}</span>
+                    )
+                }
+            />
+
+            {summary && (
+                <div className="stats">
+                    <FeatureTile size="compact" mono label="Desired" value={summary.desired} />
+                    <FeatureTile size="compact" mono label="Ready" value={`${summary.ready}/${summary.desired}`} />
+                    <FeatureTile size="compact" mono label="Available" value={summary.available} />
+                    <FeatureTile size="compact" mono label="Pods" value={(detail.pods || []).length} />
+                </div>
+            )}
 
             <Tabs defaultValue="overview">
                 <TabsList className="tabs">
