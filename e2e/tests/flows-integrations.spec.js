@@ -1138,7 +1138,7 @@ test.describe("LDAP login (mock directory)", () => {
     });
   });
 
-  test("a local user created in Settings still signs in while LDAP is enabled (LDAP bind fails, falls through)", async ({ browser }) => {
+  test("a local user created in Settings still signs in while LDAP is enabled (local accounts are checked first, so the directory never sees their password)", async ({ browser }) => {
     const ldap = await startLdap({ [dnOf("alice")]: { pw: "alice-secret", groups: [] } });
     try {
       await withApp(browser, { AXIOM_LDAP_URL: ldap.url, AXIOM_LDAP_BASE_DN: BASE }, async ({ page, srv }) => {
@@ -1146,7 +1146,7 @@ test.describe("LDAP login (mock directory)", () => {
         expect(mk.status()).toBe(201);
         await uiLogin(page, "localbob", "Passw0rd-bob");
         await expect(page.getByTestId("sidebar-nav")).toBeVisible();
-        expect(ldap.binds.some((b) => b.dn === dnOf("localbob") && !b.ok)).toBe(true); // directory was asked first and said no
+        expect(ldap.binds.some((b) => b.dn === dnOf("localbob"))).toBe(false); // local accounts are tried before LDAP: no bind attempt for a local user
         void srv;
       });
     } finally {
