@@ -104,3 +104,18 @@ atlas:
 # per docs/DEPLOYMENT.md's least-privilege guidance.
 rbac:
   create: true
+
+# Hardening. Defaults satisfy the Pod Security "restricted" profile. Axiom keeps
+# no local state, so a read-only root filesystem is safe. Set either to {} to
+# opt out (e.g. on a cluster that assigns its own UIDs, such as OpenShift).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

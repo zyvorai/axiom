@@ -202,7 +202,7 @@ Uninstall:
 - external secret management
 - forward the audit log (`GET /api/v1/audit`, persisted in `zyvor-axiom-audit`) to your real log/SIEM pipeline — Axiom keeps only the most recent 200 entries
 - immutable image tags/digests
-- PodSecurity admission profile
+- enforce the PodSecurity `restricted` profile on the Axiom namespace (`kubectl label ns axiom-system pod-security.kubernetes.io/enforce=restricted`). The Axiom pod already complies: the Helm chart (`podSecurityContext`/`securityContext`) and `deploy/k8s/deployment.yaml` run it as non-root (65532) with a read-only root filesystem, all capabilities dropped, no privilege escalation and the `RuntimeDefault` seccomp profile
 - resource quotas and LimitRanges (viewable live on Axiom's own Quotas & Limits page)
 - backups for cluster state and Axiom configuration
 - configure Settings → Notifications (Slack/webhook) so cluster Warning events actually reach someone

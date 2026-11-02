@@ -33,10 +33,24 @@ spec:
         app: zyvor-axiom
     spec:
       serviceAccountName: zyvor-axiom
+      # Meets the Pod Security "restricted" profile. The binary keeps no local
+      # state (everything is stored in Kubernetes objects), so the root
+      # filesystem can be read-only; the distroless image already runs as 65532.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: zyvor-axiom
           image: ghcr.io/zyvorai/axiom:0.2.4
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           ports:
             - name: https
               containerPort: 5090

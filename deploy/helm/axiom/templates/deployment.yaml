@@ -14,10 +14,18 @@ spec:
         {{- include "axiom.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: zyvor-axiom
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: zyvor-axiom
           image: {{ include "axiom.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: https
               containerPort: 5090
