@@ -3,7 +3,7 @@
  * UX exercise against the lab: ensure workload "nikola" exists (create if needed),
  * keep it, and run several console operations.
  *
- *   AXIOM_E2E_BASE_URL=https://175.110.122.71:30590 npx playwright test tests/nikola-ux.spec.js
+ *   AXIOM_E2E_BASE_URL=https://<host>:30590 npx playwright test tests/nikola-ux.spec.js
  */
 const { test, expect } = require("@playwright/test");
 

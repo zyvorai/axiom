@@ -19,7 +19,8 @@ helm install axiom deploy/helm/axiom \
   --set auth.password='replace-with-a-strong-password'
 ```
 
-This creates namespace `axiom-system` (configurable via `--set namespace=...`),
+This creates namespace `axiom-system` (configurable via `--set namespace=...`;
+pass `--set createNamespace=false` if it already exists),
 Axiom's ServiceAccount and RBAC, a self-signed TLS certificate, and exposes
 the UI on NodePort `30590` by default.
 

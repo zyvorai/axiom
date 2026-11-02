@@ -20,9 +20,9 @@ npx craco build (frontend/)                                             PASS
 
 **Multi-tab terminal** — `PodDetail.jsx`'s Terminal tab now manages an array of sessions rendered as nested tabs, each mounting its own `PodTerminal` instance. Verified via Chrome that demo mode's one-shot-exec fallback still renders correctly (no regression — multi-tab only applies to the real interactive-terminal branch). Chrome could not reach the real cluster's terminal directly (the self-signed-cert interstitial blocks browser automation on that host, a known limitation noted in the 2026-08-28 entries below), so the feature's core technical assumption — that concurrent WebSocket terminal connections to the same pod are fully independent — was verified instead with two simultaneous raw Python `websocket-client` connections to a real KubeVirt `virt-launcher` pod on the live cluster, each sending a different `echo` command and each receiving only its own output with zero cross-talk.
 
-### Live remote deployment (real k3s cluster, 80.79.5.173)
+### Live remote deployment (real k3s cluster, <host>)
 
-One deploy for the batch (`./scripts/deploy-remote.sh 80.79.5.173 sus`, picking up the new `scheduling.k8s.io/priorityclasses` RBAC grant). PriorityClasses and per-workload cost re-verified against real cluster data via curl; the terminal's concurrency assumption verified via raw WebSocket as described above, then the scratch verification scripts and their throwaway Python virtualenv were deleted.
+One deploy for the batch (`./scripts/deploy-remote.sh <host> sus`, picking up the new `scheduling.k8s.io/priorityclasses` RBAC grant). PriorityClasses and per-workload cost re-verified against real cluster data via curl; the terminal's concurrency assumption verified via raw WebSocket as described above, then the scratch verification scripts and their throwaway Python virtualenv were deleted.
 
 ## 2026-08-29 — Second Kubernetes-console gap tier: command palette, admission webhooks, storage objects, node metrics/taints, Gateway API, Velero schedules, pod diagnosis, RBAC write, GitOps sync, Helm install
 
@@ -40,7 +40,7 @@ npx craco build (frontend/)                                             PASS
 
 **Admission webhook visibility, StorageClasses/PersistentVolumes** — two new read-only Ops/Storage sections. Verified via Chrome (demo) and curl (real cluster — real KubeVirt CDI admission webhooks, real Ceph/local-path StorageClasses, real PVs).
 
-**Per-node metrics + taint management** — new `/nodes/:name` detail page (didn't exist before; `GET /api/v1/nodes/{name}` was already there but nothing consumed it). Verified the full taint add/verify/remove write path against the real cluster (80.79.5.173), cleaning up the test taint immediately.
+**Per-node metrics + taint management** — new `/nodes/:name` detail page (didn't exist before; `GET /api/v1/nodes/{name}` was already there but nothing consumed it). Verified the full taint add/verify/remove write path against the real cluster (<host>), cleaning up the test taint immediately.
 
 **Gateway API visibility** — added to the Ingresses page. Verified via curl against the real cluster: correctly returns `[]` since no Gateway API CRDs are installed there, rather than an error.
 
@@ -56,7 +56,7 @@ npx craco build (frontend/)                                             PASS
 - First attempt failed: `helm install --wait` needs RBAC read on `apps/replicasets` to poll rollout status, which Axiom's ServiceAccount didn't have. Removed `--wait` from the install path (kept on uninstall/rollback, which already worked with it) since install is already framed to the caller as "started," not a synchronous result.
 - Second attempt still failed with the identical RBAC error — turned out `helm install` needs to read ReplicaSets to apply a Deployment's owned resources at all, not just to wait on them. Added a read-only `apps/replicasets` RBAC grant (natural complement to the existing `deployments` write grant) and confirmed success on a fresh retry: real Deployment/Service/Pod came up healthy, `GET /api/v1/helm/releases` correctly listed the new release, then `POST .../uninstall` (the pre-existing, already-proven endpoint) removed it cleanly. Namespace and Jobs deleted afterward; confirmed zero residue on the shared cluster.
 
-### Live remote deployment (real k3s cluster, 80.79.5.173)
+### Live remote deployment (real k3s cluster, <host>)
 
 Ten deploys across this batch (one per item, plus a couple of `--quick` redeploys for bugfixes found mid-verification: the RBAC-forbidden-vs-empty CRD-browser UX gap from the previous pass's docs update, and the two Helm install RBAC fixes above). Every item re-verified against real cluster data or a real write-round-trip after each deploy, as summarized per item above.
 
@@ -72,7 +72,7 @@ go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (ku
 npx craco build (frontend/)                                             PASS
 ```
 
-**HorizontalPodAutoscaler** (list/create/delete) — new Autoscaling page. Verified via Chrome against the local demo server: opened the Create dialog, picked a real workload from the target-workload dropdown, created a real HPA, watched it appear in the list with a success toast, deleted it, confirmed the list returned to its original state. Verified against the real 80.79.5.173 cluster via curl (empty list — no HPAs exist on that cluster yet, which is itself the correct honest response).
+**HorizontalPodAutoscaler** (list/create/delete) — new Autoscaling page. Verified via Chrome against the local demo server: opened the Create dialog, picked a real workload from the target-workload dropdown, created a real HPA, watched it appear in the list with a success toast, deleted it, confirmed the list returned to its original state. Verified against the real <host> cluster via curl (empty list — no HPAs exist on that cluster yet, which is itself the correct honest response).
 
 **PodDisruptionBudgets** (read-only) — added as a third `Section` on the existing Quotas page. Verified via Chrome (demo) and curl (real cluster — six real PDBs across `kubevirt`, `packetwolf`, `rook-ceph`, `zeus-os`, `zyvor-relay`).
 
@@ -86,9 +86,9 @@ npx craco build (frontend/)                                             PASS
 
 **Bulk multi-select actions** — no backend changes; a checkbox column plus an "N selected" toolbar on Pods (bulk evict) and Workloads (bulk restart/delete), firing `Promise.allSettled` over the existing single-resource endpoints. Verified via Chrome (demo): selected two pods, toolbar appeared with count; selected a workload, toolbar showed Restart/Delete buttons.
 
-### Live remote deployment (real k3s cluster, 80.79.5.173)
+### Live remote deployment (real k3s cluster, <host>)
 
-Full deploy with `./scripts/deploy-remote.sh 80.79.5.173 sus` (RBAC ClusterRole picked up the new `autoscaling`/`policy` verbs), then a `--quick` redeploy for the CRD-error-surfacing fix. All seven features re-verified against real cluster data after each deploy, as summarized above.
+Full deploy with `./scripts/deploy-remote.sh <host> sus` (RBAC ClusterRole picked up the new `autoscaling`/`policy` verbs), then a `--quick` redeploy for the CRD-error-surfacing fix. All seven features re-verified against real cluster data after each deploy, as summarized above.
 
 ## 2026-08-28 (earlier) — audit persistence, CI, user edit, viewer banner, real Keycloak SSO, namespace RBAC — plus a regression found and fixed
 
@@ -102,7 +102,7 @@ go build -modfile=go.production.mod -tags kubernetes ./cmd/zyvor-axiom  PASS (ku
 npx craco build (frontend/)                                             PASS
 ```
 
-**Audit log persistence** — `internal/platform/audit.go` gained an optional `AuditStore`. Verified against the real 80.79.5.173 cluster: created a user (generating an audit entry), restarted the pod, confirmed the entry survived — persisted in a `zyvor-axiom-audit` ConfigMap.
+**Audit log persistence** — `internal/platform/audit.go` gained an optional `AuditStore`. Verified against the real <host> cluster: created a user (generating an audit entry), restarted the pod, confirmed the entry survived — persisted in a `zyvor-axiom-audit` ConfigMap.
 
 **CI pipeline** — `.github/workflows/ci.yml` mirrors the exact sequence run manually all session (frontend build → demo vet/test/build → kubernetes vet/build → manifest YAML sanity check). Ran the full sequence locally end-to-end, including deliberately breaking `internal/ui/dist/` to confirm the embed-failure mode the step ordering exists to avoid. The workflow itself is correct but the first push-triggered run failed to start — a GitHub billing/spending-limit issue on the `zyvorai` org, unrelated to the workflow.
 
@@ -110,13 +110,13 @@ npx craco build (frontend/)                                             PASS
 
 **Viewer role banner** — a persistent strip under the TopBar for any Viewer session, closing the "no visual indication of read-only" gap. Verified in Chrome side-by-side: an admin tab shows nothing, a fresh local-viewer tab shows the banner consistently across pages.
 
-**Real Keycloak SSO wiring (via Chrome, live infrastructure)** — configured a real Keycloak instance (175.110.122.71:30180) end-to-end: fixed its `sslRequired` policy blocking plain-HTTP admin login (required an admin action the user performed themselves — passwords are never entered by the assistant), created the `zyvor-axiom` OIDC client (public, PKCE, correct redirect URI for the live 80.79.5.173 deployment), created `platform-admins`/`platform-viewers` groups, added a Group Membership protocol mapper emitting a bare-name (not full-path) `groups` claim into the ID token, and wired Axiom's Settings → Integrations + `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP`.
+**Real Keycloak SSO wiring (via Chrome, live infrastructure)** — configured a real Keycloak instance (<host>:30180) end-to-end: fixed its `sslRequired` policy blocking plain-HTTP admin login (required an admin action the user performed themselves — passwords are never entered by the assistant), created the `zyvor-axiom` OIDC client (public, PKCE, correct redirect URI for the live <host> deployment), created `platform-admins`/`platform-viewers` groups, added a Group Membership protocol mapper emitting a bare-name (not full-path) `groups` claim into the ID token, and wired Axiom's Settings → Integrations + `AXIOM_OIDC_ADMIN_GROUP`/`AXIOM_OIDC_VIEWER_GROUP`.
 
 **Regression found and fixed along the way**: verifying OIDC persistence surfaced that a `PUT /api/v1/integrations` "succeeded" but didn't survive a pod restart — the multi-cluster `SwitchableProvider` change (earlier this session) had left `OpenIntegrationStore` and the interactive-terminal WebSocket handler still type-asserting `Provider` directly to `*KubernetesProvider`, which now always fails since `main.go` always passes a `*SwitchableProvider`. This silently downgraded **all** Integrations settings (Atlas/OIDC/Postgres/Probe/notifications) to in-memory-only, and completely broke the interactive Pod terminal (500 on every request) in production. Fixed with one shared `platform.CurrentKubernetesProvider` helper used everywhere this pattern was needed, instead of leaving near-duplicate type switches to individually drift. Verified for real: PUT the OIDC config, restart the pod, confirm it's still there; for the terminal, connected a raw Python `websocket-client` to the real endpoint against a live `virt-launcher` pod, sent `echo HELLO_FROM_REGRESSION_TEST`, and got real bash PTY output back.
 
 **Full end-to-end SSO proof**: created a Keycloak user in `platform-viewers`, signed into Axiom for real (Keycloak login page → redirect → Axiom session), landed on real cluster data (76/80 real pods), saw the Viewer banner render (proving the group→role mapping worked), and confirmed a real write attempt from that browser session's own cookie got a real `403 read-only user` — not a curl simulation, the actual authenticated browser session.
 
-**Namespace-scoped viewer accounts** — a `viewer` account can now be restricted to specific namespaces (`namespaces: []string` on `User`, enforced in the auth middleware via a fixed allowlist of namespaced-resource path prefixes, checked against `?namespace=` or the path segment). Added 8 table-driven Guard tests plus UserHub lifecycle tests. Verified against the real 80.79.5.173 cluster: created a viewer scoped to `aether-system`+`packetwolf`, confirmed `?namespace=aether-system` returned real pod data (200), `?namespace=axiom-system` was blocked (403), and omitting `?namespace=` entirely was also blocked (403, since that means "all namespaces" and would otherwise leak). Also verified the Add User dialog's new namespace-restriction field through the real Chrome UI, including the namespace badges rendering correctly in the Users table.
+**Namespace-scoped viewer accounts** — a `viewer` account can now be restricted to specific namespaces (`namespaces: []string` on `User`, enforced in the auth middleware via a fixed allowlist of namespaced-resource path prefixes, checked against `?namespace=` or the path segment). Added 8 table-driven Guard tests plus UserHub lifecycle tests. Verified against the real <host> cluster: created a viewer scoped to `aether-system`+`packetwolf`, confirmed `?namespace=aether-system` returned real pod data (200), `?namespace=axiom-system` was blocked (403), and omitting `?namespace=` entirely was also blocked (403, since that means "all namespaces" and would otherwise leak). Also verified the Add User dialog's new namespace-restriction field through the real Chrome UI, including the namespace badges rendering correctly in the Users table.
 
 ## 2026-08-28 (later) — customer-site features: ConfigMaps/Quotas/Ingresses/Jobs, notifications, RBAC, multi-cluster
 
@@ -140,9 +140,9 @@ npx craco build (frontend/)                                             PASS
 
 **Real multi-cluster switching** — `Provider` is always a `SwitchableProvider` now (generated delegator for all 88 interface methods, `switchable_provider_gen.go`), so no handler code changed. Verified via Chrome: opened the cluster-switcher dropdown (3 real demo clusters), clicked a different one, watched the Overview hero/breadcrumb/sidebar genuinely update to the new cluster's data after reload — then switched back and confirmed the state reverted cleanly.
 
-### Live remote deployment (real k3s cluster, 80.79.5.173)
+### Live remote deployment (real k3s cluster, <host>)
 
-Redeployed with `./scripts/deploy-remote.sh 80.79.5.173 sus`. First deploy attempt surfaced a real RBAC gap: the ClusterRole never granted `resourcequotas`, `limitranges`, `ingresses` (networking.k8s.io), or `cronjobs` (batch), so those four endpoints returned `403 Forbidden` in production despite working fine in demo mode (the demo provider has no RBAC to enforce). Fixed `deploy/k8s/rbac.yaml`, redeployed, and reverified — all four now return real cluster data:
+Redeployed with `./scripts/deploy-remote.sh <host> sus`. First deploy attempt surfaced a real RBAC gap: the ClusterRole never granted `resourcequotas`, `limitranges`, `ingresses` (networking.k8s.io), or `cronjobs` (batch), so those four endpoints returned `403 Forbidden` in production despite working fine in demo mode (the demo provider has no RBAC to enforce). Fixed `deploy/k8s/rbac.yaml`, redeployed, and reverified — all four now return real cluster data:
 
 - Ingresses: `guestkit-enterprise` (traefik), `packetwolf` (nginx, TLS) — pre-existing unrelated workloads on the shared lab host
 - ResourceQuotas: real KubeVirt VM instance quotas in `default` and `zeus-os-e2e`

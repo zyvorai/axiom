@@ -1,0 +1,53 @@
+name: Verify
+
+# Reusable gate for release workflows: tests both build variants and checks
+# that the tag, Helm chart and plain manifest all agree on the version.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref (tag) to verify"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Version consistency (tag == chart appVersion == manifest image)
+        run: |
+          VERSION="${{ inputs.ref }}"; VERSION="${VERSION#v}"
+          CHART=$(sed -n 's/^appVersion: "\(.*\)"/\1/p' deploy/helm/axiom/Chart.yaml)
+          IMAGE=$(sed -n 's#.*image: ghcr.io/zyvorai/axiom:\(.*\)#\1#p' deploy/k8s/deployment.yaml | head -1)
+          echo "tag=$VERSION chart=$CHART manifest=$IMAGE"
+          [ "$VERSION" = "$CHART" ] || { echo "::error::Chart appVersion ($CHART) != tag ($VERSION)"; exit 1; }
+          [ "$VERSION" = "$IMAGE" ] || { echo "::error::deploy/k8s image tag ($IMAGE) != tag ($VERSION)"; exit 1; }
+
+      - name: Build and embed the UI
+        run: ./scripts/sync-ui.sh
+
+      - name: go vet + test (demo build)
+        run: |
+          go vet ./cmd/... ./internal/...
+          go test ./cmd/... ./internal/...
+
+      - name: go vet + test (kubernetes build — the shipped artifact)
+        run: |
+          go vet -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...
+          go test -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...

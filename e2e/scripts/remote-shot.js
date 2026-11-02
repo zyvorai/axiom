@@ -2,7 +2,7 @@
 // Usage: AXIOM_E2E_BASE_URL=https://host:port node e2e/scripts/remote-shot.js
 const { chromium } = require('playwright-core');
 
-const BASE = process.env.AXIOM_E2E_BASE_URL || 'https://175.110.122.71:30590';
+const BASE = process.env.AXIOM_E2E_BASE_URL || 'http://127.0.0.1:5090';
 const OUT = process.env.OUT_DIR || '.';
 
 (async () => {

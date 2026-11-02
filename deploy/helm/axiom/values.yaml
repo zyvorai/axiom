@@ -2,6 +2,9 @@
 # See docs/QUICKSTART.md for a walkthrough of a first install.
 
 namespace: axiom-system
+# Create the namespace as part of the release. Set to false if it already
+# exists (e.g. you used `helm install -n axiom-system --create-namespace`).
+createNamespace: true
 
 image:
   repository: ghcr.io/zyvorai/axiom

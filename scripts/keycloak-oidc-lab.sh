@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Configure Haven Keycloak for Axiom OIDC on the lab, then enable Settings integrations.
 # Usage:
-#   ./scripts/keycloak-oidc-lab.sh 80.79.5.173 zyvorai
+#   ./scripts/keycloak-oidc-lab.sh <host> zyvorai
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

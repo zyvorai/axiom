@@ -45,7 +45,7 @@ Register/unregister (and Settings → Clusters, which drives them) are restricte
 | GET | `/api/v1/auth/oidc/login` | Start OIDC authorize redirect |
 | GET | `/api/v1/auth/oidc/callback` | OIDC callback (IdP redirect target) |
 | GET | `/api/v1/auth/saml/login` | Redirect to SAML IdP (`AXIOM_SAML_LOGIN_URL`) |
-| POST \| GET | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service — the IdP posts (or redirects) its response here; mints the same session cookie an OIDC login does. **Known limitation:** the response is only checked for *embedding* the pinned IdP cert (`AXIOM_SAML_IDP_CERT`); its XML signature is **not** verified and there are no audience / expiry / replay checks, so the assertion can be forged (the IdP cert is public). Do not rely on SAML for access control until signature verification lands — see [GAPS.md](GAPS.md). `AXIOM_SAML_ALLOW_UNSIGNED=true` accepts unsigned responses (lab only) |
+| POST | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service (HTTP-POST binding only) — verifies the response's XML-DSig signature against `AXIOM_SAML_IDP_CERT`, checks audience and validity window, then mints the same session cookie an OIDC login does. Lab-only `AXIOM_SAML_ALLOW_UNSIGNED=true` skips verification. |
 | POST | `/api/v1/auth/logout` | Clear session cookie |
 
 `GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured, and an `ldap` block (`enabled`/`domain`/`url`) when `AXIOM_LDAP_*` is set — LDAP has no separate login form; the same username/password fields on the local sign-in form simple-bind against `AXIOM_LDAP_URL` first, falling through to local accounts on failure.

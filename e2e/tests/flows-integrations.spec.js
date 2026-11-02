@@ -904,7 +904,8 @@ test.describe("SAML SSO (mock IdP)", () => {
         await expect(page.locator("body")).toContainText("SAML IdP certificate required");
         expect(await sessionStatus(page)).toBe(401);
       });
-      // 2) pinned cert configured: mismatching / absent embedded cert is refused
+      // 2) pinned cert configured: the response must carry a valid XML signature, so an unsigned
+      //    assertion that merely embeds some (or the pinned) certificate is refused
       await withApp(browser, { AXIOM_SAML_LOGIN_URL: `${idp.url}/saml/sso`, AXIOM_SAML_IDP_CERT: good.pem }, async ({ page, srv }) => {
         idp.st.acs = `${srv.url}/api/v1/auth/saml/acs`;
         idp.st.certB64 = other.b64;
@@ -912,7 +913,7 @@ test.describe("SAML SSO (mock IdP)", () => {
         let acs = page.waitForResponse((r) => r.url().endsWith("/saml/acs"));
         await page.getByRole("link", { name: "Sign in with SAML" }).click();
         expect((await acs).status()).toBe(401);
-        await expect(page.locator("body")).toContainText("does not match");
+        await expect(page.locator("body")).toContainText("SAML signature check failed");
         await recover(srv.url);
 
         idp.st.certB64 = "";
@@ -920,7 +921,7 @@ test.describe("SAML SSO (mock IdP)", () => {
         acs = page.waitForResponse((r) => r.url().endsWith("/saml/acs"));
         await page.getByRole("link", { name: "Sign in with SAML" }).click();
         expect((await acs).status()).toBe(401);
-        await expect(page.locator("body")).toContainText("no X509Certificate");
+        await expect(page.locator("body")).toContainText("SAML signature check failed");
         expect(await sessionStatus(page)).toBe(401);
       });
       // 3) malformed input
@@ -935,7 +936,7 @@ test.describe("SAML SSO (mock IdP)", () => {
     }
   });
 
-  fixme("an assertion that merely embeds the (public) pinned IdP certificate but carries no valid signature is rejected (saml.go verifySAMLIdPCert only compares the embedded cert)", async ({ browser }) => {
+  test("an assertion that merely embeds the (public) pinned IdP certificate but carries no valid signature is rejected", async ({ browser }) => {
     const cert = makeCert("e2e-idp-forge");
     test.skip(!cert, "openssl not available");
     const idp = await startSamlIdp();
@@ -946,7 +947,7 @@ test.describe("SAML SSO (mock IdP)", () => {
         idp.st.nameId = "attacker";
         const forged = Buffer.from(idp.xml()).toString("base64");
         const res = await page.request.post("/api/v1/auth/saml/acs", { form: { SAMLResponse: forged }, maxRedirects: 0 });
-        // Correct: 401/400. Actual: 302 to /?sso=1 with an admin session cookie for "attacker".
+        // 401: the XML signature is verified against the pinned certificate (saml_verify.go).
         expect(res.status()).toBeGreaterThanOrEqual(400);
         expect(await sessionStatus(page)).toBe(401);
       });

@@ -10,7 +10,7 @@
 #
 # Usage:
 #   ./scripts/test-plugin-tier1.sh <host> [user] [port]
-#   ./scripts/test-plugin-tier1.sh 80.79.5.173 sus 30592
+#   ./scripts/test-plugin-tier1.sh <host> sus 30592
 #
 # Environment:
 #   AXIOM_USERNAME / AXIOM_PASSWORD   default: demo / demo

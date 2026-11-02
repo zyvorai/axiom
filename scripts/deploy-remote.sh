@@ -14,12 +14,12 @@
 #
 # Usage:
 #   ./scripts/deploy-remote.sh <host> [user] [password]
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --build        # build the image on the host from source (instead of pulling GHCR)
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --quick        # same as the default (no image build); kept for compatibility
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --skip-images  # manifests only
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --with-atlas   # also deploy + wire ../atlas
-#   ./scripts/deploy-remote.sh 80.79.5.173 zyvorai --uninstall
+#   ./scripts/deploy-remote.sh <host> zyvorai
+#   ./scripts/deploy-remote.sh <host> zyvorai --build        # build the image on the host from source (instead of pulling GHCR)
+#   ./scripts/deploy-remote.sh <host> zyvorai --quick        # same as the default (no image build); kept for compatibility
+#   ./scripts/deploy-remote.sh <host> zyvorai --skip-images  # manifests only
+#   ./scripts/deploy-remote.sh <host> zyvorai --with-atlas   # also deploy + wire ../atlas
+#   ./scripts/deploy-remote.sh <host> zyvorai --uninstall
 #
 # Environment:
 #   DEPLOY_HOST / DEPLOY_USER / DEPLOY_PASS

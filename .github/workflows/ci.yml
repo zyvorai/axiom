@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -34,6 +37,9 @@ jobs:
 
       - name: go test (demo build)
         run: go test ./cmd/... ./internal/...
+
+      - name: go test (kubernetes build)
+        run: go test -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...
 
       - name: go build (demo build)
         run: go build -o bin/zyvor-axiom ./cmd/zyvor-axiom

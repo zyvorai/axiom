@@ -13,7 +13,7 @@
 // this project's own node_modules, not a stray copy elsewhere on PATH.
 const { chromium } = require('playwright-core');
 
-const BASE = process.env.AXIOM_E2E_BASE_URL || 'https://175.110.122.71:30590';
+const BASE = process.env.AXIOM_E2E_BASE_URL || 'http://127.0.0.1:5090';
 const USERNAME = process.env.OIDC_USERNAME || 'demo';
 const PASSWORD = process.env.OIDC_PASSWORD || 'demo';
 const LOCAL_USERNAME = process.env.AXIOM_TWO_STEP_USERNAME || 'nobody';

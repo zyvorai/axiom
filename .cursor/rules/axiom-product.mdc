@@ -8,5 +8,3 @@ alwaysApply: true
 - **Binary / NS / env:** `zyvor-axiom`, `axiom-system`, `AXIOM_*`
 - **Positioning:** Your k8s-native private cloud — k3s to production, one console.
 - **Not Aether:** no Metal3-first story, no multi-runtime portability / 16 migration paths.
-- Marketing site lives in `/Users/ssahani/tt/zyvor-web` (`/axiom`, `/docs/axiom`).
-- Lab: `./scripts/deploy-remote.sh 175.110.122.71 sus` → https://175.110.122.71:30590/ (demo/demo)

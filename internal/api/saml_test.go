@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
@@ -17,6 +18,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/beevik/etree"
+	dsig "github.com/russellhaering/goxmldsig"
+	"github.com/russellhaering/goxmldsig/etreeutils"
 
 	"github.com/zyvorai/axiom/internal/auth"
 	"github.com/zyvorai/axiom/internal/platform"
@@ -195,17 +200,155 @@ func TestSAMLACSAllowUnsignedMintsSession(t *testing.T) {
 	}
 }
 
-func TestSAMLACSGetBindingSupported(t *testing.T) {
-	const secret = "test-session-secret"
+func TestSAMLACSRejectsGETBinding(t *testing.T) {
 	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID:      "https://sp.example.test",
-		SAMLAllowUnsigned: true,
-		SessionSecret:     secret,
+		SAMLEntityID: "https://sp.example.test", SAMLAllowUnsigned: true, SessionSecret: "test-session-secret",
 	})
 	w := getSAML(h, url.Values{"SAMLResponse": {b64XML(samlXML("bob", "", nil, nil))}})
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected the GET/HTTP-Redirect binding to also succeed, got %d: %s", w.Code, w.Body.String())
+	if w.Code == http.StatusFound {
+		t.Fatalf("a SAMLResponse in the URL must not mint a session, got %d", w.Code)
 	}
+}
+
+// --- real XML-DSig verification ---
+
+type idp struct {
+	key *rsa.PrivateKey
+	der []byte
+	pem string
+}
+
+func newIdP(t *testing.T, cn string) idp {
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: cn},
+		NotBefore: time.Now().Add(-time.Hour), NotAfter: time.Now().Add(time.Hour)}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return idp{key: key, der: der, pem: string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}))}
+}
+
+const spEntity = "https://sp.example.test"
+
+// signedSAML builds a Response whose Assertion is enveloped-signed by signer.
+func signedSAML(t *testing.T, signer idp, nameID, audience string, notBefore, notOnOrAfter time.Time) string {
+	t.Helper()
+	xml := fmt.Sprintf(`<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_resp1"><saml:Assertion ID="_assert1"><saml:Subject><saml:NameID>%s</saml:NameID></saml:Subject><saml:Conditions NotBefore="%s" NotOnOrAfter="%s"><saml:AudienceRestriction><saml:Audience>%s</saml:Audience></saml:AudienceRestriction></saml:Conditions></saml:Assertion></samlp:Response>`,
+		nameID, notBefore.UTC().Format(time.RFC3339), notOnOrAfter.UTC().Format(time.RFC3339), audience)
+	doc := etree.NewDocument()
+	if err := doc.ReadFromString(xml); err != nil {
+		t.Fatal(err)
+	}
+	assertion := doc.Root().FindElement("./Assertion")
+	// Sign a self-contained copy: exclusive c14n must see the namespaces the
+	// Assertion inherits from the Response, exactly as a real IdP produces it.
+	nsctx, err := etreeutils.NSBuildParentContext(assertion)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detached, err := etreeutils.NSDetatch(nsctx, assertion)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sctx := dsig.NewDefaultSigningContext(dsig.TLSCertKeyStore(tls.Certificate{Certificate: [][]byte{signer.der}, PrivateKey: signer.key}))
+	sctx.SetSignatureMethod(dsig.RSASHA256SignatureMethod)
+	signed, err := sctx.SignEnveloped(detached)
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc.Root().RemoveChild(assertion)
+	doc.Root().AddChild(signed)
+	out, err := doc.WriteToString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
+}
+
+func samlHandler(pemCert string) http.Handler {
+	return New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
+		SAMLEntityID: spEntity, SAMLIDPCert: pemCert, SessionSecret: "test-session-secret",
+	})
+}
+
+func TestSAMLACSSignedAssertionAccepted(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	x := signedSAML(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
+	w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+	if w.Code != http.StatusFound {
+		t.Fatalf("a correctly signed, in-window, right-audience assertion must be accepted, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// The forgery documented in GAPS.md: the IdP certificate is public, so an
+// attacker embeds it in an UNSIGNED assertion. Pinning alone accepted this.
+func TestSAMLACSRejectsUnsignedAssertionCarryingThePinnedCert(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	forged := samlXML("admin", "", []string{"admins"}, i.der)
+	w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(forged)}})
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("forged unsigned assertion must be rejected with 401, got %d: %s", w.Code, w.Body.String())
+	}
+	if len(w.Result().Cookies()) != 0 {
+		t.Fatal("no session cookie may be issued for a forged assertion")
+	}
+}
+
+func TestSAMLACSRejectsAssertionSignedByAnotherKey(t *testing.T) {
+	good, attacker := newIdP(t, "idp.example.test"), newIdP(t, "attacker.example.test")
+	x := signedSAML(t, attacker, "mallory", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
+	w := postSAML(samlHandler(good.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("assertion signed by an unpinned key must be rejected, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestSAMLACSRejectsTamperedSignedAssertion(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	x := signedSAML(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
+	tampered := strings.Replace(x, ">carol<", ">admin<", 1)
+	w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(tampered)}})
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("modifying a signed assertion must invalidate it, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestSAMLACSRejectsWrongAudienceAndExpired(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	cases := map[string]string{
+		"wrong audience": signedSAML(t, i, "carol", "https://other-sp.example", time.Now().Add(-time.Minute), time.Now().Add(time.Hour)),
+		"expired":        signedSAML(t, i, "carol", spEntity, time.Now().Add(-3*time.Hour), time.Now().Add(-time.Hour)),
+		"not yet valid":  signedSAML(t, i, "carol", spEntity, time.Now().Add(time.Hour), time.Now().Add(2*time.Hour)),
+	}
+	for name, x := range cases {
+		w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+		if w.Code != http.StatusUnauthorized {
+			t.Errorf("%s: want 401, got %d: %s", name, w.Code, w.Body.String())
+		}
+	}
+}
+
+// Signature wrapping: a genuinely signed assertion for "carol" plus an extra,
+// unsigned assertion for "admin" placed first. The identity must come from the
+// signed one only.
+func TestSAMLACSSignatureWrappingUsesOnlySignedContent(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	x := signedSAML(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
+	evil := `<saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><saml:Subject><saml:NameID>admin</saml:NameID></saml:Subject></saml:Assertion>`
+	wrapped := strings.Replace(x, `ID="_resp1">`, `ID="_resp1">`+evil, 1)
+	signedBytes, err := verifySAMLSignature([]byte(wrapped), i.pem)
+	if err == nil {
+		user, _, _, perr := parseSAMLAssertion(signedBytes)
+		if perr != nil || user != "carol" {
+			t.Fatalf("identity must come from the signed assertion, got %q (%v)", user, perr)
+		}
+	}
+	// (a rejection of the wrapped document is also an acceptable outcome)
 }
 
 func TestSAMLACSNoUserFallsBackToSAMLUser(t *testing.T) {
@@ -230,92 +373,6 @@ func TestSAMLACSNoUserFallsBackToSAMLUser(t *testing.T) {
 		}
 	}
 	t.Fatalf("expected a session cookie")
-}
-
-// samlXMLBareCert embeds the certificate as a bare, unprefixed
-// <X509Certificate> element directly under <Assertion> rather than inside
-// the standard XML-DSig <ds:Signature><ds:KeyInfo><ds:X509Data> nesting.
-// See TestSAMLACSCertPinningBrokenForStandardXMLDSigNesting below for why:
-// with the realistic nesting, extractXMLTag anchors on the wrong ancestor
-// tag and corrupts the extracted value. This shape isolates and exercises
-// the actual sha256 comparison in verifySAMLIdPCert on its own.
-func samlXMLBareCert(nameID string, certDER []byte) string {
-	return fmt.Sprintf(`<Response><Assertion><Subject><NameID>%s</NameID></Subject><X509Certificate>%s</X509Certificate></Assertion></Response>`,
-		nameID, base64.StdEncoding.EncodeToString(certDER))
-}
-
-func TestSAMLACSCertPinningAcceptsMatchingCertWhenExtractable(t *testing.T) {
-	pemCert, der := selfSignedCert(t, "idp.example.test")
-	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID: "https://sp.example.test",
-		SAMLIDPCert:  pemCert,
-	})
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXMLBareCert("carol", der))}})
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected success when the embedded cert matches the pinned IdP cert, got %d: %s", w.Code, w.Body.String())
-	}
-}
-
-func TestSAMLACSCertPinningRejectsMismatchedCert(t *testing.T) {
-	pinnedPEM, _ := selfSignedCert(t, "idp.example.test")
-	_, otherDER := selfSignedCert(t, "attacker.example.test")
-	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID: "https://sp.example.test",
-		SAMLIDPCert:  pinnedPEM,
-	})
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXMLBareCert("mallory", otherDER))}})
-	if w.Code != http.StatusUnauthorized {
-		t.Fatalf("expected 401 when the embedded cert does not match the pinned one, got %d: %s", w.Code, w.Body.String())
-	}
-	if !strings.Contains(w.Body.String(), "does not match") {
-		t.Fatalf("expected a certificate mismatch error, got: %s", w.Body.String())
-	}
-}
-
-// BUG (found while writing this test, not fixed per instructions):
-// verifySAMLIdPCert extracts the embedded certificate via extractXMLTag,
-// which has a real matching bug for namespaced tags: rather than requiring
-// a match to start exactly at the target tag's own '<', it scans a 64-byte
-// lookahead window from *every* preceding '<' in the whole document for the
-// substring ":X509Certificate>" and stops at the first hit, even if that
-// '<' belongs to an ancestor element. In the standard XML-DSig nesting that
-// essentially every real IdP uses to sign a SAMLResponse —
-// <ds:Signature><ds:KeyInfo><ds:X509Data><ds:X509Certificate>...— the '<'
-// that opens <ds:KeyInfo> (or <ds:X509Data>) is within that 64-byte window
-// of ":X509Certificate>", so extraction anchors on the wrong tag's '>' and
-// the "certificate" it reads back is corrupted with a literal
-// "<ds:X509Data><ds:X509Certificate>" prefix glued onto the real base64.
-// That fails to base64-decode, so verifySAMLIdPCert rejects it as "bad
-// X509Certificate encoding" — meaning AXIOM_SAML_IDP_CERT pinning as
-// currently implemented will reject realistically-shaped, correctly signed
-// SAMLResponses even when the embedded certificate exactly matches the
-// pinned one. See TestExtractXMLTagNamespacedTagNearAncestorIsCorrupted
-// for a minimal reproduction of the underlying extractXMLTag bug.
-func TestSAMLACSCertPinningWorksForStandardXMLDSigNesting(t *testing.T) {
-	pemCert, der := selfSignedCert(t, "idp.example.test")
-	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID: "https://sp.example.test",
-		SAMLIDPCert:  pemCert,
-	})
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXML("carol", "carol@example.test", nil, der))}})
-	if w.Code != http.StatusFound {
-		t.Fatalf("expected a matching cert wrapped in standard XML-DSig nesting (<ds:Signature><ds:KeyInfo><ds:X509Data><ds:X509Certificate>) to verify and redirect, got %d: %s", w.Code, w.Body.String())
-	}
-}
-
-func TestSAMLACSCertPinningRejectsAssertionWithNoCert(t *testing.T) {
-	pinnedPEM, _ := selfSignedCert(t, "idp.example.test")
-	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID: "https://sp.example.test",
-		SAMLIDPCert:  pinnedPEM,
-	})
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXML("eve", "", nil, nil))}})
-	if w.Code != http.StatusUnauthorized {
-		t.Fatalf("expected 401 when a cert is pinned but the assertion carries none, got %d: %s", w.Code, w.Body.String())
-	}
-	if !strings.Contains(w.Body.String(), "no X509Certificate") {
-		t.Fatalf("expected a missing-certificate error, got: %s", w.Body.String())
-	}
 }
 
 // --- unit tests for the pure helper functions in saml.go ---
@@ -406,10 +463,10 @@ func TestParseSAMLAssertionNoAssertionErrors(t *testing.T) {
 
 func TestResolveSAMLRole(t *testing.T) {
 	cases := []struct {
-		name                        string
-		groups                      []string
+		name                         string
+		groups                       []string
 		adminGroup, viewerGroup, def string
-		want                        string
+		want                         string
 	}{
 		{"no mapping configured defaults per defaultRole", []string{"anything"}, "", "", "viewer", "viewer"},
 		{"no mapping configured falls back to admin by default", []string{"anything"}, "", "", "", "admin"},

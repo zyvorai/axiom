@@ -2,7 +2,7 @@
 # ============================================================================
 # deploy — one command to ship Axiom to a remote k3s host
 # ============================================================================
-#   ./scripts/deploy remote 80.79.5.173 zyvorai
+#   ./scripts/deploy remote <host> zyvorai
 #   ./scripts/deploy remote --quick
 #   ./scripts/deploy status
 # ============================================================================
@@ -32,7 +32,7 @@ Options (remote):
   --dry-run         Show plan only
 
 Examples:
-  $(basename "$0") remote 80.79.5.173 zyvorai
+  $(basename "$0") remote <host> zyvorai
   $(basename "$0") remote --quick
   $(basename "$0") status
 

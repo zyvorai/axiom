@@ -3,10 +3,7 @@ package api
 import (
 	"bytes"
 	"compress/flate"
-	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -18,9 +15,9 @@ import (
 	"github.com/zyvorai/axiom/internal/platform"
 )
 
-// samlACS accepts a SAMLResponse (POST preferred; GET supported for some IdPs),
-// extracts the subject, optionally verifies the assertion signature when
-// AXIOM_SAML_IDP_CERT is set, and mints an Axiom session cookie.
+// samlACS accepts a SAMLResponse over the HTTP-POST binding, verifies its
+// XML signature against AXIOM_SAML_IDP_CERT (plus audience and validity
+// window), extracts the subject, and mints an Axiom session cookie.
 func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 	if s.auth.SAMLLogin == "" && s.auth.SAMLEntityID == "" {
 		http.Error(w, "SAML is not configured", http.StatusNotImplemented)
@@ -30,10 +27,9 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
-	raw := strings.TrimSpace(r.FormValue("SAMLResponse"))
-	if raw == "" {
-		raw = strings.TrimSpace(r.URL.Query().Get("SAMLResponse"))
-	}
+	// HTTP-POST binding only: a SAMLResponse in a URL would end up in logs and
+	// browser history, and the Redirect binding carries requests, not responses.
+	raw := strings.TrimSpace(r.PostFormValue("SAMLResponse"))
 	if raw == "" {
 		http.Error(w, "missing SAMLResponse", http.StatusBadRequest)
 		return
@@ -44,10 +40,18 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.auth.SAMLIDPCert != "" {
-		if err := verifySAMLIdPCert(xmlBytes, s.auth.SAMLIDPCert); err != nil {
-			http.Error(w, "SAML IdP certificate check failed: "+err.Error(), http.StatusUnauthorized)
+		// Verify the XML signature against the pinned certificate and continue
+		// with only the signed content, then enforce audience and validity.
+		signed, err := verifySAMLSignature(xmlBytes, s.auth.SAMLIDPCert)
+		if err != nil {
+			http.Error(w, "SAML signature check failed: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
+		if err := checkSAMLConditions(signed, s.auth.SAMLEntityID, time.Now()); err != nil {
+			http.Error(w, "SAML assertion rejected: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+		xmlBytes = signed
 	} else if !s.auth.SAMLAllowUnsigned {
 		http.Error(w, "SAML IdP certificate required (set AXIOM_SAML_IDP_CERT), or AXIOM_SAML_ALLOW_UNSIGNED=true for lab only", http.StatusUnauthorized)
 		return
@@ -221,40 +225,6 @@ func normalizeDefaultRole(r string) string {
 	default:
 		return "admin"
 	}
-}
-
-// verifySAMLIdPCert pins the assertion's embedded X509Certificate against the
-// configured IdP PEM. Full XML-DSig C14N varies by IdP; certificate pinning is
-// the practical SP check Axiom ships without pulling a heavy SAML stack.
-func verifySAMLIdPCert(xmlBytes []byte, pemCert string) error {
-	wantBlock, _ := pem.Decode([]byte(pemCert))
-	if wantBlock == nil {
-		return fmt.Errorf("AXIOM_SAML_IDP_CERT is not a PEM certificate")
-	}
-	wantCert, err := x509.ParseCertificate(wantBlock.Bytes)
-	if err != nil {
-		return err
-	}
-	wantSum := sha256.Sum256(wantCert.Raw)
-
-	b64 := extractXMLTag(xmlBytes, "X509Certificate")
-	if b64 == "" {
-		return fmt.Errorf("no X509Certificate in SAMLResponse")
-	}
-	der, err := base64.StdEncoding.DecodeString(strings.Map(func(r rune) rune {
-		if r == '\n' || r == '\r' || r == ' ' || r == '\t' {
-			return -1
-		}
-		return r
-	}, b64))
-	if err != nil {
-		return fmt.Errorf("bad X509Certificate encoding")
-	}
-	gotSum := sha256.Sum256(der)
-	if wantSum != gotSum {
-		return fmt.Errorf("embedded IdP certificate does not match AXIOM_SAML_IDP_CERT")
-	}
-	return nil
 }
 
 func extractXMLTag(raw []byte, local string) string {

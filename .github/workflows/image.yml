@@ -6,7 +6,7 @@ name: Container image
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
     inputs:
       tag:
@@ -19,7 +19,13 @@ permissions:
   id-token: write # cosign keyless signing
 
 jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+    with:
+      ref: ${{ github.event.inputs.tag || github.ref_name }}
+
   image:
+    needs: verify
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -46,7 +52,7 @@ jobs:
           images: ghcr.io/zyvorai/axiom
           tags: |
             type=raw,value=${{ steps.v.outputs.version }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ !contains(env.TAG, '-') }}
           labels: |
             org.opencontainers.image.source=https://github.com/zyvorai/axiom
             org.opencontainers.image.version=${{ steps.v.outputs.version }}

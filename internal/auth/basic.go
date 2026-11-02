@@ -262,7 +262,7 @@ func isPublicPath(r *http.Request) bool {
 	if r.Method == http.MethodGet && (path == "/api/v1/auth/oidc/login" || path == "/api/v1/auth/oidc/callback" || path == "/api/v1/auth/saml/login") {
 		return true
 	}
-	if (r.Method == http.MethodPost || r.Method == http.MethodGet) && path == "/api/v1/auth/saml/acs" {
+	if r.Method == http.MethodPost && path == "/api/v1/auth/saml/acs" {
 		return true
 	}
 	if r.Method == http.MethodPost && path == "/api/v1/auth/logout" {
