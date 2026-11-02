@@ -21,6 +21,7 @@ func (s *Server) registerCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req registerClusterRequest
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // a kubeconfig is a few KB
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		fail(w, http.StatusBadRequest, err)
 		return

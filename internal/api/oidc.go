@@ -112,6 +112,57 @@ func (s *Server) oidcLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target.String(), http.StatusFound)
 }
 
+// oidcHTTPClient bounds every call to the IdP (discovery, token, userinfo).
+// http.DefaultClient has no timeout, so a slow or hung IdP would pin handler
+// goroutines — and /auth/oidc/login is unauthenticated.
+var oidcHTTPClient = &http.Client{Timeout: 10 * time.Second}
+
+// validateIDTokenClaims checks the claims OIDC Core §3.1.3.7 requires of a
+// client: iss matches the issuer, aud contains our client ID, and the token has
+// not expired. The signature is not re-verified because the token is received
+// directly from the token endpoint over TLS (§3.1.3.7 item 6 permits this).
+func validateIDTokenClaims(idToken, issuer, clientID string, now time.Time) error {
+	parts := strings.Split(idToken, ".")
+	if len(parts) < 2 {
+		return fmt.Errorf("malformed id_token")
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return fmt.Errorf("malformed id_token payload")
+	}
+	var c map[string]any
+	if err := json.Unmarshal(raw, &c); err != nil {
+		return fmt.Errorf("malformed id_token claims")
+	}
+	if iss, _ := c["iss"].(string); issuer != "" && strings.TrimRight(iss, "/") != strings.TrimRight(issuer, "/") {
+		return fmt.Errorf("id_token issuer %q does not match the configured issuer", iss)
+	}
+	if clientID != "" {
+		ok := false
+		switch a := c["aud"].(type) {
+		case string:
+			ok = a == clientID
+		case []any:
+			for _, v := range a {
+				if s, _ := v.(string); s == clientID {
+					ok = true
+				}
+			}
+		}
+		if !ok {
+			return fmt.Errorf("id_token audience does not include this client")
+		}
+	}
+	exp, ok := c["exp"].(float64)
+	if !ok {
+		return fmt.Errorf("id_token has no exp")
+	}
+	if !now.Before(time.Unix(int64(exp), 0).Add(2 * time.Minute)) {
+		return fmt.Errorf("id_token has expired")
+	}
+	return nil
+}
+
 func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	if errMsg := r.URL.Query().Get("error"); errMsg != "" {
 		http.Error(w, "OIDC error: "+errMsg+" — "+r.URL.Query().Get("error_description"), http.StatusBadRequest)
@@ -153,7 +204,7 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
+	res, err := oidcHTTPClient.Do(req)
 	if err != nil {
 		http.Error(w, "token exchange failed: "+err.Error(), http.StatusBadGateway)
 		return
@@ -174,6 +225,13 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if tok.IDToken != "" {
+		wantIssuer := firstNonEmpty(disc.Issuer, issuer)
+		if err := validateIDTokenClaims(tok.IDToken, wantIssuer, clientID, time.Now()); err != nil {
+			http.Error(w, "OIDC id_token rejected: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
 	user, email := oidcIdentity(tok.IDToken, tok.AccessToken, disc.Userinfo, r)
 	if user == "" {
 		user = "oidc-user"
@@ -214,7 +272,7 @@ func (s *Server) fetchOIDCDiscovery(r *http.Request, issuer string) (oidcDiscove
 	if err != nil {
 		return out, err
 	}
-	res, err := http.DefaultClient.Do(req)
+	res, err := oidcHTTPClient.Do(req)
 	if err != nil {
 		return out, err
 	}
@@ -260,7 +318,7 @@ func oidcIdentity(idToken, accessToken, userinfoURL string, r *http.Request) (us
 		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, userinfoURL, nil)
 		if err == nil {
 			req.Header.Set("Authorization", "Bearer "+accessToken)
-			if res, err := http.DefaultClient.Do(req); err == nil {
+			if res, err := oidcHTTPClient.Do(req); err == nil {
 				defer res.Body.Close()
 				var info map[string]any
 				if json.NewDecoder(io.LimitReader(res.Body, 1<<20)).Decode(&info) == nil {

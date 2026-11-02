@@ -14,6 +14,16 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - Enterprise write endpoints validated against a real cluster, not just the demo provider/fake clientsets — see `e2e/scripts/validate-enterprise-writes.sh`. Found and fixed one real RBAC gap: `DELETE /api/v1/vms/{ns}/{name}` was 403ing because the `zyvor-axiom` ClusterRole never granted `delete` on `kubevirt.io` VMs
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 
+Known security limitations (reviewed, not yet fixed):
+
+- **Login rate limiting is per client IP and a success resets it**, so a caller holding any valid account can interleave one valid request among password guesses and never lock out. Closing this needs per-account throttling or MFA.
+- **OIDC ID tokens are claim-checked (`iss`, `aud`, `exp`) but the signature is not re-verified** — acceptable per OIDC Core §3.1.3.7 because the token comes straight from the token endpoint over TLS, but a JWKS check would be stricter. There is no `nonce`.
+- **Sessions are stateless (12 h)**: logout only clears the cookie and a role change at the IdP is not picked up until the session expires.
+- **Browser WebSocket/EventSource auth puts credentials in the URL** (`?access_token=`, `?axiom_session=`, `?api_key=`), which reverse-proxy access logs can capture. A short-lived single-use ticket would fix it.
+- **The pod "window" proxy serves pod content from Axiom's own origin.** It is now sandboxed (CSP), strips cookies and is operator-only, but a separate origin would be the real isolation.
+- **LDAP over `ldap://` is plaintext** (no StartTLS); use `ldaps://`. `AXIOM_LDAP_BIND_DN`/`AXIOM_LDAP_BIND_PASSWORD` are read but unused.
+- **Default credentials**: the Helm chart and manifest default to `demo`/`demo`. Axiom logs a warning outside demo mode, and no longer advertises them on the login page, but does not refuse to start.
+
 Other known gaps found by the functional test pass (see `e2e/README.md`):
 
 - Registered clusters are always reported `Healthy` (`internal/platform/switchable_provider.go`) — there is no probe

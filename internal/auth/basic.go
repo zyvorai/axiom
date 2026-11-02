@@ -309,14 +309,17 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
 		return Identity{User: g.Username, Role: "admin"}, true
 	}
-	if g.LDAP.Enabled || g.LDAP.URL != "" {
-		if role, ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
-			return Identity{User: u, Role: role}, true
-		}
-	}
+	// Local accounts first: it is a cheap in-memory bcrypt check, and trying
+	// LDAP first would send every local user's password to the directory on
+	// every API call (and count each miss toward AD lockout policy).
 	if g.Users != nil {
 		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
 			return Identity{User: u, Role: role, Namespaces: namespaces}, true
+		}
+	}
+	if g.LDAP.Enabled || g.LDAP.URL != "" {
+		if role, ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
+			return Identity{User: u, Role: role}, true
 		}
 	}
 	return Identity{}, false

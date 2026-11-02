@@ -16,6 +16,7 @@ import (
 type RateLimiter struct {
 	mu    sync.Mutex
 	state map[string]*attemptState
+	now   func() time.Time // injectable for tests
 }
 
 type attemptState struct {
@@ -29,10 +30,11 @@ const (
 	rateLimitMaxBackoff    = 5 * time.Minute  // cap on lockout duration
 	rateLimitIdleEviction  = 30 * time.Minute // stale entries are forgotten
 	rateLimitSweepEvery    = 500              // opportunistic cleanup cadence
+	rateLimitMaxKeys       = 10000            // hard cap on tracked clients (memory bound)
 )
 
 func NewRateLimiter() *RateLimiter {
-	return &RateLimiter{state: map[string]*attemptState{}}
+	return &RateLimiter{state: map[string]*attemptState{}, now: time.Now}
 }
 
 // Allowed reports whether the given key (client IP) may attempt
@@ -44,7 +46,7 @@ func (rl *RateLimiter) Allowed(key string) bool {
 	if s == nil {
 		return true
 	}
-	return time.Now().After(s.lockedUntil)
+	return rl.now().After(s.lockedUntil)
 }
 
 // RetryAfter returns how much longer the given key stays locked out, for
@@ -61,7 +63,7 @@ func (rl *RateLimiter) RetryAfter(key string) time.Duration {
 	if s == nil {
 		return 0
 	}
-	if d := time.Until(s.lockedUntil); d > 0 {
+	if d := s.lockedUntil.Sub(rl.now()); d > 0 {
 		return d
 	}
 	return 0
@@ -75,11 +77,14 @@ func (rl *RateLimiter) RecordFailure(key string) {
 	rl.sweepLocked()
 	s := rl.state[key]
 	if s == nil {
+		if len(rl.state) >= rateLimitMaxKeys {
+			rl.evictOldestLocked()
+		}
 		s = &attemptState{}
 		rl.state[key] = s
 	}
 	s.failures++
-	s.lastSeen = time.Now()
+	s.lastSeen = rl.now()
 	if s.failures > rateLimitGraceFailures {
 		shift := s.failures - rateLimitGraceFailures - 1
 		if shift > 8 {
@@ -89,11 +94,17 @@ func (rl *RateLimiter) RecordFailure(key string) {
 		if backoff > rateLimitMaxBackoff {
 			backoff = rateLimitMaxBackoff
 		}
-		s.lockedUntil = time.Now().Add(backoff)
+		s.lockedUntil = rl.now().Add(backoff)
 	}
 }
 
 // RecordSuccess clears any failure history for the key.
+//
+// Known limitation: because success resets the counter, a caller who holds any
+// valid account can interleave one valid request among password guesses and
+// never trip the limiter. Closing that needs per-account throttling or MFA
+// (see docs/GAPS.md); the per-IP limiter here is a speed bump, not a defence
+// against a determined authenticated attacker.
 func (rl *RateLimiter) RecordSuccess(key string) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
@@ -105,7 +116,7 @@ func (rl *RateLimiter) sweepLocked() {
 	if len(rl.state) < rateLimitSweepEvery {
 		return
 	}
-	cutoff := time.Now().Add(-rateLimitIdleEviction)
+	cutoff := rl.now().Add(-rateLimitIdleEviction)
 	for k, s := range rl.state {
 		if s.lastSeen.Before(cutoff) {
 			delete(rl.state, k)
@@ -113,31 +124,55 @@ func (rl *RateLimiter) sweepLocked() {
 	}
 }
 
+// evictOldestLocked drops the least-recently-seen entry once the table is
+// full, so a flood of spoofed/rotating keys cannot grow memory without bound.
+func (rl *RateLimiter) evictOldestLocked() {
+	var oldestKey string
+	var oldest time.Time
+	first := true
+	for k, s := range rl.state {
+		if first || s.lastSeen.Before(oldest) {
+			oldestKey, oldest, first = k, s.lastSeen, false
+		}
+	}
+	if !first {
+		delete(rl.state, oldestKey)
+	}
+}
+
 // clientKey extracts the client IP from a request, ignoring any port.
 //
 // By default it does not trust X-Forwarded-For (spoofable by the client
-// unless a trusted proxy strips/overwrites it, which isn't guaranteed in
-// every deployment). When trustedHeader is set (opt-in via
-// AXIOM_TRUSTED_PROXY_HEADER — only safe when Axiom sits behind a reverse
-// proxy that itself sets/overwrites that header, never passing through a
-// client-supplied value), the leftmost address in that header is used
-// instead of RemoteAddr. Without this, every client behind a shared
-// reverse proxy or identity-aware proxy — the exact topology this
-// project's own docs recommend for production — shares one rate-limit
-// bucket, so one user's failed logins can lock out everyone else behind
-// the same proxy.
+// unless a trusted proxy strips/overwrites it). When trustedHeader is set
+// (opt-in via AXIOM_TRUSTED_PROXY_HEADER — only safe behind a reverse proxy
+// that sets the header), the RIGHTMOST address is used: that is the entry the
+// trusted proxy itself appended. The leftmost entry is client-controlled when
+// a proxy appends rather than overwrites, so trusting it would let an attacker
+// rotate keys at will to evade the limiter and bloat its table. IPv6 clients
+// are keyed by their /64 so a single host can't mint 2^64 keys.
 func clientKey(r *http.Request, trustedHeader string) string {
 	if trustedHeader != "" {
 		if v := strings.TrimSpace(r.Header.Get(trustedHeader)); v != "" {
-			first, _, _ := strings.Cut(v, ",")
-			if ip := strings.TrimSpace(first); ip != "" {
-				return ip
+			parts := strings.Split(v, ",")
+			if ip := strings.TrimSpace(parts[len(parts)-1]); ip != "" {
+				return normalizeIPKey(ip)
 			}
 		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return r.RemoteAddr
+		return normalizeIPKey(r.RemoteAddr)
 	}
-	return host
+	return normalizeIPKey(host)
+}
+
+func normalizeIPKey(s string) string {
+	ip := net.ParseIP(strings.Trim(s, "[]"))
+	if ip == nil {
+		return s
+	}
+	if ip.To4() == nil {
+		return ip.Mask(net.CIDRMask(64, 128)).String() + "/64"
+	}
+	return ip.String()
 }

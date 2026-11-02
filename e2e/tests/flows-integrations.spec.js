@@ -567,7 +567,7 @@ async function startOidcIdp() {
         return json(res, 400, { error: "invalid_grant" });
       }
       c.used = true;
-      return json(res, 200, { access_token: "at-e2e", token_type: "Bearer", id_token: jwt({ iss: `${base}/realms/e2e`, aud: c.client_id, ...st.claims }) });
+      return json(res, 200, { access_token: "at-e2e", token_type: "Bearer", id_token: jwt({ iss: `${base}/realms/e2e`, aud: c.client_id, exp: Math.floor(Date.now() / 1000) + 300, ...st.claims }) });
     }
     return json(res, 404, { error: "not found" });
   });

@@ -96,6 +96,10 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 		TLSNextProto:      map[string]func(*http.Server, *tls.Conn, http.Handler){},
+		TLSConfig:         &tls.Config{MinVersion: tls.VersionTLS12},
+	}
+	if cfg.Mode != "demo" && cfg.Username == "demo" && cfg.Password == "demo" {
+		log.Printf("WARNING: running in %q mode with the default demo/demo credentials — set AXIOM_USERNAME/AXIOM_PASSWORD (Helm: auth.username/auth.password) to something strong before exposing this console", cfg.Mode)
 	}
 	tlsEnabled := cfg.TLSCert != "" && cfg.TLSKey != ""
 	go func() {

@@ -4,6 +4,15 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Security
+- Webhook/Slack errors and logs no longer contain the (secret) webhook URL
+- Registering a cluster rejects kubeconfigs that use exec/auth-provider plugins, `tokenFile`, client-cert/CA file paths, impersonation or `proxy-url`, and bounds the request body
+- OIDC: all IdP calls have a 10 s timeout; the ID token's `iss`, `aud` and `exp` are validated
+- Local accounts are checked before LDAP, so local users' passwords are no longer sent to the directory on every request
+- Login rate limiter keys on the rightmost (proxy-appended) trusted-header address, groups IPv6 by /64 and is size-bounded
+- Metrics series are capped and methods/paths sanitised; request logs quote the path (no log forging)
+- Outside demo mode `/auth/providers` no longer advertises `demo / demo`, the default username, the API-server URL or other cluster names; TLS 1.2 minimum; startup warning for default credentials
+
 ### Changed
 - Full frontend redesign: the app shell (top bar, sidebar) and all 37 pages rebuilt around a flat, dark apple.com visual language — plain black `#000`/`#1d1d1f` (dark) or white/`#f5f5f7` (light) surfaces, hairline borders, pill buttons and status badges, no glass panels, no ambient gradient washes, no glow rings. Dark theme is no longer GitHub-Primer-derived; light and dark now share one palette source. New `frontend/src/axiom-shell.css` carries the component vocabulary (`.bar`/`.side`/`.card`/`.pill`/`.tbl`/`.tile`/`.vm`/`.tabs`/etc); `PageHeader`/`DetailHeader`/`StatusBadge`/`GlassCard`/`AutoTable` were re-skinned once and cascade the look everywhere. Sidebar gained live workload/pod/alert counts, collapsible groups, and a mobile slide-in drawer; top bar gained an in-bar theme toggle and an alerts bell. `MetricRing.jsx` was removed (Overview's capacity band now uses meter bars). Every API call, mutation, dialog, and `data-testid` was preserved — this is a markup/styling pass, not a behavior change. See `docs/DESIGN-SYSTEM.md`.
 - Login page: SSO is now a plain "Sign in with SSO"/"Sign in with SAML" text link under the password form instead of per-provider (Google/GitHub/Okta) icon buttons; added a "Remember me on this device" checkbox (persists only the username) and an inline error banner on failed sign-in.

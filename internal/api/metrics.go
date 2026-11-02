@@ -51,17 +51,45 @@ func routeLabel(path string) string {
 	if len(segments) < n {
 		n = len(segments)
 	}
+	for i := 0; i < n; i++ {
+		for _, r := range segments[i] {
+			if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.') {
+				return "/other"
+			}
+		}
+	}
 	return "/" + strings.Join(segments[:n], "/")
 }
 
+// maxMetricSeries bounds the number of distinct (method, route, code) series.
+// /metrics and every request (including unauthenticated 401/404s) feed this
+// map, so without a cap `GET /api/v1/<random>` in a loop grows memory and the
+// scrape payload without limit. Past the cap, new combinations fold into one
+// "other" series.
+const maxMetricSeries = 500
+
+func sanitizeMethod(m string) string {
+	switch m {
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodHead, http.MethodOptions:
+		return m
+	}
+	return "OTHER"
+}
+
 func (m *metricsRegistry) record(method, path string, code int, durationSeconds float64) {
-	key := metricKey{method: method, route: routeLabel(path), code: code}
+	key := metricKey{method: sanitizeMethod(method), route: routeLabel(path), code: code}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	v := m.requests[key]
 	if v == nil {
-		v = &metricValue{}
-		m.requests[key] = v
+		if len(m.requests) >= maxMetricSeries {
+			key = metricKey{method: "OTHER", route: "other", code: code}
+			v = m.requests[key]
+		}
+		if v == nil {
+			v = &metricValue{}
+			m.requests[key] = v
+		}
 	}
 	v.count++
 	v.durationSum += durationSeconds

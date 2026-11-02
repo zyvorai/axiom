@@ -372,7 +372,7 @@ func (s *Server) common(next http.Handler) http.Handler {
 		next.ServeHTTP(rec, r)
 		elapsed := time.Since(start)
 		globalMetrics.record(r.Method, r.URL.Path, rec.status, elapsed.Seconds())
-		log.Printf("%s %s %s", r.Method, r.URL.Path, elapsed.Round(time.Millisecond))
+		log.Printf("%s %q %s", sanitizeMethod(r.Method), r.URL.Path, elapsed.Round(time.Millisecond))
 	})
 }
 

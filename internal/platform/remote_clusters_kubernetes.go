@@ -23,6 +23,9 @@ func ProviderFromKubeconfigYAML(kubeconfigYAML, name string) (Provider, string, 
 	if strings.TrimSpace(kubeconfigYAML) == "" {
 		return nil, "", fmt.Errorf("kubeconfig is required")
 	}
+	if err := validateRemoteKubeconfig([]byte(kubeconfigYAML)); err != nil {
+		return nil, "", err
+	}
 	cfg, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfigYAML))
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid kubeconfig: %w", err)
@@ -173,4 +176,41 @@ func (s *k8sRemoteClusterStore) save(ctx context.Context, list []RemoteCluster) 
 func getenv(k string) string {
 	// tiny indirection so tests can avoid importing os in every path
 	return getenvOS(k)
+}
+
+// validateRemoteKubeconfig rejects kubeconfig features that would make Axiom
+// execute commands or read files from its own container on behalf of whoever
+// submitted the config: exec credential plugins, auth-provider plugins, and
+// file-path references (tokenFile, client cert/key, CA file). In particular
+// `tokenFile` pointed at the pod's ServiceAccount token plus an attacker-chosen
+// `server:` would send Axiom's own token to that server. Only inline
+// (base64 *-data / token) credentials are accepted.
+func validateRemoteKubeconfig(raw []byte) error {
+	cfg, err := clientcmd.Load(raw)
+	if err != nil {
+		return fmt.Errorf("invalid kubeconfig: %w", err)
+	}
+	for name, ai := range cfg.AuthInfos {
+		switch {
+		case ai.Exec != nil:
+			return fmt.Errorf("kubeconfig user %q uses an exec credential plugin, which is not allowed — use a static token or inline client certificate", name)
+		case ai.AuthProvider != nil:
+			return fmt.Errorf("kubeconfig user %q uses an auth-provider plugin, which is not allowed — use a static token or inline client certificate", name)
+		case ai.TokenFile != "":
+			return fmt.Errorf("kubeconfig user %q references tokenFile — inline the token instead", name)
+		case ai.ClientCertificate != "" || ai.ClientKey != "":
+			return fmt.Errorf("kubeconfig user %q references client certificate files — use client-certificate-data/client-key-data", name)
+		case ai.Impersonate != "":
+			return fmt.Errorf("kubeconfig user %q sets impersonation, which is not allowed", name)
+		}
+	}
+	for name, c := range cfg.Clusters {
+		if c.CertificateAuthority != "" {
+			return fmt.Errorf("kubeconfig cluster %q references a CA file — use certificate-authority-data", name)
+		}
+		if c.ProxyURL != "" {
+			return fmt.Errorf("kubeconfig cluster %q sets proxy-url, which is not allowed", name)
+		}
+	}
+	return nil
 }

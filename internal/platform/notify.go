@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	neturl "net/url"
 	"strings"
 	"time"
 )
@@ -18,17 +19,19 @@ func postJSON(ctx context.Context, url string, payload any) (int, error) {
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("invalid webhook URL (%s)", scrubURLError(err, url))
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		// *url.Error embeds the full request URL; for a Slack incoming
+		// webhook that URL is the credential, so never surface it.
+		return 0, fmt.Errorf("request to %s failed: %s", redactedHost(url), scrubURLError(err, url))
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		return resp.StatusCode, fmt.Errorf("HTTP %d from %s", resp.StatusCode, url)
+		return resp.StatusCode, fmt.Errorf("HTTP %d from %s", resp.StatusCode, redactedHost(url))
 	}
 	return resp.StatusCode, nil
 }
@@ -135,4 +138,26 @@ func runAlertDispatcher(ctx context.Context, provider Provider, hub *Integration
 			watermark = next
 		}()
 	}
+}
+
+// redactedHost reduces a webhook URL to scheme://host so errors and logs never
+// carry the secret path/query that authenticates it.
+func redactedHost(raw string) string {
+	u, err := neturl.Parse(raw)
+	if err != nil || u.Host == "" {
+		return "the configured endpoint"
+	}
+	return u.Scheme + "://" + u.Host
+}
+
+// scrubURLError returns err's text with every occurrence of the URL removed.
+func scrubURLError(err error, raw string) string {
+	msg := err.Error()
+	if raw != "" {
+		msg = strings.ReplaceAll(msg, raw, redactedHost(raw))
+	}
+	if ue, ok := err.(*neturl.Error); ok {
+		msg = strings.ReplaceAll(msg, ue.URL, redactedHost(raw))
+	}
+	return msg
 }

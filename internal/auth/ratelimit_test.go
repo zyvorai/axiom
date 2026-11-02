@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,6 +42,26 @@ func TestRateLimiterSuccessClearsFailures(t *testing.T) {
 	rl.RecordSuccess("9.9.9.9")
 	if !rl.Allowed("9.9.9.9") {
 		t.Fatal("expected allowed again after a recorded success")
+	}
+}
+
+func TestRateLimiterTableIsBounded(t *testing.T) {
+	rl := NewRateLimiter()
+	for i := 0; i < rateLimitMaxKeys+500; i++ {
+		rl.RecordFailure(fmt.Sprintf("k%d", i))
+	}
+	if n := len(rl.state); n > rateLimitMaxKeys {
+		t.Fatalf("tracked clients must be capped at %d, have %d", rateLimitMaxKeys, n)
+	}
+}
+
+func TestClientKeyIPv6UsesSlash64(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "[2001:db8:1:2:aaaa:bbbb:cccc:dddd]:5555"
+	a := clientKey(r, "")
+	r.RemoteAddr = "[2001:db8:1:2:1111:2222:3333:4444]:6666"
+	if b := clientKey(r, ""); a != b {
+		t.Fatalf("hosts in the same /64 must share a bucket: %q vs %q", a, b)
 	}
 }
 
@@ -86,9 +107,9 @@ func TestClientKeyIgnoresProxyHeaderByDefault(t *testing.T) {
 func TestClientKeyUsesTrustedProxyHeaderWhenConfigured(t *testing.T) {
 	r := httptest.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "192.0.2.1:1234"
-	r.Header.Set("X-Forwarded-For", "203.0.113.5, 192.0.2.1")
+	r.Header.Set("X-Forwarded-For", "198.51.100.99, 203.0.113.5")
 	if got := clientKey(r, "X-Forwarded-For"); got != "203.0.113.5" {
-		t.Fatalf("expected the leftmost (original client) address from the trusted header, got %q", got)
+		t.Fatalf("expected the rightmost (proxy-appended) address, not the client-controlled leftmost, got %q", got)
 	}
 }
 
@@ -199,14 +220,11 @@ func TestGuardRateLimitRetryAfterReflectsActualBackoff(t *testing.T) {
 func TestGuardRateLimitResetsOnSuccess(t *testing.T) {
 	g := Guard{Username: "demo", Password: "demo"}
 	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
-
 	basicAuthRequest := func(user, pass string) *http.Request {
 		r := httptest.NewRequest("GET", "/api/v1/overview", nil)
 		r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(user+":"+pass)))
 		return r
 	}
-
-	// A couple of failures, within the grace window, followed by a success.
 	for i := 0; i < rateLimitGraceFailures-1; i++ {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, basicAuthRequest("demo", "wrongpass"))
@@ -219,9 +237,6 @@ func TestGuardRateLimitResetsOnSuccess(t *testing.T) {
 	if w.Code != 204 {
 		t.Fatalf("expected successful login within grace window, got %d", w.Code)
 	}
-
-	// Failure count should have reset — another full grace window of
-	// failures should be tolerated before lockout.
 	for i := 0; i < rateLimitGraceFailures; i++ {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, basicAuthRequest("demo", "wrongpass"))

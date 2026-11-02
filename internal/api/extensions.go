@@ -30,10 +30,17 @@ func (s *Server) authProviders(w http.ResponseWriter, r *http.Request) {
 
 	operatorLogin := !oidcEnabled && !samlEnabled && !ldapEnabled
 
+	// This endpoint is unauthenticated. Only the demo build advertises the
+	// demo credentials and the default username; a real deployment must not
+	// tell the internet which account to attack.
+	labHint, defaultUser := "", ""
+	if s.mode == "demo" {
+		labHint, defaultUser = "demo / demo", s.username
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"lab": map[string]any{
 			"operator_login": operatorLogin,
-			"hint":           "demo / demo",
+			"hint":           labHint,
 		},
 		// Public kubectl / cluster identity for the login "This machine"
 		// chapter — safe to expose before auth so operators can confirm
@@ -41,7 +48,7 @@ func (s *Server) authProviders(w http.ResponseWriter, r *http.Request) {
 		"cluster": s.publicClusterContext(r),
 		"local": map[string]any{
 			"enabled":          true,
-			"default_username": s.username,
+			"default_username": defaultUser,
 			"note":             "Local Basic auth via AXIOM_USERNAME / AXIOM_PASSWORD",
 		},
 		"oidc": map[string]any{
@@ -102,6 +109,12 @@ func (s *Server) publicClusterContext(r *http.Request) map[string]any {
 		out["label"] = c.Label
 		out["server"] = c.Server
 		out["healthy"] = c.Healthy
+	}
+	if s.mode != "demo" {
+		// Pre-auth: don't reveal the API-server address or every registered
+		// cluster's name outside the demo.
+		delete(out, "server")
+		delete(out, "context_names")
 	}
 	return out
 }
