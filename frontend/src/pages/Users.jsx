@@ -18,9 +18,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Trash2, ShieldCheck, Eye, Pencil } from "lucide-react";
+import { UserPlus, Trash2, ShieldCheck, Eye, Pencil, KeyRound, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { MFA } from "@/constants/testIds";
 
 function parseNamespaces(text) {
     return text
@@ -221,6 +222,37 @@ export default function Users() {
         }
     };
 
+    const resetMfa = async (u) => {
+        const ok = await confirm({
+            title: `Reset two-factor for ${u.username}?`,
+            description: "They will be able to sign in with just their password and can set up two-factor again. Use this when someone has lost their device and recovery codes.",
+            confirmLabel: "Reset",
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
+            toast.success(`Two-factor reset for ${u.username}`);
+            load();
+        } catch (e) {
+            toast.error("Reset failed", { description: e?.response?.data?.error || e.message });
+        }
+    };
+
+    const revokeSessions = async (u) => {
+        const ok = await confirm({
+            title: `Sign ${u.username} out everywhere?`,
+            description: "Every session this account has open is ended; they must sign in again.",
+            confirmLabel: "Sign out",
+        });
+        if (!ok) return;
+        try {
+            await api.post(`/users/${encodeURIComponent(u.username)}/revoke-sessions`);
+            toast.success(`${u.username} was signed out everywhere`);
+        } catch (e) {
+            toast.error("Failed", { description: e?.response?.data?.error || e.message });
+        }
+    };
+
     if (!data) {
         return (
             <div className="page">
@@ -255,6 +287,7 @@ export default function Users() {
                                 <th>Username</th>
                                 <th>Role</th>
                                 <th>Namespaces</th>
+                                <th>Two-factor</th>
                                 <th>Created</th>
                                 <th><span className="sr-only">Actions</span></th>
                             </tr>
@@ -282,9 +315,26 @@ export default function Users() {
                                             <span className="text-[12.5px] text-ink-3">All namespaces</span>
                                         )}
                                     </td>
+                                    <td data-testid={MFA.usersBadge(u.username)}>
+                                        {u.mfaEnabled ? (
+                                            <span className="pill" style={{ "--c": "var(--green)" }}>
+                                                <ShieldCheck size={11} /> on
+                                            </span>
+                                        ) : (
+                                            <span className="text-[12.5px] text-ink-3">off</span>
+                                        )}
+                                    </td>
                                     <td className="mono num">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
                                     <td>
                                         <div className="flex justify-end gap-1.5">
+                                            {u.mfaEnabled && (
+                                                <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersReset(u.username)} aria-label={`Reset two-factor for ${u.username}`} title={`Reset two-factor for ${u.username}`} onClick={() => resetMfa(u)}>
+                                                    <KeyRound size={13} />
+                                                </button>
+                                            )}
+                                            <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersRevoke(u.username)} aria-label={`Sign ${u.username} out everywhere`} title={`Sign ${u.username} out everywhere`} onClick={() => revokeSessions(u)}>
+                                                <LogOut size={13} />
+                                            </button>
                                             <button type="button" className="btn btn-line btn-sm" aria-label={`Edit user ${u.username}`} title={`Edit user ${u.username}`} onClick={() => setEditingUser(u)}>
                                                 <Pencil size={13} />
                                             </button>

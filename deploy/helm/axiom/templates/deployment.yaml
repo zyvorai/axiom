@@ -59,6 +59,21 @@ spec:
                   name: zyvor-axiom-auth
                   key: sessionSecret
             {{- end }}
+            {{- if .Values.auth.totpSecret }}
+            - name: AXIOM_TOTP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: totpSecret
+            {{- end }}
+            {{- if .Values.auth.sessionTTL }}
+            - name: AXIOM_SESSION_TTL
+              value: {{ .Values.auth.sessionTTL | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlAllowIdPInitiated }}
+            - name: AXIOM_SAML_ALLOW_IDP_INITIATED
+              value: "true"
+            {{- end }}
             {{- if .Values.auth.auditRingSize }}
             - name: AXIOM_AUDIT_RING_SIZE
               value: {{ .Values.auth.auditRingSize | quote }}

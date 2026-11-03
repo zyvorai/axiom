@@ -18,3 +18,4 @@ export * from './ux';
 export * from './troubleshoot';
 export * from './security';
 export * from './ai';
+export * from './identity';

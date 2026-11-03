@@ -98,9 +98,9 @@ export function LoginField({ label, id, children }) {
     );
 }
 
-export function LoginSubmit({ loading, disabled, children, className = "" }) {
+export function LoginSubmit({ loading, disabled, children, className = "", ...rest }) {
     return (
-        <button type="submit" disabled={disabled || loading} className={`login-btn-primary ${className}`.trim()}>
+        <button type="submit" disabled={disabled || loading} className={`login-btn-primary ${className}`.trim()} {...rest}>
             {children}
         </button>
     );

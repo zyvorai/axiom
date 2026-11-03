@@ -20,6 +20,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
+const zlib = require("zlib");
 const { spawn, spawnSync } = require("child_process");
 const { signIn, confirmDialog, toastText, waitMutation, USERNAME, PASSWORD } = require("./helpers");
 
@@ -803,22 +804,41 @@ test.describe("OIDC SSO (mock IdP)", () => {
 // ---------------------------------------------------------------------------
 // (c2) SAML against a mock IdP
 // ---------------------------------------------------------------------------
-function samlXml({ nameId, email, groups, certB64 }) {
+function samlXml({ nameId, email, groups, certB64, inResponseTo, acs }) {
   const attrs = [
     email ? `<saml:Attribute Name="email"><saml:AttributeValue>${email}</saml:AttributeValue></saml:Attribute>` : "",
     ...(groups || []).map((g) => `<saml:Attribute Name="groups"><saml:AttributeValue>${g}</saml:AttributeValue></saml:Attribute>`),
   ].join("");
   const sig = certB64 ? `<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:KeyInfo><ds:X509Data><ds:X509Certificate>${certB64}</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature>` : "";
-  return `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><saml:Assertion><saml:Subject><saml:NameID>${nameId}</saml:NameID></saml:Subject><saml:AttributeStatement>${attrs}</saml:AttributeStatement>${sig}</saml:Assertion></samlp:Response>`;
+  // A real IdP answers a specific AuthnRequest: it echoes the request ID as
+  // InResponseTo and addresses the bearer confirmation to the ACS URL.
+  const irt = inResponseTo ? ` InResponseTo="${inResponseTo}"` : "";
+  const notAfter = new Date(Date.now() + 5 * 60_000).toISOString();
+  const confirmation = inResponseTo
+    ? `<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer"><saml:SubjectConfirmationData InResponseTo="${inResponseTo}" Recipient="${acs}" NotOnOrAfter="${notAfter}"/></saml:SubjectConfirmation>`
+    : "";
+  return `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"${irt}><saml:Assertion><saml:Subject><saml:NameID>${nameId}</saml:NameID>${confirmation}</saml:Subject><saml:AttributeStatement>${attrs}</saml:AttributeStatement>${sig}</saml:Assertion></samlp:Response>`;
+}
+
+/** The ID of the AuthnRequest a service provider sent (HTTP-Redirect binding: deflate + base64). */
+function samlRequestId(samlRequest) {
+  try {
+    const xml = zlib.inflateRawSync(Buffer.from(samlRequest, "base64")).toString("utf8");
+    return (xml.match(/\sID="([^"]+)"/) || [])[1] || "";
+  } catch {
+    return "";
+  }
 }
 
 async function startSamlIdp() {
-  const st = { nameId: "saml-alice@corp.test", email: "alice@corp.test", groups: [], certB64: "", acs: "", ssoRequests: [] };
+  // unsolicited: answer without an InResponseTo, as an IdP-initiated login would.
+  const st = { nameId: "saml-alice@corp.test", email: "alice@corp.test", groups: [], certB64: "", acs: "", ssoRequests: [], unsolicited: false };
   const mock = await startHttpMock((req, res) => {
     const u = new URL(req.url, "http://x");
     if (u.pathname !== "/saml/sso") return json(res, 404, {});
     st.ssoRequests.push(Object.fromEntries(u.searchParams));
-    const b64 = Buffer.from(samlXml(st)).toString("base64");
+    const inResponseTo = st.unsolicited ? "" : samlRequestId(u.searchParams.get("SAMLRequest") || "");
+    const b64 = Buffer.from(samlXml({ ...st, inResponseTo })).toString("base64");
     const relay = (u.searchParams.get("RelayState") || "").replace(/"/g, "");
     res.writeHead(200, { "Content-Type": "text/html" }).end(
       `<!doctype html><html><body onload="document.forms[0].submit()"><form method="post" action="${st.acs}"><input type="hidden" name="SAMLResponse" value="${b64}"/><input type="hidden" name="RelayState" value="${relay}"/><noscript><button>continue</button></noscript></form></body></html>`
@@ -871,6 +891,66 @@ test.describe("SAML SSO (mock IdP)", () => {
         const loc = new URL(redirect.headers()["location"]);
         expect(loc.origin + loc.pathname).toBe(`${idp.url}/saml/sso`);
         expect(loc.searchParams.get("RelayState")).toBe("/pods");
+      });
+    } finally {
+      await idp.close();
+    }
+  });
+
+  test("a captured SAML response cannot be replayed, and answers to another request are refused", async ({ browser }) => {
+    const idp = await startSamlIdp();
+    try {
+      const env = { AXIOM_SAML_LOGIN_URL: `${idp.url}/saml/sso`, AXIOM_SAML_ALLOW_UNSIGNED: "true" };
+      await withApp(browser, env, async ({ page, srv }) => {
+        idp.st.acs = `${srv.url}/api/v1/auth/saml/acs`;
+        /** @type {string} */
+        let posted = "";
+        page.on("request", (r) => {
+          if (r.method() === "POST" && r.url().endsWith("/saml/acs")) posted = r.postData() || "";
+        });
+        await toPasswordStep(page);
+        await page.getByRole("link", { name: "Sign in with SAML" }).click();
+        await expect(page.getByTestId("sidebar-nav")).toBeVisible();
+        expect(posted).toContain("SAMLResponse=");
+
+        // Replaying the very same response (the request is single-use) is refused, even
+        // from a browser that still holds the request cookie.
+        const replay = await page.request.post("/api/v1/auth/saml/acs", {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: posted, maxRedirects: 0,
+        });
+        expect(replay.status()).toBe(401);
+
+        // A response to a request this browser never made (no request cookie) is refused.
+        const bare = await page.context().browser().newContext({ baseURL: srv.url, ignoreHTTPSErrors: true });
+        const foreign = await bare.request.post("/api/v1/auth/saml/acs", {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, data: posted, maxRedirects: 0,
+        });
+        expect(foreign.status()).toBe(401);
+        await bare.close();
+      });
+    } finally {
+      await idp.close();
+    }
+  });
+
+  test("an unsolicited (IdP-initiated) response is refused unless AXIOM_SAML_ALLOW_IDP_INITIATED is set", async ({ browser }) => {
+    const idp = await startSamlIdp();
+    try {
+      idp.st.unsolicited = true;
+      const base = { AXIOM_SAML_LOGIN_URL: `${idp.url}/saml/sso`, AXIOM_SAML_ALLOW_UNSIGNED: "true" };
+      await withApp(browser, base, async ({ page, srv }) => {
+        idp.st.acs = `${srv.url}/api/v1/auth/saml/acs`;
+        await toPasswordStep(page);
+        const acs = page.waitForResponse((r) => r.url().endsWith("/saml/acs"));
+        await page.getByRole("link", { name: "Sign in with SAML" }).click();
+        expect((await acs).status()).toBe(401);
+        expect(await sessionStatus(page)).toBe(401);
+      });
+      await withApp(browser, { ...base, AXIOM_SAML_ALLOW_IDP_INITIATED: "true" }, async ({ page, srv }) => {
+        idp.st.acs = `${srv.url}/api/v1/auth/saml/acs`;
+        await toPasswordStep(page);
+        await page.getByRole("link", { name: "Sign in with SAML" }).click();
+        await expect(page.getByTestId("sidebar-nav")).toBeVisible();
       });
     } finally {
       await idp.close();

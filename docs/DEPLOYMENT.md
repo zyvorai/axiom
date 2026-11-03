@@ -63,6 +63,13 @@ Optionally set `AXIOM_CLUSTER_NAME` on the Deployment to label the single connec
 
 To map OIDC group membership to Axiom roles, also set `AXIOM_OIDC_ADMIN_GROUP` and/or `AXIOM_OIDC_VIEWER_GROUP` (and `AXIOM_OIDC_GROUPS_CLAIM` if your IdP doesn't use the claim name `groups`) — leave both unset and every OIDC login stays admin, unchanged from the default.
 
+Sign-in hardening variables:
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_SESSION_TTL` | `12h` | Lifetime of login sessions (a Go duration such as `8h`; clamped to 1 minute – 30 days). Helm: `auth.sessionTTL`. |
+| `AXIOM_TOTP_SECRET` | unset | Adds a TOTP second factor to the built-in admin account (`AXIOM_USERNAME`). Base32, at least 16 characters; generate one with `head -c20 /dev/urandom \| base32`. Once set, that account signs in through `POST /api/v1/auth/login` with a code instead of HTTP Basic, which the web UI does automatically; keep the API key (`AXIOM_API_KEY`) for automation. Local accounts enrol themselves from the user menu → **Account security**. Helm: `auth.totpSecret` (kept in Secret `zyvor-axiom-auth`). |
+
 SAML is configured with these variables (register `https://<axiom-host>/api/v1/auth/saml/acs` as the ACS URL at the IdP):
 
 | Variable | Default | Effect |
@@ -71,7 +78,7 @@ SAML is configured with these variables (register `https://<axiom-host>/api/v1/a
 | `AXIOM_SAML_ENTITY_ID` | unset | Axiom's SP entity ID; sent as the AuthnRequest `Issuer` and required as the assertion `Audience`. |
 | `AXIOM_SAML_IDP_CERT` | unset | PEM certificate of the IdP signing key; responses must carry a valid XML-DSig signature from it. |
 | `AXIOM_SAML_ALLOW_UNSIGNED` | `false` | Lab only: accept responses without signature verification. |
-| `AXIOM_SAML_ALLOW_IDP_INITIATED` | `false` | Accept unsolicited (IdP-initiated) responses, i.e. ones with no `InResponseTo`, such as an IdP dashboard tile. Leave off unless you need it: such responses are not bound to a browser sign-in and can be replayed within their validity window. |
+| `AXIOM_SAML_ALLOW_IDP_INITIATED` | `false` | Accept unsolicited (IdP-initiated) responses, i.e. ones with no `InResponseTo`, such as an IdP dashboard tile. Leave off unless you need it: such responses are not bound to a browser sign-in and can be replayed within their validity window. Helm: `auth.samlAllowIdPInitiated`. |
 
 Outstanding AuthnRequests live in memory on the replica that issued them (5 minutes, single use). With more than one replica, enable session affinity on the Service/Ingress so the login redirect and the IdP's POST back reach the same pod. Behind a reverse proxy, forward `X-Forwarded-Proto` and `X-Forwarded-Host` so the ACS URL Axiom advertises and checks against the assertion's `Recipient` is the public one.
 

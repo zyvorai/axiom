@@ -1,9 +1,17 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 and 0.5.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.5.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Two-factor sign-in | TOTP for local accounts and the built-in admin, enrolled from the user menu, with recovery codes, replay protection and throttling; admins can see and reset it | Rancher/Portainer local-auth MFA, Argo CD with Dex |
+| Session control | Logout that really ends the session, "sign out everywhere", automatic revocation on role/password/namespace changes and deletion, live role tracking for local sessions, configurable session lifetime | Headlamp/OpenShift console token revocation |
+| SAML hardening | `InResponseTo` tracking (single-use, bound to the browser that started the sign-in), `SubjectConfirmationData` Recipient and expiry checks; IdP-initiated sign-in is opt-in | — |
 
 ## Shipped in 0.4.0
 
@@ -21,7 +29,7 @@ are theirs, not ours.
 
 - **Fleet:** a cross-cluster overview and real cluster health probing (registered clusters currently always report Healthy).
 - **Autoscaling & cost:** VPA/KEDA views, HPA beyond CPU, cost budgets and rightsizing, historical Prometheus data.
-- **Identity:** TOTP/MFA for local accounts, SAML `InResponseTo` tracking, session revocation.
+- **Identity:** MFA for LDAP accounts, QR-code enrolment and a require-MFA policy, shared revocation across replicas.
 - **GitOps & Helm:** create Argo/Flux applications, a Helm chart catalog.
 - **Reach:** internationalisation, a separate origin for the pod proxy.
 

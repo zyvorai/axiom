@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { KeyRound, LogOut, ShieldCheck } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,12 +10,14 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
-import { USER_MENU } from "@/constants/testIds";
+import { USER_MENU, MFA } from "@/constants/testIds";
+import AccountSecurityDialog from "@/components/AccountSecurityDialog";
 import { toast } from "sonner";
 
 export default function UserMenu() {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const [securityOpen, setSecurityOpen] = useState(false);
     if (!user) return null;
 
     const handleSignOut = () => {
@@ -24,6 +27,7 @@ export default function UserMenu() {
     };
 
     return (
+        <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button
@@ -44,6 +48,14 @@ export default function UserMenu() {
                 </div>
                 <DropdownMenuSeparator className="bg-muted" />
                 <DropdownMenuItem
+                    data-testid={MFA.menuItem}
+                    onClick={() => setSecurityOpen(true)}
+                    className="cursor-pointer rounded-xl text-sm"
+                >
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Account security
+                </DropdownMenuItem>
+                <DropdownMenuItem
                     data-testid={USER_MENU.signOut}
                     onClick={handleSignOut}
                     className="cursor-pointer rounded-xl text-sm"
@@ -53,5 +65,7 @@ export default function UserMenu() {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+        <AccountSecurityDialog open={securityOpen} onOpenChange={setSecurityOpen} />
+        </>
     );
 }

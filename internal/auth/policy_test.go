@@ -118,6 +118,24 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator can mint a ticket", "roper", "POST", "/api/v1/ws-ticket", 204},
 		{"ticket exemption is not a prefix", "viewer", "POST", "/api/v1/ws-ticket/other", 403},
 		{"ticket exemption does not cover restricted writes", "roper", "POST", "/api/v1/ws-ticket/other", 403},
+		// --- Account security: self-service for every role, admin-only for others' accounts ---
+		{"viewer can manage own mfa", "viewer", "POST", "/api/v1/auth/mfa/setup", 204},
+		{"viewer can enable mfa", "viewer", "POST", "/api/v1/auth/mfa/enable", 204},
+		{"viewer can disable mfa", "viewer", "POST", "/api/v1/auth/mfa/disable", 204},
+		{"viewer can sign out everywhere", "viewer", "POST", "/api/v1/auth/logout-all", 204},
+		{"restricted viewer can manage own mfa", "rviewer", "POST", "/api/v1/auth/mfa/setup", 204},
+		{"restricted operator can sign out everywhere", "roper", "POST", "/api/v1/auth/logout-all", 204},
+		{"operator can manage own mfa", "oper", "POST", "/api/v1/auth/mfa/setup", 204},
+		{"viewer reads mfa status", "viewer", "GET", "/api/v1/auth/mfa", 204},
+		{"self-service exemption is exact", "viewer", "POST", "/api/v1/auth/mfa/other", 403},
+		{"self-service exemption is not a prefix", "viewer", "POST", "/api/v1/auth/logout-all/x", 403},
+		{"restricted self-service exemption is exact", "roper", "POST", "/api/v1/auth/mfa/other", 403},
+		{"operator cannot reset someone's mfa", "oper", "DELETE", "/api/v1/users/viewer/mfa", 403},
+		{"operator cannot revoke someone's sessions", "oper", "POST", "/api/v1/users/viewer/revoke-sessions", 403},
+		{"viewer cannot reset mfa", "viewer", "DELETE", "/api/v1/users/viewer/mfa", 403},
+		{"restricted operator cannot reset mfa", "roper", "DELETE", "/api/v1/users/viewer/mfa", 403},
+		{"admin can reset mfa", "demo", "DELETE", "/api/v1/users/viewer/mfa", 204},
+		{"admin can revoke sessions", "demo", "POST", "/api/v1/users/viewer/revoke-sessions", 204},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

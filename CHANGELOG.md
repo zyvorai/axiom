@@ -4,6 +4,19 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-03
+
+### Added — Identity
+- Two-factor sign-in (TOTP, RFC 6238) for local accounts: enrol from the user menu → **Account security** (confirm the password, add the setup key to an authenticator app, confirm a code, save ten one-time recovery codes). An account with MFA can no longer authenticate with HTTP Basic alone; the sign-in page asks for the code and `POST /api/v1/auth/login` returns a session. Codes are single-use per time step, recovery codes work once, and wrong codes are throttled like wrong passwords
+- `AXIOM_TOTP_SECRET` adds the same second factor to the built-in admin account
+- Server-side session revocation: logout now ends that session, "Sign out everywhere" (user menu, and per user on the Users page for admins) ends all of them, and role/namespace/password changes, deletion and MFA changes revoke the user's sessions automatically. Local sessions track the live account, so a role or namespace change applies immediately. Revocations persist in a ConfigMap
+- `AXIOM_SESSION_TTL` sets the session lifetime (default 12h)
+- Administrators can reset a locked-out person's two-factor and see who has it on the Users page
+
+### Changed
+- **Breaking for scripts that use Basic auth against an account that enables MFA:** use an API key or `POST /api/v1/auth/login` instead. Accounts that do not enable MFA are unaffected
+- `/api/v1/session` reports `auth: "local"` for sessions from the local sign-in
+
 ### Security
 - SAML: `GET /api/v1/auth/saml/login` now sends a real AuthnRequest with a random ID, tracked in a signed 5-minute `axiom_saml_req` cookie and a single-use in-memory set (per replica). The ACS requires the signed `InResponseTo` to match and consumes it, so a captured SAMLResponse can no longer be replayed within its validity window. `SubjectConfirmation` must be bearer, and `SubjectConfirmationData` `Recipient` must equal the ACS URL and `NotOnOrAfter` must not have passed. IdP-initiated (unsolicited) responses are now rejected unless `AXIOM_SAML_ALLOW_IDP_INITIATED=true` — **breaking** for setups that sign in from an IdP dashboard tile. With several replicas, SAML sign-in needs session affinity.
 

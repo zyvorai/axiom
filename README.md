@@ -39,7 +39,8 @@ Pages:
 - **Custom Resources** — a generic browser for any installed CustomResourceDefinition: pick a CRD by group/version/kind, browse its instances, open one to view its raw manifest — works for CRDs Axiom has no dedicated integration for
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
 - **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit (client-side search + CSV export) / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost (by namespace and by workload)
-- **Users** — local accounts (admin/viewer roles) layered on top of the env-configured operator account and any SSO login
+- **Users** — local accounts (admin/operator/viewer roles) layered on top of the env-configured operator account and any SSO login; two-factor (TOTP) status, admin reset and sign-out-everywhere per account
+- **Account security** (user menu) — enrol two-factor sign-in with any authenticator app, keep one-time recovery codes, sign out of every device
 - **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection, plus Slack/webhook alert notifications
 
 Real auth throughout: local Basic-auth sign-in form plus SSO buttons that redirect to OIDC/SAML when configured (`GET /api/v1/auth/providers`), with a lab-mode "fill demo/demo" hint when no SSO is set up. SAML completes at `/api/v1/auth/saml/acs` (pin the IdP cert with `AXIOM_SAML_IDP_CERT`, or set `AXIOM_SAML_ALLOW_UNSIGNED=true` for lab). LDAP binds through the same username/password form when `AXIOM_LDAP_URL` is set. Local accounts support `admin` / `operator` / `viewer` — viewers are read-only at the auth middleware; operators can mutate day-2 resources but not users, integrations, or the cluster registry.

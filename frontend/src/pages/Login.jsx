@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Lock, ShieldCheck, User, ArrowRight, ChevronLeft, CheckCircle } from "lucide-react";
+import { Loader2, Lock, ShieldCheck, User, ArrowRight, ChevronLeft, CheckCircle, KeyRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import ZyvorMark from "@/components/ZyvorMark";
-import { SSO } from "@/constants/testIds";
+import { SSO, MFA } from "@/constants/testIds";
 import { toast } from "sonner";
 import {
     PremiumLoginShell,
@@ -45,6 +45,10 @@ export default function Login() {
     // actual signInLocal() call still sends both together on step 2 submit,
     // this only splits how they're collected.
     const [step, setStep] = useState(saved ? "password" : "identity");
+    // Second step for accounts with two-factor sign-in: a 6-digit code from an
+    // authenticator app, or one of the one-time recovery codes.
+    const [code, setCode] = useState("");
+    const [useRecovery, setUseRecovery] = useState(false);
 
     const clusterCtx = providers?.cluster || null;
 
@@ -66,7 +70,19 @@ export default function Login() {
     const handleBack = () => {
         setStep("identity");
         setPassword("");
+        setCode("");
+        setUseRecovery(false);
         setError("");
+    };
+
+    const finishSignIn = () => {
+        if (rememberMe) {
+            localStorage.setItem(SAVED_LOGIN_KEY, JSON.stringify({ username: username.trim() }));
+        } else {
+            localStorage.removeItem(SAVED_LOGIN_KEY);
+        }
+        toast.success(`Welcome back, ${username}`, { description: "Session established." });
+        navigate("/overview", { replace: true });
     };
 
     const handleLocalSignIn = async (e) => {
@@ -74,18 +90,37 @@ export default function Login() {
         if (pending || !username.trim() || !password) return;
         setPending(true);
         setError("");
-        const ok = await signInLocal(username.trim(), password);
+        const result = await signInLocal(username.trim(), password);
         setPending(false);
-        if (ok) {
-            if (rememberMe) {
-                localStorage.setItem(SAVED_LOGIN_KEY, JSON.stringify({ username: username.trim() }));
-            } else {
-                localStorage.removeItem(SAVED_LOGIN_KEY);
-            }
-            toast.success(`Welcome back, ${username}`, { description: "Session established." });
-            navigate("/overview", { replace: true });
+        if (result === "ok") {
+            finishSignIn();
+        } else if (result === "mfa") {
+            setCode("");
+            setUseRecovery(false);
+            setStep("mfa");
         } else {
             setPassword("");
+            setError("Check your username and password.");
+        }
+    };
+
+    const handleMfaSignIn = async (e) => {
+        e.preventDefault();
+        if (pending || !code.trim()) return;
+        setPending(true);
+        setError("");
+        const result = await signInLocal(username.trim(), password, code.trim());
+        setPending(false);
+        if (result === "ok") {
+            finishSignIn();
+        } else if (result === "mfa-denied") {
+            setCode("");
+            setError(useRecovery ? "That recovery code didn't work. Each one can only be used once." : "That code didn't work. Check the time on your device and try the next code.");
+        } else {
+            // The password was refused this time (or the account is locked out).
+            setCode("");
+            setPassword("");
+            setStep("password");
             setError("Check your username and password.");
         }
     };
@@ -122,7 +157,9 @@ export default function Login() {
     );
 
     const panelSubtitle =
-        step === "password" ? (
+        step === "mfa" ? (
+            "Two-factor authentication"
+        ) : step === "password" ? (
             <>
                 Enter the password for <span className="login-apple-host">{username.trim()}</span>
             </>
@@ -160,7 +197,70 @@ export default function Login() {
             footer={<p className="axiom-login-footer">Axiom by Zyvor · zyvor.dev</p>}
             showSignInChapter
         >
-            {step === "identity" ? (
+            {step === "mfa" ? (
+                <form key="mfa" onSubmit={handleMfaSignIn} autoComplete="off" aria-label="Two-factor code" className="login-apple-step text-left">
+                    <button type="button" onClick={handleBack} className="login-apple-identity" aria-label="Change account">
+                        <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{username.trim()}</span>
+                    </button>
+
+                    <p className="mb-3 text-sm text-muted-foreground">
+                        {useRecovery
+                            ? "Enter one of your recovery codes. Each code works once."
+                            : "Enter the 6-digit code from your authenticator app."}
+                    </p>
+
+                    {error ? <LoginError message={error} /> : null}
+
+                    <div className="login-apple-fields">
+                        <LoginField label={useRecovery ? "Recovery code" : "Authentication code"} id="mfa-code">
+                            <KeyRound className="login-field-icon" />
+                            <input
+                                id="mfa-code"
+                                name="mfa-code"
+                                data-testid={MFA.loginCode}
+                                type="text"
+                                inputMode={useRecovery ? "text" : "numeric"}
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                className="login-input"
+                                placeholder={useRecovery ? "xxxxx-xxxxx" : "123456"}
+                                autoComplete="one-time-code"
+                                autoFocus
+                                required
+                                disabled={pending}
+                            />
+                        </LoginField>
+                    </div>
+
+                    <LoginSubmit loading={pending} disabled={pending || !code.trim()} data-testid={MFA.loginSubmit}>
+                        {pending ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Verifying…</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>Verify</span>
+                                <ArrowRight className="h-4 w-4" />
+                            </>
+                        )}
+                    </LoginSubmit>
+
+                    <button
+                        type="button"
+                        className="login-sso-link"
+                        data-testid={useRecovery ? MFA.loginUseApp : MFA.loginUseRecovery}
+                        onClick={() => {
+                            setUseRecovery((v) => !v);
+                            setCode("");
+                            setError("");
+                        }}
+                    >
+                        {useRecovery ? "Use my authenticator app instead" : "Use a recovery code instead"}
+                    </button>
+                </form>
+            ) : step === "identity" ? (
                 <form key="identity" onSubmit={handleContinue} autoComplete="on" aria-label="Account" className="login-apple-step text-left">
                     <div className="login-apple-fields">
                         <LoginField label="Username" id="username">

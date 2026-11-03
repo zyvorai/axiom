@@ -56,13 +56,33 @@ export function AuthProvider({ children }) {
         })();
     }, [loadSession]);
 
+    // Returns "ok", "mfa" (the password was right but this account needs a
+    // second factor: ask for a code and call again with it) or "denied".
     const signInLocal = useCallback(
-        async (username, password) => {
+        async (username, password, code) => {
+            if (code) {
+                // Two-factor accounts cannot use HTTP Basic: the server issues a
+                // signed session cookie instead, so no password is kept in the tab.
+                clearBasicAuth();
+                try {
+                    await api.post("/auth/login", { username, password, code });
+                } catch (e) {
+                    return e?.response?.data?.mfa ? "mfa-denied" : "denied";
+                }
+                return (await loadSession()) ? "ok" : "denied";
+            }
             const token = btoa(`${username}:${password}`);
             setBasicAuth(token);
+            try {
+                await api.get("/session");
+            } catch (e) {
+                clearBasicAuth();
+                const needsCode = e?.response?.status === 401 && e?.response?.headers?.["x-axiom-mfa"] === "required";
+                return needsCode ? "mfa" : "denied";
+            }
             const ok = await loadSession();
             if (!ok) clearBasicAuth();
-            return ok;
+            return ok ? "ok" : "denied";
         },
         [loadSession]
     );
