@@ -1,0 +1,387 @@
+{
+  "confirm": {
+    "title": "¿Está seguro?",
+    "description": "Esta acción no se puede deshacer."
+  },
+  "users": {
+    "deleteTitle": "¿Eliminar el usuario {{name}}?",
+    "deleteDescription": "No se puede deshacer.",
+    "resetMfaTitle": "¿Restablecer los dos factores de {{name}}?",
+    "resetMfaDescription": "Podrá iniciar sesión solo con su contraseña y volver a configurar los dos factores. Úselo cuando alguien haya perdido su dispositivo y sus códigos de recuperación.",
+    "revokeTitle": "¿Cerrar la sesión de {{name}} en todas partes?",
+    "revokeDescription": "Se cierran todas las sesiones abiertas de esta cuenta; deberá volver a iniciar sesión."
+  },
+  "settings": {
+    "registerCluster": {
+      "title": "Registrar clúster remoto",
+      "label": "Etiqueta",
+      "kubeconfig": "YAML de kubeconfig",
+      "register": "Registrar",
+      "registering": "Registrando…"
+    }
+  },
+  "configMaps": {
+    "create": {
+      "title": "Crear ConfigMap",
+      "data": "Datos",
+      "keyAria": "Clave {{n}}",
+      "valueAria": "Valor {{n}}",
+      "removeRow": "Quitar fila",
+      "addKey": "Añadir clave",
+      "creating": "Creando…"
+    },
+    "delete": {
+      "title": "¿Eliminar el ConfigMap {{name}}?",
+      "description": "Esta acción no se puede deshacer."
+    }
+  },
+  "secrets": {
+    "create": {
+      "title": "Crear Secret",
+      "data": "Datos",
+      "keyAria": "Clave {{n}}",
+      "valueAria": "Valor {{n}}",
+      "removeRow": "Quitar fila",
+      "addKey": "Añadir clave",
+      "creating": "Creando…"
+    },
+    "delete": {
+      "title": "¿Eliminar el Secret {{name}}?",
+      "description": "También se eliminan todas sus claves. Esta acción no se puede deshacer."
+    }
+  },
+  "pluginView": {
+    "delete": {
+      "title": "¿Eliminar {{name}}?",
+      "description": "Esta acción no se puede deshacer."
+    }
+  },
+  "namespaces": {
+    "delete": {
+      "title": "¿Eliminar el namespace {{name}}?",
+      "description": "Se eliminarán todos los recursos de este namespace. Esta acción no se puede deshacer."
+    },
+    "create": {
+      "title": "Crear namespace",
+      "creating": "Creando…"
+    }
+  },
+  "networking": {
+    "deletePolicy": {
+      "title": "¿Eliminar la NetworkPolicy {{name}}?",
+      "description": "Esto puede eliminar restricciones de tráfico que esta política aplica actualmente. Esta acción no se puede deshacer."
+    },
+    "createPolicy": {
+      "title": "Crear NetworkPolicy"
+    }
+  },
+  "nodeDetail": {
+    "removeTaint": {
+      "title": "¿Quitar el taint {{key}}?",
+      "description": "Esta acción no se puede deshacer."
+    }
+  },
+  "ops": {
+    "cannotUndo": "Esta acción no se puede deshacer.",
+    "creating": "Creando…",
+    "uninstall": {
+      "title": "¿Desinstalar {{name}}?",
+      "confirm": "Desinstalar"
+    },
+    "installChart": {
+      "title": "Instalar chart",
+      "releaseName": "Nombre de la release",
+      "repoUrl": "URL del repositorio de charts",
+      "chartName": "Nombre del chart",
+      "version": "Versión (opcional)",
+      "values": "YAML de values (opcional)",
+      "note": "Se ejecuta como un Job en segundo plano con los permisos propios de Axiom: el chart solo puede crear recursos que Axiom tenga permitido crear.",
+      "starting": "Iniciando…",
+      "install": "Instalar"
+    },
+    "createRole": {
+      "title": "Nuevo Role",
+      "rules": "Reglas (array JSON de PolicyRule)"
+    },
+    "createBinding": {
+      "title": "Nuevo RoleBinding",
+      "roleName": "Nombre del Role",
+      "subjects": "Sujetos (array JSON)"
+    },
+    "deleteRole": {
+      "title": "¿Eliminar el Role {{name}}?"
+    },
+    "deleteBinding": {
+      "title": "¿Eliminar el RoleBinding {{name}}?"
+    }
+  },
+  "applyManifest": {
+    "title": "Aplicar manifiesto",
+    "manifestWord": "manifiesto",
+    "applied": "{{kind}} aplicado",
+    "appliedNamed": "{{kind}} {{name}} aplicado",
+    "reviewing": "Revisando…",
+    "reviewAgain": "Revisar de nuevo",
+    "reviewChanges": "Revisar cambios",
+    "applying": "Aplicando…"
+  },
+  "atlas": {
+    "createVolume": {
+      "title": "Crear volumen",
+      "policy": "Política",
+      "size": "Tamaño (GiB)",
+      "requesting": "Solicitando…"
+    }
+  },
+  "autoscaling": {
+    "create": {
+      "title": "Crear autoescalador",
+      "targetWorkload": "Carga de trabajo de destino",
+      "selectWorkload": "Seleccionar una carga de trabajo",
+      "minReplicas": "Réplicas mín.",
+      "maxReplicas": "Réplicas máx.",
+      "targetCpu": "CPU objetivo % (vacío = ignorar)",
+      "targetMemory": "Memoria objetivo % (opcional)",
+      "targetMemoryPlaceholder": "p. ej. 75",
+      "stabilization": "Estabilización al reducir escala, segundos (opcional)",
+      "stabilizationPlaceholder": "El valor predeterminado de Kubernetes es 300",
+      "bothNote": "Con CPU y memoria definidos, el autoescalador escala según el que necesite más réplicas.",
+      "creating": "Creando…"
+    },
+    "delete": {
+      "title": "¿Eliminar el autoescalador {{name}}?",
+      "description": "Esta acción no se puede deshacer."
+    }
+  },
+  "backups": {
+    "requesting": "Solicitando…",
+    "creating": "Creando…",
+    "ttl": "TTL (opcional)",
+    "createSnapshot": {
+      "title": "Crear instantánea de volumen",
+      "pvc": "PVC",
+      "snapshotClass": "VolumeSnapshotClass (opcional)"
+    },
+    "restore": {
+      "title": "Restaurar desde instantánea",
+      "snapshotName": "Nombre de la instantánea",
+      "pvcName": "Nombre del nuevo PVC",
+      "size": "Tamaño",
+      "accessMode": "Modo de acceso",
+      "storageClass": "StorageClass (opcional)",
+      "submit": "Restaurar"
+    },
+    "schedule": {
+      "title": "Nueva programación de Velero",
+      "cron": "Programación cron"
+    },
+    "velero": {
+      "title": "Crear copia de seguridad de Velero",
+      "included": "Namespaces incluidos (separados por comas o *)"
+    }
+  },
+  "costPanels": {
+    "budget": {
+      "editTitle": "Presupuesto de {{namespace}}",
+      "addTitle": "Añadir un presupuesto",
+      "description": "Se compara con el coste mensual estimado de los requests de recursos del namespace.",
+      "amount": "Presupuesto mensual (USD)",
+      "warnAt": "Avisar al (%)",
+      "save": "Guardar presupuesto"
+    },
+    "removeBudget": {
+      "title": "¿Quitar el presupuesto de {{namespace}}?",
+      "description": "El coste del namespace se sigue registrando; solo deja de tener límite."
+    },
+    "apply": {
+      "title": "Aplicar recomendación",
+      "description": "{{workload}} · contenedor {{container}} · {{namespace}}",
+      "cpuRequest": "Request de CPU",
+      "memoryRequest": "Request de memoria",
+      "none": "(ninguno)",
+      "basedOn": "Basado en datos de {{source}} (confianza: {{confidence}}).",
+      "applying": "Aplicando…",
+      "confirm": "Aplicar y desplegar"
+    }
+  },
+  "gitops": {
+    "delete": {
+      "title": "¿Eliminar {{name}}?",
+      "createdByAxiom": " · creado por Axiom",
+      "cascadeConfirm": "Esto también elimina los recursos de la aplicación. Escriba <code>{{name}}</code> para confirmar.",
+      "sourceShared": "El origen {{source}} todavía lo usa {{users}}, así que se conserva.",
+      "removeSource": "Quitar también {{kind}} {{name}} (nada más lo usa)",
+      "sourceNotOurs": "{{kind}} {{name}} no lo creó Axiom, así que no se modifica.",
+      "deleting": "Eliminando…"
+    },
+    "create": {
+      "title": "Nueva aplicación GitOps",
+      "description": "Axiom genera los objetos a partir de estos campos: se revisa el YAML exacto antes de crear nada.",
+      "detailsRegion": "Detalles de la aplicación",
+      "engine": "Motor",
+      "engines": {
+        "argocd": {
+          "label": "Aplicación de Argo CD",
+          "hint": "Una Application que sincroniza una ruta de Git o un chart de Helm."
+        },
+        "fluxKustomize": {
+          "label": "Flux · Git + Kustomize",
+          "hint": "Un GitRepository y una Kustomization que aplica una ruta de él."
+        },
+        "fluxHelm": {
+          "label": "Flux · release de Helm",
+          "hint": "Un HelmRepository y un HelmRelease que instala un chart."
+        }
+      },
+      "namespaceOf": "Namespace de los objetos de {{engine}}",
+      "helmRepoUrl": "URL del repositorio de Helm",
+      "gitRepoUrl": "URL del repositorio de Git",
+      "repoUrlHint": "Las credenciales nunca van en la URL; haga referencia a un Secret en su lugar.",
+      "sourceType": "Tipo de origen",
+      "gitPath": "Ruta de Git",
+      "helmChart": "Chart de Helm",
+      "chart": "Chart",
+      "chartVersion": "Versión del chart",
+      "path": "Ruta en el repositorio",
+      "revision": "Rama, etiqueta o commit",
+      "destNamespace": "Desplegar en el namespace",
+      "secretRef": "Secret de credenciales (opcional)",
+      "secretRefHint": "Nombre de un Secret existente en el namespace de Flux.",
+      "interval": "Intervalo de reconciliación",
+      "values": "YAML de values (opcional)",
+      "sync": "Sincronización",
+      "automated": "Sincronizar automáticamente cuando cambie el repositorio",
+      "prune": "Eliminar recursos quitados de Git (prune)",
+      "selfHeal": "Revertir cambios manuales (self-heal)",
+      "createNamespace": "Crear el namespace de destino si no existe",
+      "previewTitle": "Lo que se creará",
+      "previewStale": "Desactualizado: vuelva a previsualizar",
+      "generatedYaml": "YAML generado",
+      "rendering": "Generando…",
+      "previewAgain": "Previsualizar de nuevo",
+      "previewYaml": "Previsualizar YAML",
+      "creating": "Creando…"
+    }
+  },
+  "helmCatalog": {
+    "removeRepo": {
+      "title": "¿Quitar el repositorio {{name}}?",
+      "description": "Los charts ya instalados desde él siguen funcionando; solo dejan de aparecer en el catálogo."
+    },
+    "chart": {
+      "from": "de <code>{{repo}}</code>",
+      "optionsRegion": "Opciones de instalación del chart",
+      "appSuffix": " (app {{version}})",
+      "deprecatedSuffix": " — obsoleto",
+      "releaseName": "Nombre de la release",
+      "values": "Values (opcional)",
+      "reloadDefaults": "Recargar valores predeterminados",
+      "loadDefaults": "Cargar valores predeterminados",
+      "valuesYaml": "YAML de values",
+      "valuesPlaceholder": "# dejar vacío para los valores predeterminados del chart",
+      "hideReadme": "Ocultar README",
+      "showReadme": "Mostrar README",
+      "readme": "README del chart",
+      "permissionsNote": "Se ejecuta como un Job en segundo plano con los permisos de Axiom: el chart solo puede crear los recursos que Axiom tiene permitidos.",
+      "starting": "Iniciando…",
+      "install": "Instalar {{version}}"
+    }
+  },
+  "vms": {
+    "creating": "Creando…",
+    "create": {
+      "title": "Crear máquina virtual",
+      "cpuCores": "Núcleos de CPU",
+      "image": "Imagen de disco de contenedor"
+    }
+  },
+  "diffReview": {
+    "title": "Revisar cambios",
+    "description": "Esto es lo que su edición cambiará en el clúster. No se aplica nada hasta que pulse Aplicar.",
+    "applying": "Aplicando…"
+  },
+  "jobs": {
+    "deleteCronJob": {
+      "title": "¿Eliminar el CronJob {{name}}?",
+      "description": "Esta acción no se puede deshacer."
+    },
+    "deleteJob": {
+      "title": "¿Eliminar el job {{name}}?",
+      "description": "Esta acción no se puede deshacer."
+    }
+  },
+  "podDetail": {
+    "evict": {
+      "title": "¿Desalojar el pod {{name}}?",
+      "description": "Esta acción no se puede deshacer.",
+      "confirm": "Desalojar"
+    }
+  },
+  "pods": {
+    "exec": {
+      "title": "Exec · {{name}}",
+      "container": "Contenedor",
+      "running": "Ejecutando…",
+      "run": "Ejecutar",
+      "outputPlaceholder": "La salida aparecerá aquí."
+    },
+    "evict": {
+      "title": "¿Desalojar el pod {{name}}?",
+      "description": "Esta acción no se puede deshacer.",
+      "confirm": "Desalojar"
+    },
+    "bulkEvict": {
+      "title_one": "¿Desalojar {{count}} pod?",
+      "title_other": "¿Desalojar {{count}} pods?"
+    }
+  },
+  "workloads": {
+    "rollout": {
+      "title": "Despliegue · {{name}}",
+      "notSupported": "El despliegue no es compatible con {{kind}}.",
+      "available": "Disponibles",
+      "updating": "Actualizando",
+      "pending": "Pendiente",
+      "revision": "rev. {{revision}}",
+      "actions": {
+        "restart": "reiniciar",
+        "pause": "pausar",
+        "resume": "reanudar",
+        "undo": "deshacer"
+      }
+    },
+    "scale": {
+      "title": "Escalar · {{name}}",
+      "scaling": "Escalando…",
+      "submit": "Escalar"
+    },
+    "delete": {
+      "title": "¿Eliminar {{kind}} {{name}}?",
+      "description": "Esta acción no se puede deshacer. También se eliminarán sus pods."
+    },
+    "bulkDelete": {
+      "title_one": "¿Eliminar {{count}} carga de trabajo?",
+      "title_other": "¿Eliminar {{count}} cargas de trabajo?",
+      "description": "Esta acción no se puede deshacer."
+    },
+    "launch": {
+      "title": "Ejecutar carga de trabajo",
+      "steps": {
+        "form": "Formulario",
+        "intent": "Intención",
+        "yaml": "Validar YAML"
+      },
+      "port": "Puerto",
+      "exposeService": "Exponer Service",
+      "launching": "Lanzando…",
+      "launch": "Lanzar",
+      "preview": "Vista previa",
+      "placing": "Colocando…",
+      "place": "Colocar",
+      "validKind": "{{kind}} válido",
+      "validManifest": "Manifiesto válido",
+      "validate": "Validar",
+      "applyTitle": "Aplicar manifiesto de carga de trabajo"
+    }
+  }
+}

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Layers3, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import i18n from "@/lib/i18n";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTOSCALE as T } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Could not load";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:autoscalingPanels.couldNotLoad");
 
 function useList(path) {
     const [state, setState] = useState({ data: null, error: "" });
@@ -17,10 +19,10 @@ function useList(path) {
                 .then((r) => alive && setState({ data: r.data, error: "" }))
                 .catch((e) => alive && setState({ data: null, error: errText(e) }));
         tick();
-        const t = setInterval(tick, 15000);
+        const timer = setInterval(tick, 15000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [path]);
     return state;
@@ -40,11 +42,11 @@ function Conditions({ items }) {
     );
 }
 
-function NotInstalled({ testId, name, hint }) {
+function NotInstalled({ testId, title, hint }) {
     return (
         <GlassCard className="p-6">
             <div className="empty" data-testid={testId}>
-                <b>{name} is not installed in this cluster.</b>
+                <b>{title}</b>
                 <div className="mt-1 text-[12.5px] text-ink-3">{hint}</div>
             </div>
         </GlassCard>
@@ -55,6 +57,7 @@ const q = (v) => (v == null || v === "" ? "—" : v);
 
 /** Read-only view of VerticalPodAutoscalers and what they recommend. */
 export function VpaPanel() {
+    const { t } = useTranslation();
     const { data, error } = useList("/vpas");
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
@@ -62,8 +65,8 @@ export function VpaPanel() {
         return (
             <NotInstalled
                 testId={T.vpaNotInstalled}
-                name="The Vertical Pod Autoscaler"
-                hint="Install the VPA recommender to get per-container CPU and memory recommendations here. Axiom only reads them; it never changes requests."
+                title={t("pages:autoscalingPanels.vpa.notInstalled")}
+                hint={t("pages:autoscalingPanels.vpa.notInstalledHint")}
             />
         );
     }
@@ -76,18 +79,18 @@ export function VpaPanel() {
                 <span className="r text-[12.5px] text-ink-3">{data.items.length}</span>
             </div>
             {data.items.length === 0 ? (
-                <div className="empty">No VerticalPodAutoscalers.</div>
+                <div className="empty">{t("pages:autoscalingPanels.vpa.empty")}</div>
             ) : (
-                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="Vertical pod autoscalers">
+                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:autoscalingPanels.vpa.region")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Target</th>
-                                <th>Mode</th>
-                                <th>Container</th>
-                                <th>CPU (lower · target · upper)</th>
-                                <th>Memory (lower · target · upper)</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.target")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.mode")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.container")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.cpu")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.memory")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,6 +124,7 @@ export function VpaPanel() {
 
 /** Read-only view of KEDA ScaledObjects. Trigger settings are never shown, only the trigger types. */
 export function KedaPanel() {
+    const { t } = useTranslation();
     const { data, error } = useList("/scaledobjects");
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
@@ -128,8 +132,8 @@ export function KedaPanel() {
         return (
             <NotInstalled
                 testId={T.kedaNotInstalled}
-                name="KEDA"
-                hint="Install KEDA to scale workloads on queue depth, cron schedules, HTTP load and other event sources. Its ScaledObjects will be listed here."
+                title={t("pages:autoscalingPanels.keda.notInstalled")}
+                hint={t("pages:autoscalingPanels.keda.notInstalledHint")}
             />
         );
     }
@@ -142,17 +146,17 @@ export function KedaPanel() {
                 <span className="r text-[12.5px] text-ink-3">{data.items.length}</span>
             </div>
             {data.items.length === 0 ? (
-                <div className="empty">No ScaledObjects.</div>
+                <div className="empty">{t("pages:autoscalingPanels.keda.empty")}</div>
             ) : (
-                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="KEDA scaled objects">
+                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:autoscalingPanels.keda.region")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Target</th>
-                                <th>Replicas</th>
-                                <th>Triggers</th>
-                                <th>State</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.target")}</th>
+                                <th>{t("common:fields.replicas")}</th>
+                                <th>{t("pages:autoscalingPanels.keda.columns.triggers")}</th>
+                                <th>{t("pages:autoscalingPanels.keda.columns.state")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -169,10 +173,10 @@ export function KedaPanel() {
                                     </td>
                                     <td data-testid={T.kedaTriggers(s.namespace, s.name)}>
                                         <div className="flex flex-wrap gap-1">
-                                            {(s.triggers || []).map((t, i) => (
-                                                <span key={`${t.type}-${i}`} className="pill soft mono text-[11px]">
-                                                    {t.type}
-                                                    {t.name ? ` · ${t.name}` : ""}
+                                            {(s.triggers || []).map((tr, i) => (
+                                                <span key={`${tr.type}-${i}`} className="pill soft mono text-[11px]">
+                                                    {tr.type}
+                                                    {tr.name ? ` · ${tr.name}` : ""}
                                                 </span>
                                             ))}
                                         </div>
@@ -180,7 +184,7 @@ export function KedaPanel() {
                                     <td>
                                         <span className="pill" style={{ "--c": s.fallback ? "var(--orange)" : s.active ? "var(--green)" : s.ready ? "var(--blue)" : "var(--red)" }}>
                                             <i aria-hidden="true" />
-                                            {s.fallback ? "Fallback" : s.active ? "Active" : s.ready ? "Idle" : "Not ready"}
+                                            {s.fallback ? t("pages:autoscalingPanels.keda.state.fallback") : s.active ? t("pages:autoscalingPanels.keda.state.active") : s.ready ? t("pages:autoscalingPanels.keda.state.idle") : t("pages:autoscalingPanels.keda.state.notReady")}
                                         </span>
                                     </td>
                                 </tr>

@@ -11,6 +11,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import CodeEditor from "@/components/CodeEditor";
 import NetworkPolicyAnalysis from "@/components/NetworkPolicyAnalysis";
 import { breakable } from "@/lib/text";
+import { useTranslation } from "react-i18next";
 
 
 const NETPOL_TEMPLATE = `apiVersion: networking.k8s.io/v1
@@ -28,6 +29,7 @@ spec:
 `;
 
 function NetworkPolicyPanel() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [policies, setPolicies] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -44,17 +46,17 @@ function NetworkPolicyPanel() {
 
     const remove = async (p) => {
         const ok = await confirm({
-            title: `Delete NetworkPolicy ${p.name}?`,
-            description: "This may remove traffic restrictions currently enforced by this policy. This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:networking.deletePolicy.title", { name: p.name }),
+            description: t("dialogs:networking.deletePolicy.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/networkpolicies/${p.namespace}/${encodeURIComponent(p.name)}`);
-            toast.success(`Deleted ${p.name}`);
+            toast.success(t("toasts:networking.deleted", { name: p.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:networking.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -67,20 +69,20 @@ function NetworkPolicyPanel() {
                     <ShieldHalf size={16} className="text-tone-link" /> NetworkPolicies
                 </h2>
                 <button type="button" className="btn btn-line btn-sm r" onClick={() => setCreateOpen(true)}>
-                    <Plus size={13} /> Create via YAML
+                    <Plus size={13} /> {t("pages:networking.policies.createViaYaml")}
                 </button>
             </div>
             {policies.length === 0 ? (
-                <div className="empty">No NetworkPolicies configured.</div>
+                <div className="empty">{t("pages:networking.policies.empty")}</div>
             ) : (
-                <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Network policies">
+                <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:networking.policies.region")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Types</th>
-                                <th>Pod selector</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("pages:networking.policies.columns.types")}</th>
+                                <th>{t("pages:networking.policies.columns.podSelector")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,9 +93,9 @@ function NetworkPolicyPanel() {
                                         <small>{p.namespace}</small>
                                     </td>
                                     <td>{(p.policyTypes || []).join(", ") || "—"}</td>
-                                    <td className="mono">{p.podSelector || "all pods"}</td>
+                                    <td className="mono">{p.podSelector || t("pages:networking.policies.allPods")}</td>
                                     <td>
-                                        <button type="button" className="btn btn-line btn-sm" aria-label={`Delete policy ${p.name}`} title={`Delete policy ${p.name}`} onClick={() => remove(p)}>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={t("pages:networking.policies.deleteAria", { name: p.name })} title={t("pages:networking.policies.deleteAria", { name: p.name })} onClick={() => remove(p)}>
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -106,7 +108,7 @@ function NetworkPolicyPanel() {
             <ApplyManifestDialog
                 open={createOpen}
                 onOpenChange={setCreateOpen}
-                title="Create NetworkPolicy"
+                title={t("dialogs:networking.createPolicy.title")}
                 initialManifest={NETPOL_TEMPLATE}
                 onApplied={() => {
                     setCreateOpen(false);
@@ -126,6 +128,7 @@ function flowItems(flows) {
 }
 
 function PacketWolfPanel() {
+    const { t } = useTranslation();
     const [status, setStatus] = useState(null);
     const [flows, setFlows] = useState(null);
     const [flowsError, setFlowsError] = useState(null);
@@ -134,10 +137,10 @@ function PacketWolfPanel() {
         let alive = true;
         const load = () => api.get("/packetwolf/status").then((r) => alive && setStatus(r.data));
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -150,17 +153,21 @@ function PacketWolfPanel() {
                 .then((r) => alive && (setFlows(r.data), setFlowsError(null)))
                 .catch((e) => alive && setFlowsError(e?.response?.data?.error || e.message));
         load();
-        const t = setInterval(load, 8000);
+        const timer = setInterval(load, 8000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [status?.reachable]);
 
     if (!status) return <Skeleton className="h-24 rounded-2xl bg-muted" />;
 
     const tone = status.reachable ? "ok" : status.configured ? "warn" : "info";
-    const label = status.reachable ? "Connected" : status.configured ? "Unreachable" : "Not configured";
+    const label = status.reachable
+        ? t("pages:networking.packetwolf.connected")
+        : status.configured
+          ? t("pages:networking.packetwolf.unreachable")
+          : t("common:states.notConfigured");
     const items = flowItems(flows);
 
     return (
@@ -175,20 +182,20 @@ function PacketWolfPanel() {
                 </span>
             </div>
             <p className="text-[13px] text-ink-2 mb-3.5">
-                {status.message || status.baseUrl || "eBPF flow visibility via the PacketWolf integration."}
+                {status.message || status.baseUrl || t("pages:networking.packetwolf.description")}
             </p>
             {status.reachable && (
                 <>
                     {flowsError && <div className="empty">{flowsError}</div>}
                     {!flowsError && items && items.length > 0 && (
-                        <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Live flows">
+                        <div className="max-h-[360px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:networking.packetwolf.liveFlows")}>
                             <table className="tbl">
                                 <thead>
                                     <tr>
-                                        <th>Source</th>
-                                        <th>Destination</th>
-                                        <th>Proto</th>
-                                        <th>Verdict</th>
+                                        <th>{t("common:fields.source")}</th>
+                                        <th>{t("pages:networking.packetwolf.columns.destination")}</th>
+                                        <th>{t("pages:networking.packetwolf.columns.proto")}</th>
+                                        <th>{t("pages:networking.packetwolf.columns.verdict")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -205,7 +212,7 @@ function PacketWolfPanel() {
                         </div>
                     )}
                     {!flowsError && items && items.length === 0 && (
-                        <div className="empty">No flows in the current window.</div>
+                        <div className="empty">{t("pages:networking.packetwolf.noFlows")}</div>
                     )}
                     {!flowsError && flows && !items && (
                         <CodeEditor
@@ -222,16 +229,17 @@ function PacketWolfPanel() {
 }
 
 export default function Networking() {
+    const { t } = useTranslation();
     const [d, setD] = useState(null);
 
     useEffect(() => {
         let alive = true;
         const load = () => api.get("/network").then((r) => alive && setD(r.data));
         load();
-        const t = setInterval(load, 8000);
+        const timer = setInterval(load, 8000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -247,8 +255,8 @@ export default function Networking() {
     return (
         <div data-testid={NET.root} className="page">
             <PageHeader
-                title="Networking"
-                description="Service graph across pods, services and endpoints."
+                title={t("pages:networking.title")}
+                description={t("pages:networking.description")}
                 action={
                     <span className="mono text-[13px] text-ink-3">
                         namespace: {d.namespace}
@@ -260,32 +268,32 @@ export default function Networking() {
                 <div className="stat">
                     <Network size={18} className="text-tone-link" />
                     <b className="mt-3">{d.nodes.length}</b>
-                    <span>Graph nodes</span>
+                    <span>{t("pages:networking.graphNodes")}</span>
                 </div>
                 <div className="stat">
                     <ArrowRightLeft size={18} className="text-tone-green" />
                     <b className="mt-3">{d.edges.length}</b>
-                    <span>Connections</span>
+                    <span>{t("pages:networking.connections")}</span>
                 </div>
                 <div className="stat">
                     <Boxes size={18} className="text-tone-purple" />
                     <b className="mt-3">{d.nodes.filter((n) => n.kind === "service").length}</b>
-                    <span>Services</span>
+                    <span>{t("pages:networking.services")}</span>
                 </div>
             </div>
 
             <div className="grid g2 mt-3.5">
                 <GlassCard className="overflow-hidden">
                     <div className="card-h">
-                        <h2 className="text-[15px]">Graph nodes</h2>
+                        <h2 className="text-[15px]">{t("pages:networking.graphNodes")}</h2>
                     </div>
-                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Graph nodes">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:networking.graphNodes")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th>{t("common:fields.name")}</th>
                                     <th>IP</th>
-                                    <th>Ports</th>
+                                    <th>{t("pages:services.columns.ports")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -306,18 +314,18 @@ export default function Networking() {
 
                 <GlassCard className="overflow-hidden">
                     <div className="card-h">
-                        <h2 className="text-[15px]">Connections</h2>
+                        <h2 className="text-[15px]">{t("pages:networking.connections")}</h2>
                         <span className="r flex items-center gap-2 text-[12.5px] text-ink-3">
-                            <span className="status-dot ok animate-pulse" /> live
+                            <span className="status-dot ok animate-pulse" /> {t("pages:networking.live")}
                         </span>
                     </div>
-                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Connections">
+                    <div className="max-h-[520px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:networking.connections")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Label</th>
+                                    <th>{t("pages:networking.columns.from")}</th>
+                                    <th>{t("pages:networking.columns.to")}</th>
+                                    <th>{t("pages:networking.columns.label")}</th>
                                 </tr>
                             </thead>
                             <tbody>

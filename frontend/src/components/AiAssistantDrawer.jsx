@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Sparkles, ShieldCheck, Send } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,6 +46,7 @@ export function AiAssistantProvider({ children }) {
 
 /** Small button used on the pod diagnosis banner and on Warning events. Renders nothing when AI is off. */
 export function ExplainWithAiButton({ target, testId, className = "" }) {
+    const { t } = useTranslation();
     const { enabled, explain } = useAiAssistant();
     if (!enabled) return null;
     return (
@@ -56,12 +58,13 @@ export function ExplainWithAiButton({ target, testId, className = "" }) {
             className={`rounded-full ${className}`}
             onClick={() => explain(target)}
         >
-            <Sparkles className="h-3.5 w-3.5" /> Explain with AI
+            <Sparkles className="h-3.5 w-3.5" /> {t("pages:aiAssistant.explain")}
         </Button>
     );
 }
 
 function AiDrawer({ status, target, onClose }) {
+    const { t } = useTranslation();
     const open = !!target;
     const [question, setQuestion] = useState("");
     const [preview, setPreview] = useState(null);
@@ -86,7 +89,7 @@ function AiDrawer({ status, target, onClose }) {
         if (!open) return undefined;
         const mine = ++seq.current;
         setLoading(true);
-        const t = setTimeout(
+        const timer = setTimeout(
             () => {
                 explainAi({ ...target, question, preview: true })
                     .then((r) => {
@@ -103,7 +106,7 @@ function AiDrawer({ status, target, onClose }) {
             },
             question ? 500 : 0
         );
-        return () => clearTimeout(t);
+        return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, targetKey, question]);
 
@@ -133,14 +136,14 @@ function AiDrawer({ status, target, onClose }) {
             >
                 <SheetHeader>
                     <SheetTitle className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4" /> Explain with AI
+                        <Sparkles className="h-4 w-4" /> {t("pages:aiAssistant.explain")}
                     </SheetTitle>
                     <SheetDescription>
                         {target?.label || (target ? `${target.namespace}/${target.name}` : "")}
                     </SheetDescription>
                 </SheetHeader>
 
-                <div tabIndex={0} role="region" aria-label="AI assistant details" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
+                <div tabIndex={0} role="region" aria-label={t("pages:aiAssistant.detailsAria")} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
                 <div
                     data-testid={AI.notice}
                     role="note"
@@ -149,21 +152,25 @@ function AiDrawer({ status, target, onClose }) {
                     <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-tone-link" />
                     <div>
                         <div className="text-foreground">
-                            This data will be sent to <span className="mono font-medium">{where}</span>
+                            <Trans
+                                i18nKey="pages:aiAssistant.sentTo"
+                                values={{ where }}
+                                components={{ mono: <span className="mono font-medium" /> }}
+                            />
                         </div>
                         <div className="mt-0.5">
                             {status.demo
-                                ? "Demo mode: answers are canned and nothing leaves this server."
+                                ? t("pages:aiAssistant.demoNotice")
                                 : status.redact
-                                ? "Secrets, tokens, env values, IPs and hostnames are removed first. Review the exact payload below."
-                                : "Secrets, tokens and env values are removed first. IPs and hostnames are NOT masked (redaction is off). Review the payload below."}
+                                ? t("pages:aiAssistant.redactOn")
+                                : t("pages:aiAssistant.redactOff")}
                         </div>
                     </div>
                 </div>
 
                 <div className="space-y-1.5">
                     <label htmlFor="ai-question" className="text-xs text-muted-foreground">
-                        Optional question
+                        {t("pages:aiAssistant.question")}
                     </label>
                     <textarea
                         id="ai-question"
@@ -171,14 +178,14 @@ function AiDrawer({ status, target, onClose }) {
                         value={question}
                         maxLength={500}
                         onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="e.g. Why does this keep restarting?"
+                        placeholder={t("pages:aiAssistant.questionPlaceholder")}
                         className="min-h-[64px] w-full rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm"
                     />
                 </div>
 
                 <div className="min-h-0 space-y-1.5">
                     <div className="text-xs text-muted-foreground">
-                        Payload preview (redacted){preview?.payload?.truncated ? " — truncated to the size cap" : ""}
+                        {preview?.payload?.truncated ? t("pages:aiAssistant.previewTruncated") : t("pages:aiAssistant.preview")}
                     </div>
                     {loading && !preview ? (
                         <Skeleton data-testid={AI.loading} className="h-40 w-full rounded-xl bg-muted" />
@@ -186,7 +193,7 @@ function AiDrawer({ status, target, onClose }) {
                         <pre
                             data-testid={AI.preview}
                             tabIndex={0}
-                            aria-label="Redacted payload that will be sent"
+                            aria-label={t("pages:aiAssistant.previewAria")}
                             className="mono max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/30 p-3 text-xs"
                         >
                             {preview.payload.prompt}
@@ -196,7 +203,7 @@ function AiDrawer({ status, target, onClose }) {
 
                 <div className="flex items-center gap-2">
                     <Button type="button" data-testid={AI.send} onClick={send} disabled={!preview || sending || loading}>
-                        <Send className="h-3.5 w-3.5" /> {sending ? "Asking…" : "Send and explain"}
+                        <Send className="h-3.5 w-3.5" /> {sending ? t("pages:aiAssistant.asking") : t("pages:aiAssistant.send")}
                     </Button>
                 </div>
 
@@ -207,7 +214,7 @@ function AiDrawer({ status, target, onClose }) {
                 )}
                 {answer && (
                     <div className="space-y-1.5" aria-live="polite">
-                        <div className="text-xs text-muted-foreground">Answer (plain text, generated by an AI model, may be wrong)</div>
+                        <div className="text-xs text-muted-foreground">{t("pages:aiAssistant.answer")}</div>
                         {/* Rendered as a text node only: model output is never interpreted as HTML or Markdown. */}
                         <pre
                             data-testid={AI.answer}

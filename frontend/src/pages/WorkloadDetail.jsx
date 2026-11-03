@@ -17,8 +17,10 @@ import KvChip, { toneForKey } from "@/components/KvChip";
 import FeatureTile from "@/components/FeatureTile";
 import DiffReviewDialog from "@/components/DiffReviewDialog";
 import ResourceGraph from "@/components/ResourceGraph";
+import { useTranslation } from "react-i18next";
 
 export default function WorkloadDetail() {
+    const { t } = useTranslation();
     const { namespace, kind, name } = useParams();
     const navigate = useNavigate();
     const [detail, setDetail] = useState(null);
@@ -70,7 +72,7 @@ export default function WorkloadDetail() {
         return (
             <div className="page space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                    <ArrowLeft className="h-4 w-4" /> Back
+                    <ArrowLeft className="h-4 w-4" /> {t("common:actions.back")}
                 </button>
                 <GlassCard className="p-6 text-center text-sm text-muted-foreground">{error}</GlassCard>
             </div>
@@ -86,7 +88,7 @@ export default function WorkloadDetail() {
     return (
         <div className="page space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-4 w-4" /> Back
+                <ArrowLeft className="h-4 w-4" /> {t("common:actions.back")}
             </button>
 
             <DetailHeader
@@ -113,59 +115,59 @@ export default function WorkloadDetail() {
 
             {summary && (
                 <div className="stats">
-                    <FeatureTile size="compact" mono label="Desired" value={summary.desired} />
-                    <FeatureTile size="compact" mono label="Ready" value={`${summary.ready}/${summary.desired}`} />
-                    <FeatureTile size="compact" mono label="Available" value={summary.available} />
-                    <FeatureTile size="compact" mono label="Pods" value={(detail.pods || []).length} />
+                    <FeatureTile size="compact" mono label={t("pages:workloadDetail.stats.desired")} value={summary.desired} />
+                    <FeatureTile size="compact" mono label={t("common:fields.ready")} value={`${summary.ready}/${summary.desired}`} />
+                    <FeatureTile size="compact" mono label={t("pages:workloadDetail.stats.available")} value={summary.available} />
+                    <FeatureTile size="compact" mono label={t("pages:workloadDetail.stats.pods")} value={(detail.pods || []).length} />
                 </div>
             )}
 
             <Tabs defaultValue="overview">
                 <TabsList className="tabs">
                     <TabsTrigger value="overview" className="gap-1.5">
-                        <Tag className="h-3.5 w-3.5" /> Overview
+                        <Tag className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.overview")}
                     </TabsTrigger>
                     <TabsTrigger value="yaml" className="gap-1.5">
                         <FileJson className="h-3.5 w-3.5" /> YAML
                     </TabsTrigger>
                     <TabsTrigger value="pods" className="gap-1.5">
-                        <Boxes className="h-3.5 w-3.5" /> Pods ({(detail.pods || []).length})
+                        <Boxes className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.pods", { n: (detail.pods || []).length })}
                     </TabsTrigger>
                     <TabsTrigger value="events" className="gap-1.5">
-                        <BellRing className="h-3.5 w-3.5" /> Events ({(detail.relatedEvents || []).length})
+                        <BellRing className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.events", { n: (detail.relatedEvents || []).length })}
                     </TabsTrigger>
                     <TabsTrigger value="graph" className="gap-1.5">
-                        <Network className="h-3.5 w-3.5" aria-hidden="true" /> Graph
+                        <Network className="h-3.5 w-3.5" aria-hidden="true" /> {t("pages:workloadDetail.tabs.graph")}
                     </TabsTrigger>
                     <TabsTrigger value="changes" data-testid={TIMELINE.workloadTab} className="gap-1.5">
-                        <History className="h-3.5 w-3.5" /> What changed
+                        <History className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.changes")}
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     <GlassCard className="p-5">
-                        <div className="mb-3 text-sm font-medium">Labels</div>
+                        <div className="mb-3 text-sm font-medium">{t("common:fields.labels")}</div>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.entries(detail.labels || {}).map(([k, v]) => (
                                 <KvChip key={k} name={k} value={v} tone={toneForKey(k)} />
                             ))}
-                            {Object.keys(detail.labels || {}).length === 0 && <span className="text-xs text-muted-foreground">No labels.</span>}
+                            {Object.keys(detail.labels || {}).length === 0 && <span className="text-xs text-muted-foreground">{t("pages:workloadDetail.noLabels")}</span>}
                         </div>
                     </GlassCard>
                     {Object.keys(detail.annotations || {}).length > 0 ? (
                         <SpecTable
-                            title="Annotations"
+                            title={t("common:fields.annotations")}
                             rows={Object.entries(detail.annotations).map(([k, v]) => ({ label: k, value: String(v), mono: true }))}
                         />
                     ) : (
                         <GlassCard className="p-5">
-                            <div className="mb-1 text-sm font-medium">Annotations</div>
-                            <span className="text-xs text-muted-foreground">No annotations.</span>
+                            <div className="mb-1 text-sm font-medium">{t("common:fields.annotations")}</div>
+                            <span className="text-xs text-muted-foreground">{t("pages:workloadDetail.noAnnotations")}</span>
                         </GlassCard>
                     )}
                     {(detail.containerPorts || []).length > 0 && (
                         <GlassCard className="p-5">
-                            <div className="mb-3 text-sm font-medium">Container ports</div>
+                            <div className="mb-3 text-sm font-medium">{t("pages:workloadDetail.containerPorts")}</div>
                             <div className="flex flex-wrap gap-1.5">
                                 {detail.containerPorts.map((p, i) => (
                                     <Badge key={i} variant="outline" className="mono text-[11px] bg-muted/30">
@@ -182,7 +184,7 @@ export default function WorkloadDetail() {
                     <CodeEditor value={manifestText} onChange={setManifestText} />
                     <div className="flex justify-end">
                         <Button variant="brand" onClick={() => setReviewOpen(true)} disabled={!manifestText.trim()} className="rounded-xl">
-                            <Save className="mr-1.5 h-3.5 w-3.5" /> Save
+                            <Save className="mr-1.5 h-3.5 w-3.5" /> {t("common:actions.save")}
                         </Button>
                     </div>
                     <DiffReviewDialog
@@ -197,7 +199,7 @@ export default function WorkloadDetail() {
                 <TabsContent value="pods" className="mt-4">
                     <GlassCard className="overflow-hidden">
                         {(detail.pods || []).length === 0 && (
-                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No pods found for this workload.</div>
+                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("pages:workloadDetail.noPods")}</div>
                         )}
                         {(detail.pods || []).map((p) => (
                             <Link
@@ -220,7 +222,7 @@ export default function WorkloadDetail() {
                 <TabsContent value="events" className="mt-4">
                     <GlassCard className="overflow-hidden">
                         {(detail.relatedEvents || []).length === 0 && (
-                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No related events.</div>
+                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("pages:workloadDetail.noEvents")}</div>
                         )}
                         {(detail.relatedEvents || []).map((e, i) => (
                             <div key={i} className="grid grid-cols-12 items-center gap-3 border-b px-4 py-3 last:border-none">

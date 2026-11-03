@@ -10,8 +10,10 @@ import NamespaceFilter from "@/components/NamespaceFilter";
 import SavedViews from "@/components/SavedViews";
 import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
+import { useTranslation } from "react-i18next";
 
 export default function Services() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [q, setQ] = useUrlState("q", "");
@@ -21,10 +23,10 @@ export default function Services() {
         let alive = true;
         const load = () => api.get("/services").then((r) => alive && setData(r.data));
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -49,11 +51,11 @@ export default function Services() {
     return (
         <div className="page">
             <PageHeader
-                title="Services"
-                description="ClusterIP, NodePort and LoadBalancer services across all namespaces."
+                title={t("pages:services.title")}
+                description={t("pages:services.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search service name" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:services.search")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="services"
@@ -68,17 +70,17 @@ export default function Services() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Services">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:services.title")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Type</th>
-                                <th>Cluster IP</th>
-                                <th>Ports</th>
-                                <th>Endpoints</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.type")}</th>
+                                <th>{t("pages:services.columns.clusterIp")}</th>
+                                <th>{t("pages:services.columns.ports")}</th>
+                                <th>{t("pages:services.columns.endpoints")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,7 +119,7 @@ export default function Services() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={7}>
-                                        <div className="empty">No services match the current filters.</div>
+                                        <div className="empty">{t("pages:services.empty")}</div>
                                     </td>
                                 </tr>
                             )}

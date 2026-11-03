@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useCluster } from "@/lib/cluster";
-import { NAV_ITEMS } from "@/constants/navItems";
+import { useTranslation } from "react-i18next";
+import { NAV_ITEMS, navLabel } from "@/constants/navItems";
 
 const DETAIL_ROOTS = new Set([
     "pods",
@@ -49,6 +50,7 @@ function detailCrumb(pathname) {
 export default function Breadcrumbs() {
     const { pathname } = useLocation();
     const { active } = useCluster();
+    const { t } = useTranslation();
 
     if (pathname === "/overview" || pathname === "/") return null;
 
@@ -63,7 +65,7 @@ export default function Breadcrumbs() {
 
     return (
         <div className="crumbs">
-            Clusters
+            {t("nav:breadcrumbs.clusters")}
             <ChevronRight size={13} />
             {active?.label || active?.name || "—"}
             {current && (
@@ -71,10 +73,10 @@ export default function Breadcrumbs() {
                     <ChevronRight size={13} />
                     {detail ? (
                         <Link to={detail.listTo || current.to} className="hover:underline">
-                            <b>{current.label}</b>
+                            <b>{navLabel(t, current)}</b>
                         </Link>
                     ) : (
-                        <b>{current.label}</b>
+                        <b>{navLabel(t, current)}</b>
                     )}
                 </>
             )}

@@ -5,28 +5,31 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { dateFnsLocale } from "@/lib/i18n";
 import { AlertTriangle } from "lucide-react";
 import { resourceHref } from "@/lib/resourceHref";
 
 function relTime(iso) {
     try {
-        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
+        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: dateFnsLocale() });
     } catch {
         return iso;
     }
 }
 
 export default function Alerts() {
+    const { t } = useTranslation();
     const [d, setD] = useState(null);
 
     useEffect(() => {
         let alive = true;
         const load = () => api.get("/alerts").then((r) => alive && setD(r.data));
         load();
-        const t = setInterval(load, 8000);
+        const timer = setInterval(load, 8000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -45,20 +48,20 @@ export default function Alerts() {
     return (
         <div className="page">
             <PageHeader
-                title="Alerts"
-                description="Active warnings and Prometheus alerting rule groups."
+                title={t("pages:alerts.title")}
+                description={t("pages:alerts.description")}
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="panel-h">Active warnings</div>
-                <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Active warnings">
+                <div className="panel-h">{t("pages:alerts.activeWarnings")}</div>
+                <div className="max-h-[400px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:alerts.activeWarnings")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Warning</th>
-                                <th>Resource</th>
-                                <th>Count</th>
-                                <th>Time</th>
+                                <th>{t("pages:alerts.columns.warning")}</th>
+                                <th>{t("pages:alerts.columns.resource")}</th>
+                                <th>{t("common:fields.count")}</th>
+                                <th>{t("common:fields.time")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,7 +94,7 @@ export default function Alerts() {
                             {warnings.length === 0 && (
                                 <tr>
                                     <td colSpan={4}>
-                                        <div className="empty">No active warnings.</div>
+                                        <div className="empty">{t("pages:alerts.noWarnings")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -101,15 +104,15 @@ export default function Alerts() {
             </GlassCard>
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="panel-h">Alerting rule groups</div>
-                <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Alerting rule groups">
+                <div className="panel-h">{t("pages:alerts.ruleGroups")}</div>
+                <div className="max-h-[300px] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:alerts.ruleGroups")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Groups</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("pages:alerts.columns.groups")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,14 +120,14 @@ export default function Alerts() {
                                 <tr key={i}>
                                     <td className="name mono">{r.name}</td>
                                     <td className="mono">{r.namespace}</td>
-                                    <td className="num">{r.groups} groups</td>
+                                    <td className="num">{t("pages:alerts.groupsCount", { n: r.groups })}</td>
                                     <td className="num">{r.age}</td>
                                 </tr>
                             ))}
                             {rules.length === 0 && (
                                 <tr>
                                     <td colSpan={4}>
-                                        <div className="empty">No alerting rules configured.</div>
+                                        <div className="empty">{t("pages:alerts.noRules")}</div>
                                     </td>
                                 </tr>
                             )}

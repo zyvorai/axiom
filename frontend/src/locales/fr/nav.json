@@ -1,0 +1,138 @@
+{
+  "groups": {
+    "Core": "Essentiel",
+    "Cluster": "Cluster",
+    "Network": "Réseau",
+    "Storage": "Stockage",
+    "Config": "Configuration",
+    "Observe": "Observer",
+    "Admin": "Administration",
+    "Extensions": "Extensions"
+  },
+  "items": {
+    "getting-started": "Premiers pas",
+    "overview": "Vue d'ensemble",
+    "fleet": "Flotte",
+    "nodes": "Nodes",
+    "workloads": "Charges de travail",
+    "jobs": "Jobs et CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "Intentions de plateforme",
+    "networking": "Réseau · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "Machines virtuelles",
+    "storage": "Stockage",
+    "atlas": "Atlas",
+    "backups": "Sauvegardes",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "Quotas et limites",
+    "autoscaling": "Mise à l'échelle auto",
+    "custom-resources": "Ressources personnalisées",
+    "logs": "Journaux des Pods",
+    "events": "Événements",
+    "timeline": "Chronologie",
+    "health-check": "Bilan de santé",
+    "alerts": "Alertes",
+    "ops": "Exploitation",
+    "security": "Sécurité",
+    "users": "Utilisateurs",
+    "settings": "Paramètres"
+  },
+  "sidebar": {
+    "expand": "Déplier la barre latérale",
+    "collapse": "Replier la barre latérale",
+    "collapseShort": "Replier"
+  },
+  "topbar": {
+    "toggleSidebar": "Afficher/masquer la barre latérale",
+    "home": "Accueil Axiom",
+    "byZyvor": "par Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "Namespace appliqué à toutes les pages",
+    "allNamespaces": "Tous les namespaces",
+    "searchTitle": "Rechercher (⌘K)",
+    "search": "Rechercher",
+    "connect": "Connecter",
+    "sampleMode": "Mode données d'exemple",
+    "sampleModeHint": "Pointez KUBECONFIG vers ce tableau de bord pour passer à un cluster réel.",
+    "toggleTheme": "Changer de thème (actuel : {{theme}})",
+    "themeTitle": "Thème : {{theme}}",
+    "clusterState": "{{name}} : {{state}}",
+    "clusterStateError": "{{name}} : {{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "label": "Thème"
+  },
+  "shell": {
+    "skipToContent": "Aller au contenu"
+  },
+  "palette": {
+    "placeholder": "Aller à une page, un pod, un service, un secret, une VM ou une action…",
+    "empty": "Aucun résultat.",
+    "navigate": "Naviguer",
+    "pods": "Pods",
+    "workloads": "Charges de travail",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "Machines virtuelles",
+    "jobs": "Jobs",
+    "switchCluster": "Changer de cluster",
+    "actions": "Actions",
+    "current": "actuel",
+    "cron": "{{namespace}} · cron",
+    "nsPods_one": "{{count}} pod",
+    "nsPods_other": "{{count}} pods",
+    "switchTheme": {
+      "light": "Passer au thème clair",
+      "dark": "Passer au thème sombre",
+      "system": "Passer au thème du système"
+    },
+    "shortcuts": "Raccourcis clavier",
+    "signOut": "Se déconnecter"
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "description": "Les raccourcis sont suspendus pendant la saisie dans un champ.",
+    "then": "puis",
+    "or": "ou",
+    "groups": {
+      "General": "Général",
+      "Go to": "Aller à"
+    },
+    "items": {
+      "palette": "Ouvrir la palette de commandes",
+      "search": "Placer le curseur dans la recherche de la page",
+      "help": "Afficher les raccourcis clavier",
+      "escape": "Fermer une boîte de dialogue ou un menu",
+      "overview": "Aller à la vue d'ensemble",
+      "pods": "Aller aux Pods",
+      "workloads": "Aller aux charges de travail",
+      "namespaces": "Aller aux Namespaces",
+      "events": "Aller aux événements",
+      "logs": "Aller aux journaux"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "Local",
+    "accountSecurity": "Sécurité du compte",
+    "signOut": "Se déconnecter",
+    "signedOut": "Déconnecté",
+    "signedOutHint": "Votre session Axiom a été fermée."
+  },
+  "breadcrumbs": {
+    "clusters": "Clusters"
+  },
+  "clusterSwitcher": {
+    "title": "Ouvrir les clusters dans les paramètres",
+    "label": "Cluster"
+  }
+}

@@ -14,12 +14,23 @@ import { Plug, PlugZap } from "lucide-react";
 import MacTerm from "@/components/MacTerm";
 import { buildTerminalTheme } from "@/lib/terminalTheme";
 import { getStreamTicket } from "@/lib/api";
+import { useTranslation, Trans } from "react-i18next";
 
 const SHELLS = ["/bin/sh", "/bin/bash", "/bin/ash"];
+
+// Display labels for the connection status; the status value itself drives logic and styling.
+const STATUS_KEYS = {
+    idle: "pages:podTerminal.status.idle",
+    connecting: "pages:podTerminal.status.connecting",
+    connected: "pages:podTerminal.status.connected",
+    closed: "pages:podTerminal.status.closed",
+    error: "pages:podTerminal.status.error",
+};
 
 // `wsPath` overrides the WebSocket route (the node shell reuses this terminal);
 // `label` overrides the "namespace/name" shown in the banner and window title.
 export default function PodTerminal({ namespace, name, containers, wsPath, label }) {
+    const { t } = useTranslation();
     const display = label || `${namespace}/${name}`;
     const [container, setContainer] = useState(containers[0] || "");
     const [shell, setShell] = useState(SHELLS[0]);
@@ -68,7 +79,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
         dataDispRef.current?.dispose();
         wsRef.current?.close();
         term.reset();
-        term.writeln(`\x1b[90mConnecting to ${display} (${shell})…\x1b[0m`);
+        term.writeln(`\x1b[90m${t("pages:podTerminal.connectingTo", { target: display, shell })}\x1b[0m`);
         setStatus("connecting");
 
         let sawOpen = false;
@@ -83,7 +94,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
             ticket = await getStreamTicket(path.replace(/^\/api\/v1/, ""));
         } catch (e) {
             setStatus("error");
-            term.writeln(`\r\n\x1b[31mCould not start a terminal session: ${e?.response?.data?.error || e.message}\x1b[0m`);
+            term.writeln(`\r\n\x1b[31m${t("pages:podTerminal.ticketFailed", { error: e?.response?.data?.error || e.message })}\x1b[0m`);
             return;
         }
         const proto = window.location.protocol === "https:" ? "wss" : "ws";
@@ -131,7 +142,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
             if (sawOpen || sawPayload || explained) return;
             setStatus("error");
             term.writeln(
-                "\r\n\x1b[31mCould not open the terminal WebSocket.\x1b[0m If this site uses a self-signed cert, open the page over HTTPS once and accept the certificate, then retry Connect."
+                `\r\n\x1b[31m${t("pages:podTerminal.wsFailed")}\x1b[0m ${t("pages:podTerminal.wsFailedHint")}`
             );
         };
         ws.onclose = (ev) => {
@@ -141,12 +152,12 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
             if (ev.code === 1000 || ev.code === 1001) return;
             if (explained) return;
             if (!sawOpen && !sawPayload) {
-                term.writeln("\r\n\x1b[33mConnection closed before a session started.\x1b[0m");
+                term.writeln(`\r\n\x1b[33m${t("pages:podTerminal.closedEarly")}\x1b[0m`);
                 return;
             }
-            term.writeln(`\r\n\x1b[33mSession ended.\x1b[0m`);
+            term.writeln(`\r\n\x1b[33m${t("pages:podTerminal.sessionEnded")}\x1b[0m`);
             term.writeln(
-                "\x1b[90mIf the shell binary is missing, this image is likely distroless — try a redis/nginx/busybox pod, or one-shot exec with a binary that exists.\x1b[0m"
+                `\x1b[90m${t("pages:podTerminal.distrolessHint")}\x1b[0m`
             );
         };
     };
@@ -173,7 +184,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
                 {containers.length > 1 && (
                     <Select value={container} onValueChange={setContainer} disabled={status === "connected"}>
                         <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Container" />
+                            <SelectValue placeholder={t("pages:podTerminal.container")} />
                         </SelectTrigger>
                         <SelectContent>
                             {containers.map((c) => (
@@ -198,21 +209,21 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
                 </Select>
                 {status === "connected" ? (
                     <Button size="sm" variant="outline" onClick={disconnect} className="rounded-xl">
-                        <Plug className="mr-1.5 h-3.5 w-3.5" /> Disconnect
+                        <Plug className="mr-1.5 h-3.5 w-3.5" /> {t("pages:podTerminal.disconnect")}
                     </Button>
                 ) : (
                     <Button size="sm" variant="brand" onClick={connect} disabled={status === "connecting"} className="rounded-xl">
-                        <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {status === "connecting" ? "Connecting…" : "Connect"}
+                        <PlugZap className="mr-1.5 h-3.5 w-3.5" /> {status === "connecting" ? t("pages:podTerminal.connecting") : t("pages:podTerminal.connect")}
                     </Button>
                 )}
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className={`status-dot ${status === "connected" ? "ok animate-pulse" : status === "error" ? "err" : "info"}`} />
-                    {status}
+                    {t(STATUS_KEYS[status])}
                 </span>
             </div>
             {(namespace === "axiom-system" || (name || "").startsWith("zyvor-axiom")) && (
                 <p className="text-xs text-tone-amber dark:text-tone-amber">
-                    The Axiom console image is distroless — it has no <span className="mono">/bin/sh</span>. Open a different pod (e.g. redis/nginx) for an interactive shell.
+                    <Trans i18nKey="pages:podTerminal.axiomDistroless" components={{ code: <span className="mono" /> }} />
                 </p>
             )}
             <MacTerm
@@ -220,7 +231,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
                 actions={
                     <span className="mono text-[11px] text-term-dim">
                         <span className={`status-dot mr-1.5 inline-block align-middle ${status === "connected" ? "ok animate-pulse" : status === "error" ? "err" : "info"}`} />
-                        {status}
+                        {t(STATUS_KEYS[status])}
                     </span>
                 }
                 bodyClassName="!p-0 h-[420px] overflow-hidden"

@@ -4,7 +4,9 @@ import { resourceHref } from "@/lib/resourceHref";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { useCluster } from "@/lib/cluster";
-import { relTime } from "@/lib/troubleshoot";
+import { formatDistanceToNowStrict } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { dateFnsLocale } from "@/lib/i18n";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,12 +14,20 @@ import { FLEET } from "@/constants/testIds";
 
 const POLL_MS = 30000;
 
+function relTime(iso) {
+    try {
+        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: dateFnsLocale() });
+    } catch {
+        return String(iso ?? "");
+    }
+}
+
 // How a probe state is shown (tone tokens from the shared pill style).
 const STATE = {
-    healthy: { tone: "var(--green)", label: "Healthy" },
-    degraded: { tone: "var(--orange)", label: "Degraded" },
-    unreachable: { tone: "var(--red)", label: "Unreachable" },
-    unknown: { tone: "var(--amber)", label: "Not checked yet" },
+    healthy: { tone: "var(--green)", labelKey: "pages:fleet.state.healthy" },
+    degraded: { tone: "var(--orange)", labelKey: "pages:fleet.state.degraded" },
+    unreachable: { tone: "var(--red)", labelKey: "pages:fleet.state.unreachable" },
+    unknown: { tone: "var(--amber)", labelKey: "pages:fleet.state.unknown" },
 };
 
 function Meter({ label, value }) {
@@ -48,7 +58,9 @@ function Metric({ label, value, of }) {
 }
 
 function ClusterCard({ c, onSwitch }) {
+    const { t } = useTranslation();
     const st = STATE[c.state] || STATE.unknown;
+    const stLabel = t(st.labelKey);
     const reachable = c.state === "healthy" || c.state === "degraded";
     return (
         <GlassCard data-testid={FLEET.card(c.name)} className="flex flex-col gap-3 p-4">
@@ -57,16 +69,16 @@ function ClusterCard({ c, onSwitch }) {
                     <div className="flex items-center gap-2">
                         <Server size={15} className="shrink-0 text-ink-3" aria-hidden="true" />
                         <h2 className="truncate text-[15px] font-semibold">{c.label || c.name}</h2>
-                        {c.current && <span className="pill soft">active</span>}
+                        {c.current && <span className="pill soft">{t("pages:fleet.active")}</span>}
                     </div>
                     <div className="mono mt-0.5 truncate text-[11.5px] text-ink-3" title={c.server || c.name}>
                         {c.server || c.name}
                     </div>
                 </div>
-                <span data-testid={FLEET.state(c.name)} aria-label={`${c.label || c.name}: ${st.label}`}>
+                <span data-testid={FLEET.state(c.name)} aria-label={t("pages:fleet.stateAria", { name: c.label || c.name, state: stLabel })}>
                     <span className="pill" style={{ "--c": st.tone }}>
                         <i aria-hidden="true" />
-                        {st.label}
+                        {stLabel}
                     </span>
                 </span>
             </div>
@@ -80,26 +92,26 @@ function ClusterCard({ c, onSwitch }) {
             {reachable ? (
                 <>
                     <div className="grid grid-cols-4 gap-3">
-                        <Metric label="Nodes" value={c.readyNodes} of={c.nodes} />
-                        <Metric label="Pods" value={c.runningPods} of={c.pods} />
-                        <Metric label="Apps" value={c.workloads} />
-                        <Metric label="Warnings" value={c.warnings} />
+                        <Metric label={t("pages:fleet.metrics.nodes")} value={c.readyNodes} of={c.nodes} />
+                        <Metric label={t("pages:fleet.metrics.pods")} value={c.runningPods} of={c.pods} />
+                        <Metric label={t("pages:fleet.metrics.apps")} value={c.workloads} />
+                        <Metric label={t("pages:fleet.metrics.warnings")} value={c.warnings} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <Meter label="CPU" value={c.cpuPercent} />
-                        <Meter label="Memory" value={c.memoryPercent} />
+                        <Meter label={t("common:fields.cpu")} value={c.cpuPercent} />
+                        <Meter label={t("common:fields.memory")} value={c.memoryPercent} />
                     </div>
                 </>
             ) : null}
 
             <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3 text-xs text-ink-3">
                 <span>
-                    {c.checkedAt ? `${c.latencyMs} ms · checked ${relTime(c.checkedAt)}` : "Not checked yet"}
-                    {c.since && c.state !== "healthy" ? ` · since ${relTime(c.since)}` : ""}
+                    {c.checkedAt ? t("pages:fleet.checkedLine", { ms: c.latencyMs, time: relTime(c.checkedAt) }) : t("pages:fleet.notChecked")}
+                    {c.since && c.state !== "healthy" ? t("pages:fleet.since", { time: relTime(c.since) }) : ""}
                 </span>
                 {!c.current && (
                     <button type="button" className="btn btn-line btn-sm" data-testid={FLEET.switch(c.name)} onClick={() => onSwitch(c.name)}>
-                        Switch to
+                        {t("pages:fleet.switchTo")}
                     </button>
                 )}
             </div>
@@ -117,6 +129,7 @@ function hitHref(h) {
 
 /** Search workloads, services and namespaces across every registered cluster. */
 function FleetSearch({ currentName }) {
+    const { t } = useTranslation();
     const [q, setQ] = useState("");
     const [kind, setKind] = useState("");
     const [res, setRes] = useState(null);
@@ -131,7 +144,7 @@ function FleetSearch({ currentName }) {
             return undefined;
         }
         let alive = true;
-        const t = setTimeout(async () => {
+        const timer = setTimeout(async () => {
             setBusy(true);
             try {
                 const { data } = await api.get("/fleet/search", { params: { q: text, kind: kind || undefined, limit: 50 } });
@@ -140,16 +153,16 @@ function FleetSearch({ currentName }) {
                     setError("");
                 }
             } catch (e) {
-                if (alive) setError(e?.response?.data?.error || e?.message || "Search failed");
+                if (alive) setError(e?.response?.data?.error || e?.message || t("errors:fleet.searchFailed"));
             } finally {
                 if (alive) setBusy(false);
             }
         }, 300);
         return () => {
             alive = false;
-            clearTimeout(t);
+            clearTimeout(timer);
         };
-    }, [q, kind]);
+    }, [q, kind, t]);
 
     // Open a hit: make its cluster the active one for this tab, then go to the resource.
     const open = async (h) => {
@@ -158,7 +171,7 @@ function FleetSearch({ currentName }) {
         try {
             if (h.cluster !== currentName) await api.post(`/clusters/${encodeURIComponent(h.cluster)}/activate`);
         } catch (e) {
-            setError(e?.response?.data?.error || e?.message || "Could not switch cluster");
+            setError(e?.response?.data?.error || e?.message || t("errors:fleet.switchFailed"));
             return;
         }
         window.location.assign(href);
@@ -172,19 +185,19 @@ function FleetSearch({ currentName }) {
                 <div className="relative min-w-[14rem] flex-1">
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" aria-hidden="true" />
                     <Input
-                        aria-label="Search every cluster"
+                        aria-label={t("pages:fleet.search.aria")}
                         data-testid={FLEET.search}
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        placeholder="Where is… search workloads, services and namespaces in every cluster"
+                        placeholder={t("pages:fleet.search.placeholder")}
                         className="bg-muted/30 pl-9"
                     />
                 </div>
-                <select aria-label="Kind" data-testid={FLEET.searchKind} className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
-                    <option value="">Everything</option>
-                    <option value="Workload">Workloads</option>
-                    <option value="Service">Services</option>
-                    <option value="Namespace">Namespaces</option>
+                <select aria-label={t("common:fields.kind")} data-testid={FLEET.searchKind} className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
+                    <option value="">{t("pages:fleet.search.everything")}</option>
+                    <option value="Workload">{t("pages:fleet.search.workloads")}</option>
+                    <option value="Service">{t("pages:fleet.search.services")}</option>
+                    <option value="Namespace">{t("pages:fleet.search.namespaces")}</option>
                 </select>
             </div>
             {error ? <div className="notice danger" role="alert">{error}</div> : null}
@@ -192,20 +205,20 @@ function FleetSearch({ currentName }) {
                 <>
                     {(skipped.length > 0 || errors.length > 0) && (
                         <div className="notice" role="status" data-testid={FLEET.searchSkipped}>
-                            Not searched: {[...skipped.map((s) => `${s.cluster} (${s.reason})`), ...errors.map((e) => `${e.cluster} (${e.error})`)].join("; ")}
+                            {t("pages:fleet.search.notSearched", { list: [...skipped.map((s) => `${s.cluster} (${s.reason})`), ...errors.map((e) => `${e.cluster} (${e.error})`)].join("; ") })}
                         </div>
                     )}
                     {res.results.length === 0 ? (
-                        <div className="empty" data-testid={FLEET.searchNone}>No matches in {res.clusters.searched} cluster{res.clusters.searched === 1 ? "" : "s"}.</div>
+                        <div className="empty" data-testid={FLEET.searchNone}>{t("pages:fleet.search.noMatches", { count: res.clusters.searched })}</div>
                     ) : (
-                        <div className="max-h-[50vh] overflow-auto" tabIndex={0} role="region" aria-label="Search results" data-testid={FLEET.searchResults}>
+                        <div className="max-h-[50vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:fleet.search.results")} data-testid={FLEET.searchResults}>
                             <table className="tbl">
                                 <thead>
                                     <tr>
-                                        <th>Cluster</th>
-                                        <th>Match</th>
-                                        <th>Status</th>
-                                        <th><span className="sr-only">Open</span></th>
+                                        <th>{t("pages:fleet.search.columns.cluster")}</th>
+                                        <th>{t("pages:fleet.search.columns.match")}</th>
+                                        <th>{t("common:fields.status")}</th>
+                                        <th><span className="sr-only">{t("common:actions.open")}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -227,7 +240,7 @@ function FleetSearch({ currentName }) {
                                             <td className="text-[12.5px]">{h.status}</td>
                                             <td>
                                                 <button type="button" className="btn btn-line btn-sm" data-testid={FLEET.searchOpen(h.cluster, h.kind, h.namespace, h.name)} onClick={() => open(h)}>
-                                                    Open
+                                                    {t("common:actions.open")}
                                                 </button>
                                             </td>
                                         </tr>
@@ -236,7 +249,7 @@ function FleetSearch({ currentName }) {
                             </table>
                         </div>
                     )}
-                    {res.truncated ? <p className="text-xs text-ink-3">Showing the first {res.results.length} of {res.total} matches — narrow the search.</p> : null}
+                    {res.truncated ? <p className="text-xs text-ink-3">{t("pages:fleet.search.truncated", { shown: res.results.length, total: res.total })}</p> : null}
                 </>
             )}
             {busy && !res ? <Skeleton className="h-10 rounded-xl bg-muted" /> : null}
@@ -246,6 +259,7 @@ function FleetSearch({ currentName }) {
 
 /** Every registered cluster at a glance: reachability, capacity and warnings, probed in the background. */
 export default function Fleet() {
+    const { t } = useTranslation();
     const { activate } = useCluster();
     const [fleet, setFleet] = useState(null);
     const [error, setError] = useState("");
@@ -258,16 +272,16 @@ export default function Fleet() {
             setFleet(data);
             setError("");
         } catch (e) {
-            setError(e?.response?.data?.error || e?.message || "Could not load the fleet");
+            setError(e?.response?.data?.error || e?.message || t("errors:fleet.loadFailed"));
         } finally {
             setRefreshing(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         load(false);
-        const t = setInterval(() => load(false), POLL_MS);
-        return () => clearInterval(t);
+        const timer = setInterval(() => load(false), POLL_MS);
+        return () => clearInterval(timer);
     }, [load]);
 
     const s = fleet?.summary;
@@ -285,11 +299,11 @@ export default function Fleet() {
     return (
         <div data-testid={FLEET.root} className="page">
             <PageHeader
-                title="Fleet"
-                description="Every registered cluster, probed in the background: whether it answers, how many nodes are ready, and what needs attention. Register more under Settings → Clusters."
+                title={t("pages:fleet.title")}
+                description={t("pages:fleet.description")}
                 action={
                     <button type="button" data-testid={FLEET.refresh} className="btn btn-line" onClick={() => load(true)} disabled={refreshing}>
-                        <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} /> {refreshing ? "Checking…" : "Check now"}
+                        <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} /> {refreshing ? t("pages:fleet.checking") : t("pages:fleet.checkNow")}
                     </button>
                 }
             />
@@ -305,12 +319,12 @@ export default function Fleet() {
             {fleet && s && (
                 <>
                     <div className="stats">
-                        {stat("clusters", "Clusters", s.clusters)}
-                        {stat("healthy", "Healthy", s.healthy)}
-                        {stat("attention", "Need attention", attention)}
-                        {stat("nodes", "Nodes ready", s.readyNodes, `/ ${s.nodes}`)}
-                        {stat("pods", "Pods running", s.runningPods, `/ ${s.pods}`)}
-                        {stat("warnings", "Warnings", s.warnings)}
+                        {stat("clusters", t("pages:fleet.summary.clusters"), s.clusters)}
+                        {stat("healthy", t("pages:fleet.summary.healthy"), s.healthy)}
+                        {stat("attention", t("pages:fleet.summary.attention"), attention)}
+                        {stat("nodes", t("pages:fleet.summary.nodes"), s.readyNodes, `/ ${s.nodes}`)}
+                        {stat("pods", t("pages:fleet.summary.pods"), s.runningPods, `/ ${s.pods}`)}
+                        {stat("warnings", t("pages:fleet.summary.warnings"), s.warnings)}
                     </div>
 
                     <FleetSearch currentName={fleet.clusters.find((c) => c.current)?.name} />
@@ -318,7 +332,7 @@ export default function Fleet() {
                     {fleet.clusters.length === 0 ? (
                         <GlassCard className="p-6">
                             <div className="empty" data-testid={FLEET.empty}>
-                                No clusters are registered.
+                                {t("pages:fleet.empty")}
                             </div>
                         </GlassCard>
                     ) : (
@@ -329,8 +343,9 @@ export default function Fleet() {
                         </div>
                     )}
                     <p className="text-xs text-ink-3" data-testid={FLEET.checked}>
-                        Totals count the clusters that answered{fleet.checkedAt ? ` · last check ${relTime(fleet.checkedAt)}` : ""}
-                        {fleet.intervalSeconds > 0 ? ` · checked every ${fleet.intervalSeconds}s` : " · background checks are off"}
+                        {t("pages:fleet.totals")}
+                        {fleet.checkedAt ? t("pages:fleet.lastCheck", { time: relTime(fleet.checkedAt) }) : ""}
+                        {fleet.intervalSeconds > 0 ? t("pages:fleet.interval", { n: fleet.intervalSeconds }) : t("pages:fleet.backgroundOff")}
                     </p>
                 </>
             )}

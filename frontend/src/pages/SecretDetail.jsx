@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Eye, EyeOff, KeySquare } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation, Trans } from "react-i18next";
 import MacTerm from "@/components/MacTerm";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function SecretDetail() {
+    const { t } = useTranslation();
     const { namespace, name } = useParams();
     const navigate = useNavigate();
     const ns = decodeURIComponent(namespace || "");
@@ -46,7 +48,7 @@ export default function SecretDetail() {
             setDraft(data.values || {});
             setRevealed(true);
         } catch (e) {
-            toast.error("Reveal failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:secretDetail.revealFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -65,10 +67,14 @@ export default function SecretDetail() {
         return (
             <div className="page space-y-4">
                 <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/secrets")}>
-                    <ArrowLeft className="h-3.5 w-3.5" /> Secrets
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:secretDetail.back")}
                 </button>
                 <GlassCard className="empty">
-                    Secret <span className="mono text-foreground">{ns}/{nm}</span> was not found.
+                    <Trans
+                        i18nKey="pages:secretDetail.notFound"
+                        values={{ ref: `${ns}/${nm}` }}
+                        components={{ mono: <span className="mono text-foreground" /> }}
+                    />
                 </GlassCard>
             </div>
         );
@@ -87,9 +93,9 @@ export default function SecretDetail() {
                 data: draft,
             });
             setDetail((d) => ({ ...d, values: draft }));
-            toast.success("Secret updated");
+            toast.success(t("toasts:secretDetail.updated"));
         } catch (e) {
-            toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:secretDetail.updateFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -110,7 +116,7 @@ export default function SecretDetail() {
                             {detail.type || "Opaque"}
                         </Badge>
                         <span>·</span>
-                        <span>{keys.length} keys</span>
+                        <span>{t("pages:secretDetail.keys", { count: keys.length })}</span>
                         <span>·</span>
                         <span>{detail.age || "—"}</span>
                     </>
@@ -119,7 +125,7 @@ export default function SecretDetail() {
                     <div className="flex gap-2">
                         <button type="button" className="btn btn-line btn-sm" onClick={toggleReveal} disabled={busy}>
                             {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                            {revealed ? "Hide values" : busy ? "Loading…" : "Reveal values"}
+                            {revealed ? t("pages:secretDetail.hideValues") : busy ? t("common:states.loading") : t("pages:secretDetail.revealValues")}
                         </button>
                         {revealed && (
                             <button
@@ -128,11 +134,11 @@ export default function SecretDetail() {
                                 disabled={busy || !dirty}
                                 onClick={save}
                             >
-                                Save values
+                                {t("pages:secretDetail.saveValues")}
                             </button>
                         )}
                         <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/secrets")}>
-                            <ArrowLeft className="h-3.5 w-3.5" /> All secrets
+                            <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:secretDetail.all")}
                         </button>
                     </div>
                 }
@@ -141,7 +147,7 @@ export default function SecretDetail() {
             {detail.labels && Object.keys(detail.labels).length > 0 && (
                 <GlassCard>
                     <SpecTable
-                        title="Labels"
+                        title={t("common:fields.labels")}
                         rows={Object.entries(detail.labels).map(([k, v]) => ({ label: k, value: v, mono: true }))}
                     />
                 </GlassCard>
@@ -149,10 +155,10 @@ export default function SecretDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <KeySquare className="h-4 w-4 text-tone-purple" /> Keys
+                    <KeySquare className="h-4 w-4 text-tone-purple" /> {t("pages:secretDetail.keysTitle")}
                 </div>
                 {keys.length === 0 ? (
-                    <div className="px-4 py-10 text-center text-sm text-muted-foreground">No keys.</div>
+                    <div className="px-4 py-10 text-center text-sm text-muted-foreground">{t("pages:secretDetail.noKeys")}</div>
                 ) : (
                     keys.map((k) => {
                         const key = typeof k === "string" ? k : k.key;
@@ -163,11 +169,11 @@ export default function SecretDetail() {
                                     <Badge variant="outline" className="mono text-[11px]">
                                         {key}
                                     </Badge>
-                                    {size != null && <span className="text-[11px] text-muted-foreground">{size} bytes</span>}
+                                    {size != null && <span className="text-[11px] text-muted-foreground">{t("pages:secretDetail.bytes", { size })}</span>}
                                 </div>
                                 {revealed ? (
                                     <Textarea
-                                        aria-label={`Value of ${key}`}
+                                        aria-label={t("pages:secretDetail.valueAria", { key })}
                                         value={draft[key] ?? ""}
                                         onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
                                         spellCheck={false}

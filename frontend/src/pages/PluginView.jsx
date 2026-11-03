@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { formatDate } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -30,7 +32,7 @@ function displayFieldValue(row, col) {
     if (col.type === "age") {
         if (!raw) return "—";
         const parsed = Date.parse(raw);
-        return Number.isNaN(parsed) ? String(raw) : new Date(parsed).toLocaleString();
+        return Number.isNaN(parsed) ? String(raw) : formatDate(new Date(parsed));
     }
     return String(raw ?? "—");
 }
@@ -63,6 +65,7 @@ function InstanceDetail({ manifest, instance, onOpenChange }) {
 }
 
 export default function PluginView() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const { pluginId } = useParams();
     const [manifest, setManifest] = useState(null);
@@ -71,7 +74,7 @@ export default function PluginView() {
     const [instancesError, setInstancesError] = useState(null);
     const [detail, setDetail] = useState(null);
     // the not-found/loading states have no PageHeader, so set the title here too
-    usePageTitle(notFound ? "Plugin not found" : manifest ? manifest.displayName : "Plugin");
+    usePageTitle(notFound ? t("pages:pluginView.pageTitleNotFound") : manifest ? manifest.displayName : t("pages:pluginView.pageTitle"));
 
     useEffect(() => {
         setManifest(null);
@@ -109,19 +112,19 @@ export default function PluginView() {
         const ns = fieldValue(row, "namespace");
         const name = fieldValue(row, "name");
         const ok = await confirm({
-            title: `Delete ${name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:pluginView.delete.title", { name }),
+            description: t("dialogs:pluginView.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/crds/${group}/${version}/${plural}/${encodeURIComponent(name)}`, {
                 params: ns ? { namespace: ns } : {},
             });
-            toast.success(`Deleted ${name}`);
+            toast.success(t("toasts:pluginView.deleted", { name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:pluginView.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -129,7 +132,7 @@ export default function PluginView() {
         return (
             <div className="page">
                 <GlassCard>
-                    <div className="empty">Plugin "{pluginId}" was not found. It may have been removed.</div>
+                    <div className="empty">{t("pages:pluginView.notFound", { id: pluginId })}</div>
                 </GlassCard>
             </div>
         );
@@ -155,12 +158,12 @@ export default function PluginView() {
             />
 
             <AutoTable
-                title={`${manifest.target.kind} instances`}
+                title={t("pages:pluginView.instances", { kind: manifest.target.kind })}
                 icon={Icon}
                 items={instances}
                 columns={manifest.columns}
                 onRowClick={openInstance}
-                emptyHint={instances === null ? "Loading…" : instancesError ? `Permission denied: ${instancesError}` : "No instances found."}
+                emptyHint={instances === null ? t("common:states.loading") : instancesError ? t("pages:pluginView.permissionDenied", { error: instancesError }) : t("pages:pluginView.noInstances")}
                 rowActions={
                     hasDelete
                         ? (row) => (
@@ -168,7 +171,7 @@ export default function PluginView() {
                                   type="button"
                                   className="btn btn-danger btn-sm"
                                   onClick={() => deleteInstance(row)}
-                                  aria-label={`Delete ${fieldValue(row, "name") || "item"}`}
+                                  aria-label={t("pages:pluginView.deleteAria", { name: fieldValue(row, "name") || t("pages:pluginView.item") })}
                               >
                                   <Trash2 size={13} />
                               </button>

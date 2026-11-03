@@ -1,0 +1,138 @@
+{
+  "groups": {
+    "Core": "Core",
+    "Cluster": "Cluster",
+    "Network": "Network",
+    "Storage": "Storage",
+    "Config": "Config",
+    "Observe": "Observe",
+    "Admin": "Admin",
+    "Extensions": "Extensions"
+  },
+  "items": {
+    "getting-started": "Getting Started",
+    "overview": "Overview",
+    "fleet": "Fleet",
+    "nodes": "Nodes",
+    "workloads": "Workloads",
+    "jobs": "Jobs & CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "Platform Intents",
+    "networking": "Networking · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "Virtual Machines",
+    "storage": "Storage",
+    "atlas": "Atlas",
+    "backups": "Backups",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "Quotas & Limits",
+    "autoscaling": "Autoscaling",
+    "custom-resources": "Custom Resources",
+    "logs": "Pod Logs",
+    "events": "Events",
+    "timeline": "Timeline",
+    "health-check": "Health check",
+    "alerts": "Alerts",
+    "ops": "Ops",
+    "security": "Security",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "collapseShort": "Collapse"
+  },
+  "topbar": {
+    "toggleSidebar": "Toggle sidebar",
+    "home": "Axiom home",
+    "byZyvor": "by Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "Namespace scope for all pages",
+    "allNamespaces": "All namespaces",
+    "searchTitle": "Search (⌘K)",
+    "search": "Search",
+    "connect": "Connect",
+    "sampleMode": "Sample data mode",
+    "sampleModeHint": "Point KUBECONFIG at this dashboard to switch to a live cluster.",
+    "toggleTheme": "Toggle theme (currently {{theme}})",
+    "themeTitle": "Theme: {{theme}}",
+    "clusterState": "{{name}}: {{state}}",
+    "clusterStateError": "{{name}}: {{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "label": "Theme"
+  },
+  "shell": {
+    "skipToContent": "Skip to content"
+  },
+  "palette": {
+    "placeholder": "Jump to a page, pod, service, secret, VM, or action…",
+    "empty": "Nothing found.",
+    "navigate": "Navigate",
+    "pods": "Pods",
+    "workloads": "Workloads",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "Virtual Machines",
+    "jobs": "Jobs",
+    "switchCluster": "Switch cluster",
+    "actions": "Actions",
+    "current": "current",
+    "cron": "{{namespace}} · cron",
+    "nsPods_one": "{{count}} pods",
+    "nsPods_other": "{{count}} pods",
+    "switchTheme": {
+      "light": "Switch theme to light",
+      "dark": "Switch theme to dark",
+      "system": "Switch theme to system"
+    },
+    "shortcuts": "Keyboard shortcuts",
+    "signOut": "Sign out"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Shortcuts are paused while you are typing in a field.",
+    "then": "then",
+    "or": "or",
+    "groups": {
+      "General": "General",
+      "Go to": "Go to"
+    },
+    "items": {
+      "palette": "Open the command palette",
+      "search": "Focus the search box on this page",
+      "help": "Show keyboard shortcuts",
+      "escape": "Close a dialog or menu",
+      "overview": "Go to Overview",
+      "pods": "Go to Pods",
+      "workloads": "Go to Workloads",
+      "namespaces": "Go to Namespaces",
+      "events": "Go to Events",
+      "logs": "Go to Logs"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "Local",
+    "accountSecurity": "Account security",
+    "signOut": "Sign out",
+    "signedOut": "Signed out",
+    "signedOutHint": "Your Axiom session was ended."
+  },
+  "breadcrumbs": {
+    "clusters": "Clusters"
+  },
+  "clusterSwitcher": {
+    "title": "Open clusters in Settings",
+    "label": "Cluster"
+  }
+}

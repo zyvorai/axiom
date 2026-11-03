@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Gauge, Ruler, ShieldHalf, ArrowUpDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
@@ -57,6 +58,7 @@ function ResourceMap({ map }) {
 }
 
 export default function Quotas() {
+    const { t } = useTranslation();
     const [quotas, setQuotas] = useState(null);
     const [limitRanges, setLimitRanges] = useState(null);
     const [pdbs, setPdbs] = useState(null);
@@ -93,34 +95,34 @@ export default function Quotas() {
     return (
         <div className="page">
             <PageHeader
-                title="Quotas & Limits"
-                description="ResourceQuotas, LimitRanges, PodDisruptionBudgets, and PriorityClasses."
+                title={t("pages:quotas.title")}
+                description={t("pages:quotas.description")}
             />
 
             <Section
-                title="Resource quotas"
+                title={t("pages:quotas.resourceQuotas.title")}
                 icon={Gauge}
                 rows={quotas}
-                empty="No ResourceQuotas configured."
+                empty={t("pages:quotas.resourceQuotas.empty")}
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
-                    { key: "hard", label: "Hard", render: (r) => <ResourceMap map={r.hard} /> },
-                    { key: "used", label: "Used", render: (r) => <ResourceMap map={r.used} /> },
-                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                    { key: "name", label: t("common:fields.name"), render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                    { key: "hard", label: t("pages:quotas.columns.hard"), render: (r) => <ResourceMap map={r.hard} /> },
+                    { key: "used", label: t("pages:quotas.columns.used"), render: (r) => <ResourceMap map={r.used} /> },
+                    { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
             <div className="mt-6">
                 <Section
-                    title="Limit ranges"
+                    title={t("pages:quotas.limitRanges.title")}
                     icon={Ruler}
                     rows={limitRanges || []}
-                    empty="No LimitRanges configured."
+                    empty={t("pages:quotas.limitRanges.empty")}
                     columns={[
-                        { key: "name", label: "Name", render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                        { key: "name", label: t("common:fields.name"), render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
                         {
                             key: "limits",
-                            label: "Limits",
+                            label: t("pages:quotas.columns.limits"),
                             render: (r) => (
                                 <div className="space-y-1.5">
                                     {(r.limits || []).map((l, i) => (
@@ -141,31 +143,31 @@ export default function Quotas() {
 
             <div className="mt-6">
                 <Section
-                    title="Pod disruption budgets"
+                    title={t("pages:quotas.pdbs.title")}
                     icon={ShieldHalf}
                     rows={pdbs || []}
-                    empty="No PodDisruptionBudgets configured."
+                    empty={t("pages:quotas.pdbs.empty")}
                     columns={[
-                        { key: "name", label: "Name", render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
-                        { key: "minAvailable", label: "Min available", render: (r) => <span className="mono text-muted-foreground">{r.minAvailable || "—"}</span> },
-                        { key: "maxUnavailable", label: "Max unavailable", render: (r) => <span className="mono text-muted-foreground">{r.maxUnavailable || "—"}</span> },
-                        { key: "healthy", label: "Healthy", render: (r) => <span className="mono">{r.currentHealthy}/{r.desiredHealthy}</span> },
-                        { key: "expected", label: "Expected", render: (r) => <span className="mono text-muted-foreground">{r.expectedPods} pods</span> },
-                        { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                        { key: "name", label: t("common:fields.name"), render: (r) => <><div className="mono">{r.name}</div><div className="text-[11px] text-muted-foreground">{r.namespace}</div></> },
+                        { key: "minAvailable", label: t("pages:quotas.columns.minAvailable"), render: (r) => <span className="mono text-muted-foreground">{r.minAvailable || "—"}</span> },
+                        { key: "maxUnavailable", label: t("pages:quotas.columns.maxUnavailable"), render: (r) => <span className="mono text-muted-foreground">{r.maxUnavailable || "—"}</span> },
+                        { key: "healthy", label: t("pages:quotas.columns.healthy"), render: (r) => <span className="mono">{r.currentHealthy}/{r.desiredHealthy}</span> },
+                        { key: "expected", label: t("pages:quotas.columns.expected"), render: (r) => <span className="mono text-muted-foreground">{t("pages:quotas.expectedPods", { count: r.expectedPods })}</span> },
+                        { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                     ]}
                 />
             </div>
 
             <div className="mt-6">
                 <Section
-                    title="Priority classes"
+                    title={t("pages:quotas.priorityClasses.title")}
                     icon={ArrowUpDown}
                     rows={priorityClasses || []}
-                    empty="No PriorityClasses configured."
+                    empty={t("pages:quotas.priorityClasses.empty")}
                     columns={[
                         {
                             key: "name",
-                            label: "Name",
+                            label: t("common:fields.name"),
                             render: (r) => (
                                 <>
                                     <div className="mono">
@@ -178,8 +180,8 @@ export default function Quotas() {
                                 </>
                             ),
                         },
-                        { key: "value", label: "Value", render: (r) => <span className="mono text-muted-foreground">value: {r.value}</span> },
-                        { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                        { key: "value", label: t("common:fields.value"), render: (r) => <span className="mono text-muted-foreground">value: {r.value}</span> },
+                        { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                     ]}
                 />
             </div>

@@ -59,6 +59,7 @@ import {
     Boxes,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
 import SearchBox from "@/components/SearchBox";
 import NamespaceFilter from "@/components/NamespaceFilter";
@@ -66,7 +67,16 @@ import SavedViews from "@/components/SavedViews";
 import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
 
+// Display labels for the rollout actions; the action id itself is sent to the API.
+const ROLLOUT_ACTION_KEYS = {
+    restart: "dialogs:workloads.rollout.actions.restart",
+    pause: "dialogs:workloads.rollout.actions.pause",
+    resume: "dialogs:workloads.rollout.actions.resume",
+    undo: "dialogs:workloads.rollout.actions.undo",
+};
+
 function RolloutDialog({ workload, onOpenChange }) {
+    const { t } = useTranslation();
     const [status, setStatus] = useState(null);
     const [busy, setBusy] = useState("");
 
@@ -85,10 +95,10 @@ function RolloutDialog({ workload, onOpenChange }) {
         setBusy(action);
         try {
             await api.post(`/workloads/${workload.namespace}/${workload.kind}/${encodeURIComponent(workload.name)}/rollout/${action}`);
-            toast.success(`${action} requested`);
+            toast.success(t("toasts:workloads.actionRequested", { action }));
             load();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.actionFailed", { action }), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -98,20 +108,20 @@ function RolloutDialog({ workload, onOpenChange }) {
         <Dialog open onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle className="mono text-sm">Rollout · {workload.name}</DialogTitle>
+                    <DialogTitle className="mono text-sm">{t("dialogs:workloads.rollout.title", { name: workload.name })}</DialogTitle>
                 </DialogHeader>
                 {status === null && <Skeleton className="h-40 rounded-xl bg-muted" />}
-                {status === false && <div className="py-8 text-center text-sm text-muted-foreground">Rollout not supported for {workload.kind}.</div>}
+                {status === false && <div className="py-8 text-center text-sm text-muted-foreground">{t("dialogs:workloads.rollout.notSupported", { kind: workload.kind })}</div>}
                 {status && (
                     <div className="space-y-4">
                         <div className="grid grid-cols-4 gap-3 text-center text-xs">
                             {[
-                                ["Status", status.status],
-                                ["Replicas", status.replicas],
-                                ["Ready", status.ready],
-                                ["Available", status.available],
-                            ].map(([label, value]) => (
-                                <div key={label} className="border-y border-border p-2.5">
+                                ["status", t("common:fields.status"), status.status],
+                                ["replicas", t("common:fields.replicas"), status.replicas],
+                                ["ready", t("common:fields.ready"), status.ready],
+                                ["available", t("dialogs:workloads.rollout.available"), status.available],
+                            ].map(([id, label, value]) => (
+                                <div key={id} className="border-y border-border p-2.5">
                                     <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</div>
                                     <div className="mono mt-1 truncate text-sm">{value}</div>
                                 </div>
@@ -119,16 +129,16 @@ function RolloutDialog({ workload, onOpenChange }) {
                         </div>
                         <SegmentedProgress
                             segments={[
-                                { key: "available", label: "Available", value: status.available, tone: "done" },
-                                { key: "updating", label: "Updating", value: Math.max(0, status.ready - status.available), tone: "active" },
-                                { key: "pending", label: "Pending", value: Math.max(0, status.replicas - status.ready), tone: "pending" },
+                                { key: "available", label: t("dialogs:workloads.rollout.available"), value: status.available, tone: "done" },
+                                { key: "updating", label: t("dialogs:workloads.rollout.updating"), value: Math.max(0, status.ready - status.available), tone: "active" },
+                                { key: "pending", label: t("dialogs:workloads.rollout.pending"), value: Math.max(0, status.replicas - status.ready), tone: "pending" },
                             ]}
                         />
                         {(status.history || []).length > 0 && (
                             <div className="rounded-xl border">
                                 {status.history.map((h) => (
                                     <div key={h.revision} className="flex items-center justify-between border-b px-3 py-2 text-xs last:border-none">
-                                        <span className="mono">rev {h.revision}</span>
+                                        <span className="mono">{t("dialogs:workloads.rollout.revision", { revision: h.revision })}</span>
                                         <span className="text-muted-foreground">{h.status}</span>
                                         <span className="mono text-muted-foreground">{h.age}</span>
                                     </div>
@@ -145,7 +155,7 @@ function RolloutDialog({ workload, onOpenChange }) {
                                     onClick={() => act(a)}
                                     className="rounded-xl bg-muted/30 capitalize"
                                 >
-                                    {a}
+                                    {t(ROLLOUT_ACTION_KEYS[a])}
                                 </Button>
                             ))}
                         </div>
@@ -160,6 +170,7 @@ function RolloutDialog({ workload, onOpenChange }) {
 const DNS_LABEL = /^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/;
 
 function ScaleDialog({ workload, onOpenChange, onDone }) {
+    const { t } = useTranslation();
     const [replicas, setReplicas] = useState(String(workload.desired ?? workload.ready ?? 1));
     const [busy, setBusy] = useState(false);
     const count = replicas.trim() === "" ? NaN : Number(replicas); // Number("") is 0, which would silently stop the workload
@@ -172,11 +183,11 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
             await api.post(`/workloads/${workload.namespace}/${workload.kind}/${encodeURIComponent(workload.name)}/scale`, {
                 replicas: count,
             });
-            toast.success(`${workload.name} scaled to ${replicas}`);
+            toast.success(t("toasts:workloads.scaled", { name: workload.name, replicas }));
             onOpenChange(false);
             onDone();
         } catch (e) {
-            toast.error("Scale failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.scaleFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -186,12 +197,12 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
         <Dialog open onOpenChange={onOpenChange}>
             <DialogContent className="max-w-xs">
                 <DialogHeader>
-                    <DialogTitle className="mono text-sm">Scale · {workload.name}</DialogTitle>
+                    <DialogTitle className="mono text-sm">{t("dialogs:workloads.scale.title", { name: workload.name })}</DialogTitle>
                 </DialogHeader>
-                <Input type="number" min={0} step={1} aria-label="Replicas" aria-invalid={!valid} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="bg-muted/30" />
+                <Input type="number" min={0} step={1} aria-label={t("common:fields.replicas")} aria-invalid={!valid} value={replicas} onChange={(e) => setReplicas(e.target.value)} className="bg-muted/30" />
                 <DialogFooter>
                     <Button onClick={submit} disabled={busy || !valid} className="rounded-xl">
-                        {busy ? "Scaling…" : "Scale"}
+                        {busy ? t("dialogs:workloads.scale.scaling") : t("dialogs:workloads.scale.submit")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -200,6 +211,7 @@ function ScaleDialog({ workload, onOpenChange, onDone }) {
 }
 
 function WorkloadActions({ w, onChanged, onScale, onRollout }) {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [busy, setBusy] = useState("");
     // A DaemonSet has no replica count in Kubernetes' own model — one Pod
@@ -212,10 +224,10 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
         setBusy(action);
         try {
             await api.post(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/${action}`);
-            toast.success(`${w.name}: ${action} requested`);
+            toast.success(t("toasts:workloads.workloadActionRequested", { name: w.name, action }));
             onChanged();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.actionFailed", { action }), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -223,18 +235,18 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
 
     const remove = async () => {
         const ok = await confirm({
-            title: `Delete ${w.kind} ${w.name}?`,
-            description: "This cannot be undone. Its pods will be removed too.",
-            confirmLabel: "Delete",
+            title: t("dialogs:workloads.delete.title", { kind: w.kind, name: w.name }),
+            description: t("dialogs:workloads.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         setBusy("delete");
         try {
             await api.delete(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}`);
-            toast.success(`${w.name} deleted`);
+            toast.success(t("toasts:workloads.deleted", { name: w.name }));
             onChanged();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.deleteFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -243,7 +255,7 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" disabled={!!busy} aria-label={`Actions for ${w.name}`} title={`Actions for ${w.name}`} className="h-8 w-8 p-0 text-muted-foreground">
+                <Button size="sm" variant="ghost" disabled={!!busy} aria-label={t("pages:workloads.actionsFor", { name: w.name })} title={t("pages:workloads.actionsFor", { name: w.name })} className="h-8 w-8 p-0 text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
@@ -251,36 +263,36 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
                 {!isDaemonSet && (
                     <>
                         <DropdownMenuItem onClick={() => act("start")}>
-                            <Play className="mr-2 h-3.5 w-3.5" /> Start
+                            <Play className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.start")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => act("stop")}>
-                            <Square className="mr-2 h-3.5 w-3.5" /> Stop
+                            <Square className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.stop")}
                         </DropdownMenuItem>
                     </>
                 )}
                 <DropdownMenuItem onClick={() => act("restart")}>
-                    <RotateCw className="mr-2 h-3.5 w-3.5" /> Restart
+                    <RotateCw className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.restart")}
                 </DropdownMenuItem>
                 {!isDaemonSet && (
                     <>
                         <DropdownMenuItem onClick={onScale}>
-                            <GitCommitHorizontal className="mr-2 h-3.5 w-3.5" /> Scale…
+                            <GitCommitHorizontal className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.scale")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={onRollout}>
-                            <Rocket className="mr-2 h-3.5 w-3.5" /> Rollout…
+                            <Rocket className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.rollout")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => act("seal")}>
-                            <Lock className="mr-2 h-3.5 w-3.5" /> Seal
+                            <Lock className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.seal")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => act("unseal")}>
-                            <Unlock className="mr-2 h-3.5 w-3.5" /> Unseal
+                            <Unlock className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.unseal")}
                         </DropdownMenuItem>
                     </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={remove} className="text-tone-red focus:text-tone-red">
-                    <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                    <Trash2 className="mr-2 h-3.5 w-3.5" /> {t("common:actions.delete")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -288,6 +300,7 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
 }
 
 function LaunchWizard({ open, onOpenChange, onLaunched }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({
         namespace: "default",
         name: "",
@@ -314,11 +327,11 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
         setBusy(true);
         try {
             await api.post("/workloads", form);
-            toast.success(`${form.name} launched`);
+            toast.success(t("toasts:workloads.launched", { name: form.name }));
             onOpenChange(false);
             onLaunched();
         } catch (e) {
-            toast.error("Launch failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.launchFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -330,7 +343,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
             const { data } = await api.post("/intent/parse", { intent });
             setIntentPreview(data);
         } catch (e) {
-            toast.error("Parse failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.parseFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -340,11 +353,11 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
         setBusy(true);
         try {
             await api.post("/intent/place", { intent });
-            toast.success("Workload placed from intent");
+            toast.success(t("toasts:workloads.placed"));
             onOpenChange(false);
             onLaunched();
         } catch (e) {
-            toast.error("Place failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:workloads.placeFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -366,7 +379,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Run workload</DialogTitle>
+                    <DialogTitle>{t("dialogs:workloads.launch.title")}</DialogTitle>
                 </DialogHeader>
                 <Tabs value={step} onValueChange={setStep}>
                     <Stepper
@@ -374,59 +387,59 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         active={step}
                         onSelect={setStep}
                         steps={[
-                            { key: "form", label: "Form" },
-                            { key: "intent", label: "Intent" },
-                            { key: "yaml", label: "Validate YAML" },
+                            { key: "form", label: t("dialogs:workloads.launch.steps.form") },
+                            { key: "intent", label: t("dialogs:workloads.launch.steps.intent") },
+                            { key: "yaml", label: t("dialogs:workloads.launch.steps.yaml") },
                         ]}
                     />
 
                     <TabsContent value="form" className="mt-4 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                                <Label htmlFor="workloads-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                                 <Input id="workloads-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-name" className="text-xs text-muted-foreground">Name</Label>
+                                <Label htmlFor="workloads-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                                 <Input id="workloads-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="checkout-worker" aria-invalid={!nameOk} aria-describedby={nameOk ? undefined : "workloads-name-err"} className="bg-muted/30" />
                                 {!nameOk && (
                                     <p id="workloads-name-err" className="text-xs text-tone-red">
-                                        Use lowercase letters, numbers and “-” (start and end with a letter or number, max 63).
+                                        {t("errors:workloads.dnsLabel")}
                                     </p>
                                 )}
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="workloads-image" className="text-xs text-muted-foreground">Image</Label>
+                            <Label htmlFor="workloads-image" className="text-xs text-muted-foreground">{t("common:fields.image")}</Label>
                             <Input id="workloads-image" value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="ghcr.io/zyvorai/checkout:v1" className="bg-muted/30" />
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-replicas" className="text-xs text-muted-foreground">Replicas</Label>
+                                <Label htmlFor="workloads-replicas" className="text-xs text-muted-foreground">{t("common:fields.replicas")}</Label>
                                 <Input id="workloads-replicas" type="number" min={1} value={form.replicas} onChange={(e) => set({ replicas: Number(e.target.value) })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-cpu" className="text-xs text-muted-foreground">CPU</Label>
+                                <Label htmlFor="workloads-cpu" className="text-xs text-muted-foreground">{t("common:fields.cpu")}</Label>
                                 <Input id="workloads-cpu" value={form.cpu} onChange={(e) => set({ cpu: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-memory" className="text-xs text-muted-foreground">Memory</Label>
+                                <Label htmlFor="workloads-memory" className="text-xs text-muted-foreground">{t("common:fields.memory")}</Label>
                                 <Input id="workloads-memory" value={form.memory} onChange={(e) => set({ memory: e.target.value })} className="bg-muted/30" />
                             </div>
                         </div>
                         <div className="flex items-center justify-between border-y border-border px-3 py-2.5">
                             <div className="space-y-1.5">
-                                <Label htmlFor="workloads-port" className="text-xs text-muted-foreground">Port</Label>
+                                <Label htmlFor="workloads-port" className="text-xs text-muted-foreground">{t("dialogs:workloads.launch.port")}</Label>
                                 <Input id="workloads-port" type="number" value={form.port} onChange={(e) => set({ port: Number(e.target.value) })} className="h-7 w-24 bg-muted/30" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <Label htmlFor="workloads-expose-service" className="text-xs text-muted-foreground">Expose service</Label>
-                                <Switch id="workloads-expose-service" aria-label="Expose service" checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
+                                <Label htmlFor="workloads-expose-service" className="text-xs text-muted-foreground">{t("dialogs:workloads.launch.exposeService")}</Label>
+                                <Switch id="workloads-expose-service" aria-label={t("dialogs:workloads.launch.exposeService")} checked={form.expose} onCheckedChange={(v) => set({ expose: v })} />
                             </div>
                         </div>
                         <DialogFooter>
                             <Button variant="brand" onClick={launchForm} disabled={busy || !form.name || !nameOk || !form.image} className="rounded-xl">
-                                {busy ? "Launching…" : "Launch"}
+                                {busy ? t("dialogs:workloads.launch.launching") : t("dialogs:workloads.launch.launch")}
                             </Button>
                         </DialogFooter>
                     </TabsContent>
@@ -450,10 +463,10 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         )}
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={parseIntent} disabled={busy || !intent} className="rounded-xl bg-muted/30">
-                                Preview
+                                {t("dialogs:workloads.launch.preview")}
                             </Button>
                             <Button onClick={placeIntent} disabled={busy || !intent} className="rounded-xl">
-                                {busy ? "Placing…" : "Place"}
+                                {busy ? t("dialogs:workloads.launch.placing") : t("dialogs:workloads.launch.place")}
                             </Button>
                         </DialogFooter>
                     </TabsContent>
@@ -473,19 +486,19 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                         </MacTerm>
                         {validation && (
                             <div className={`rounded-lg border px-3 py-2 text-xs ${validation.valid ? "border-soft-success-border bg-soft-success text-tone-green" : "border-soft-danger-border bg-soft-danger text-tone-red"}`}>
-                                {validation.valid ? `Valid ${validation.kind || "manifest"}` : (validation.errors || [validation.message]).join(", ")}
+                                {validation.valid ? (validation.kind ? t("dialogs:workloads.launch.validKind", { kind: validation.kind }) : t("dialogs:workloads.launch.validManifest")) : (validation.errors || [validation.message]).join(", ")}
                             </div>
                         )}
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={validate} disabled={busy || !manifest} className="rounded-xl bg-muted/30">
-                                Validate
+                                {t("dialogs:workloads.launch.validate")}
                             </Button>
                             <Button
                                 onClick={() => setApplyOpen(true)}
                                 disabled={!validation?.valid}
                                 className="rounded-xl"
                             >
-                                Apply
+                                {t("common:actions.apply")}
                             </Button>
                         </DialogFooter>
                     </TabsContent>
@@ -494,7 +507,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
             <ApplyManifestDialog
                 open={applyOpen}
                 onOpenChange={setApplyOpen}
-                title="Apply workload manifest"
+                title={t("dialogs:workloads.launch.applyTitle")}
                 initialManifest={manifest}
                 onApplied={() => {
                     setApplyOpen(false);
@@ -507,6 +520,7 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
 }
 
 export default function Workloads() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useUrlState("q", "");
@@ -524,10 +538,10 @@ export default function Workloads() {
         let alive = true;
         const tick = () => api.get("/workloads").then((r) => alive && setData(r.data));
         tick();
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -567,9 +581,9 @@ export default function Workloads() {
         const skipped = selected.size - targets.length;
         if (action === "delete") {
             const ok = await confirm({
-                title: `Delete ${targets.length} workload${targets.length === 1 ? "" : "s"}?`,
-                description: "This cannot be undone.",
-                confirmLabel: "Delete",
+                title: t("dialogs:workloads.bulkDelete.title", { count: targets.length }),
+                description: t("dialogs:workloads.bulkDelete.description"),
+                confirmLabel: t("common:actions.delete"),
             });
             if (!ok) return;
         }
@@ -583,9 +597,19 @@ export default function Workloads() {
                 )
             );
             const failed = results.filter((r) => r.status === "rejected").length;
-            const skippedNote = skipped > 0 ? ` (${skipped} selected item${skipped === 1 ? "" : "s"} no longer listed, skipped)` : "";
-            if (failed) toast.error(`${failed} of ${targets.length} ${action}s failed${skippedNote}`);
-            else toast.success(`${action === "delete" ? "Deleted" : "Restarted"} ${targets.length} workload${targets.length === 1 ? "" : "s"}${skippedNote}`);
+            const note = skipped > 0 ? t("toasts:workloads.skippedNote", { count: skipped }) : "";
+            if (failed)
+                toast.error(
+                    action === "delete"
+                        ? t("toasts:workloads.bulkDeleteFailed", { failed, total: targets.length, note })
+                        : t("toasts:workloads.bulkRestartFailed", { failed, total: targets.length, note })
+                );
+            else
+                toast.success(
+                    action === "delete"
+                        ? t("toasts:workloads.bulkDeleted", { count: targets.length, note })
+                        : t("toasts:workloads.bulkRestarted", { count: targets.length, note })
+                );
             setSelected(new Set());
             load();
         } finally {
@@ -605,36 +629,36 @@ export default function Workloads() {
     return (
         <div className="page">
             <PageHeader
-                title="Workloads"
-                description="Deployments, StatefulSets, DaemonSets, Pods and CronJobs across every namespace."
+                title={t("pages:workloads.title")}
+                description={t("pages:workloads.description")}
                 action={
                     <>
                         {selected.size > 0 && (
                             <div className="flex items-center gap-2 border-y border-border px-3 py-1.5">
-                                <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                                <span className="text-xs text-muted-foreground">{t("common:count.selected", { count: selected.size })}</span>
                                 <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("restart")} className="h-7 rounded-lg bg-muted/30 text-xs">
-                                    <RotateCw className="mr-1 h-3 w-3" /> Restart
+                                    <RotateCw className="mr-1 h-3 w-3" /> {t("pages:workloads.menu.restart")}
                                 </Button>
                                 <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkAction("delete")} className="h-7 rounded-lg border-soft-danger-border bg-soft-danger text-xs text-tone-red hover:bg-soft-danger">
-                                    <Trash2 className="mr-1 h-3 w-3" /> Delete
+                                    <Trash2 className="mr-1 h-3 w-3" /> {t("common:actions.delete")}
                                 </Button>
                             </div>
                         )}
                         <button type="button" className="btn btn-fill" onClick={() => setLaunchOpen(true)}>
-                            <Plus size={15} /> Run workload
+                            <Plus size={15} /> {t("pages:workloads.runWorkload")}
                         </button>
                     </>
                 }
                 tools={
                     <>
-                        <SearchBox placeholder="Search name or image" value={q} onChange={setQ} className="relative" />
+                        <SearchBox placeholder={t("pages:workloads.searchPlaceholder")} value={q} onChange={setQ} className="relative" />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <Select value={kind} onValueChange={setKind}>
-                            <SelectTrigger aria-label="Filter by kind" className="w-[160px] bg-muted/30">
-                                <SelectValue placeholder="Kind" />
+                            <SelectTrigger aria-label={t("pages:workloads.filterByKind")} className="w-[160px] bg-muted/30">
+                                <SelectValue placeholder={t("common:fields.kind")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All kinds</SelectItem>
+                                <SelectItem value="all">{t("pages:workloads.allKinds")}</SelectItem>
                                 {kinds.map((k) => (
                                     <SelectItem key={k} value={k}>
                                         {k}
@@ -656,26 +680,26 @@ export default function Workloads() {
             />
 
             <GlassCard className="overflow-hidden">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Workloads">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:workloads.title")}>
                     <Table>
                         <TableHeader className="sticky top-0 z-10 backdrop-blur-xl bg-background/60">
                             <TableRow className="hover:bg-transparent">
                                 <TableHead className="w-10">
                                     <Checkbox
-                                        aria-label="Select all workloads"
+                                        aria-label={t("pages:workloads.selectAll")}
                                         checked={rows.length > 0 && selected.size === rows.length}
                                         onCheckedChange={toggleAll}
                                     />
                                 </TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Namespace</TableHead>
-                                <TableHead>Kind</TableHead>
-                                <TableHead>Desired</TableHead>
-                                <TableHead>Ready</TableHead>
-                                <TableHead>Available</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Age</TableHead>
-                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                                <TableHead>{t("common:fields.name")}</TableHead>
+                                <TableHead>{t("common:fields.namespace")}</TableHead>
+                                <TableHead>{t("common:fields.kind")}</TableHead>
+                                <TableHead>{t("pages:workloads.columns.desired")}</TableHead>
+                                <TableHead>{t("common:fields.ready")}</TableHead>
+                                <TableHead>{t("pages:workloads.columns.available")}</TableHead>
+                                <TableHead>{t("common:fields.status")}</TableHead>
+                                <TableHead>{t("common:fields.age")}</TableHead>
+                                <TableHead><span className="sr-only">{t("common:fields.actions")}</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -685,7 +709,7 @@ export default function Workloads() {
                                     className="hover:bg-muted"
                                 >
                                     <TableCell>
-                                        <Checkbox aria-label={`Select workload ${w.name}`} checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
+                                        <Checkbox aria-label={t("pages:workloads.selectOne", { name: w.name })} checked={selected.has(key(w))} onCheckedChange={(v) => toggle(w, v)} />
                                     </TableCell>
                                     <TableCell className="max-w-xs">
                                         <Link
@@ -724,13 +748,13 @@ export default function Workloads() {
                                                 <Boxes className="h-5 w-5 text-muted-foreground" />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-medium">No workloads yet</div>
+                                                <div className="text-sm font-medium">{t("pages:workloads.empty.title")}</div>
                                                 <div className="mt-0.5 text-xs text-muted-foreground">
-                                                    Deployments, StatefulSets, DaemonSets and CronJobs will show up here once launched.
+                                                    {t("pages:workloads.empty.description")}
                                                 </div>
                                             </div>
                                             <Button variant="brand" size="sm" onClick={() => setLaunchOpen(true)} className="rounded-xl">
-                                                <Plus className="mr-1.5 h-3.5 w-3.5" /> Run your first workload
+                                                <Plus className="mr-1.5 h-3.5 w-3.5" /> {t("pages:workloads.empty.action")}
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -739,7 +763,7 @@ export default function Workloads() {
                             {rows.length === 0 && data.length > 0 && (
                                 <TableRow>
                                     <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
-                                        No workloads match the current filters.
+                                        {t("pages:workloads.noMatches")}
                                     </TableCell>
                                 </TableRow>
                             )}

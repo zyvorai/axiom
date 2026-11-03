@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { UserPlus, Trash2, ShieldCheck, Eye, Pencil, KeyRound, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { formatDate } from "@/lib/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { MFA } from "@/constants/testIds";
 
@@ -31,6 +33,7 @@ function parseNamespaces(text) {
 }
 
 function CreateUserDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("viewer");
@@ -46,7 +49,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                 role,
                 namespaces: role === "viewer" || role === "operator" ? parseNamespaces(namespacesText) : [],
             });
-            toast.success(`User ${username} created`);
+            toast.success(t("toasts:users.created", { name: username }));
             onOpenChange(false);
             setUsername("");
             setPassword("");
@@ -54,7 +57,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
             setNamespacesText("");
             onCreated();
         } catch (e) {
-            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:users.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -64,33 +67,33 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Add user</DialogTitle>
+                    <DialogTitle>{t("auth:users.addUser")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="users-username" className="text-xs text-muted-foreground">Username</Label>
+                        <Label htmlFor="users-username" className="text-xs text-muted-foreground">{t("auth:login.username")}</Label>
                         <Input id="users-username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="users-password" className="text-xs text-muted-foreground">Password (min 8 characters)</Label>
+                        <Label htmlFor="users-password" className="text-xs text-muted-foreground">{t("auth:users.passwordMin")}</Label>
                         <Input id="users-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="users-role" className="text-xs text-muted-foreground">Role</Label>
+                        <Label htmlFor="users-role" className="text-xs text-muted-foreground">{t("common:fields.role")}</Label>
                         <Select value={role} onValueChange={setRole}>
                             <SelectTrigger id="users-role" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="viewer">Viewer — read only</SelectItem>
-                                <SelectItem value="operator">Operator — day-2 writes, no user/cluster admin</SelectItem>
-                                <SelectItem value="admin">Admin — full access</SelectItem>
+                                <SelectItem value="viewer">{t("auth:users.roles.viewer")}</SelectItem>
+                                <SelectItem value="operator">{t("auth:users.roles.operator")}</SelectItem>
+                                <SelectItem value="admin">{t("auth:users.roles.admin")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
-                            <Label htmlFor="users-restrict-to-namespaces" className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Label htmlFor="users-restrict-to-namespaces" className="text-xs text-muted-foreground">{t("auth:users.restrict")}</Label>
                             <Input id="users-restrict-to-namespaces"
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
@@ -102,7 +105,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
                 </div>
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !username || password.length < 8}>
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("auth:users.creating") : t("common:actions.create")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -111,6 +114,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
 }
 
 function EditUserDialog({ user, onOpenChange, onUpdated }) {
+    const { t } = useTranslation();
     const [role, setRole] = useState(user?.role || "viewer");
     const [password, setPassword] = useState("");
     const [namespacesText, setNamespacesText] = useState("");
@@ -138,11 +142,11 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
         setBusy(true);
         try {
             await api.patch(`/users/${encodeURIComponent(user.username)}`, patch);
-            toast.success(`Updated ${user.username}`);
+            toast.success(t("toasts:users.updated", { name: user.username }));
             onOpenChange(false);
             onUpdated();
         } catch (e) {
-            toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:users.updateFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -152,25 +156,25 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
         <Dialog open={!!user} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Edit {user?.username}</DialogTitle>
+                    <DialogTitle>{t("auth:users.editTitle", { name: user?.username })}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="users-role-2" className="text-xs text-muted-foreground">Role</Label>
+                        <Label htmlFor="users-role-2" className="text-xs text-muted-foreground">{t("common:fields.role")}</Label>
                         <Select value={role} onValueChange={setRole}>
                             <SelectTrigger id="users-role-2" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="viewer">Viewer — read only</SelectItem>
-                                <SelectItem value="operator">Operator — day-2 writes, no user/cluster admin</SelectItem>
-                                <SelectItem value="admin">Admin — full access</SelectItem>
+                                <SelectItem value="viewer">{t("auth:users.roles.viewer")}</SelectItem>
+                                <SelectItem value="operator">{t("auth:users.roles.operator")}</SelectItem>
+                                <SelectItem value="admin">{t("auth:users.roles.admin")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     {(role === "viewer" || role === "operator") && (
                         <div className="space-y-1.5">
-                            <Label htmlFor="users-restrict-to-namespaces-2" className="text-xs text-muted-foreground">Restrict to namespaces (comma-separated, blank = all)</Label>
+                            <Label htmlFor="users-restrict-to-namespaces-2" className="text-xs text-muted-foreground">{t("auth:users.restrict")}</Label>
                             <Input id="users-restrict-to-namespaces-2"
                                 value={namespacesText}
                                 onChange={(e) => setNamespacesText(e.target.value)}
@@ -180,13 +184,13 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
                         </div>
                     )}
                     <div className="space-y-1.5">
-                        <Label htmlFor="users-new-password" className="text-xs text-muted-foreground">New password (leave blank to keep current)</Label>
-                        <Input id="users-new-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 characters" className="bg-muted/30" />
+                        <Label htmlFor="users-new-password" className="text-xs text-muted-foreground">{t("auth:users.newPassword")}</Label>
+                        <Input id="users-new-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth:users.newPasswordPlaceholder")} className="bg-muted/30" />
                     </div>
                 </div>
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || (password.length > 0 && password.length < 8)}>
-                        {busy ? "Saving…" : "Save"}
+                        {busy ? t("common:actions.saving") : t("common:actions.save")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -195,6 +199,7 @@ function EditUserDialog({ user, onOpenChange, onUpdated }) {
 }
 
 export default function Users() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -208,55 +213,55 @@ export default function Users() {
 
     const remove = async (u) => {
         const ok = await confirm({
-            title: `Delete user ${u.username}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:users.deleteTitle", { name: u.username }),
+            description: t("dialogs:users.deleteDescription"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/users/${encodeURIComponent(u.username)}`);
-            toast.success(`Deleted ${u.username}`);
+            toast.success(t("toasts:users.deleted", { name: u.username }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:users.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const resetMfa = async (u) => {
         const ok = await confirm({
-            title: `Reset two-factor for ${u.username}?`,
-            description: "They will be able to sign in with just their password and can set up two-factor again. Use this when someone has lost their device and recovery codes.",
-            confirmLabel: "Reset",
+            title: t("dialogs:users.resetMfaTitle", { name: u.username }),
+            description: t("dialogs:users.resetMfaDescription"),
+            confirmLabel: t("common:actions.reset"),
         });
         if (!ok) return;
         try {
             await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
-            toast.success(`Two-factor reset for ${u.username}`);
+            toast.success(t("toasts:users.mfaReset", { name: u.username }));
             load();
         } catch (e) {
-            toast.error("Reset failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:users.resetFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const revokeSessions = async (u) => {
         const ok = await confirm({
-            title: `Sign ${u.username} out everywhere?`,
-            description: "Every session this account has open is ended; they must sign in again.",
-            confirmLabel: "Sign out",
+            title: t("dialogs:users.revokeTitle", { name: u.username }),
+            description: t("dialogs:users.revokeDescription"),
+            confirmLabel: t("nav:userMenu.signOut"),
         });
         if (!ok) return;
         try {
             await api.post(`/users/${encodeURIComponent(u.username)}/revoke-sessions`);
-            toast.success(`${u.username} was signed out everywhere`);
+            toast.success(t("toasts:users.revoked", { name: u.username }));
         } catch (e) {
-            toast.error("Failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:users.failed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     if (!data) {
         return (
             <div className="page">
-                <PageHeader title="Users" />
+                <PageHeader title={t("pages:users.title")} />
                 <div className="flex flex-col gap-3.5">
                     <Skeleton className="h-16 rounded-2xl bg-muted" />
                     <Skeleton className="h-64 rounded-2xl bg-muted" />
@@ -268,28 +273,28 @@ export default function Users() {
     return (
         <div className="page">
             <PageHeader
-                title="Users"
-                description="Local accounts alongside SSO. Viewers can read every page but cannot create, change, or delete anything."
+                title={t("pages:users.title")}
+                description={t("pages:users.description")}
                 action={
                     <button type="button" className="btn btn-fill btn-sm" onClick={() => setCreateOpen(true)}>
-                        <UserPlus size={14} /> Add user
+                        <UserPlus size={14} /> {t("auth:users.addUser")}
                     </button>
                 }
             />
 
             <div className="card p-0">
                 {data.length === 0 ? (
-                    <div className="empty">No local accounts yet — the env-configured operator account signs in separately.</div>
+                    <div className="empty">{t("auth:users.empty")}</div>
                 ) : (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Namespaces</th>
-                                <th>Two-factor</th>
-                                <th>Created</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("auth:login.username")}</th>
+                                <th>{t("common:fields.role")}</th>
+                                <th>{t("auth:users.namespaces")}</th>
+                                <th>{t("auth:users.twoFactor")}</th>
+                                <th>{t("common:fields.created")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -312,33 +317,33 @@ export default function Users() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-[12.5px] text-ink-3">All namespaces</span>
+                                            <span className="text-[12.5px] text-ink-3">{t("nav:topbar.allNamespaces")}</span>
                                         )}
                                     </td>
                                     <td data-testid={MFA.usersBadge(u.username)}>
                                         {u.mfaEnabled ? (
                                             <span className="pill" style={{ "--c": "var(--green)" }}>
-                                                <ShieldCheck size={11} /> on
+                                                <ShieldCheck size={11} /> {t("auth:users.mfaOn")}
                                             </span>
                                         ) : (
-                                            <span className="text-[12.5px] text-ink-3">off</span>
+                                            <span className="text-[12.5px] text-ink-3">{t("auth:users.mfaOff")}</span>
                                         )}
                                     </td>
-                                    <td className="mono num">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
+                                    <td className="mono num">{u.createdAt ? formatDate(u.createdAt) : "—"}</td>
                                     <td>
                                         <div className="flex justify-end gap-1.5">
                                             {u.mfaEnabled && (
-                                                <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersReset(u.username)} aria-label={`Reset two-factor for ${u.username}`} title={`Reset two-factor for ${u.username}`} onClick={() => resetMfa(u)}>
+                                                <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersReset(u.username)} aria-label={t("auth:users.resetMfa", { name: u.username })} title={t("auth:users.resetMfa", { name: u.username })} onClick={() => resetMfa(u)}>
                                                     <KeyRound size={13} />
                                                 </button>
                                             )}
-                                            <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersRevoke(u.username)} aria-label={`Sign ${u.username} out everywhere`} title={`Sign ${u.username} out everywhere`} onClick={() => revokeSessions(u)}>
+                                            <button type="button" className="btn btn-line btn-sm" data-testid={MFA.usersRevoke(u.username)} aria-label={t("auth:users.revoke", { name: u.username })} title={t("auth:users.revoke", { name: u.username })} onClick={() => revokeSessions(u)}>
                                                 <LogOut size={13} />
                                             </button>
-                                            <button type="button" className="btn btn-line btn-sm" aria-label={`Edit user ${u.username}`} title={`Edit user ${u.username}`} onClick={() => setEditingUser(u)}>
+                                            <button type="button" className="btn btn-line btn-sm" aria-label={t("auth:users.edit", { name: u.username })} title={t("auth:users.edit", { name: u.username })} onClick={() => setEditingUser(u)}>
                                                 <Pencil size={13} />
                                             </button>
-                                            <button type="button" className="btn btn-danger btn-sm" aria-label={`Delete user ${u.username}`} title={`Delete user ${u.username}`} onClick={() => remove(u)}>
+                                            <button type="button" className="btn btn-danger btn-sm" aria-label={t("auth:users.delete", { name: u.username })} title={t("auth:users.delete", { name: u.username })} onClick={() => remove(u)}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </div>

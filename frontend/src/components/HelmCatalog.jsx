@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation, Trans } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -12,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HELM_CATALOG as T } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:helmCatalog.generic");
 
 // One-click suggestions for the repositories most people want. Axiom never
 // fetches any repository until an administrator adds it.
@@ -26,6 +28,7 @@ const SUGGESTED = [
 ];
 
 function RepoManager({ repos, onChanged, canWrite }) {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
@@ -35,12 +38,12 @@ function RepoManager({ repos, onChanged, canWrite }) {
         setBusy(true);
         try {
             await api.post("/helm/repos", { name: n, url: u });
-            toast.success(`Added repository ${n}`);
+            toast.success(t("toasts:helmCatalog.repoAdded", { name: n }));
             setName("");
             setUrl("");
             onChanged();
         } catch (e) {
-            toast.error("Could not add the repository", { description: errText(e) });
+            toast.error(t("toasts:helmCatalog.repoAddFailed"), { description: errText(e) });
         } finally {
             setBusy(false);
         }
@@ -48,27 +51,27 @@ function RepoManager({ repos, onChanged, canWrite }) {
 
     const remove = async (r) => {
         const ok = await confirm({
-            title: `Remove repository ${r.name}?`,
-            description: "Charts already installed from it keep running; they just stop appearing in the catalog.",
-            confirmLabel: "Remove",
+            title: t("dialogs:helmCatalog.removeRepo.title", { name: r.name }),
+            description: t("dialogs:helmCatalog.removeRepo.description"),
+            confirmLabel: t("common:actions.remove"),
         });
         if (!ok) return;
         try {
             await api.delete(`/helm/repos/${encodeURIComponent(r.name)}`);
-            toast.success(`Removed ${r.name}`);
+            toast.success(t("toasts:helmCatalog.repoRemoved", { name: r.name }));
             onChanged();
         } catch (e) {
-            toast.error("Remove failed", { description: errText(e) });
+            toast.error(t("toasts:helmCatalog.removeFailed"), { description: errText(e) });
         }
     };
 
     const known = new Set(repos.map((r) => r.name));
     return (
         <div className="card space-y-3 p-4">
-            <div className="text-sm font-medium">Repositories</div>
+            <div className="text-sm font-medium">{t("pages:helmCatalog.repositories")}</div>
             {repos.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                    No chart repositories yet. Axiom fetches a repository only after an administrator adds it.
+                    {t("pages:helmCatalog.noRepos")}
                 </p>
             ) : (
                 <ul className="divide-y divide-border">
@@ -80,9 +83,9 @@ function RepoManager({ repos, onChanged, canWrite }) {
                                 {r.error ? <div className="text-xs text-tone-red">{r.error}</div> : null}
                             </div>
                             <div className="flex shrink-0 items-center gap-2 text-xs text-ink-3">
-                                {r.chartCount ? <span>{r.chartCount} charts</span> : null}
+                                {r.chartCount ? <span>{t("pages:helmCatalog.chartCount", { n: r.chartCount })}</span> : null}
                                 {canWrite && (
-                                    <button type="button" className="btn btn-danger btn-sm" data-testid={T.repoRemove(r.name)} aria-label={`Remove repository ${r.name}`} onClick={() => remove(r)}>
+                                    <button type="button" className="btn btn-danger btn-sm" data-testid={T.repoRemove(r.name)} aria-label={t("pages:helmCatalog.removeRepoAria", { name: r.name })} onClick={() => remove(r)}>
                                         <Trash2 size={13} />
                                     </button>
                                 )}
@@ -101,19 +104,19 @@ function RepoManager({ repos, onChanged, canWrite }) {
                         }}
                     >
                         <div>
-                            <Label htmlFor="helm-repo-name" className="sr-only">Repository name</Label>
-                            <Input id="helm-repo-name" data-testid={T.repoName} value={name} onChange={(e) => setName(e.target.value)} placeholder="name" className="bg-muted/30" />
+                            <Label htmlFor="helm-repo-name" className="sr-only">{t("pages:helmCatalog.repoName")}</Label>
+                            <Input id="helm-repo-name" data-testid={T.repoName} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("pages:helmCatalog.repoNamePlaceholder")} className="bg-muted/30" />
                         </div>
                         <div>
-                            <Label htmlFor="helm-repo-url" className="sr-only">Repository URL</Label>
+                            <Label htmlFor="helm-repo-url" className="sr-only">{t("pages:helmCatalog.repoUrl")}</Label>
                             <Input id="helm-repo-url" data-testid={T.repoUrl} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://charts.example.com" className="bg-muted/30" />
                         </div>
                         <button type="submit" className="btn btn-fill btn-sm" data-testid={T.repoAdd} disabled={busy || !name || !url}>
-                            <Plus size={14} /> {busy ? "Adding…" : "Add"}
+                            <Plus size={14} /> {busy ? t("pages:helmCatalog.adding") : t("common:actions.add")}
                         </button>
                     </form>
                     <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-3">
-                        <span>Suggested:</span>
+                        <span>{t("pages:helmCatalog.suggested")}</span>
                         {SUGGESTED.filter((s) => !known.has(s.name)).map((s) => (
                             <button key={s.name} type="button" className="pill soft" data-testid={T.repoSuggest(s.name)} disabled={busy} onClick={() => add(s.name, s.url)}>
                                 + {s.name}
@@ -127,6 +130,7 @@ function RepoManager({ repos, onChanged, canWrite }) {
 }
 
 function ChartDialog({ chart, repo, onClose, onInstalled }) {
+    const { t } = useTranslation();
     const [detail, setDetail] = useState(null);
     const [version, setVersion] = useState("");
     const [vals, setVals] = useState(null); // {values, readme}
@@ -183,11 +187,11 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
                 chartVersion: version,
                 values,
             });
-            toast.success(`Install started for ${release}`, { description: "It runs as a background Job; the release appears under Releases once Helm finishes." });
+            toast.success(t("toasts:helmCatalog.installStarted", { name: release }), { description: t("toasts:helmCatalog.installStartedDescription") });
             onInstalled();
             onClose();
         } catch (e) {
-            toast.error("Install failed", { description: errText(e) });
+            toast.error(t("toasts:helmCatalog.installFailed"), { description: errText(e) });
         } finally {
             setBusy(false);
         }
@@ -201,14 +205,14 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
                 <DialogHeader>
                     <DialogTitle>{chart.name}</DialogTitle>
                     <DialogDescription>
-                        {chart.description || "No description."} · from <span className="mono">{chart.repo}</span>
+                        {chart.description || t("pages:helmCatalog.noDescription")} · <Trans i18nKey="dialogs:helmCatalog.chart.from" values={{ repo: chart.repo }} components={{ code: <span className="mono" /> }} />
                     </DialogDescription>
                 </DialogHeader>
 
-                <div tabIndex={0} role="region" aria-label="Chart install options" className="max-h-[65vh] space-y-4 overflow-y-auto pr-1">
+                <div tabIndex={0} role="region" aria-label={t("dialogs:helmCatalog.chart.optionsRegion")} className="max-h-[65vh] space-y-4 overflow-y-auto pr-1">
                 <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                        <Label htmlFor="helm-chart-version" className="text-xs text-muted-foreground">Version</Label>
+                        <Label htmlFor="helm-chart-version" className="text-xs text-muted-foreground">{t("common:fields.version")}</Label>
                         <select
                             id="helm-chart-version"
                             data-testid={T.versionSelect}
@@ -222,37 +226,37 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
                             {(versions.length ? versions : [{ version: chart.version }]).map((v) => (
                                 <option key={v.version} value={v.version}>
                                     {v.version}
-                                    {v.appVersion ? ` (app ${v.appVersion})` : ""}
-                                    {v.deprecated ? " — deprecated" : ""}
+                                    {v.appVersion ? t("dialogs:helmCatalog.chart.appSuffix", { version: v.appVersion }) : ""}
+                                    {v.deprecated ? t("dialogs:helmCatalog.chart.deprecatedSuffix") : ""}
                                 </option>
                             ))}
                         </select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="helm-chart-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                        <Label htmlFor="helm-chart-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                         <Input id="helm-chart-namespace" data-testid={T.namespace} value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5 sm:col-span-2">
-                        <Label htmlFor="helm-chart-release" className="text-xs text-muted-foreground">Release name</Label>
+                        <Label htmlFor="helm-chart-release" className="text-xs text-muted-foreground">{t("dialogs:helmCatalog.chart.releaseName")}</Label>
                         <Input id="helm-chart-release" data-testid={T.release} value={release} onChange={(e) => setRelease(e.target.value)} className="bg-muted/30" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Values (optional)</span>
+                        <span className="text-xs text-muted-foreground">{t("dialogs:helmCatalog.chart.values")}</span>
                         <button type="button" className="btn btn-line btn-sm" data-testid={T.showValues} onClick={loadValues} disabled={loadingVals}>
-                            <Download size={13} /> {loadingVals ? "Loading…" : vals ? "Reload defaults" : "Load default values"}
+                            <Download size={13} /> {loadingVals ? t("common:states.loading") : vals ? t("dialogs:helmCatalog.chart.reloadDefaults") : t("dialogs:helmCatalog.chart.loadDefaults")}
                         </button>
                     </div>
                     {valsError ? <p className="text-xs text-tone-red" role="alert">{valsError}</p> : null}
                     <MacTerm title="values.yaml" bodyClassName="!p-0">
                         <Textarea
-                            aria-label="Values YAML"
+                            aria-label={t("dialogs:helmCatalog.chart.valuesYaml")}
                             data-testid={T.valuesEditor}
                             value={values}
                             onChange={(e) => setValues(e.target.value)}
-                            placeholder="# leave empty for the chart defaults"
+                            placeholder={t("dialogs:helmCatalog.chart.valuesPlaceholder")}
                             className="macos-term-body mono min-h-[160px] resize-y rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
                             spellCheck={false}
                         />
@@ -260,15 +264,15 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
                     {vals?.readme ? (
                         <div>
                             <button type="button" className="text-xs text-tone-link underline" onClick={() => setShowReadme((v) => !v)}>
-                                {showReadme ? "Hide README" : "Show README"}
+                                {showReadme ? t("dialogs:helmCatalog.chart.hideReadme") : t("dialogs:helmCatalog.chart.showReadme")}
                             </button>
                             {showReadme ? (
-                                <pre tabIndex={0} role="region" aria-label="Chart README" className="mono mt-2 max-h-64 overflow-auto rounded-xl bg-muted p-3 text-xs" data-testid={T.readme}>{vals.readme}</pre>
+                                <pre tabIndex={0} role="region" aria-label={t("dialogs:helmCatalog.chart.readme")} className="mono mt-2 max-h-64 overflow-auto rounded-xl bg-muted p-3 text-xs" data-testid={T.readme}>{vals.readme}</pre>
                             ) : null}
                         </div>
                     ) : null}
                     <p className="text-[11px] text-muted-foreground">
-                        Runs as a background Job using Axiom&apos;s own permissions — the chart can only create resources Axiom itself is allowed to.
+                        {t("dialogs:helmCatalog.chart.permissionsNote")}
                     </p>
                 </div>
 
@@ -276,7 +280,7 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
 
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" data-testid={T.install} onClick={install} disabled={busy || !release || !namespace}>
-                        {busy ? "Starting…" : `Install ${version}`}
+                        {busy ? t("dialogs:helmCatalog.chart.starting") : t("dialogs:helmCatalog.chart.install", { version })}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -286,6 +290,7 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
 
 /** Browse and install charts from administrator-approved Helm repositories. */
 export default function HelmCatalog({ onInstalled }) {
+    const { t } = useTranslation();
     const { isViewer } = useAuth();
     const [repos, setRepos] = useState(null);
     const [repoFilter, setRepoFilter] = useState("");
@@ -329,8 +334,8 @@ export default function HelmCatalog({ onInstalled }) {
             setResult(null);
             return undefined;
         }
-        const t = setTimeout(search, 250);
-        return () => clearTimeout(t);
+        const timer = setTimeout(search, 250);
+        return () => clearTimeout(timer);
     }, [repos, search]);
 
     const repoByName = useMemo(() => Object.fromEntries((repos || []).map((r) => [r.name, r])), [repos]);
@@ -350,16 +355,16 @@ export default function HelmCatalog({ onInstalled }) {
                         <div className="relative min-w-[14rem] flex-1">
                             <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" aria-hidden="true" />
                             <Input
-                                aria-label="Search charts"
+                                aria-label={t("pages:helmCatalog.searchAria")}
                                 data-testid={T.search}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
-                                placeholder="Search charts by name, description or keyword"
+                                placeholder={t("pages:helmCatalog.searchPlaceholder")}
                                 className="bg-muted/30 pl-9"
                             />
                         </div>
-                        <select aria-label="Repository" data-testid={T.repoFilter} className="select" value={repoFilter} onChange={(e) => setRepoFilter(e.target.value)}>
-                            <option value="">All repositories</option>
+                        <select aria-label={t("pages:helmCatalog.repository")} data-testid={T.repoFilter} className="select" value={repoFilter} onChange={(e) => setRepoFilter(e.target.value)}>
+                            <option value="">{t("pages:helmCatalog.allRepositories")}</option>
                             {repos.map((r) => (
                                 <option key={r.name} value={r.name}>{r.name}</option>
                             ))}
@@ -368,13 +373,13 @@ export default function HelmCatalog({ onInstalled }) {
 
                     {errors.length > 0 && (
                         <div className="notice" role="status" data-testid={T.errors}>
-                            Some repositories could not be read: {errors.map(([n, m]) => `${n} (${m})`).join("; ")}
+                            {t("pages:helmCatalog.repoErrors", { list: errors.map(([n, m]) => `${n} (${m})`).join("; ") })}
                         </div>
                     )}
 
                     {loading && !result ? <Skeleton className="h-40 rounded-2xl bg-muted" /> : null}
                     {result && result.charts.length === 0 && !loading ? (
-                        <div className="card"><div className="empty" data-testid={T.empty}>No charts match.</div></div>
+                        <div className="card"><div className="empty" data-testid={T.empty}>{t("pages:helmCatalog.noMatch")}</div></div>
                     ) : null}
                     {result && result.charts.length > 0 && (
                         <>
@@ -391,17 +396,17 @@ export default function HelmCatalog({ onInstalled }) {
                                             <span className="text-[15px] font-semibold">{c.name}</span>
                                             <span className="mono shrink-0 text-xs text-ink-3">{c.version}</span>
                                         </div>
-                                        <p className="line-clamp-2 text-[12.5px] text-ink-3">{c.description || "No description."}</p>
+                                        <p className="line-clamp-2 text-[12.5px] text-ink-3">{c.description || t("pages:helmCatalog.noDescription")}</p>
                                         <div className="mt-auto flex items-center gap-2 pt-1 text-[11.5px] text-ink-3">
                                             <span className="pill soft">{c.repo}</span>
-                                            {c.appVersion ? <span>app {c.appVersion}</span> : null}
-                                            {c.deprecated ? <span className="text-tone-amber">deprecated</span> : null}
+                                            {c.appVersion ? <span>{t("pages:helmCatalog.appVersion", { version: c.appVersion })}</span> : null}
+                                            {c.deprecated ? <span className="text-tone-amber">{t("pages:helmCatalog.deprecated")}</span> : null}
                                         </div>
                                     </button>
                                 ))}
                             </div>
                             <p className="text-xs text-ink-3">
-                                Showing {result.charts.length} of {result.total} charts.
+                                {t("pages:helmCatalog.showing", { shown: result.charts.length, total: result.total })}
                             </p>
                         </>
                     )}

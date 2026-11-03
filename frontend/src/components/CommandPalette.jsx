@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
     SunMoon,
     Keyboard,
@@ -25,10 +26,10 @@ import {
 } from "@/components/ui/command";
 import { useCluster } from "@/lib/cluster";
 import { SHORTCUTS_EVENT } from "@/lib/shortcuts";
-import { THEME_LABELS, nextPreference, useTheme } from "@/lib/theme";
+import { nextPreference, useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
-import { NAV_ITEMS, resolveIcon } from "@/constants/navItems";
+import { NAV_ITEMS, resolveIcon, navLabel } from "@/constants/navItems";
 import { PALETTE } from "@/constants/testIds";
 
 export default function CommandPalette() {
@@ -45,6 +46,7 @@ export default function CommandPalette() {
     const [plugins, setPlugins] = useState([]);
     const [loadedResources, setLoadedResources] = useState(false);
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { clusters, activate } = useCluster();
     const { preference, setTheme } = useTheme();
     const { signOut } = useAuth();
@@ -94,7 +96,7 @@ export default function CommandPalette() {
     }, [open, loadedResources]);
 
     const navItems = [
-        ...NAV_ITEMS,
+        ...NAV_ITEMS.map((n) => ({ ...n, label: navLabel(t, n), english: n.label })),
         ...plugins.map((p) => ({ to: `/plugins/${p.name}`, label: p.displayName, icon: resolveIcon(p.icon) })),
     ];
 
@@ -105,14 +107,15 @@ export default function CommandPalette() {
 
     return (
         <CommandDialog open={open} onOpenChange={setOpen} data-testid={PALETTE.dialog}>
-            <CommandInput data-testid={PALETTE.input} placeholder="Jump to a page, pod, service, secret, VM, or action…" />
+            <CommandInput data-testid={PALETTE.input} placeholder={t("nav:palette.placeholder")} />
             <CommandList className="scrollbar-thin">
-                <CommandEmpty>Nothing found.</CommandEmpty>
-                <CommandGroup heading="Navigate">
-                    {navItems.map(({ to, label, icon: Icon }) => (
+                <CommandEmpty>{t("nav:palette.empty")}</CommandEmpty>
+                <CommandGroup heading={t("nav:palette.navigate")}>
+                    {navItems.map(({ to, label, english, icon: Icon }) => (
                         <CommandItem
                             key={to}
                             value={label}
+                            keywords={english && english !== label ? [english] : undefined}
                             data-testid={PALETTE.item(to.slice(1))}
                             onSelect={() => run(() => navigate(to))}
                         >
@@ -124,7 +127,7 @@ export default function CommandPalette() {
                 {pods.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Pods">
+                        <CommandGroup heading={t("nav:palette.pods")}>
                             {pods.map((p) => (
                                 <CommandItem
                                     key={`${p.namespace}/${p.name}`}
@@ -142,7 +145,7 @@ export default function CommandPalette() {
                 {workloads.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Workloads">
+                        <CommandGroup heading={t("nav:palette.workloads")}>
                             {workloads.map((w) => (
                                 <CommandItem
                                     key={`${w.namespace}/${w.kind}/${w.name}`}
@@ -162,7 +165,7 @@ export default function CommandPalette() {
                 {namespaces.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Namespaces">
+                        <CommandGroup heading={t("nav:palette.namespaces")}>
                             {namespaces.map((n) => (
                                 <CommandItem
                                     key={n.name}
@@ -171,7 +174,7 @@ export default function CommandPalette() {
                                 >
                                     <FolderTree className="mr-2 h-4 w-4 text-tone-link" />
                                     {n.name}
-                                    <span className="ml-auto text-xs text-muted-foreground">{n.pods ?? 0} pods</span>
+                                    <span className="ml-auto text-xs text-muted-foreground">{t("nav:palette.nsPods", { count: n.pods ?? 0 })}</span>
                                 </CommandItem>
                             ))}
                         </CommandGroup>
@@ -180,7 +183,7 @@ export default function CommandPalette() {
                 {services.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Services">
+                        <CommandGroup heading={t("nav:palette.services")}>
                             {services.map((s) => (
                                 <CommandItem
                                     key={`${s.namespace}/${s.name}`}
@@ -198,7 +201,7 @@ export default function CommandPalette() {
                 {configmaps.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="ConfigMaps">
+                        <CommandGroup heading={t("nav:palette.configmaps")}>
                             {configmaps.map((c) => (
                                 <CommandItem
                                     key={`${c.namespace}/${c.name}`}
@@ -216,7 +219,7 @@ export default function CommandPalette() {
                 {secrets.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Secrets">
+                        <CommandGroup heading={t("nav:palette.secrets")}>
                             {secrets.map((s) => (
                                 <CommandItem
                                     key={`${s.namespace}/${s.name}`}
@@ -234,7 +237,7 @@ export default function CommandPalette() {
                 {vms.length > 0 && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Virtual Machines">
+                        <CommandGroup heading={t("nav:palette.vms")}>
                             {vms.map((v) => (
                                 <CommandItem
                                     key={`${v.namespace}/${v.name}`}
@@ -252,7 +255,7 @@ export default function CommandPalette() {
                 {(jobs.length > 0 || cronJobs.length > 0) && (
                     <>
                         <CommandSeparator />
-                        <CommandGroup heading="Jobs">
+                        <CommandGroup heading={t("nav:palette.jobs")}>
                             {cronJobs.map((c) => (
                                 <CommandItem
                                     key={`cron/${c.namespace}/${c.name}`}
@@ -261,7 +264,7 @@ export default function CommandPalette() {
                                 >
                                     <CalendarClock className="mr-2 h-4 w-4 text-tone-link" />
                                     {c.name}
-                                    <span className="ml-auto text-xs text-muted-foreground">{c.namespace} · cron</span>
+                                    <span className="ml-auto text-xs text-muted-foreground">{t("nav:palette.cron", { namespace: c.namespace })}</span>
                                 </CommandItem>
                             ))}
                             {jobs.map((j) => (
@@ -279,7 +282,7 @@ export default function CommandPalette() {
                     </>
                 )}
                 <CommandSeparator />
-                <CommandGroup heading="Switch cluster">
+                <CommandGroup heading={t("nav:palette.switchCluster")}>
                     {clusters.map((c) => (
                         <CommandItem
                             key={c.name}
@@ -289,19 +292,19 @@ export default function CommandPalette() {
                         >
                             <Layers className="mr-2 h-4 w-4 text-tone-link" />
                             {c.label || c.name}
-                            <span className="ml-auto text-xs text-muted-foreground">{c.current ? "current" : ""}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{c.current ? t("nav:palette.current") : ""}</span>
                         </CommandItem>
                     ))}
                 </CommandGroup>
                 <CommandSeparator />
-                <CommandGroup heading="Actions">
+                <CommandGroup heading={t("nav:palette.actions")}>
                     <CommandItem
                         value="toggle theme"
                         data-testid={PALETTE.item("theme")}
                         onSelect={() => run(() => setTheme(nextPreference(preference)))}
                     >
                         <SunMoon className="mr-2 h-4 w-4 text-tone-amber" />
-                        Switch theme to {THEME_LABELS[nextPreference(preference)].toLowerCase()}
+                        {t(`nav:palette.switchTheme.${nextPreference(preference)}`)}
                     </CommandItem>
                     <CommandItem
                         value="keyboard shortcuts help"
@@ -309,7 +312,7 @@ export default function CommandPalette() {
                         onSelect={() => run(() => window.dispatchEvent(new Event(SHORTCUTS_EVENT)))}
                     >
                         <Keyboard className="mr-2 h-4 w-4 text-tone-link" />
-                        Keyboard shortcuts
+                        {t("nav:palette.shortcuts")}
                         <span className="ml-auto text-xs text-muted-foreground">?</span>
                     </CommandItem>
                     <CommandItem
@@ -323,7 +326,7 @@ export default function CommandPalette() {
                         }
                     >
                         <LogOut className="mr-2 h-4 w-4 text-tone-link" />
-                        Sign out
+                        {t("nav:palette.signOut")}
                     </CommandItem>
                 </CommandGroup>
             </CommandList>

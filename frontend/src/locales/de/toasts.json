@@ -1,0 +1,241 @@
+{
+  "users": {
+    "created": "Benutzer {{name}} erstellt",
+    "createFailed": "Erstellen fehlgeschlagen",
+    "updated": "{{name}} aktualisiert",
+    "updateFailed": "Aktualisieren fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "mfaReset": "Zwei-Faktor für {{name}} zurückgesetzt",
+    "resetFailed": "Zurücksetzen fehlgeschlagen",
+    "revoked": "{{name}} wurde überall abgemeldet",
+    "failed": "Fehlgeschlagen"
+  },
+  "settings": {
+    "saveFailed": "Speichern fehlgeschlagen",
+    "testFailed": "Test fehlgeschlagen",
+    "oidcSaved": "OIDC-Einstellungen gespeichert",
+    "oidcReachable": "OIDC erreichbar",
+    "oidcTestFailed": "OIDC-Test fehlgeschlagen",
+    "atlasSaved": "Atlas-Einstellungen gespeichert",
+    "atlasReachable": "Atlas erreichbar",
+    "atlasTestFailed": "Atlas-Test fehlgeschlagen",
+    "postgresSaved": "Postgres-Einstellungen gespeichert",
+    "postgresReachable": "Postgres erreichbar",
+    "postgresTestFailed": "Postgres-Test fehlgeschlagen",
+    "probeSaved": "Probe-Einstellungen gespeichert",
+    "probeReachable": "Probe erreichbar",
+    "probeTestFailed": "Probe-Test fehlgeschlagen",
+    "notifySaved": "Benachrichtigungseinstellungen gespeichert",
+    "slackSent": "Slack-Nachricht gesendet",
+    "slackTestFailed": "Slack-Test fehlgeschlagen",
+    "webhookDelivered": "Webhook zugestellt",
+    "webhookTestFailed": "Webhook-Test fehlgeschlagen",
+    "clusterRegistered": "Cluster {{name}} registriert",
+    "registerFailed": "Registrierung fehlgeschlagen"
+  },
+  "aiSettings": {
+    "saved": "Einstellungen des KI-Assistenten gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "reachable": "KI-Endpunkt erreichbar",
+    "aiTestFailed": "KI-Test fehlgeschlagen",
+    "testFailed": "Test fehlgeschlagen"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} erstellt",
+    "createFailed": "Erstellen fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap aktualisiert",
+    "updateFailed": "Aktualisierung fehlgeschlagen"
+  },
+  "secrets": {
+    "created": "Secret {{name}} erstellt",
+    "createFailed": "Erstellen fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "secretDetail": {
+    "revealFailed": "Anzeigen fehlgeschlagen",
+    "updated": "Secret aktualisiert",
+    "updateFailed": "Aktualisierung fehlgeschlagen"
+  },
+  "pluginView": {
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} erstellt",
+    "createFailed": "Erstellen fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "networking": {
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: Sperren angefordert",
+    "uncordonRequested": "{{name}}: Entsperren angefordert",
+    "drainRequested": "{{name}}: Leeren angefordert",
+    "cordonFailed": "Sperren fehlgeschlagen",
+    "uncordonFailed": "Entsperren fehlgeschlagen",
+    "drainFailed": "Leeren fehlgeschlagen",
+    "taintAdded": "Taint zu {{name}} hinzugefügt",
+    "addTaintFailed": "Hinzufügen des Taints fehlgeschlagen",
+    "taintRemoved": "Taint von {{name}} entfernt",
+    "removeTaintFailed": "Entfernen des Taints fehlgeschlagen"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} deinstalliert",
+      "uninstallFailed": "Deinstallation fehlgeschlagen",
+      "rolledBack": "{{name}} zurückgesetzt",
+      "rollbackFailed": "Zurücksetzen fehlgeschlagen",
+      "installStarted": "Installation von {{name}} gestartet",
+      "installFailed": "Installation fehlgeschlagen"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: Synchronisierung angefordert",
+      "syncFailed": "Synchronisierung fehlgeschlagen"
+    },
+    "agents": {
+      "approved": "{{name}}: genehmigt",
+      "denied": "{{name}}: abgelehnt",
+      "approveFailed": "Genehmigen fehlgeschlagen",
+      "denyFailed": "Ablehnen fehlgeschlagen"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} erstellt",
+      "createRoleFailed": "Erstellen der Role fehlgeschlagen",
+      "bindingCreated": "RoleBinding {{name}} erstellt",
+      "createBindingFailed": "Erstellen des RoleBindings fehlgeschlagen",
+      "deleted": "{{name}} gelöscht",
+      "deleteFailed": "Löschen fehlgeschlagen"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} angewendet",
+    "appliedNamed": "{{kind}} {{name}} angewendet"
+  },
+  "atlas": {
+    "volumeRequested": "Volume {{name}} angefordert",
+    "volumeRequestedDescription": "Die Bereitstellung läuft als asynchroner Job in Atlas.",
+    "createFailed": "Volume konnte nicht erstellt werden"
+  },
+  "autoscaling": {
+    "created": "HPA für {{name}} erstellt",
+    "createFailed": "HPA konnte nicht erstellt werden",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "backups": {
+    "backupRequested": "Backup {{name}} angefordert",
+    "createBackupFailed": "Backup konnte nicht erstellt werden",
+    "restoreRequested": "Wiederherstellung {{name}} angefordert",
+    "restoreFailed": "Wiederherstellung fehlgeschlagen",
+    "scheduleCreated": "Zeitplan {{name}} erstellt",
+    "createScheduleFailed": "Zeitplan konnte nicht erstellt werden",
+    "veleroRequested": "Velero-Backup {{name}} angefordert",
+    "veleroFailed": "Velero-Backup fehlgeschlagen"
+  },
+  "costPanels": {
+    "budgetSaved": "Budget für {{namespace}} gespeichert",
+    "budgetSaveFailed": "Das Budget konnte nicht gespeichert werden",
+    "budgetRemoved": "Budget für {{namespace}} entfernt",
+    "removeFailed": "Entfernen fehlgeschlagen",
+    "requestsUpdated": "Requests für {{target}} aktualisiert",
+    "requestsUpdatedDescription": "Der Workload wird mit den neuen Werten ausgerollt."
+  },
+  "gitops": {
+    "deleted": "{{name}} gelöscht",
+    "created": "{{name}} erstellt"
+  },
+  "helmCatalog": {
+    "repoAdded": "Repository {{name}} hinzugefügt",
+    "repoAddFailed": "Das Repository konnte nicht hinzugefügt werden",
+    "repoRemoved": "{{name}} entfernt",
+    "removeFailed": "Entfernen fehlgeschlagen",
+    "installStarted": "Installation von {{name}} gestartet",
+    "installStartedDescription": "Sie läuft als Job im Hintergrund; das Release erscheint unter Releases, sobald Helm fertig ist.",
+    "installFailed": "Installation fehlgeschlagen"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: Stoppen angefordert",
+    "stopFailed": "Stoppen fehlgeschlagen",
+    "startRequested": "{{name}}: Starten angefordert",
+    "startFailed": "Starten fehlgeschlagen",
+    "migrateRequested": "{{name}}: Migration angefordert",
+    "migrateFailed": "Migration fehlgeschlagen"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: Stoppen angefordert",
+    "stopFailed": "Stoppen fehlgeschlagen",
+    "startRequested": "{{name}}: Starten angefordert",
+    "startFailed": "Starten fehlgeschlagen",
+    "migrateRequested": "{{name}}: Migration angefordert",
+    "migrateFailed": "Migration fehlgeschlagen",
+    "requested": "Angefordert",
+    "createFailed": "Erstellen fehlgeschlagen",
+    "created": "VM {{name}} erstellt"
+  },
+  "debugContainer": {
+    "added": "Debug-Container {{container}} hinzugefügt",
+    "addFailed": "Debug-Container konnte nicht hinzugefügt werden"
+  },
+  "diffReview": {
+    "applyFailed": "Anwenden fehlgeschlagen",
+    "applied": "{{kind}} angewendet"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} ausgelöst",
+    "triggerFailed": "Auslösen fehlgeschlagen"
+  },
+  "jobs": {
+    "triggered": "{{name}} ausgelöst",
+    "triggerFailed": "Auslösen fehlgeschlagen",
+    "suspended": "{{name}} angehalten",
+    "resumed": "{{name}} fortgesetzt",
+    "updateFailed": "Aktualisierung fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "podDetail": {
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+    "evicted": "{{name}} entfernt",
+    "evictFailed": "Entfernen fehlgeschlagen"
+  },
+  "pods": {
+    "evicted": "{{name}} entfernt",
+    "evictFailed": "Entfernen fehlgeschlagen",
+    "skippedNote_one": " ({{count}} ausgewählter Pod nicht mehr aufgeführt, übersprungen)",
+    "skippedNote_other": " ({{count}} ausgewählte Pods nicht mehr aufgeführt, übersprungen)",
+    "bulkEvictFailed": "{{failed}} von {{total}} Entfernungen fehlgeschlagen{{note}}",
+    "bulkEvicted_one": "{{count}} Pod entfernt{{note}}",
+    "bulkEvicted_other": "{{count}} Pods entfernt{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} angefordert",
+    "actionFailed": "{{action}} fehlgeschlagen",
+    "workloadActionRequested": "{{name}}: {{action}} angefordert",
+    "scaled": "{{name}} auf {{replicas}} skaliert",
+    "scaleFailed": "Skalieren fehlgeschlagen",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "launched": "{{name}} gestartet",
+    "launchFailed": "Start fehlgeschlagen",
+    "parseFailed": "Auswertung fehlgeschlagen",
+    "placed": "Workload aus Absicht platziert",
+    "placeFailed": "Platzieren fehlgeschlagen",
+    "skippedNote_one": " ({{count}} ausgewähltes Element nicht mehr aufgeführt, übersprungen)",
+    "skippedNote_other": " ({{count}} ausgewählte Elemente nicht mehr aufgeführt, übersprungen)",
+    "bulkDeleteFailed": "{{failed}} von {{total}} Löschvorgängen fehlgeschlagen{{note}}",
+    "bulkRestartFailed": "{{failed}} von {{total}} Neustarts fehlgeschlagen{{note}}",
+    "bulkDeleted_one": "{{count}} Workload gelöscht{{note}}",
+    "bulkDeleted_other": "{{count}} Workloads gelöscht{{note}}",
+    "bulkRestarted_one": "{{count}} Workload neu gestartet{{note}}",
+    "bulkRestarted_other": "{{count}} Workloads neu gestartet{{note}}"
+  }
+}

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Download, KeyRound, LogOut, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import QRCode from "qrcode";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -10,13 +12,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:generic");
 
-function copy(text, what) {
+function copy(text, copiedMessage) {
     navigator.clipboard
         ?.writeText(text)
-        .then(() => toast.success(`${what} copied`))
-        .catch(() => toast.error("Could not copy — select the text and copy it manually"));
+        .then(() => toast.success(copiedMessage))
+        .catch(() => toast.error(i18n.t("auth:security.copyFailed")));
 }
 
 // Two-factor sign-in (TOTP) and sign-out-everywhere for the signed-in person's
@@ -24,6 +26,7 @@ function copy(text, what) {
 export default function AccountSecurityDialog({ open, onOpenChange }) {
     const { signOut } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [status, setStatus] = useState(null); // {available, enabled, recoveryCodes, managed}
     const [loadError, setLoadError] = useState("");
     const [phase, setPhase] = useState("idle"); // idle | enrol | recovery
@@ -94,7 +97,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
         try {
             await fn();
         } catch (e) {
-            toast.error("Failed", { description: errText(e) });
+            toast.error(t("auth:security.failed"), { description: errText(e) });
         } finally {
             setBusy(false);
         }
@@ -118,17 +121,17 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
     const disable = () =>
         act(async () => {
             await api.post("/auth/mfa/disable", { password: disPassword, code: disCode });
-            await leave("Two-factor sign-in turned off. Sign in again.");
+            await leave(t("auth:security.turnedOff"));
         });
 
     const signOutEverywhere = () =>
         act(async () => {
             await api.post("/auth/logout-all");
-            await leave("Signed out of every device.");
+            await leave(t("auth:security.signedOutAll"));
         });
 
     const downloadCodes = () => {
-        const blob = new Blob([`Axiom recovery codes\nEach code can be used once.\n\n${recovery.join("\n")}\n`], { type: "text/plain" });
+        const blob = new Blob([`${t("auth:security.codesFileHeader")}\n${t("auth:security.codesFileNote")}\n\n${recovery.join("\n")}\n`], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -141,21 +144,21 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
         <Dialog open={open} onOpenChange={(o) => phase === "recovery" ? null : onOpenChange(o)}>
             <DialogContent className="max-w-md" data-testid={MFA.dialog}>
                 <DialogHeader>
-                    <DialogTitle>Account security</DialogTitle>
-                    <DialogDescription>Two-factor sign-in and active sessions for your account.</DialogDescription>
+                    <DialogTitle>{t("auth:security.title")}</DialogTitle>
+                    <DialogDescription>{t("auth:security.description")}</DialogDescription>
                 </DialogHeader>
 
                 {loadError ? <p className="text-sm text-tone-red">{loadError}</p> : null}
-                {!status && !loadError ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+                {!status && !loadError ? <p className="text-sm text-muted-foreground">{t("common:states.loading")}</p> : null}
 
                 {status && !status.available ? (
                     <div className="space-y-2" data-testid={MFA.status}>
                         <p className="flex items-center gap-2 text-sm">
                             <ShieldCheck className="h-4 w-4 text-tone-green" aria-hidden="true" />
-                            {status.enabled ? "Two-factor sign-in is on." : "Two-factor sign-in is off."}
+                            {status.enabled ? t("auth:security.isOn") : t("auth:security.isOff")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                            This account&apos;s second factor is managed by {status.managed}.
+                            {t("auth:security.managedBy", { managed: status.managed })}
                         </p>
                     </div>
                 ) : null}
@@ -170,13 +173,13 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                     >
                         <p className="flex items-center gap-2 text-sm" data-testid={MFA.status}>
                             <ShieldOff className="h-4 w-4 text-tone-amber" aria-hidden="true" />
-                            Two-factor sign-in is off.
+                            {t("auth:security.isOff")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                            Add a one-time code from an authenticator app to your password. Confirm your password to start.
+                            {t("auth:security.setupIntro")}
                         </p>
                         <div className="space-y-1.5">
-                            <Label htmlFor="mfa-setup-password" className="text-xs text-muted-foreground">Password</Label>
+                            <Label htmlFor="mfa-setup-password" className="text-xs text-muted-foreground">{t("auth:login.password")}</Label>
                             <Input
                                 id="mfa-setup-password"
                                 data-testid={MFA.setupPassword}
@@ -188,7 +191,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                             />
                         </div>
                         <button type="submit" className="btn btn-fill" data-testid={MFA.setupStart} disabled={busy || !password}>
-                            <KeyRound size={14} /> {busy ? "Starting…" : "Set up two-factor"}
+                            <KeyRound size={14} /> {busy ? t("auth:security.starting") : t("auth:security.setUp")}
                         </button>
                     </form>
                 ) : null}
@@ -203,27 +206,27 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                     >
                         {qr ? (
                             <div className="flex flex-col items-center gap-1.5">
-                                <img src={qr} width={176} height={176} alt="QR code to scan with your authenticator app" data-testid={MFA.qr} className="rounded-lg" />
-                                <p className="text-xs text-muted-foreground">Scan with your authenticator app</p>
+                                <img src={qr} width={176} height={176} alt={t("auth:security.qrAlt")} data-testid={MFA.qr} className="rounded-lg" />
+                                <p className="text-xs text-muted-foreground">{t("auth:security.scan")}</p>
                             </div>
                         ) : null}
                         <p className="text-sm text-muted-foreground">
-                            {qr ? "Can't scan? " : ""}In your authenticator app choose <b>Add account</b> → <b>Enter a setup key</b>, and type this key (time-based, 6 digits):
+                            <Trans i18nKey={qr ? "auth:security.manualKeyQr" : "auth:security.manualKey"} components={{ b: <b /> }} />
                         </p>
                         <div className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2">
                             <code className="mono flex-1 break-all text-sm" data-testid={MFA.secret}>{setup.secret}</code>
                             <button
                                 type="button"
                                 className="btn btn-line btn-sm"
-                                aria-label="Copy setup key"
+                                aria-label={t("auth:security.copySetupKey")}
                                 data-testid={MFA.copySecret}
-                                onClick={() => copy(setup.secret.replace(/ /g, ""), "Setup key")}
+                                onClick={() => copy(setup.secret.replace(/ /g, ""), t("auth:security.setupKeyCopied"))}
                             >
                                 <Copy size={13} />
                             </button>
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="mfa-enable-code" className="text-xs text-muted-foreground">Code from the app</Label>
+                            <Label htmlFor="mfa-enable-code" className="text-xs text-muted-foreground">{t("auth:security.codeFromApp")}</Label>
                             <Input
                                 id="mfa-enable-code"
                                 data-testid={MFA.enableCode}
@@ -236,7 +239,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                             />
                         </div>
                         <button type="submit" className="btn btn-fill" data-testid={MFA.enableSubmit} disabled={busy || !code}>
-                            {busy ? "Checking…" : "Turn on two-factor"}
+                            {busy ? t("auth:security.checking") : t("auth:security.turnOn")}
                         </button>
                     </form>
                 ) : null}
@@ -244,7 +247,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                 {phase === "recovery" ? (
                     <div className="space-y-3">
                         <p className="text-sm">
-                            Two-factor sign-in is on. Save these recovery codes now — they are shown <b>only once</b>, and each works a single time if you lose your device.
+                            <Trans i18nKey="auth:security.saveCodes" components={{ b: <b /> }} />
                         </p>
                         <ul className="grid grid-cols-2 gap-1.5 rounded-xl bg-muted p-3" data-testid={MFA.recoveryCodes}>
                             {recovery.map((c) => (
@@ -252,16 +255,16 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                             ))}
                         </ul>
                         <div className="flex flex-wrap gap-2">
-                            <button type="button" className="btn btn-line btn-sm" onClick={() => copy(recovery.join("\n"), "Recovery codes")}>
-                                <Copy size={13} /> Copy
+                            <button type="button" className="btn btn-line btn-sm" onClick={() => copy(recovery.join("\n"), t("auth:security.recoveryCodesCopied"))}>
+                                <Copy size={13} /> {t("common:actions.copy")}
                             </button>
                             <button type="button" className="btn btn-line btn-sm" onClick={downloadCodes}>
-                                <Download size={13} /> Download
+                                <Download size={13} /> {t("common:actions.download")}
                             </button>
                         </div>
-                        <p className="text-xs text-muted-foreground">Your sessions were ended for safety; you will sign in again with a code.</p>
-                        <button type="button" className="btn btn-fill" data-testid={MFA.recoveryDone} onClick={() => leave("Two-factor sign-in is on. Sign in again.")}>
-                            I&apos;ve saved them
+                        <p className="text-xs text-muted-foreground">{t("auth:security.sessionsEnded")}</p>
+                        <button type="button" className="btn btn-fill" data-testid={MFA.recoveryDone} onClick={() => leave(t("auth:security.onSignInAgain"))}>
+                            {t("auth:security.saved")}
                         </button>
                     </div>
                 ) : null}
@@ -276,12 +279,12 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                     >
                         <p className="flex items-center gap-2 text-sm" data-testid={MFA.status}>
                             <ShieldCheck className="h-4 w-4 text-tone-green" aria-hidden="true" />
-                            Two-factor sign-in is on · {status.recoveryCodes} recovery {status.recoveryCodes === 1 ? "code" : "codes"} left
+                            {t("auth:security.onWithCodes", { count: status.recoveryCodes })}
                         </p>
-                        <p className="text-sm text-muted-foreground">To turn it off, confirm your password and a current code (or a recovery code).</p>
+                        <p className="text-sm text-muted-foreground">{t("auth:security.turnOffIntro")}</p>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1.5">
-                                <Label htmlFor="mfa-disable-password" className="text-xs text-muted-foreground">Password</Label>
+                                <Label htmlFor="mfa-disable-password" className="text-xs text-muted-foreground">{t("auth:login.password")}</Label>
                                 <Input
                                     id="mfa-disable-password"
                                     data-testid={MFA.disablePassword}
@@ -293,7 +296,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="mfa-disable-code" className="text-xs text-muted-foreground">Code</Label>
+                                <Label htmlFor="mfa-disable-code" className="text-xs text-muted-foreground">{t("auth:security.code")}</Label>
                                 <Input
                                     id="mfa-disable-code"
                                     data-testid={MFA.disableCode}
@@ -305,7 +308,7 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                             </div>
                         </div>
                         <button type="submit" className="btn btn-danger" data-testid={MFA.disableSubmit} disabled={busy || !disPassword || !disCode}>
-                            Turn off two-factor
+                            {t("auth:security.turnOff")}
                         </button>
                     </form>
                 ) : null}
@@ -313,10 +316,10 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                 {phase !== "recovery" ? (
                     <div className="mt-2 space-y-2 border-t border-border pt-3">
                         <p className="text-sm text-muted-foreground">
-                            Signed in somewhere you no longer trust? End every session for this account on every device.
+                            {t("auth:security.signOutAllIntro")}
                         </p>
                         <button type="button" className="btn btn-line btn-sm" data-testid={MFA.signOutAll} onClick={signOutEverywhere} disabled={busy}>
-                            <LogOut size={13} /> Sign out everywhere
+                            <LogOut size={13} /> {t("auth:security.signOutAll")}
                         </button>
                     </div>
                 ) : null}

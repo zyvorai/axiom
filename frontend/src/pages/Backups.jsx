@@ -1,5 +1,7 @@
 import { useEffect, useState, useId } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/i18n";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
@@ -66,6 +68,7 @@ function Field({ label, id, ...props }) {
 }
 
 function CreateBackupDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ namespace: "default", name: "", pvc: "", volumeSnapshotClass: "" });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -74,11 +77,11 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/backups", form);
-            toast.success(`Backup ${form.name} requested`);
+            toast.success(t("toasts:backups.backupRequested", { name: form.name }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Create backup failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:backups.createBackupFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -88,14 +91,14 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create volume snapshot</DialogTitle>
+                    <DialogTitle>{t("dialogs:backups.createSnapshot.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
-                    <Field label="Namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
-                    <Field label="Name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="postgres-nightly" />
-                    <Field label="PVC" value={form.pvc} onChange={(e) => set({ pvc: e.target.value })} placeholder="postgres-data" />
+                    <Field label={t("common:fields.namespace")} value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
+                    <Field label={t("common:fields.name")} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="postgres-nightly" />
+                    <Field label={t("dialogs:backups.createSnapshot.pvc")} value={form.pvc} onChange={(e) => set({ pvc: e.target.value })} placeholder="postgres-data" />
                     <Field
-                        label="VolumeSnapshotClass (optional)"
+                        label={t("dialogs:backups.createSnapshot.snapshotClass")}
                         value={form.volumeSnapshotClass}
                         onChange={(e) => set({ volumeSnapshotClass: e.target.value })}
                         placeholder="csi-rbd"
@@ -103,7 +106,7 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
                 </div>
                 <DialogFooter>
                     <Button variant="brand" onClick={submit} disabled={busy || !form.name || !form.pvc} className="rounded-xl">
-                        {busy ? "Requesting…" : "Create"}
+                        {busy ? t("dialogs:backups.requesting") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -112,6 +115,7 @@ function CreateBackupDialog({ open, onOpenChange, onCreated }) {
 }
 
 function RestoreDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ namespace: "default", snapshotName: "", pvcName: "", storageClass: "", size: "", accessModes: "ReadWriteOnce" });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -120,11 +124,11 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/backups/restore", { ...form, accessModes: form.accessModes ? [form.accessModes] : undefined });
-            toast.success(`Restore ${form.pvcName} requested`);
+            toast.success(t("toasts:backups.restoreRequested", { name: form.pvcName }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Restore failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:backups.restoreFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -134,21 +138,21 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Restore from snapshot</DialogTitle>
+                    <DialogTitle>{t("dialogs:backups.restore.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
-                    <Field label="Namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
-                    <Field label="Snapshot name" value={form.snapshotName} onChange={(e) => set({ snapshotName: e.target.value })} placeholder="postgres-nightly" />
-                    <Field label="New PVC name" value={form.pvcName} onChange={(e) => set({ pvcName: e.target.value })} placeholder="postgres-data-restored" />
+                    <Field label={t("common:fields.namespace")} value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
+                    <Field label={t("dialogs:backups.restore.snapshotName")} value={form.snapshotName} onChange={(e) => set({ snapshotName: e.target.value })} placeholder="postgres-nightly" />
+                    <Field label={t("dialogs:backups.restore.pvcName")} value={form.pvcName} onChange={(e) => set({ pvcName: e.target.value })} placeholder="postgres-data-restored" />
                     <div className="grid grid-cols-2 gap-3">
-                        <Field label="Size" value={form.size} onChange={(e) => set({ size: e.target.value })} placeholder="200Gi" />
-                        <Field label="Access mode" value={form.accessModes} onChange={(e) => set({ accessModes: e.target.value })} placeholder="ReadWriteOnce" />
+                        <Field label={t("dialogs:backups.restore.size")} value={form.size} onChange={(e) => set({ size: e.target.value })} placeholder="200Gi" />
+                        <Field label={t("dialogs:backups.restore.accessMode")} value={form.accessModes} onChange={(e) => set({ accessModes: e.target.value })} placeholder="ReadWriteOnce" />
                     </div>
-                    <Field label="StorageClass (optional)" value={form.storageClass} onChange={(e) => set({ storageClass: e.target.value })} />
+                    <Field label={t("dialogs:backups.restore.storageClass")} value={form.storageClass} onChange={(e) => set({ storageClass: e.target.value })} />
                 </div>
                 <DialogFooter>
                     <Button onClick={submit} disabled={busy || !form.snapshotName || !form.pvcName} className="rounded-xl">
-                        {busy ? "Requesting…" : "Restore"}
+                        {busy ? t("dialogs:backups.requesting") : t("dialogs:backups.restore.submit")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -157,6 +161,7 @@ function RestoreDialog({ open, onOpenChange, onCreated }) {
 }
 
 function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ namespace: "velero", name: "", schedule: "0 2 * * *", ttl: "" });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -165,11 +170,11 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/velero/schedules", form);
-            toast.success(`Schedule ${form.name} created`);
+            toast.success(t("toasts:backups.scheduleCreated", { name: form.name }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Create schedule failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:backups.createScheduleFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -179,17 +184,17 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>New Velero schedule</DialogTitle>
+                    <DialogTitle>{t("dialogs:backups.schedule.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
-                    <Field label="Namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
-                    <Field label="Name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="nightly-backup" />
-                    <Field label="Cron schedule" value={form.schedule} onChange={(e) => set({ schedule: e.target.value })} placeholder="0 2 * * *" />
-                    <Field label="TTL (optional)" value={form.ttl} onChange={(e) => set({ ttl: e.target.value })} placeholder="720h0m0s" />
+                    <Field label={t("common:fields.namespace")} value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} />
+                    <Field label={t("common:fields.name")} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="nightly-backup" />
+                    <Field label={t("dialogs:backups.schedule.cron")} value={form.schedule} onChange={(e) => set({ schedule: e.target.value })} placeholder="0 2 * * *" />
+                    <Field label={t("dialogs:backups.ttl")} value={form.ttl} onChange={(e) => set({ ttl: e.target.value })} placeholder="720h0m0s" />
                 </div>
                 <DialogFooter>
                     <Button onClick={submit} disabled={busy || !form.name || !form.schedule} className="rounded-xl">
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:backups.creating") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -198,6 +203,7 @@ function CreateScheduleDialog({ open, onOpenChange, onCreated }) {
 }
 
 export default function Backups() {
+    const { t } = useTranslation();
     const [snapshots, setSnapshots] = useState(null);
     const [veleroBackups, setVeleroBackups] = useState(null);
     const [veleroSchedules, setVeleroSchedules] = useState(null);
@@ -237,65 +243,65 @@ export default function Backups() {
     return (
         <div className="page">
             <PageHeader
-                title="Backups"
-                description="VolumeSnapshots and Velero cluster backups."
+                title={t("pages:backups.title")}
+                description={t("pages:backups.description")}
                 action={
                     <>
                         <button type="button" className="btn btn-sm btn-line" onClick={() => setRestoreOpen(true)}>
-                            <Undo2 size={14} /> Restore
+                            <Undo2 size={14} /> {t("pages:backups.restore")}
                         </button>
                         <button type="button" className="btn btn-sm btn-line" onClick={() => setVeleroOpen(true)}>
-                            <Archive size={14} /> Velero backup
+                            <Archive size={14} /> {t("pages:backups.veleroBackup")}
                         </button>
                         <button type="button" className="btn btn-sm btn-fill" onClick={() => setCreateOpen(true)}>
-                            <Plus size={14} /> Create snapshot
+                            <Plus size={14} /> {t("pages:backups.createSnapshot")}
                         </button>
                     </>
                 }
             />
 
             <Section
-                title="Volume snapshots"
+                title={t("pages:backups.snapshots.title")}
                 icon={Snowflake}
                 rows={snapshots}
-                empty="No volume snapshots."
+                empty={t("pages:backups.snapshots.empty")}
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace} · {r.pvc}</div></> },
+                    { key: "name", label: t("common:fields.name"), render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace} · {r.pvc}</div></> },
                     { key: "volumeSnapshotClass", label: "VolumeSnapshotClass", render: (r) => <span className="mono num">{r.volumeSnapshotClass}</span> },
-                    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                    { key: "status", label: t("common:fields.status"), render: (r) => <StatusBadge status={r.status} /> },
+                    { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
             <Section
-                title="Velero backups"
+                title={t("pages:backups.veleroBackups.title")}
                 icon={Archive}
                 rows={veleroBackups || []}
-                empty="No Velero backups."
+                empty={t("pages:backups.veleroBackups.empty")}
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
-                    { key: "namespaces", label: "Namespaces", render: (r) => <span className="mono num">{r.namespaces}</span> },
-                    { key: "phase", label: "Phase", render: (r) => <StatusBadge status={r.phase} /> },
-                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                    { key: "name", label: t("common:fields.name"), render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
+                    { key: "namespaces", label: t("pages:backups.columns.namespaces"), render: (r) => <span className="mono num">{r.namespaces}</span> },
+                    { key: "phase", label: t("pages:backups.columns.phase"), render: (r) => <StatusBadge status={r.phase} /> },
+                    { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
             <Section
-                title="Velero schedules"
+                title={t("pages:backups.veleroSchedules.title")}
                 icon={CalendarClock}
                 rows={veleroSchedules || []}
-                empty="No Velero schedules."
+                empty={t("pages:backups.veleroSchedules.empty")}
                 action={
                     <button type="button" className="btn btn-sm btn-line" onClick={() => setScheduleOpen(true)}>
-                        <Plus size={13} /> New schedule
+                        <Plus size={13} /> {t("pages:backups.newSchedule")}
                     </button>
                 }
                 columns={[
-                    { key: "name", label: "Name", render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
-                    { key: "schedule", label: "Schedule", render: (r) => <span className="mono num">{r.schedule}</span> },
-                    { key: "paused", label: "Status", render: (r) => <StatusBadge status={r.paused ? "Paused" : "Running"} /> },
-                    { key: "lastBackup", label: "Last backup", render: (r) => <span className="mono num">{r.lastBackup ? new Date(r.lastBackup).toLocaleString() : "—"}</span> },
-                    { key: "age", label: "Age", render: (r) => <span className="mono num">{r.age}</span> },
+                    { key: "name", label: t("common:fields.name"), render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
+                    { key: "schedule", label: t("pages:backups.columns.schedule"), render: (r) => <span className="mono num">{r.schedule}</span> },
+                    { key: "paused", label: t("common:fields.status"), render: (r) => <StatusBadge status={r.paused ? "Paused" : "Running"} /> },
+                    { key: "lastBackup", label: t("pages:backups.columns.lastBackup"), render: (r) => <span className="mono num">{r.lastBackup ? formatDate(r.lastBackup) : "—"}</span> },
+                    { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
                 ]}
             />
 
@@ -305,17 +311,17 @@ export default function Backups() {
             <Dialog open={veleroOpen} onOpenChange={setVeleroOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Create Velero backup</DialogTitle>
+                        <DialogTitle>{t("dialogs:backups.velero.title")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
-                        <Field label="Namespace" value={veleroForm.namespace} onChange={(e) => setVeleroForm((f) => ({ ...f, namespace: e.target.value }))} />
-                        <Field label="Name" value={veleroForm.name} onChange={(e) => setVeleroForm((f) => ({ ...f, name: e.target.value }))} placeholder="on-demand-1" />
+                        <Field label={t("common:fields.namespace")} value={veleroForm.namespace} onChange={(e) => setVeleroForm((f) => ({ ...f, namespace: e.target.value }))} />
+                        <Field label={t("common:fields.name")} value={veleroForm.name} onChange={(e) => setVeleroForm((f) => ({ ...f, name: e.target.value }))} placeholder="on-demand-1" />
                         <Field
-                            label="Included namespaces (comma-separated or *)"
+                            label={t("dialogs:backups.velero.included")}
                             value={veleroForm.includedNamespaces}
                             onChange={(e) => setVeleroForm((f) => ({ ...f, includedNamespaces: e.target.value }))}
                         />
-                        <Field label="TTL (optional)" value={veleroForm.ttl} onChange={(e) => setVeleroForm((f) => ({ ...f, ttl: e.target.value }))} placeholder="720h0m0s" />
+                        <Field label={t("dialogs:backups.ttl")} value={veleroForm.ttl} onChange={(e) => setVeleroForm((f) => ({ ...f, ttl: e.target.value }))} placeholder="720h0m0s" />
                     </div>
                     <DialogFooter>
                         <Button
@@ -335,17 +341,17 @@ export default function Backups() {
                                         includedNamespaces: included,
                                         ttl: veleroForm.ttl || undefined,
                                     });
-                                    toast.success(`Velero backup ${veleroForm.name} requested`);
+                                    toast.success(t("toasts:backups.veleroRequested", { name: veleroForm.name }));
                                     setVeleroOpen(false);
                                     load();
                                 } catch (e) {
-                                    toast.error("Velero backup failed", { description: e?.response?.data?.error || e.message });
+                                    toast.error(t("toasts:backups.veleroFailed"), { description: e?.response?.data?.error || e.message });
                                 } finally {
                                     setVeleroBusy(false);
                                 }
                             }}
                         >
-                            {veleroBusy ? "Creating…" : "Create"}
+                            {veleroBusy ? t("dialogs:backups.creating") : t("common:actions.create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

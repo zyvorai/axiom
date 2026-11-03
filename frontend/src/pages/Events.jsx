@@ -18,16 +18,19 @@ import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
 import { History } from "lucide-react";
 import { timelineHref } from "@/lib/troubleshoot";
+import { useTranslation } from "react-i18next";
+import { dateFnsLocale } from "@/lib/i18n";
 
 function relTime(iso) {
     try {
-        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
+        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: dateFnsLocale() });
     } catch {
         return iso;
     }
 }
 
 export default function Events() {
+    const { t } = useTranslation();
     const [events, setEvents] = useState(null);
     const [q, setQ] = useUrlState("q", "");
     const [type, setType] = useUrlState("type", "all");
@@ -37,10 +40,10 @@ export default function Events() {
         let alive = true;
         const load = () => api.get("/events").then((r) => alive && setEvents(r.data));
         load();
-        const t = setInterval(load, 8000);
+        const timer = setInterval(load, 8000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -71,20 +74,20 @@ export default function Events() {
     return (
         <div data-testid={EVENTS.root} className="page">
             <PageHeader
-                title="Events"
-                description="Kubernetes event stream, most recent first."
+                title={t("pages:events.title")}
+                description={t("pages:events.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search reason, message or object" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:events.search")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <Select value={type} onValueChange={setType}>
-                            <SelectTrigger aria-label="Filter by event type" className="w-[150px] bg-muted/30">
-                                <SelectValue placeholder="Type" />
+                            <SelectTrigger aria-label={t("pages:events.filterType")} className="w-[150px] bg-muted/30">
+                                <SelectValue placeholder={t("common:fields.type")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All types</SelectItem>
-                                <SelectItem value="Warning">Warning</SelectItem>
-                                <SelectItem value="Normal">Normal</SelectItem>
+                                <SelectItem value="all">{t("pages:events.allTypes")}</SelectItem>
+                                <SelectItem value="Warning">{t("common:status.Warning")}</SelectItem>
+                                <SelectItem value="Normal">{t("common:status.Normal")}</SelectItem>
                             </SelectContent>
                         </Select>
                         <SavedViews
@@ -100,23 +103,23 @@ export default function Events() {
                 }
                 action={
                     <Link to="/timeline" data-testid={TIMELINE.eventsLink} className="btn btn-line">
-                        <History size={15} /> Open timeline
+                        <History size={15} /> {t("pages:events.openTimeline")}
                     </Link>
                 }
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Events">
+                <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:events.title")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Type</th>
-                                <th>Reason</th>
-                                <th>Message</th>
-                                <th>Object</th>
-                                <th>Count</th>
-                                <th>Age</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("common:fields.type")}</th>
+                                <th>{t("common:fields.reason")}</th>
+                                <th>{t("common:fields.message")}</th>
+                                <th>{t("common:fields.object")}</th>
+                                <th>{t("common:fields.count")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -139,8 +142,8 @@ export default function Events() {
                                             )}{" "}
                                             <Link
                                                 to={timelineHref({ namespace: e.namespace, object: e.object })}
-                                                aria-label={`What changed for ${e.object}`}
-                                                title="What changed"
+                                                aria-label={t("pages:events.whatChangedFor", { object: e.object })}
+                                                title={t("pages:events.whatChanged")}
                                                 className="text-ink-3 hover:text-ink"
                                             >
                                                 <History size={12} className="inline" aria-hidden="true" />
@@ -162,7 +165,7 @@ export default function Events() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={7}>
-                                        <div className="empty">{events.length ? "No events match the current filters." : "No recent events."}</div>
+                                        <div className="empty">{events.length ? t("pages:events.noMatches") : t("pages:events.empty")}</div>
                                     </td>
                                 </tr>
                             )}

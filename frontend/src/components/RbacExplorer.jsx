@@ -1,5 +1,7 @@
 import { Fragment, useEffect, useId, useMemo, useState } from "react";
 import { Search, ShieldAlert, ShieldCheck, Users, User, Bot } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -13,29 +15,31 @@ import { RBAC } from "@/constants/testIds";
 const KIND_ICON = { User, Group: Users, ServiceAccount: Bot };
 
 function errorText(e) {
-    return e?.response?.data?.error || e?.message || "Request failed";
+    return e?.response?.data?.error || e?.message || i18n.t("errors:rbac.requestFailed");
 }
 
 function Denied({ status }) {
+    const { t } = useTranslation();
     return (
         <div className="empty" data-testid={RBAC.denied} role="status">
             {status === 403
-                ? "The RBAC viewer lists every subject's permissions, so it needs the operator or admin role and an account that is not limited to namespaces."
-                : "Could not load RBAC data."}
+                ? t("pages:rbac.denied")
+                : t("pages:rbac.loadFailed")}
         </div>
     );
 }
 
 function RuleList({ rules }) {
-    if (!rules || rules.length === 0) return <div className="text-[12.5px] text-ink-3">No rules (the referenced role is empty or missing).</div>;
+    const { t } = useTranslation();
+    if (!rules || rules.length === 0) return <div className="text-[12.5px] text-ink-3">{t("pages:rbac.noRules")}</div>;
     return (
-        <div className="max-h-[260px] overflow-auto" tabIndex={0} role="region" aria-label="Rules">
+        <div className="max-h-[260px] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:rbac.rules")}>
             <table className="tbl">
                 <thead>
                     <tr>
-                        <th>API groups</th>
-                        <th>Resources</th>
-                        <th>Verbs</th>
+                        <th>{t("pages:rbac.columns.apiGroups")}</th>
+                        <th>{t("pages:rbac.columns.resources")}</th>
+                        <th>{t("pages:rbac.columns.verbs")}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +48,7 @@ function RuleList({ rules }) {
                             <td className="mono wrap">{(r.apiGroups || []).map((g) => g || "core").join(", ") || (r.nonResourceURLs || []).join(", ") || "—"}</td>
                             <td className="mono wrap">
                                 {(r.resources || []).join(", ") || "—"}
-                                {r.resourceNames && r.resourceNames.length > 0 && <small>names: {r.resourceNames.join(", ")}</small>}
+                                {r.resourceNames && r.resourceNames.length > 0 && <small>{t("pages:rbac.names", { names: r.resourceNames.join(", ") })}</small>}
                             </td>
                             <td className="mono wrap">{(r.verbs || []).join(", ")}</td>
                         </tr>
@@ -56,21 +60,30 @@ function RuleList({ rules }) {
 }
 
 function GrantCard({ g }) {
+    const { t } = useTranslation();
     return (
         <div className="card p-0" data-testid={RBAC.grant(g.binding)}>
             <div className="panel-h">
                 <div className="min-w-0">
                     <div className="mono truncate text-[13px]">{g.binding}</div>
                     <div className="text-[12px] text-ink-3">
-                        grants <span className="mono">{g.roleRef}</span>
-                        {g.scope === "namespace" ? <> in <span className="mono">{g.namespace}</span></> : " in every namespace"}
-                        {g.via && <> · via implicit group <span className="mono">{g.via}</span></>}
+                        {g.scope === "namespace" ? (
+                            <Trans i18nKey="pages:rbac.grantsIn" values={{ role: g.roleRef, namespace: g.namespace }} components={{ code: <span className="mono" /> }} />
+                        ) : (
+                            <Trans i18nKey="pages:rbac.grantsEverywhere" values={{ role: g.roleRef }} components={{ code: <span className="mono" /> }} />
+                        )}
+                        {g.via && (
+                            <>
+                                {" "}
+                                <Trans i18nKey="pages:rbac.viaGroup" values={{ group: g.via }} components={{ code: <span className="mono" /> }} />
+                            </>
+                        )}
                     </div>
                 </div>
                 {g.dangling && (
                     <span className="pill" style={{ "--c": "var(--orange)" }}>
                         <i aria-hidden="true" />
-                        role missing
+                        {t("pages:rbac.roleMissing")}
                     </span>
                 )}
             </div>
@@ -80,6 +93,7 @@ function GrantCard({ g }) {
 }
 
 function SubjectDetail({ subject, onClose }) {
+    const { t } = useTranslation();
     const [state, setState] = useState({ loading: true });
     useEffect(() => {
         let alive = true;
@@ -101,7 +115,7 @@ function SubjectDetail({ subject, onClose }) {
                     {subject.kind} <span className="mono">{subject.namespace ? `${subject.namespace}/` : ""}{subject.name}</span>
                 </h3>
                 <button type="button" className="btn btn-line btn-sm ml-auto" onClick={onClose}>
-                    Close
+                    {t("common:actions.close")}
                 </button>
             </div>
             {state.loading && <Skeleton className="h-32 rounded-2xl bg-muted" />}
@@ -110,16 +124,16 @@ function SubjectDetail({ subject, onClose }) {
                 <>
                     {state.data.subject.clusterAdmin && (
                         <div className="notice danger" role="status">
-                            <ShieldAlert size={16} aria-hidden="true" /> This subject has cluster-admin-equivalent permissions (all verbs on all resources).
+                            <ShieldAlert size={16} aria-hidden="true" /> {t("pages:rbac.clusterAdminWarning")}
                         </div>
                     )}
-                    <h4 className="text-[13px] font-[500]">Cluster-wide ({state.data.cluster.length})</h4>
-                    {state.data.cluster.length === 0 && <div className="text-[12.5px] text-ink-3">No ClusterRoleBindings reach this subject.</div>}
+                    <h4 className="text-[13px] font-[500]">{t("pages:rbac.clusterWideCount", { n: state.data.cluster.length })}</h4>
+                    {state.data.cluster.length === 0 && <div className="text-[12.5px] text-ink-3">{t("pages:rbac.noClusterBindings")}</div>}
                     {state.data.cluster.map((g) => (
                         <GrantCard key={g.binding} g={g} />
                     ))}
-                    <h4 className="text-[13px] font-[500]">Namespaced ({state.data.namespaced.length})</h4>
-                    {state.data.namespaced.length === 0 && <div className="text-[12.5px] text-ink-3">No RoleBindings reach this subject.</div>}
+                    <h4 className="text-[13px] font-[500]">{t("pages:rbac.namespacedCount", { n: state.data.namespaced.length })}</h4>
+                    {state.data.namespaced.length === 0 && <div className="text-[12.5px] text-ink-3">{t("pages:rbac.noRoleBindings")}</div>}
                     {state.data.namespaced.map((g) => (
                         <GrantCard key={g.binding} g={g} />
                     ))}
@@ -135,6 +149,7 @@ function SubjectDetail({ subject, onClose }) {
 }
 
 export function RbacBySubject() {
+    const { t } = useTranslation();
     const [subjects, setSubjects] = useState(null);
     const [error, setError] = useState(null);
     const [q, setQ] = useState("");
@@ -170,16 +185,16 @@ export function RbacBySubject() {
                 <div className="relative min-w-[220px] flex-1">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" aria-hidden="true" />
                     <Input
-                        aria-label="Search subjects"
+                        aria-label={t("pages:rbac.searchSubjects")}
                         data-testid={RBAC.subjectSearch}
-                        placeholder="Search users, groups and service accounts"
+                        placeholder={t("pages:rbac.searchPlaceholder")}
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
                         className="bg-muted/30 pl-[34px]"
                     />
                 </div>
                 <label htmlFor={kindId} className="sr-only">
-                    Subject kind
+                    {t("pages:rbac.subjectKind")}
                 </label>
                 <select
                     id={kindId}
@@ -188,24 +203,24 @@ export function RbacBySubject() {
                     onChange={(e) => setKind(e.target.value)}
                     className="h-10 rounded-xl border border-input bg-card px-3 text-sm"
                 >
-                    <option value="all">All kinds</option>
-                    <option value="User">Users</option>
-                    <option value="Group">Groups</option>
-                    <option value="ServiceAccount">Service accounts</option>
+                    <option value="all">{t("pages:rbac.kinds.all")}</option>
+                    <option value="User">{t("pages:rbac.kinds.users")}</option>
+                    <option value="Group">{t("pages:rbac.kinds.groups")}</option>
+                    <option value="ServiceAccount">{t("pages:rbac.kinds.serviceAccounts")}</option>
                 </select>
             </div>
             <div className="grid g2">
                 <div className="card p-0">
                     {rows.length === 0 ? (
-                        <div className="empty">No subjects match.</div>
+                        <div className="empty">{t("pages:rbac.noSubjects")}</div>
                     ) : (
-                        <div className="max-h-[560px] overflow-auto" tabIndex={0} role="region" aria-label="Subjects">
+                        <div className="max-h-[560px] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:rbac.subjects")}>
                             <table className="tbl">
                                 <thead>
                                     <tr>
-                                        <th>Subject</th>
-                                        <th>Bindings</th>
-                                        <th>Reach</th>
+                                        <th>{t("pages:rbac.columns.subject")}</th>
+                                        <th>{t("pages:rbac.columns.bindings")}</th>
+                                        <th>{t("pages:rbac.columns.reach")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -220,7 +235,7 @@ export function RbacBySubject() {
                                                         type="button"
                                                         className="flex items-center gap-2 text-left"
                                                         onClick={() => setSelected(s)}
-                                                        aria-label={`View permissions of ${s.kind} ${s.name}`}
+                                                        aria-label={t("pages:rbac.viewPermissions", { kind: s.kind, name: s.name })}
                                                     >
                                                         <Icon size={14} className="text-ink-3" aria-hidden="true" />
                                                         <span>{s.name}</span>
@@ -237,15 +252,15 @@ export function RbacBySubject() {
                                                     ) : s.clusterWide ? (
                                                         <span className="pill" style={{ "--c": "var(--orange)" }}>
                                                             <i aria-hidden="true" />
-                                                            cluster-wide
+                                                            {t("pages:rbac.clusterWide")}
                                                         </span>
                                                     ) : s.bindings > 0 ? (
                                                         <span className="pill" style={{ "--c": "var(--blue)" }}>
                                                             <i aria-hidden="true" />
-                                                            namespaced
+                                                            {t("pages:rbac.namespaced")}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[12.5px] text-ink-3">no bindings</span>
+                                                        <span className="text-[12.5px] text-ink-3">{t("pages:rbac.noBindings")}</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -260,7 +275,7 @@ export function RbacBySubject() {
                     {selected ? (
                         <SubjectDetail subject={selected} onClose={() => setSelected(null)} />
                     ) : (
-                        <div className="empty">Select a subject to see its effective permissions.</div>
+                        <div className="empty">{t("pages:rbac.selectSubject")}</div>
                     )}
                 </div>
             </div>
@@ -271,6 +286,7 @@ export function RbacBySubject() {
 const VERBS = ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection", "*"];
 
 export function RbacWhoCan() {
+    const { t } = useTranslation();
     const id = useId();
     const [verb, setVerb] = useState("get");
     const [resource, setResource] = useState("secrets");
@@ -307,7 +323,7 @@ export function RbacWhoCan() {
             <form className="card" onSubmit={run}>
                 <div className="grid g3">
                     <div>
-                        <Label htmlFor={`${id}-verb`}>Verb</Label>
+                        <Label htmlFor={`${id}-verb`}>{t("pages:rbac.who.verb")}</Label>
                         <select
                             id={`${id}-verb`}
                             data-testid={RBAC.whoVerb}
@@ -323,42 +339,42 @@ export function RbacWhoCan() {
                         </select>
                     </div>
                     <div>
-                        <Label htmlFor={`${id}-res`}>Resource</Label>
+                        <Label htmlFor={`${id}-res`}>{t("pages:rbac.who.resource")}</Label>
                         <Input
                             id={`${id}-res`}
                             data-testid={RBAC.whoResource}
                             className="mt-1.5"
                             value={resource}
                             onChange={(e) => setResource(e.target.value)}
-                            placeholder="pods, pods/exec, secrets…"
+                            placeholder={t("pages:rbac.who.resourcePlaceholder")}
                         />
                     </div>
                     <div>
-                        <Label htmlFor={`${id}-ns`}>Namespace (optional)</Label>
+                        <Label htmlFor={`${id}-ns`}>{t("pages:rbac.who.namespace")}</Label>
                         <Input
                             id={`${id}-ns`}
                             data-testid={RBAC.whoNamespace}
                             className="mt-1.5"
                             value={namespace}
                             onChange={(e) => setNamespace(e.target.value)}
-                            placeholder="all namespaces"
+                            placeholder={t("pages:rbac.who.namespacePlaceholder")}
                         />
                     </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-end gap-3">
                     <div className="min-w-[220px] flex-1">
-                        <Label htmlFor={`${id}-name`}>Object name (optional)</Label>
+                        <Label htmlFor={`${id}-name`}>{t("pages:rbac.who.name")}</Label>
                         <Input
                             id={`${id}-name`}
                             data-testid={RBAC.whoName}
                             className="mt-1.5"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="matches rules restricted to named objects"
+                            placeholder={t("pages:rbac.who.namePlaceholder")}
                         />
                     </div>
                     <button type="submit" className="btn btn-primary" data-testid={RBAC.whoRun} disabled={busy || !resource.trim()}>
-                        <ShieldCheck size={14} /> {busy ? "Checking…" : "Who can?"}
+                        <ShieldCheck size={14} /> {busy ? t("pages:rbac.who.checking") : t("pages:rbac.who.run")}
                     </button>
                 </div>
             </form>
@@ -371,21 +387,32 @@ export function RbacWhoCan() {
                 <div className="card p-0">
                     <div className="panel-h">
                         <div className="text-[14px] font-[500]">
-                            Who can <span className="mono">{result.query.verb}</span> <span className="mono">{result.query.resource}</span>
-                            {result.query.namespace ? <> in <span className="mono">{result.query.namespace}</span></> : " (any namespace)"}
+                            {result.query.namespace ? (
+                                <Trans
+                                    i18nKey="pages:rbac.who.titleIn"
+                                    values={{ verb: result.query.verb, resource: result.query.resource, namespace: result.query.namespace }}
+                                    components={{ code: <span className="mono" /> }}
+                                />
+                            ) : (
+                                <Trans
+                                    i18nKey="pages:rbac.who.titleAny"
+                                    values={{ verb: result.query.verb, resource: result.query.resource }}
+                                    components={{ code: <span className="mono" /> }}
+                                />
+                            )}
                         </div>
-                        <span className="r text-[12.5px] text-ink-3">{result.allowed.length} grant(s)</span>
+                        <span className="r text-[12.5px] text-ink-3">{t("pages:rbac.who.grants", { n: result.allowed.length })}</span>
                     </div>
                     {result.allowed.length === 0 ? (
-                        <div className="empty">No binding grants this.</div>
+                        <div className="empty">{t("pages:rbac.who.none")}</div>
                     ) : (
-                        <div className="max-h-[480px] overflow-auto" tabIndex={0} role="region" aria-label="Who can results">
+                        <div className="max-h-[480px] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:rbac.who.results")}>
                             <table className="tbl">
                                 <thead>
                                     <tr>
-                                        <th>Subject</th>
-                                        <th>Scope</th>
-                                        <th>Via</th>
+                                        <th>{t("pages:rbac.columns.subject")}</th>
+                                        <th>{t("pages:rbac.columns.scope")}</th>
+                                        <th>{t("pages:rbac.columns.via")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -396,7 +423,7 @@ export function RbacWhoCan() {
                                                     {a.subject.name}
                                                     <small>{a.subject.kind}{a.subject.namespace ? ` · ${a.subject.namespace}` : ""}</small>
                                                 </td>
-                                                <td>{a.scope === "cluster" ? "cluster-wide" : `namespace ${a.namespace}`}</td>
+                                                <td>{a.scope === "cluster" ? t("pages:rbac.clusterWide") : t("pages:rbac.who.inNamespace", { namespace: a.namespace })}</td>
                                                 <td className="mono wrap">
                                                     {a.binding}
                                                     <small className="block">{a.roleRef}</small>
@@ -408,7 +435,7 @@ export function RbacWhoCan() {
                             </table>
                         </div>
                     )}
-                    {result.truncated && <div className="px-4 pb-3 text-[12px] text-ink-3">Showing the first {result.allowed.length} results.</div>}
+                    {result.truncated && <div className="px-4 pb-3 text-[12px] text-ink-3">{t("pages:rbac.who.truncated", { n: result.allowed.length })}</div>}
                 </div>
             )}
         </div>

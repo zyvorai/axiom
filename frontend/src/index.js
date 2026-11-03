@@ -6,6 +6,7 @@ import "@fontsource-variable/jetbrains-mono/wght.css"; // mono fallback off Appl
 import "@/styles/tokens.css";
 import "@/index.css";
 import App from "@/App";
+import { initLanguage } from "@/lib/i18n";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,10 +18,12 @@ const queryClient = new QueryClient({
 });
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
+// Resolve the language (and fetch its chunk, unless it is English) before the
+// first paint so the UI never flashes English for a German/Spanish/French user.
+initLanguage().finally(() => root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />
     </QueryClientProvider>
   </React.StrictMode>,
-);
+));

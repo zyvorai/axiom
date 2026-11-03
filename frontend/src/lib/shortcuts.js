@@ -2,18 +2,19 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Keyboard shortcuts. Single source of truth: the handler below and the `?` help dialog are both
-// driven by this list, so the documentation cannot drift from behaviour.
+// driven by this list, so the documentation cannot drift from behaviour. `id` keys the
+// translated label (nav:shortcuts.items.<id>); `label` is the English fallback.
 export const SHORTCUTS = [
-    { keys: ["⌘K", "Ctrl K"], label: "Open the command palette", group: "General" },
-    { keys: ["/"], label: "Focus the search box on this page", group: "General" },
-    { keys: ["?"], label: "Show keyboard shortcuts", group: "General" },
-    { keys: ["Esc"], label: "Close a dialog or menu", group: "General" },
-    { keys: ["g", "o"], label: "Go to Overview", group: "Go to", to: "/overview" },
-    { keys: ["g", "p"], label: "Go to Pods", group: "Go to", to: "/pods" },
-    { keys: ["g", "w"], label: "Go to Workloads", group: "Go to", to: "/workloads" },
-    { keys: ["g", "n"], label: "Go to Namespaces", group: "Go to", to: "/namespaces" },
-    { keys: ["g", "e"], label: "Go to Events", group: "Go to", to: "/events" },
-    { keys: ["g", "l"], label: "Go to Logs", group: "Go to", to: "/logs" },
+    { keys: ["⌘K", "Ctrl K"], id: "palette", label: "Open the command palette", group: "General" },
+    { keys: ["/"], id: "search", label: "Focus the search box on this page", group: "General" },
+    { keys: ["?"], id: "help", label: "Show keyboard shortcuts", group: "General" },
+    { keys: ["Esc"], id: "escape", label: "Close a dialog or menu", group: "General" },
+    { keys: ["g", "o"], id: "overview", label: "Go to Overview", group: "Go to", to: "/overview" },
+    { keys: ["g", "p"], id: "pods", label: "Go to Pods", group: "Go to", to: "/pods" },
+    { keys: ["g", "w"], id: "workloads", label: "Go to Workloads", group: "Go to", to: "/workloads" },
+    { keys: ["g", "n"], id: "namespaces", label: "Go to Namespaces", group: "Go to", to: "/namespaces" },
+    { keys: ["g", "e"], id: "events", label: "Go to Events", group: "Go to", to: "/events" },
+    { keys: ["g", "l"], id: "logs", label: "Go to Logs", group: "Go to", to: "/logs" },
 ];
 
 const GO_TARGETS = Object.fromEntries(

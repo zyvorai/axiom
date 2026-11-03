@@ -95,3 +95,14 @@ export const NAV_GROUP_ORDER = ["Core", "Cluster", "Network", "Storage", "Config
 // group headers or dividers — instead of cramming every nav item into
 // icon-only form under 8 divided groups.
 export const RAIL_PINNED_KEYS = ["overview", "workloads", "networking", "storage", "ops", "settings"];
+
+// Display label for a nav item in the active language. Built-in items are
+// translated by `key` (nav:items.<key>); plugin items keep their own label.
+export function navLabel(t, item) {
+    return item.key && NAV_ITEMS.some((n) => n.key === item.key) ? t(`nav:items.${item.key}`) : item.label;
+}
+
+/** Translated sidebar group heading; unknown groups are shown as-is. */
+export function navGroupLabel(t, group) {
+    return NAV_GROUP_ORDER.includes(group) ? t(`nav:groups.${group}`) : group;
+}

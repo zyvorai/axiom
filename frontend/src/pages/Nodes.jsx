@@ -7,8 +7,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Cpu, MemoryStick, Boxes, Server, Ban, CheckCircle2, LogOut } from "lucide-react";
 import { NODES } from "@/constants/testIds";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+
+// Toast texts per node action (static keys so every string is checked).
+function nodeActionRequested(t, action, name) {
+    if (action === "cordon") return t("toasts:nodes.cordonRequested", { name });
+    if (action === "uncordon") return t("toasts:nodes.uncordonRequested", { name });
+    return t("toasts:nodes.drainRequested", { name });
+}
+
+function nodeActionFailed(t, action) {
+    if (action === "cordon") return t("toasts:nodes.cordonFailed");
+    if (action === "uncordon") return t("toasts:nodes.uncordonFailed");
+    return t("toasts:nodes.drainFailed");
+}
 
 export default function Nodes() {
+    const { t } = useTranslation();
     const [nodes, setNodes] = useState(null);
     const [busy, setBusy] = useState("");
 
@@ -18,10 +33,10 @@ export default function Nodes() {
         let alive = true;
         const tick = () => api.get("/nodes").then((r) => alive && setNodes(r.data));
         tick();
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -29,10 +44,10 @@ export default function Nodes() {
         setBusy(`${name}:${action}`);
         try {
             await api.post(`/nodes/${encodeURIComponent(name)}/${path}`);
-            toast.success(`${name}: ${action} requested`);
+            toast.success(nodeActionRequested(t, action, name));
             await load();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(nodeActionFailed(t, action), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -53,9 +68,9 @@ export default function Nodes() {
     return (
         <div data-testid={NODES.root} className="page">
             <PageHeader
-                title="Nodes"
-                description="Compute topology, allocatable capacity and kubelet status."
-                action={<span className="text-[13px] text-ink-3">{nodes.length} nodes total</span>}
+                title={t("pages:nodes.title")}
+                description={t("pages:nodes.description")}
+                action={<span className="text-[13px] text-ink-3">{t("pages:nodes.total", { count: nodes.length })}</span>}
             />
 
             <div className="grid g3">
@@ -73,22 +88,22 @@ export default function Nodes() {
 
                         <div className="tile-specs c2">
                             <div>
-                                <Cpu size={13} /> CPU
+                                <Cpu size={13} /> {t("common:fields.cpu")}
                                 <b>{n.allocatableCpu}</b>
                             </div>
                             <div>
-                                <MemoryStick size={13} /> Memory
+                                <MemoryStick size={13} /> {t("common:fields.memory")}
                                 <b>{n.allocatableMemory}</b>
                             </div>
                             <div>
-                                <Boxes size={13} /> Pods
+                                <Boxes size={13} /> {t("pages:nodes.specs.pods")}
                                 <b>
                                     {n.pods}
                                     <small>/{n.allocatablePods}</small>
                                 </b>
                             </div>
                             <div>
-                                <Server size={13} /> Version
+                                <Server size={13} /> {t("common:fields.version")}
                                 <b className="truncate text-[14px]">
                                     {n.version}
                                 </b>
@@ -97,17 +112,17 @@ export default function Nodes() {
 
                         <div className="tile-facts">
                             <div>
-                                OS
+                                {t("pages:nodes.facts.os")}
                                 <div className="mt-0.5 text-ink">{n.osImage}</div>
                             </div>
                             <div>
-                                Kernel
+                                {t("pages:nodes.facts.kernel")}
                                 <div className="mono mt-0.5 text-ink">
                                     {n.kernelVersion}
                                 </div>
                             </div>
                             <div className="wide">
-                                Runtime
+                                {t("pages:nodes.facts.runtime")}
                                 <div className="mono truncate mt-0.5 text-ink">
                                     {n.containerRuntime}
                                 </div>
@@ -122,7 +137,7 @@ export default function Nodes() {
                                     disabled={busy === `${n.name}:uncordon`}
                                     onClick={() => act(n.name, "uncordon", "uncordon")}
                                 >
-                                    <CheckCircle2 size={13} /> Uncordon
+                                    <CheckCircle2 size={13} /> {t("pages:nodes.actions.uncordon")}
                                 </button>
                             ) : (
                                 <button
@@ -131,7 +146,7 @@ export default function Nodes() {
                                     disabled={busy === `${n.name}:cordon`}
                                     onClick={() => act(n.name, "cordon", "cordon")}
                                 >
-                                    <Ban size={13} /> Cordon
+                                    <Ban size={13} /> {t("pages:nodes.actions.cordon")}
                                 </button>
                             )}
                             <button
@@ -140,7 +155,7 @@ export default function Nodes() {
                                 disabled={busy === `${n.name}:drain`}
                                 onClick={() => act(n.name, "drain", "drain")}
                             >
-                                <LogOut size={13} /> Drain
+                                <LogOut size={13} /> {t("pages:nodes.actions.drain")}
                             </button>
                         </div>
                     </div>

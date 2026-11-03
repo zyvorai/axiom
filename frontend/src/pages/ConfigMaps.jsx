@@ -17,9 +17,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { FileCog, Search, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [namespace, setNamespace] = useState("default");
     const [name, setName] = useState("");
     const [pairs, setPairs] = useState([{ key: "", value: "" }]);
@@ -36,13 +38,13 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/configmaps", { namespace, name, data });
-            toast.success(`ConfigMap ${name} created`);
+            toast.success(t("toasts:configMaps.created", { name }));
             onOpenChange(false);
             setName("");
             setPairs([{ key: "", value: "" }]);
             onCreated();
         } catch (e) {
-            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:configMaps.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -52,40 +54,40 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create ConfigMap</DialogTitle>
+                    <DialogTitle>{t("dialogs:configMaps.create.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="config-maps-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="config-maps-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="config-maps-namespace" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="config-maps-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="config-maps-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="config-maps-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <div id="cm-data-label" className="text-xs font-medium leading-none text-muted-foreground">Data</div>
+                        <div id="cm-data-label" className="text-xs font-medium leading-none text-muted-foreground">{t("dialogs:configMaps.create.data")}</div>
                         <div className="space-y-2" role="group" aria-labelledby="cm-data-label">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={`Key ${i + 1}`} className="bg-muted/30" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={`Value ${i + 1}`} className="bg-muted/30" />
-                                    <button aria-label="Remove row" title="Remove row" onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={t("dialogs:configMaps.create.keyAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={t("dialogs:configMaps.create.valueAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <button aria-label={t("dialogs:configMaps.create.removeRow")} title={t("dialogs:configMaps.create.removeRow")} onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>
                                 </div>
                             ))}
                         </div>
                         <Button size="sm" variant="ghost" onClick={addPair} className="mt-1 text-xs text-muted-foreground">
-                            <Plus className="mr-1 h-3.5 w-3.5" /> Add key
+                            <Plus className="mr-1 h-3.5 w-3.5" /> {t("dialogs:configMaps.create.addKey")}
                         </Button>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:configMaps.create.creating") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -94,6 +96,7 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
 }
 
 export default function ConfigMaps() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
@@ -116,17 +119,17 @@ export default function ConfigMaps() {
 
     const remove = async (c) => {
         const ok = await confirm({
-            title: `Delete ConfigMap ${c.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:configMaps.delete.title", { name: c.name }),
+            description: t("dialogs:configMaps.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/configmaps/${c.namespace}/${encodeURIComponent(c.name)}`);
-            toast.success(`Deleted ${c.name}`);
+            toast.success(t("toasts:configMaps.deleted", { name: c.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:configMaps.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -142,18 +145,18 @@ export default function ConfigMaps() {
     return (
         <div className="page">
             <PageHeader
-                title="ConfigMaps"
-                description="Application configuration across all namespaces."
+                title={t("pages:configMaps.title")}
+                description={t("pages:configMaps.description")}
                 action={
                     <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
-                        <Plus size={15} /> Create ConfigMap
+                        <Plus size={15} /> {t("pages:configMaps.create")}
                     </button>
                 }
                 tools={
                     <div className="input">
                         <Search size={15} className="text-ink-3" />
                         <input
-                            placeholder="Search ConfigMap name"
+                            placeholder={t("pages:configMaps.searchPlaceholder")}
                             value={q}
                             onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
@@ -162,15 +165,15 @@ export default function ConfigMaps() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="ConfigMaps">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:configMaps.tableAria")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Keys</th>
-                                <th>Age</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("pages:configMaps.columns.keys")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -200,7 +203,7 @@ export default function ConfigMaps() {
                                     </td>
                                     <td className="mono">{c.age}</td>
                                     <td>
-                                        <button type="button" className="btn btn-line btn-sm" aria-label={`Delete ConfigMap ${c.name}`} title={`Delete ConfigMap ${c.name}`} onClick={() => remove(c)}>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={t("pages:configMaps.deleteAria", { name: c.name })} title={t("pages:configMaps.deleteAria", { name: c.name })} onClick={() => remove(c)}>
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -209,7 +212,7 @@ export default function ConfigMaps() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={5}>
-                                        <div className="empty">No ConfigMaps match the current filters.</div>
+                                        <div className="empty">{t("pages:configMaps.empty")}</div>
                                     </td>
                                 </tr>
                             )}

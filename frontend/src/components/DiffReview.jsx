@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { DIFF } from "@/constants/testIds";
 import DiffView from "@/components/DiffView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 /**
  * Change review before apply. `run(manifest)` asks POST /apply/diff what applying the manifest
@@ -45,13 +46,14 @@ export function canApply(review, manifest) {
     return review.status === "unavailable" || (review.status === "ready" && review.result?.valid === true);
 }
 
-function objectTitle(o) {
+function objectTitle(t, o) {
     const id = `${o.kind} ${o.namespace ? `${o.namespace}/` : ""}${o.name}`;
-    if (!o.exists) return `${id} — will be created`;
-    return o.changed ? `${id} — will be changed` : `${id} — no changes, already up to date`;
+    if (!o.exists) return t("pages:diffReview.willBeCreated", { id });
+    return o.changed ? t("pages:diffReview.willBeChanged", { id }) : t("pages:diffReview.upToDate", { id });
 }
 
 export default function DiffReview({ review }) {
+    const { t } = useTranslation();
     if (!review) return null;
     if (review.status === "loading") {
         return (
@@ -63,7 +65,7 @@ export default function DiffReview({ review }) {
     if (review.status === "unavailable") {
         return (
             <div data-testid={DIFF.review} role="status" className="rounded-lg border border-soft-warning-border bg-soft-warning px-3 py-2 text-xs text-soft-warning-text">
-                A change preview is not available on this server. You can still apply the manifest.
+                {t("pages:diffReview.unavailable")}
             </div>
         );
     }
@@ -73,7 +75,7 @@ export default function DiffReview({ review }) {
             : review.result && !review.result.valid
               ? review.result.errors?.length
                   ? review.result.errors
-                  : [review.result.message || "The manifest was rejected."]
+                  : [review.result.message || t("pages:diffReview.rejected")]
               : null;
     if (failure) {
         return (
@@ -98,9 +100,9 @@ export default function DiffReview({ review }) {
                 </div>
             ))}
             {objects.map((o) => (
-                <section key={`${o.kind}/${o.namespace}/${o.name}`} aria-label={objectTitle(o)}>
-                    <h3 className="mb-1.5 text-[12.5px] font-medium">{objectTitle(o)}</h3>
-                    <DiffView before={o.live} after={o.proposed} label={`Changes to ${o.kind} ${o.name}`} />
+                <section key={`${o.kind}/${o.namespace}/${o.name}`} aria-label={objectTitle(t, o)}>
+                    <h3 className="mb-1.5 text-[12.5px] font-medium">{objectTitle(t, o)}</h3>
+                    <DiffView before={o.live} after={o.proposed} label={t("pages:diffReview.changesTo", { kind: o.kind, name: o.name })} />
                 </section>
             ))}
             {message && <p className="text-[11.5px] text-ink-3">{message}</p>}

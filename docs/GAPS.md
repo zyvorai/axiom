@@ -32,6 +32,15 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - Rightsizing recommendations (`GET /api/v1/cost/rightsizing`) from Prometheus p95 CPU / p99 memory history (`AXIOM_PROMETHEUS_URL`) or, without it, a metrics.k8s.io snapshot, with per-container verdicts and monthly savings, and a reviewed one-container apply (`POST /api/v1/cost/rightsizing/apply`)
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 
+- UI languages: English, Deutsch, Español and Français (`frontend/src/locales`, `npm run lint:i18n`) — every page (41 of 41 page components) and every shared component that shows text (87 of the 99 page/component files; the other 12 have no text of their own), about 1,830 strings per language
+
+Known UI limitations (reviewed, not yet fixed):
+
+- **Not translated, by design:** Kubernetes kinds and API terms (Pod, Namespace, Deployment, StorageClasses, NetworkPolicies, …), YAML/JSON, field paths, metric names, units (`MiB`, `GiB`, `m`, `vCPU`), `kubectl`/`virtctl` commands, example placeholders (`tenant-b`, URLs, cron expressions), product names, and everything the API returns (error messages, event messages, health and security findings, rightsizing notes, AI answers)
+- **Not translated yet:** user and role names as stored (`admin`, `viewer`), the AI provider names and the "(rate limited)" suffix in `lib/ai.js`, terminal window titles (`exec — …`, `logs — …`), and a handful of short labels the `lint:i18n` heuristic still lists (about 20, mostly Kubernetes kind headings)
+- **English wording quirks are kept on purpose:** where the English UI always printed a plural ("1 nodes total", "1 keys", "1 charts") the English string is unchanged so existing tests stay valid; German, Spanish and French use the correct singular
+- **Four languages, no right-to-left support.** Dates and numbers follow the UI language, not a separate regional setting, and money is always USD (the cost model's currency)
+
 Known security limitations (reviewed, not yet fixed):
 
 - **Two-factor sign-in covers local accounts and the built-in admin only.** SSO accounts rely on the IdP's MFA, and LDAP directory accounts have none (the bind password alone signs in). Enrolment shows the setup key as text (no QR code), and a person who loses both their device and their recovery codes needs an administrator to reset it

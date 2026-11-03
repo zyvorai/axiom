@@ -7,6 +7,7 @@ import SpecTable from "@/components/SpecTable";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 function isJobPod(pod, jobName) {
     const labels = pod.labels || {};
@@ -14,6 +15,7 @@ function isJobPod(pod, jobName) {
 }
 
 export default function JobDetail() {
+    const { t } = useTranslation();
     const { namespace, name } = useParams();
     const navigate = useNavigate();
     const ns = decodeURIComponent(namespace || "");
@@ -53,10 +55,10 @@ export default function JobDetail() {
         return (
             <div className="page space-y-4">
                 <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
-                    <ArrowLeft className="h-3.5 w-3.5" /> Jobs
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:jobDetail.backToJobs")}
                 </button>
                 <GlassCard className="empty">
-                    Job <span className="mono text-foreground">{ns}/{nm}</span> was not found.
+                    <Trans i18nKey="pages:jobDetail.notFound" values={{ name: `${ns}/${nm}` }} components={{ code: <span className="mono text-foreground" /> }} />
                 </GlassCard>
             </div>
         );
@@ -80,19 +82,19 @@ export default function JobDetail() {
                 }
                 action={
                     <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
-                        <ArrowLeft className="h-3.5 w-3.5" /> All jobs
+                        <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:jobDetail.allJobs")}
                     </button>
                 }
             />
 
             <GlassCard>
                 <SpecTable
-                    title="Summary"
+                    title={t("pages:jobDetail.summary")}
                     rows={[
-                        { label: "Completions", value: job.completions || "—", mono: true },
-                        { label: "Duration", value: job.duration || "—", mono: true },
+                        { label: t("pages:jobDetail.completions"), value: job.completions || "—", mono: true },
+                        { label: t("pages:jobDetail.duration"), value: job.duration || "—", mono: true },
                         {
-                            label: "Owner CronJob",
+                            label: t("pages:jobDetail.ownerCronJob"),
                             value: job.ownerCronJob ? (
                                 <Link
                                     to={`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(job.ownerCronJob)}`}
@@ -111,18 +113,18 @@ export default function JobDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 className="text-[15px]">Pods ({jobPods.length})</h2>
+                    <h2 className="text-[15px]">{t("pages:jobDetail.pods", { n: jobPods.length })}</h2>
                 </div>
                 {jobPods.length === 0 ? (
-                    <div className="empty">No pods found for this job.</div>
+                    <div className="empty">{t("pages:jobDetail.noPods")}</div>
                 ) : (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Restarts</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("common:fields.restarts")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>

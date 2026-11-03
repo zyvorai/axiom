@@ -1,4 +1,5 @@
 import { Eye } from "lucide-react";
+import { Trans } from "react-i18next";
 import { useAuth } from "@/lib/auth";
 
 export default function ViewerBanner() {
@@ -8,7 +9,7 @@ export default function ViewerBanner() {
     return (
         <div className="flex items-center gap-2 rounded-2xl border border-soft-info-border bg-soft-info px-4 py-2.5 text-xs text-muted-foreground">
             <Eye className="h-3.5 w-3.5 shrink-0 text-tone-link" />
-            You're signed in as a <span className="font-medium text-foreground">Viewer</span> — read-only access. Every create, edit, and delete action is disabled server-side.
+            <Trans i18nKey="auth:viewerBanner" components={{ role: <span className="font-medium text-foreground" /> }} />
         </div>
     );
 }

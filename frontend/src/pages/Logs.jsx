@@ -7,11 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Filter, Play, Square, Trash2, TerminalSquare } from "lucide-react";
 import { LOGS, WLOGS } from "@/constants/testIds";
 import { compileFilter, parseLogLine } from "@/lib/troubleshoot";
+import { useTranslation, Trans } from "react-i18next";
 
 const MAX_LINES = 2000;
 const WORKLOAD_KINDS = new Set(["Deployment", "StatefulSet", "DaemonSet", "Job"]);
 
 export default function Logs() {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const initialWorkload = searchParams.get("workload") || "";
     const [mode, setMode] = useState(initialWorkload ? "workload" : "pod");
@@ -94,7 +96,7 @@ export default function Logs() {
         const handlers = {
             onLine: push,
             onError: (e) => {
-                setNotice(e?.message || "The log stream failed.");
+                setNotice(e?.message || t("pages:logs.streamFailed"));
                 setRunning(false);
             },
             onEnd: () => setRunning(false),
@@ -159,30 +161,30 @@ export default function Logs() {
     return (
         <div data-testid={LOGS.root} className="page">
             <PageHeader
-                title={mode === "workload" ? "Workload Logs" : "Pod Logs"}
+                title={mode === "workload" ? t("pages:logs.titleWorkload") : t("pages:logs.titlePod")}
                 description={
                     mode === "workload"
-                        ? "Every pod and container of a workload, merged into one stream and prefixed with [pod/container]."
-                        : "Live streaming terminal via chunked HTTP."
+                        ? t("pages:logs.descriptionWorkload")
+                        : t("pages:logs.descriptionPod")
                 }
                 tools={
                     <>
-                        <div className="seg" role="group" aria-label="Log source">
+                        <div className="seg" role="group" aria-label={t("pages:logs.source")}>
                             <button type="button" data-testid={WLOGS.modePod} aria-pressed={mode === "pod"} onClick={() => switchMode("pod")}>
-                                Pod
+                                {t("pages:logs.modePod")}
                             </button>
                             <button type="button" data-testid={WLOGS.modeWorkload} aria-pressed={mode === "workload"} onClick={() => switchMode("workload")}>
-                                Workload
+                                {t("pages:logs.modeWorkload")}
                             </button>
                         </div>
                         {mode === "pod" ? (
                             <>
                                 <span className="flex items-center gap-1.5 text-[13.5px] text-ink-2">
-                                    <TerminalSquare size={15} className="text-ink-3" /> Pod
+                                    <TerminalSquare size={15} className="text-ink-3" /> {t("pages:logs.pod")}
                                 </span>
                                 <select
                                     data-testid={LOGS.podSelect}
-                                    aria-label="Pod"
+                                    aria-label={t("pages:logs.pod")}
                                     className="select"
                                     value={selected}
                                     onChange={(e) => {
@@ -190,7 +192,7 @@ export default function Logs() {
                                         setSelected(e.target.value);
                                     }}
                                 >
-                                    {podOptions.length === 0 && <option value="">Choose pod</option>}
+                                    {podOptions.length === 0 && <option value="">{t("pages:logs.choosePod")}</option>}
                                     {podOptions.map((p) => (
                                         <option key={p.value} value={p.value}>
                                             {p.label}
@@ -198,7 +200,7 @@ export default function Logs() {
                                     ))}
                                 </select>
                                 {containerOptions.length > 1 && (
-                                    <select aria-label="Container" className="select" value={container} onChange={(e) => setContainer(e.target.value)}>
+                                    <select aria-label={t("pages:logs.container")} className="select" value={container} onChange={(e) => setContainer(e.target.value)}>
                                         {containerOptions.map((c) => (
                                             <option key={c} value={c}>
                                                 {c}
@@ -210,7 +212,7 @@ export default function Logs() {
                         ) : (
                             <select
                                 data-testid={WLOGS.workloadSelect}
-                                aria-label="Workload"
+                                aria-label={t("pages:logs.workload")}
                                 className="select"
                                 value={selectedWorkload}
                                 onChange={(e) => {
@@ -218,7 +220,7 @@ export default function Logs() {
                                     setSelectedWorkload(e.target.value);
                                 }}
                             >
-                                {workloadOptions.length === 0 && <option value="">{workloads ? "No workloads" : "Loading…"}</option>}
+                                {workloadOptions.length === 0 && <option value="">{workloads ? t("pages:logs.noWorkloads") : t("common:states.loading")}</option>}
                                 {workloadOptions.map((w) => (
                                     <option key={w.value} value={w.value}>
                                         {w.label}
@@ -228,19 +230,19 @@ export default function Logs() {
                         )}
                         {running ? (
                             <button type="button" data-testid={LOGS.stopBtn} className="btn btn-line" onClick={stop}>
-                                <Square size={15} /> Stop
+                                <Square size={15} /> {t("pages:logs.stop")}
                             </button>
                         ) : (
                             <button type="button" data-testid={LOGS.startBtn} className="btn btn-fill" onClick={start} disabled={!target}>
-                                <Play size={15} /> {previous ? "Load" : "Follow"}
+                                <Play size={15} /> {previous ? t("pages:logs.load") : t("pages:logs.follow")}
                             </button>
                         )}
                         <span className="sp" />
                         <button type="button" data-testid={LOGS.clearBtn} className="btn btn-line" onClick={() => setLines([])}>
-                            <Trash2 size={15} /> Clear
+                            <Trash2 size={15} /> {t("common:actions.clear")}
                         </button>
                         <button type="button" data-testid={WLOGS.download} className="btn btn-line" onClick={download} disabled={visible.length === 0}>
-                            <Download size={15} /> Download
+                            <Download size={15} /> {t("common:actions.download")}
                         </button>
                     </>
                 }
@@ -251,9 +253,9 @@ export default function Logs() {
                     <Filter size={15} className="text-ink-3" aria-hidden="true" />
                     <input
                         data-testid={WLOGS.filter}
-                        aria-label="Filter lines (regular expression)"
+                        aria-label={t("pages:logs.filterLabel")}
                         aria-invalid={filterError ? "true" : "false"}
-                        placeholder="Filter lines (regex, case-insensitive)"
+                        placeholder={t("pages:logs.filterPlaceholder")}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                         className="bare-input mono"
@@ -266,7 +268,7 @@ export default function Logs() {
                         checked={showTimestamps}
                         onChange={(e) => setShowTimestamps(e.target.checked)}
                     />
-                    Timestamps
+                    {t("pages:logs.timestamps")}
                 </label>
                 <label className="flex items-center gap-1.5 text-[13.5px] text-ink-2">
                     <input
@@ -276,12 +278,12 @@ export default function Logs() {
                         disabled={running}
                         onChange={(e) => setPrevious(e.target.checked)}
                     />
-                    Previous container
+                    {t("pages:logs.previousContainer")}
                 </label>
             </div>
             {filterError && (
                 <p role="alert" data-testid={WLOGS.filterError} className="text-[13px] text-tone-red">
-                    Invalid regular expression: {filterError}
+                    {t("pages:logs.invalidRegex", { error: filterError })}
                 </p>
             )}
             {notice && (
@@ -295,7 +297,7 @@ export default function Logs() {
                 actions={
                     <span className="mono text-[11px] text-term-dim" data-testid={WLOGS.count}>
                         <span className={`status-dot mr-1.5 inline-block align-middle ${running ? "ok animate-pulse" : "info"}`} />
-                        {re ? `${visible.length}/${lines.length}` : lines.length} lines
+                        {t("pages:logs.lineCount", { lines: re ? `${visible.length}/${lines.length}` : lines.length })}
                     </span>
                 }
                 bodyRef={listRef}
@@ -304,8 +306,11 @@ export default function Logs() {
             >
                 {lines.length === 0 && (
                     <div className="text-term-dim">
-                        Press <span className="text-term-key">{previous ? "Load" : "Follow"}</span> to {previous ? "read the previous run of" : "stream"}{" "}
-                        <span className="text-term-str">{target || "a target"}</span>.
+                        <Trans
+                            i18nKey={previous ? "pages:logs.hintLoad" : "pages:logs.hintFollow"}
+                            values={{ target: target || t("pages:logs.aTarget") }}
+                            components={{ kbd: <span className="text-term-key" />, target: <span className="text-term-str" /> }}
+                        />
                     </div>
                 )}
                 {shown.map((l, i) => (

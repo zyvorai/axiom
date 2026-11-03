@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -28,6 +29,7 @@ import { VpaPanel, KedaPanel } from "@/components/AutoscalingPanels";
 import { AUTOSCALE } from "@/constants/testIds";
 
 function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ namespace: "", targetKind: "", targetName: "", minReplicas: 1, maxReplicas: 5, targetCpuPercent: 80, targetMemoryPercent: "", scaleDownStabilizationSeconds: "" });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -46,11 +48,11 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
             body.targetMemoryPercent = Number(form.targetMemoryPercent) || 0;
             body.scaleDownStabilizationSeconds = Number(form.scaleDownStabilizationSeconds) || 0;
             await api.post("/hpas", body);
-            toast.success(`HPA created for ${form.targetName}`);
+            toast.success(t("toasts:autoscaling.created", { name: form.targetName }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Create HPA failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:autoscaling.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -60,14 +62,14 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create autoscaler</DialogTitle>
+                    <DialogTitle>{t("dialogs:autoscaling.create.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="hpa-target-workload" className="text-xs text-muted-foreground">Target workload</Label>
+                        <Label htmlFor="hpa-target-workload" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.targetWorkload")}</Label>
                         <Select onValueChange={pickTarget}>
                             <SelectTrigger id="hpa-target-workload" className="bg-muted/30">
-                                <SelectValue placeholder="Select a workload" />
+                                <SelectValue placeholder={t("dialogs:autoscaling.create.selectWorkload")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {workloads.map((w) => (
@@ -80,33 +82,33 @@ function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="hpa-min-replicas" className="text-xs text-muted-foreground">Min replicas</Label>
+                            <Label htmlFor="hpa-min-replicas" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.minReplicas")}</Label>
                             <Input id="hpa-min-replicas" type="number" min={1} value={form.minReplicas} onChange={(e) => set({ minReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="hpa-max-replicas" className="text-xs text-muted-foreground">Max replicas</Label>
+                            <Label htmlFor="hpa-max-replicas" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.maxReplicas")}</Label>
                             <Input id="hpa-max-replicas" type="number" min={1} value={form.maxReplicas} onChange={(e) => set({ maxReplicas: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="hpa-target-cpu" className="text-xs text-muted-foreground">Target CPU % (blank = ignore)</Label>
+                            <Label htmlFor="hpa-target-cpu" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.targetCpu")}</Label>
                             <Input id="hpa-target-cpu" type="number" min={1} max={100} value={form.targetCpuPercent} onChange={(e) => set({ targetCpuPercent: e.target.value })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="hpa-target-memory" className="text-xs text-muted-foreground">Target memory % (optional)</Label>
-                            <Input id="hpa-target-memory" data-testid={AUTOSCALE.createMemory} type="number" min={1} max={100} value={form.targetMemoryPercent} onChange={(e) => set({ targetMemoryPercent: e.target.value })} placeholder="e.g. 75" className="bg-muted/30" />
+                            <Label htmlFor="hpa-target-memory" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.targetMemory")}</Label>
+                            <Input id="hpa-target-memory" data-testid={AUTOSCALE.createMemory} type="number" min={1} max={100} value={form.targetMemoryPercent} onChange={(e) => set({ targetMemoryPercent: e.target.value })} placeholder={t("dialogs:autoscaling.create.targetMemoryPlaceholder")} className="bg-muted/30" />
                         </div>
                         <div className="col-span-2 space-y-1.5">
-                            <Label htmlFor="hpa-stabilization" className="text-xs text-muted-foreground">Scale-down stabilization, seconds (optional)</Label>
-                            <Input id="hpa-stabilization" data-testid={AUTOSCALE.createStabilization} type="number" min={0} max={3600} value={form.scaleDownStabilizationSeconds} onChange={(e) => set({ scaleDownStabilizationSeconds: e.target.value })} placeholder="Kubernetes default is 300" className="bg-muted/30" />
+                            <Label htmlFor="hpa-stabilization" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.stabilization")}</Label>
+                            <Input id="hpa-stabilization" data-testid={AUTOSCALE.createStabilization} type="number" min={0} max={3600} value={form.scaleDownStabilizationSeconds} onChange={(e) => set({ scaleDownStabilizationSeconds: e.target.value })} placeholder={t("dialogs:autoscaling.create.stabilizationPlaceholder")} className="bg-muted/30" />
                         </div>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                        With both CPU and memory set, the autoscaler scales to whichever needs more replicas.
+                        {t("dialogs:autoscaling.create.bothNote")}
                     </p>
                 </div>
                 <DialogFooter>
                     <Button variant="brand" onClick={submit} disabled={busy || !form.targetName || !(Number(form.targetCpuPercent) || Number(form.targetMemoryPercent))} className="rounded-xl">
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:autoscaling.create.creating") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -124,13 +126,14 @@ function hpaState(h) {
     const cond = (t) => (h.conditions || []).find((c) => c.type === t);
     const active = cond("ScalingActive");
     const limited = cond("ScalingLimited");
-    if (active && active.status === "False") return { tone: "var(--red)", label: "Not scaling", detail: active.message || active.reason };
-    if (limited && limited.status === "True") return { tone: "var(--orange)", label: "At limit", detail: limited.message || limited.reason };
-    if (h.desiredReplicas && h.desiredReplicas !== h.currentReplicas) return { tone: "var(--blue)", label: `Scaling to ${h.desiredReplicas}`, detail: "" };
-    return { tone: "var(--green)", label: "Stable", detail: "" };
+    if (active && active.status === "False") return { tone: "var(--red)", labelKey: "pages:autoscaling.state.notScaling", detail: active.message || active.reason };
+    if (limited && limited.status === "True") return { tone: "var(--orange)", labelKey: "pages:autoscaling.state.atLimit", detail: limited.message || limited.reason };
+    if (h.desiredReplicas && h.desiredReplicas !== h.currentReplicas) return { tone: "var(--blue)", labelKey: "pages:autoscaling.state.scalingTo", labelArgs: { replicas: h.desiredReplicas }, detail: "" };
+    return { tone: "var(--green)", labelKey: "pages:autoscaling.state.stable", detail: "" };
 }
 
 function HpaTab() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [hpas, setHpas] = useState(null);
     const [workloads, setWorkloads] = useState([]);
@@ -143,26 +146,26 @@ function HpaTab() {
         const tick = () => api.get("/hpas").then((r) => alive && setHpas(r.data));
         tick();
         api.get("/workloads").then((r) => alive && setWorkloads(r.data || []));
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
     const remove = async (h) => {
         const ok = await confirm({
-            title: `Delete autoscaler ${h.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:autoscaling.delete.title", { name: h.name }),
+            description: t("dialogs:autoscaling.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/hpas/${h.namespace}/${encodeURIComponent(h.name)}`);
-            toast.success(`Deleted ${h.name}`);
+            toast.success(t("toasts:autoscaling.deleted", { name: h.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:autoscaling.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -179,7 +182,7 @@ function HpaTab() {
         <div className="stack">
             <div className="flex justify-end">
                 <button type="button" className="btn btn-fill" onClick={() => setDialogOpen(true)}>
-                    <Plus size={15} /> Create autoscaler
+                    <Plus size={15} /> {t("pages:autoscaling.createAutoscaler")}
                 </button>
             </div>
 
@@ -191,20 +194,20 @@ function HpaTab() {
                     <span className="r text-[12.5px] text-ink-3">{hpas.length}</span>
                 </div>
                 {hpas.length === 0 ? (
-                    <div className="empty">No HorizontalPodAutoscalers configured.</div>
+                    <div className="empty">{t("pages:autoscaling.empty")}</div>
                 ) : (
-                    <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Autoscalers">
+                    <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:autoscaling.region")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Target</th>
-                                    <th>Min – Max</th>
-                                    <th>Current</th>
-                                    <th>Metrics (current / target)</th>
-                                    <th>State</th>
-                                    <th>Age</th>
-                                    <th><span className="sr-only">Actions</span></th>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.target")}</th>
+                                    <th>{t("pages:autoscaling.columns.minMax")}</th>
+                                    <th>{t("pages:autoscaling.columns.current")}</th>
+                                    <th>{t("pages:autoscaling.columns.metrics")}</th>
+                                    <th>{t("pages:autoscaling.columns.state")}</th>
+                                    <th>{t("common:fields.age")}</th>
+                                    <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -235,7 +238,7 @@ function HpaTab() {
                                                     <span title={st.detail || undefined}>
                                                         <span className="pill" style={{ "--c": st.tone }}>
                                                             <i aria-hidden="true" />
-                                                            {st.label}
+                                                            {t(st.labelKey, st.labelArgs)}
                                                         </span>
                                                     </span>
                                                 );
@@ -243,7 +246,7 @@ function HpaTab() {
                                         </td>
                                         <td className="mono">{h.age}</td>
                                         <td>
-                                            <button type="button" className="btn btn-line btn-sm" aria-label={`Delete autoscaler ${h.name}`} title={`Delete autoscaler ${h.name}`} onClick={() => remove(h)}>
+                                            <button type="button" className="btn btn-line btn-sm" aria-label={t("pages:autoscaling.deleteAria", { name: h.name })} title={t("pages:autoscaling.deleteAria", { name: h.name })} onClick={() => remove(h)}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </td>
@@ -261,23 +264,24 @@ function HpaTab() {
 }
 
 export default function HPA() {
+    const { t } = useTranslation();
     const [tab, setTab] = useState("hpa");
     return (
         <div className="page">
             <PageHeader
-                title="Autoscaling"
-                description="Horizontal, vertical and event-driven autoscalers across all namespaces."
+                title={t("pages:autoscaling.title")}
+                description={t("pages:autoscaling.description")}
             />
             <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="tabs">
                     <TabsTrigger value="hpa" data-testid={AUTOSCALE.tab("hpa")} className="gap-1.5">
-                        <Gauge className="h-3.5 w-3.5" /> Horizontal
+                        <Gauge className="h-3.5 w-3.5" /> {t("pages:autoscaling.tabs.hpa")}
                     </TabsTrigger>
                     <TabsTrigger value="vpa" data-testid={AUTOSCALE.tab("vpa")} className="gap-1.5">
-                        Vertical (VPA)
+                        {t("pages:autoscaling.tabs.vpa")}
                     </TabsTrigger>
                     <TabsTrigger value="keda" data-testid={AUTOSCALE.tab("keda")} className="gap-1.5">
-                        Event-driven (KEDA)
+                        {t("pages:autoscaling.tabs.keda")}
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="hpa" className="mt-4">

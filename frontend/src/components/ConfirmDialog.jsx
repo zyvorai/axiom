@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from "react";
+import i18n from "@/lib/i18n";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,10 +26,10 @@ export function ConfirmProvider({ children }) {
         return new Promise((resolve) => {
             resolveRef.current = resolve;
             setState({
-                title: opts.title || "Are you sure?",
-                description: opts.description || "This action cannot be undone.",
-                confirmLabel: opts.confirmLabel || "Delete",
-                cancelLabel: opts.cancelLabel || "Cancel",
+                title: opts.title || i18n.t("dialogs:confirm.title"),
+                description: opts.description || i18n.t("dialogs:confirm.description"),
+                confirmLabel: opts.confirmLabel || i18n.t("common:actions.delete"),
+                cancelLabel: opts.cancelLabel || i18n.t("common:actions.cancel"),
                 danger: opts.danger !== false,
             });
         });

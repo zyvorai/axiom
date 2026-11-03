@@ -2,6 +2,7 @@
 // a radial glow, second chapter for credentials. Theme-aware: colours come
 // from styles/tokens.css via axiom-login.css.
 import { AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import "../axiom-login.css";
 
 export function PremiumLoginShell({
@@ -9,7 +10,7 @@ export function PremiumLoginShell({
     productName,
     productWordmark,
     productSubtitle,
-    heroTitle = "Sign in.",
+    heroTitle,
     heroSubheadline,
     heroCta,
     accent = "sky",
@@ -24,20 +25,22 @@ export function PremiumLoginShell({
     children,
     ...rest
 }) {
+    const { t } = useTranslation();
+    const signIn = t("auth:login.signIn");
     const tagline = heroSubheadline ?? productSubtitle ?? "";
-    const formHeading = panelSubtitle ?? (panelTitle && panelTitle !== "Sign in" ? panelTitle : "Sign in");
+    const formHeading = panelSubtitle ?? (panelTitle && panelTitle !== signIn ? panelTitle : signIn);
     const wordmark = (productWordmark ?? productName ?? "").trim();
 
     return (
         <div className="login-page login-store-page" {...rest}>
-            <main className="login-store-scroll" aria-label="Sign in">
+            <main className="login-store-scroll" aria-label={signIn}>
                 <section className="login-chapter login-chapter-hero" data-tone={accent} aria-label={productName}>
                     <div className="login-chapter-inner">
                         {logo ? <div className="login-logo inline-flex mb-5">{logo}</div> : null}
                         <p className="login-wordmark" aria-label={productName}>
                             {wordmark}
                         </p>
-                        <h1 className="login-hero-title">{heroTitle}</h1>
+                        <h1 className="login-hero-title">{heroTitle ?? `${signIn}.`}</h1>
                         {tagline ? <p className="login-tagline">{tagline}</p> : null}
                         {pills?.length ? (
                             <div className="login-pill-row">
@@ -56,7 +59,7 @@ export function PremiumLoginShell({
                 </section>
 
                 {showSignInChapter && children ? (
-                    <section id="login-sign-in" className="login-chapter login-chapter-sign-in" aria-label="Credentials">
+                    <section id="login-sign-in" className="login-chapter login-chapter-sign-in" aria-label={t("auth:login.credentials")}>
                         <div className="login-chapter-inner login-sign-in-inner">
                             <p className="login-form-heading">{formHeading}</p>
                             <div className={`login-card ${formClassName}`.trim()}>{children}</div>
@@ -72,6 +75,7 @@ export function PremiumLoginShell({
 }
 
 export function LoginError({ message }) {
+    const { t } = useTranslation();
     return (
         <div
             className="flex items-start gap-2.5 bg-soft-danger border border-soft-danger-border rounded-xl p-3 mb-6 login-shake"
@@ -80,7 +84,7 @@ export function LoginError({ message }) {
         >
             <AlertCircle className="h-4 w-4 text-tone-red shrink-0 mt-0.5" aria-hidden="true" />
             <div>
-                <p className="text-sm font-medium text-tone-red">Unable to sign in</p>
+                <p className="text-sm font-medium text-tone-red">{t("auth:login.unable")}</p>
                 <p className="text-sm text-muted-foreground mt-0.5">{message}</p>
             </div>
         </div>
@@ -106,7 +110,8 @@ export function LoginSubmit({ loading, disabled, children, className = "", ...re
     );
 }
 
-export function LoginRemember({ checked, onChange, label = "Remember me on this device", hint }) {
+export function LoginRemember({ checked, onChange, label, hint }) {
+    const { t } = useTranslation();
     return (
         <div className="mt-5">
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
@@ -116,7 +121,7 @@ export function LoginRemember({ checked, onChange, label = "Remember me on this 
                     onChange={(e) => onChange(e.target.checked)}
                     className="w-4 h-4 rounded border-border accent-primary"
                 />
-                <span className="text-sm text-muted-foreground">{label}</span>
+                <span className="text-sm text-muted-foreground">{label ?? t("auth:login.rememberMe")}</span>
             </label>
             {hint ? <p className="text-xs text-muted-foreground mt-1.5 ml-[1.625rem]">{hint}</p> : null}
         </div>

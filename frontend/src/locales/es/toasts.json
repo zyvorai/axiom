@@ -1,0 +1,241 @@
+{
+  "users": {
+    "created": "Usuario {{name}} creado",
+    "createFailed": "Error al crear",
+    "updated": "{{name}} actualizado",
+    "updateFailed": "Error al actualizar",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar",
+    "mfaReset": "Dos factores restablecidos para {{name}}",
+    "resetFailed": "Error al restablecer",
+    "revoked": "Se cerró la sesión de {{name}} en todas partes",
+    "failed": "Error"
+  },
+  "settings": {
+    "saveFailed": "Error al guardar",
+    "testFailed": "Error en la prueba",
+    "oidcSaved": "Ajustes de OIDC guardados",
+    "oidcReachable": "OIDC accesible",
+    "oidcTestFailed": "Error en la prueba de OIDC",
+    "atlasSaved": "Ajustes de Atlas guardados",
+    "atlasReachable": "Atlas accesible",
+    "atlasTestFailed": "Error en la prueba de Atlas",
+    "postgresSaved": "Ajustes de Postgres guardados",
+    "postgresReachable": "Postgres accesible",
+    "postgresTestFailed": "Error en la prueba de Postgres",
+    "probeSaved": "Ajustes de la sonda guardados",
+    "probeReachable": "Sonda accesible",
+    "probeTestFailed": "Error en la prueba de la sonda",
+    "notifySaved": "Ajustes de notificaciones guardados",
+    "slackSent": "Mensaje de Slack enviado",
+    "slackTestFailed": "Error en la prueba de Slack",
+    "webhookDelivered": "Webhook entregado",
+    "webhookTestFailed": "Error en la prueba del webhook",
+    "clusterRegistered": "Clúster {{name}} registrado",
+    "registerFailed": "Error al registrar"
+  },
+  "aiSettings": {
+    "saved": "Ajustes del asistente de IA guardados",
+    "saveFailed": "Error al guardar",
+    "reachable": "Endpoint de IA accesible",
+    "aiTestFailed": "Error en la prueba de IA",
+    "testFailed": "Error en la prueba"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} creado",
+    "createFailed": "Error al crear",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap actualizado",
+    "updateFailed": "Error al actualizar"
+  },
+  "secrets": {
+    "created": "Secret {{name}} creado",
+    "createFailed": "Error al crear",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "secretDetail": {
+    "revealFailed": "Error al mostrar los valores",
+    "updated": "Secret actualizado",
+    "updateFailed": "Error al actualizar"
+  },
+  "pluginView": {
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} creado",
+    "createFailed": "Error al crear",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "networking": {
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: acordonamiento solicitado",
+    "uncordonRequested": "{{name}}: desacordonamiento solicitado",
+    "drainRequested": "{{name}}: drenado solicitado",
+    "cordonFailed": "Error al acordonar",
+    "uncordonFailed": "Error al desacordonar",
+    "drainFailed": "Error al drenar",
+    "taintAdded": "Taint añadido a {{name}}",
+    "addTaintFailed": "Error al añadir el taint",
+    "taintRemoved": "Taint quitado de {{name}}",
+    "removeTaintFailed": "Error al quitar el taint"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} desinstalado",
+      "uninstallFailed": "Error al desinstalar",
+      "rolledBack": "{{name}} revertido",
+      "rollbackFailed": "Error al revertir",
+      "installStarted": "Instalación iniciada para {{name}}",
+      "installFailed": "Error al instalar"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: sincronización solicitada",
+      "syncFailed": "Error al sincronizar"
+    },
+    "agents": {
+      "approved": "{{name}}: aprobado",
+      "denied": "{{name}}: rechazado",
+      "approveFailed": "Error al aprobar",
+      "denyFailed": "Error al rechazar"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} creado",
+      "createRoleFailed": "Error al crear el Role",
+      "bindingCreated": "RoleBinding {{name}} creado",
+      "createBindingFailed": "Error al crear el RoleBinding",
+      "deleted": "{{name}} eliminado",
+      "deleteFailed": "Error al eliminar"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} aplicado",
+    "appliedNamed": "{{kind}} {{name}} aplicado"
+  },
+  "atlas": {
+    "volumeRequested": "Volumen {{name}} solicitado",
+    "volumeRequestedDescription": "El aprovisionamiento se ejecuta como un trabajo asíncrono en Atlas.",
+    "createFailed": "Error al crear el volumen"
+  },
+  "autoscaling": {
+    "created": "HPA creado para {{name}}",
+    "createFailed": "Error al crear el HPA",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "backups": {
+    "backupRequested": "Copia de seguridad {{name}} solicitada",
+    "createBackupFailed": "Error al crear la copia de seguridad",
+    "restoreRequested": "Restauración {{name}} solicitada",
+    "restoreFailed": "Error en la restauración",
+    "scheduleCreated": "Programación {{name}} creada",
+    "createScheduleFailed": "Error al crear la programación",
+    "veleroRequested": "Copia de seguridad de Velero {{name}} solicitada",
+    "veleroFailed": "Error en la copia de seguridad de Velero"
+  },
+  "costPanels": {
+    "budgetSaved": "Presupuesto guardado para {{namespace}}",
+    "budgetSaveFailed": "No se pudo guardar el presupuesto",
+    "budgetRemoved": "Presupuesto de {{namespace}} quitado",
+    "removeFailed": "Error al quitar",
+    "requestsUpdated": "Requests actualizados para {{target}}",
+    "requestsUpdatedDescription": "La carga de trabajo se está desplegando con los nuevos valores."
+  },
+  "gitops": {
+    "deleted": "{{name}} eliminado",
+    "created": "{{name}} creado"
+  },
+  "helmCatalog": {
+    "repoAdded": "Repositorio {{name}} añadido",
+    "repoAddFailed": "No se pudo añadir el repositorio",
+    "repoRemoved": "{{name}} quitado",
+    "removeFailed": "Error al quitar",
+    "installStarted": "Instalación de {{name}} iniciada",
+    "installStartedDescription": "Se ejecuta como un Job en segundo plano; la release aparece en Releases cuando Helm termina.",
+    "installFailed": "Error en la instalación"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: detención solicitada",
+    "stopFailed": "error al detener",
+    "startRequested": "{{name}}: inicio solicitado",
+    "startFailed": "error al iniciar",
+    "migrateRequested": "{{name}}: migración solicitada",
+    "migrateFailed": "error al migrar"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: detención solicitada",
+    "stopFailed": "error al detener",
+    "startRequested": "{{name}}: inicio solicitado",
+    "startFailed": "error al iniciar",
+    "migrateRequested": "{{name}}: migración solicitada",
+    "migrateFailed": "error al migrar",
+    "requested": "Solicitado",
+    "createFailed": "Error al crear",
+    "created": "VM {{name}} creada"
+  },
+  "debugContainer": {
+    "added": "Contenedor de depuración {{container}} añadido",
+    "addFailed": "No se pudo añadir un contenedor de depuración"
+  },
+  "diffReview": {
+    "applyFailed": "Error al aplicar",
+    "applied": "{{kind}} aplicado"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} ejecutado",
+    "triggerFailed": "Error al ejecutar"
+  },
+  "jobs": {
+    "triggered": "{{name}} ejecutado",
+    "triggerFailed": "Error al ejecutar",
+    "suspended": "{{name}} suspendido",
+    "resumed": "{{name}} reanudado",
+    "updateFailed": "Error al actualizar",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "podDetail": {
+    "copyFailed": "No se pudo copiar al portapapeles",
+    "evicted": "{{name}} desalojado",
+    "evictFailed": "Error al desalojar"
+  },
+  "pods": {
+    "evicted": "{{name}} desalojado",
+    "evictFailed": "Error al desalojar",
+    "skippedNote_one": " ({{count}} pod seleccionado ya no aparece, omitido)",
+    "skippedNote_other": " ({{count}} pods seleccionados ya no aparecen, omitidos)",
+    "bulkEvictFailed": "{{failed}} de {{total}} desalojos fallaron{{note}}",
+    "bulkEvicted_one": "{{count}} pod desalojado{{note}}",
+    "bulkEvicted_other": "{{count}} pods desalojados{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} solicitado",
+    "actionFailed": "{{action}} falló",
+    "workloadActionRequested": "{{name}}: {{action}} solicitado",
+    "scaled": "{{name}} escalado a {{replicas}}",
+    "scaleFailed": "Error al escalar",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar",
+    "launched": "{{name}} lanzado",
+    "launchFailed": "Error al lanzar",
+    "parseFailed": "Error al analizar",
+    "placed": "Carga de trabajo colocada a partir de la intención",
+    "placeFailed": "Error al colocar",
+    "skippedNote_one": " ({{count}} elemento seleccionado ya no aparece, omitido)",
+    "skippedNote_other": " ({{count}} elementos seleccionados ya no aparecen, omitidos)",
+    "bulkDeleteFailed": "{{failed}} de {{total}} eliminaciones fallaron{{note}}",
+    "bulkRestartFailed": "{{failed}} de {{total}} reinicios fallaron{{note}}",
+    "bulkDeleted_one": "{{count}} carga de trabajo eliminada{{note}}",
+    "bulkDeleted_other": "{{count}} cargas de trabajo eliminadas{{note}}",
+    "bulkRestarted_one": "{{count}} carga de trabajo reiniciada{{note}}",
+    "bulkRestarted_other": "{{count}} cargas de trabajo reiniciadas{{note}}"
+  }
+}

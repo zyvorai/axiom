@@ -13,16 +13,19 @@ import { useAuth } from "@/lib/auth";
 import { USER_MENU, MFA } from "@/constants/testIds";
 import AccountSecurityDialog from "@/components/AccountSecurityDialog";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import LanguageSelect from "@/components/LanguageSelect";
 
 export default function UserMenu() {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [securityOpen, setSecurityOpen] = useState(false);
     if (!user) return null;
 
     const handleSignOut = () => {
         signOut();
-        toast.info("Signed out", { description: "Your Axiom session was ended." });
+        toast.info(t("nav:userMenu.signedOut"), { description: t("nav:userMenu.signedOutHint") });
         navigate("/login", { replace: true });
     };
 
@@ -44,7 +47,7 @@ export default function UserMenu() {
                 </DropdownMenuLabel>
                 <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[11px] uppercase tracking-widest text-muted-foreground">
                     <ShieldCheck className="h-3 w-3 text-tone-green" />
-                    {user.authMethod === "oidc" ? "SSO" : "Local"} · {user.mode}
+                    {user.authMethod === "oidc" ? t("nav:userMenu.sso") : t("nav:userMenu.local")} · {user.mode}
                 </div>
                 <DropdownMenuSeparator className="bg-muted" />
                 <DropdownMenuItem
@@ -53,7 +56,7 @@ export default function UserMenu() {
                     className="cursor-pointer rounded-xl text-sm"
                 >
                     <KeyRound className="mr-2 h-4 w-4" />
-                    Account security
+                    {t("nav:userMenu.accountSecurity")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     data-testid={USER_MENU.signOut}
@@ -61,8 +64,10 @@ export default function UserMenu() {
                     className="cursor-pointer rounded-xl text-sm"
                 >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                    {t("nav:userMenu.signOut")}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-muted" />
+                <LanguageSelect className="px-2 py-1.5" />
             </DropdownMenuContent>
         </DropdownMenu>
         <AccountSecurityDialog open={securityOpen} onOpenChange={setSecurityOpen} />

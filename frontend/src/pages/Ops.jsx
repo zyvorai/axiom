@@ -7,6 +7,8 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { dateFnsLocale } from "@/lib/i18n";
 import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,19 +32,19 @@ import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import { useAuth } from "@/lib/auth";
 
 const TABS = [
-    { key: "helm", label: "Helm", icon: Anchor },
-    { key: "gitops", label: "GitOps", icon: GitBranch },
-    { key: "agents", label: "Agents", icon: Bot },
-    { key: "identity", label: "Identity", icon: Fingerprint },
-    { key: "audit", label: "Audit", icon: ScrollText },
-    { key: "access", label: "Access", icon: ShieldCheck },
-    { key: "webhooks", label: "Webhooks", icon: Webhook },
-    { key: "cost", label: "Cost", icon: DollarSign },
+    { key: "helm", labelKey: "pages:ops.tabs.helm", icon: Anchor },
+    { key: "gitops", labelKey: "pages:ops.tabs.gitops", icon: GitBranch },
+    { key: "agents", labelKey: "pages:ops.tabs.agents", icon: Bot },
+    { key: "identity", labelKey: "pages:ops.tabs.identity", icon: Fingerprint },
+    { key: "audit", labelKey: "pages:ops.tabs.audit", icon: ScrollText },
+    { key: "access", labelKey: "pages:ops.tabs.access", icon: ShieldCheck },
+    { key: "webhooks", labelKey: "pages:ops.tabs.webhooks", icon: Webhook },
+    { key: "cost", labelKey: "pages:ops.tabs.cost", icon: DollarSign },
 ];
 
 function relTime(iso) {
     try {
-        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
+        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: dateFnsLocale() });
     } catch {
         return iso;
     }
@@ -64,9 +66,10 @@ function useEndpoint(path, deps = []) {
 
 // Row-list wrapper for tabs whose rows are richer than a flat table (Agents, Webhooks).
 function Rows({ items, empty, render }) {
+    const { t } = useTranslation();
     if (!items) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (items.length === 0) return <div className="empty">{empty}</div>;
-    return <div className="max-h-[520px] overflow-auto" tabIndex={0} role="region" aria-label="Results">{items.map(render)}</div>;
+    return <div className="max-h-[520px] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:ops.results")}>{items.map(render)}</div>;
 }
 
 // Renders a `.tbl` once `items` has rows; a loading skeleton or `.empty` block
@@ -78,24 +81,25 @@ function TablePanel({ items, empty, table }) {
 }
 
 function HelmRow({ r, onChanged }) {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [revision, setRevision] = useState("");
     const [busy, setBusy] = useState("");
 
     const uninstall = async () => {
         const ok = await confirm({
-            title: `Uninstall ${r.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Uninstall",
+            title: t("dialogs:ops.uninstall.title", { name: r.name }),
+            description: t("dialogs:ops.cannotUndo"),
+            confirmLabel: t("dialogs:ops.uninstall.confirm"),
         });
         if (!ok) return;
         setBusy("uninstall");
         try {
             await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/uninstall`);
-            toast.success(`${r.name} uninstalled`);
+            toast.success(t("toasts:ops.helm.uninstalled", { name: r.name }));
             onChanged();
         } catch (e) {
-            toast.error("Uninstall failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.helm.uninstallFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -107,10 +111,10 @@ function HelmRow({ r, onChanged }) {
             await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/rollback`, {
                 revision: revision ? Number(revision) : 0,
             });
-            toast.success(`${r.name} rolled back`);
+            toast.success(t("toasts:ops.helm.rolledBack", { name: r.name }));
             onChanged();
         } catch (e) {
-            toast.error("Rollback failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.helm.rollbackFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -123,7 +127,7 @@ function HelmRow({ r, onChanged }) {
                 <small>{r.namespace}</small>
             </td>
             <td className="mono text-[12.5px] text-ink-3">{r.chart}</td>
-            <td className="num">rev {r.revision}</td>
+            <td className="num">{t("pages:ops.helm.rev", { n: r.revision })}</td>
             <td>
                 <StatusBadge status={r.status === "deployed" ? "Healthy" : r.status} />
             </td>
@@ -133,13 +137,13 @@ function HelmRow({ r, onChanged }) {
                     <Input
                         value={revision}
                         onChange={(e) => setRevision(e.target.value)}
-                        placeholder="rev"
+                        placeholder={t("pages:ops.helm.revPlaceholder")}
                         className="h-7 w-14 bg-muted/30 px-2 text-xs"
                     />
-                    <button type="button" className="btn btn-line btn-sm" disabled={!!busy} onClick={rollback} title="Rollback">
+                    <button type="button" className="btn btn-line btn-sm" disabled={!!busy} onClick={rollback} title={t("pages:ops.helm.rollback")}>
                         <RotateCcw size={13} />
                     </button>
-                    <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={uninstall} title="Uninstall">
+                    <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={uninstall} title={t("pages:ops.helm.uninstall")}>
                         <Trash2 size={13} />
                     </button>
                 </div>
@@ -149,6 +153,7 @@ function HelmRow({ r, onChanged }) {
 }
 
 function InstallChartDialog({ open, onOpenChange, onInstalled }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ namespace: "default", releaseName: "", repoUrl: "", chartName: "", chartVersion: "", values: "" });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -157,11 +162,11 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
         setBusy(true);
         try {
             await api.post("/helm/install", form);
-            toast.success(`Install started for ${form.releaseName}`);
+            toast.success(t("toasts:ops.helm.installStarted", { name: form.releaseName }));
             onOpenChange(false);
             onInstalled();
         } catch (e) {
-            toast.error("Install failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.helm.installFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -171,46 +176,46 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Install chart</DialogTitle>
+                    <DialogTitle>{t("dialogs:ops.installChart.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="ops-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="ops-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-release-name" className="text-xs text-muted-foreground">Release name</Label>
+                            <Label htmlFor="ops-release-name" className="text-xs text-muted-foreground">{t("dialogs:ops.installChart.releaseName")}</Label>
                             <Input id="ops-release-name" value={form.releaseName} onChange={(e) => set({ releaseName: e.target.value })} placeholder="my-release" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="ops-chart-repo-url" className="text-xs text-muted-foreground">Chart repo URL</Label>
+                        <Label htmlFor="ops-chart-repo-url" className="text-xs text-muted-foreground">{t("dialogs:ops.installChart.repoUrl")}</Label>
                         <Input id="ops-chart-repo-url" value={form.repoUrl} onChange={(e) => set({ repoUrl: e.target.value })} placeholder="https://charts.example.com" className="bg-muted/30" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-chart-name" className="text-xs text-muted-foreground">Chart name</Label>
+                            <Label htmlFor="ops-chart-name" className="text-xs text-muted-foreground">{t("dialogs:ops.installChart.chartName")}</Label>
                             <Input id="ops-chart-name" value={form.chartName} onChange={(e) => set({ chartName: e.target.value })} placeholder="ingress-nginx" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-version" className="text-xs text-muted-foreground">Version (optional)</Label>
+                            <Label htmlFor="ops-version" className="text-xs text-muted-foreground">{t("dialogs:ops.installChart.version")}</Label>
                             <Input id="ops-version" value={form.chartVersion} onChange={(e) => set({ chartVersion: e.target.value })} placeholder="4.11.0" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="ops-values-yaml" className="text-xs text-muted-foreground">Values YAML (optional)</Label>
+                        <Label htmlFor="ops-values-yaml" className="text-xs text-muted-foreground">{t("dialogs:ops.installChart.values")}</Label>
                         <MacTerm title="values.yaml" bodyClassName="!p-0">
                             <Textarea id="ops-values-yaml" value={form.values} onChange={(e) => set({ values: e.target.value })} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                        Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.
+                        {t("dialogs:ops.installChart.note")}
                     </p>
                 </div>
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !form.releaseName || !form.repoUrl || !form.chartName}>
-                        {busy ? "Starting…" : "Install"}
+                        {busy ? t("dialogs:ops.installChart.starting") : t("dialogs:ops.installChart.install")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -219,6 +224,7 @@ function InstallChartDialog({ open, onOpenChange, onInstalled }) {
 }
 
 function HelmTab() {
+    const { t } = useTranslation();
     const [reload, setReload] = useState(0);
     const releases = useEndpoint("/helm/releases", [reload]);
     const [installOpen, setInstallOpen] = useState(false);
@@ -226,17 +232,17 @@ function HelmTab() {
     return (
         <div className="stack">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="seg" role="group" aria-label="Helm view">
+                <div className="seg" role="group" aria-label={t("pages:ops.helm.view")}>
                     <button type="button" aria-pressed={view === "releases"} data-testid={HELM_CATALOG.viewReleases} onClick={() => setView("releases")}>
-                        Releases
+                        {t("pages:ops.helm.releases")}
                     </button>
                     <button type="button" aria-pressed={view === "catalog"} data-testid={HELM_CATALOG.viewCatalog} onClick={() => setView("catalog")}>
-                        <Boxes size={13} className="mr-1 inline" aria-hidden="true" /> Catalog
+                        <Boxes size={13} className="mr-1 inline" aria-hidden="true" /> {t("pages:ops.helm.catalog")}
                     </button>
                 </div>
                 {view === "releases" && (
                     <button type="button" className="btn btn-fill btn-sm" onClick={() => setInstallOpen(true)}>
-                        <Plus size={14} /> Install chart
+                        <Plus size={14} /> {t("pages:ops.helm.installChart")}
                     </button>
                 )}
             </div>
@@ -251,17 +257,17 @@ function HelmTab() {
             <div className="card p-0">
                 <TablePanel
                     items={releases}
-                    empty="No Helm releases."
+                    empty={t("pages:ops.helm.empty")}
                     table={(rows) => (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Release</th>
-                                    <th>Chart</th>
-                                    <th>Revision</th>
-                                    <th>Status</th>
-                                    <th>Age</th>
-                                    <th><span className="sr-only">Actions</span></th>
+                                    <th>{t("pages:ops.helm.columns.release")}</th>
+                                    <th>{t("pages:ops.helm.columns.chart")}</th>
+                                    <th>{t("pages:ops.helm.columns.revision")}</th>
+                                    <th>{t("common:fields.status")}</th>
+                                    <th>{t("common:fields.age")}</th>
+                                    <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -280,6 +286,7 @@ function HelmTab() {
 }
 
 function GitOpsTab() {
+    const { t } = useTranslation();
     const [refresh, setRefresh] = useState(0);
     const apps = useEndpoint("/gitops", [refresh]);
     const [syncing, setSyncing] = useState("");
@@ -292,10 +299,10 @@ function GitOpsTab() {
         setSyncing(busyKey);
         try {
             await api.post(`/gitops/${a.kind}/${a.namespace}/${encodeURIComponent(a.name)}/sync`);
-            toast.success(`${a.name}: sync requested`);
+            toast.success(t("toasts:ops.gitops.syncRequested", { name: a.name }));
             setRefresh((n) => n + 1);
         } catch (e) {
-            toast.error("Sync failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.gitops.syncFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setSyncing("");
         }
@@ -305,22 +312,22 @@ function GitOpsTab() {
         <div className="stack">
         <div className="flex justify-end">
             <button type="button" className="btn btn-fill btn-sm" data-testid={GITOPS_CREATE.open} onClick={() => setCreateOpen(true)}>
-                <Plus size={14} /> New application
+                <Plus size={14} /> {t("pages:ops.gitops.newApplication")}
             </button>
         </div>
         <div className="card p-0">
             <TablePanel
                 items={apps}
-                empty="No GitOps applications."
+                empty={t("pages:ops.gitops.empty")}
                 table={(rows) => (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Application</th>
-                                <th>Source</th>
-                                <th>Status</th>
-                                <th>Age</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("pages:ops.gitops.columns.application")}</th>
+                                <th>{t("common:fields.source")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -340,8 +347,8 @@ function GitOpsTab() {
                                                 className="btn btn-line btn-sm"
                                                 disabled={syncing === `${a.namespace}/${a.name}`}
                                                 onClick={() => sync(a)}
-                                                title="Sync"
-                                                aria-label={`Sync ${a.name}`}
+                                                title={t("pages:ops.gitops.sync")}
+                                                aria-label={t("pages:ops.gitops.syncAria", { name: a.name })}
                                             >
                                                 <RotateCcw size={13} />
                                             </button>
@@ -350,8 +357,8 @@ function GitOpsTab() {
                                                     type="button"
                                                     className="btn btn-danger btn-sm"
                                                     data-testid={GITOPS_CREATE.deleteRow(a.kind, a.namespace, a.name)}
-                                                    title={`Delete ${a.name}`}
-                                                    aria-label={`Delete ${a.name}`}
+                                                    title={t("pages:ops.gitops.deleteAria", { name: a.name })}
+                                                    aria-label={t("pages:ops.gitops.deleteAria", { name: a.name })}
                                                     onClick={() => setDeleting(a)}
                                                 >
                                                     <Trash2 size={13} />
@@ -373,6 +380,7 @@ function GitOpsTab() {
 }
 
 function AgentRunRow({ r, onChanged }) {
+    const { t } = useTranslation();
     const [busy, setBusy] = useState("");
     const pending = r.approval === "Pending";
 
@@ -380,10 +388,10 @@ function AgentRunRow({ r, onChanged }) {
         setBusy(action);
         try {
             await api.post(`/agent-runs/${r.namespace}/${encodeURIComponent(r.name)}/${action}`);
-            toast.success(`${r.name}: ${action === "deny" ? "denied" : "approved"}`);
+            toast.success(action === "deny" ? t("toasts:ops.agents.denied", { name: r.name }) : t("toasts:ops.agents.approved", { name: r.name }));
             onChanged();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(action === "deny" ? t("toasts:ops.agents.denyFailed") : t("toasts:ops.agents.approveFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -404,8 +412,8 @@ function AgentRunRow({ r, onChanged }) {
                                 type="button"
                                 className="btn btn-sm btn-success"
                                 disabled={!!busy}
-                                aria-label="Approve proposal"
-                                title="Approve proposal"
+                                aria-label={t("pages:ops.agents.approve")}
+                                title={t("pages:ops.agents.approve")}
                                 onClick={() => decide("approve")}
                             >
                                 <Check size={13} />
@@ -414,8 +422,8 @@ function AgentRunRow({ r, onChanged }) {
                                 type="button"
                                 className="btn btn-danger btn-sm"
                                 disabled={!!busy}
-                                aria-label="Deny proposal"
-                                title="Deny proposal"
+                                aria-label={t("pages:ops.agents.deny")}
+                                title={t("pages:ops.agents.deny")}
                                 onClick={() => decide("deny")}
                             >
                                 <X size={13} />
@@ -430,24 +438,25 @@ function AgentRunRow({ r, onChanged }) {
                 </div>
             )}
             <div className="mt-2 flex items-center gap-2 text-[11.5px] text-ink-3">
-                <span>autonomy: {r.autonomy}</span>
+                <span>{t("pages:ops.agents.autonomy", { value: r.autonomy })}</span>
                 <span>·</span>
-                <span>risk: {r.risk}</span>
+                <span>{t("pages:ops.agents.risk", { value: r.risk })}</span>
                 <span>·</span>
-                <span>approval: {r.approval}</span>
+                <span>{t("pages:ops.agents.approval", { value: r.approval })}</span>
             </div>
         </div>
     );
 }
 
 function AgentsTab() {
+    const { t } = useTranslation();
     const [reload, setReload] = useState(0);
     const runs = useEndpoint("/agent-runs", [reload]);
     return (
         <div className="card p-0">
             <Rows
                 items={runs}
-                empty="No agent runs."
+                empty={t("pages:ops.agents.empty")}
                 render={(r) => <AgentRunRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
             />
         </div>
@@ -455,23 +464,24 @@ function AgentsTab() {
 }
 
 function IdentityTab() {
+    const { t } = useTranslation();
     const identity = useEndpoint("/haven/identity");
     if (!identity) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
         <div className="stack">
             <div className="card p-0">
-                <div className="panel-h">Identity planes</div>
+                <div className="panel-h">{t("pages:ops.identity.planes")}</div>
                 <TablePanel
                     items={identity.planes}
-                    empty="No identity planes."
+                    empty={t("pages:ops.identity.empty")}
                     table={(rows) => (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Plane</th>
-                                    <th>Hostname</th>
-                                    <th>Status</th>
-                                    <th>Age</th>
+                                    <th>{t("pages:ops.identity.columns.plane")}</th>
+                                    <th>{t("pages:ops.identity.columns.hostname")}</th>
+                                    <th>{t("common:fields.status")}</th>
+                                    <th>{t("common:fields.age")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -492,9 +502,9 @@ function IdentityTab() {
                 />
             </div>
             <div className="card">
-                <div className="mb-2 text-[14px] font-[500]">Admin credentials</div>
+                <div className="mb-2 text-[14px] font-[500]">{t("pages:ops.identity.adminCredentials")}</div>
                 <div className="text-[12.5px] text-ink-3">
-                    {identity.admin?.exists ? `Secret ${identity.admin.secretName} in ${identity.admin.namespace}` : "Not configured"}
+                    {identity.admin?.exists ? t("pages:ops.identity.adminSecret", { name: identity.admin.secretName, namespace: identity.admin.namespace }) : t("common:states.notConfigured")}
                     {identity.admin?.hint && <span> — {identity.admin.hint}</span>}
                 </div>
             </div>
@@ -522,6 +532,7 @@ function auditToCSV(entries) {
 }
 
 function AuditTab() {
+    const { t } = useTranslation();
     const entries = useEndpoint("/audit");
     const [q, setQ] = useState("");
 
@@ -547,32 +558,32 @@ function AuditTab() {
                 <div className="relative flex-1 min-w-[220px]">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
                     <Input
-                        placeholder="Search action, target, detail, or user"
+                        placeholder={t("pages:ops.audit.searchPlaceholder")}
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
                         className="bg-muted/30 pl-[34px]"
                     />
                 </div>
                 <button type="button" className="btn btn-line btn-sm" onClick={exportCSV} disabled={!filtered || filtered.length === 0}>
-                    <Download size={13} /> Export CSV
+                    <Download size={13} /> {t("pages:ops.audit.exportCsv")}
                 </button>
                 <button type="button" className="btn btn-line btn-sm" onClick={exportJSON} disabled={!filtered || filtered.length === 0}>
-                    <Download size={13} /> Export JSON
+                    <Download size={13} /> {t("pages:ops.audit.exportJson")}
                 </button>
             </div>
             <div className="card p-0">
                 <TablePanel
                     items={filtered}
-                    empty={q ? "No audit entries match." : "No audit entries recorded yet."}
+                    empty={q ? t("pages:ops.audit.noMatches") : t("pages:ops.audit.empty")}
                     table={(rows) => (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Action</th>
-                                    <th>Target</th>
-                                    <th>Detail</th>
-                                    <th>User</th>
-                                    <th>Time</th>
+                                    <th>{t("pages:ops.audit.columns.action")}</th>
+                                    <th>{t("common:fields.target")}</th>
+                                    <th>{t("pages:ops.audit.columns.detail")}</th>
+                                    <th>{t("pages:ops.audit.columns.user")}</th>
+                                    <th>{t("common:fields.time")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -595,6 +606,7 @@ function AuditTab() {
 }
 
 function CreateRoleDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [namespace, setNamespace] = useState("default");
     const [name, setName] = useState("");
     const [rulesText, setRulesText] = useState('[\n  {"apiGroups": [""], "resources": ["pods"], "verbs": ["get", "list"]}\n]');
@@ -605,17 +617,17 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
         try {
             rules = JSON.parse(rulesText);
         } catch {
-            toast.error("Rules must be valid JSON");
+            toast.error(t("errors:ops.rulesJson"));
             return;
         }
         setBusy(true);
         try {
             await api.post("/rbac/roles", { namespace, name, rules });
-            toast.success(`Role ${name} created`);
+            toast.success(t("toasts:ops.rbac.roleCreated", { name }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Create role failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.rbac.createRoleFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -625,21 +637,21 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>New Role</DialogTitle>
+                    <DialogTitle>{t("dialogs:ops.createRole.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-namespace-2" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="ops-namespace-2" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="ops-namespace-2" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="ops-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="ops-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="ops-rules" className="text-xs text-muted-foreground">Rules (JSON array of PolicyRule)</Label>
+                        <Label htmlFor="ops-rules" className="text-xs text-muted-foreground">{t("dialogs:ops.createRole.rules")}</Label>
                         <MacTerm title="rules.json" bodyClassName="!p-0">
                             <Textarea id="ops-rules" value={rulesText} onChange={(e) => setRulesText(e.target.value)} className="macos-term-body mono min-h-[140px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
@@ -647,7 +659,7 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
                 </div>
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !name}>
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:ops.creating") : t("common:actions.create")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -656,6 +668,7 @@ function CreateRoleDialog({ open, onOpenChange, onCreated }) {
 }
 
 function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [namespace, setNamespace] = useState("default");
     const [name, setName] = useState("");
     const [roleName, setRoleName] = useState("");
@@ -667,17 +680,17 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
         try {
             subjects = JSON.parse(subjectsText);
         } catch {
-            toast.error("Subjects must be valid JSON");
+            toast.error(t("errors:ops.subjectsJson"));
             return;
         }
         setBusy(true);
         try {
             await api.post("/rbac/rolebindings", { namespace, name, roleName, subjects });
-            toast.success(`RoleBinding ${name} created`);
+            toast.success(t("toasts:ops.rbac.bindingCreated", { name }));
             onOpenChange(false);
             onCreated();
         } catch (e) {
-            toast.error("Create role binding failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.rbac.createBindingFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -687,25 +700,25 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>New RoleBinding</DialogTitle>
+                    <DialogTitle>{t("dialogs:ops.createBinding.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-namespace-3" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="ops-namespace-3" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="ops-namespace-3" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-name-2" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="ops-name-2" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="ops-name-2" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-editor-binding" className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="ops-role-name" className="text-xs text-muted-foreground">Role name</Label>
+                            <Label htmlFor="ops-role-name" className="text-xs text-muted-foreground">{t("dialogs:ops.createBinding.roleName")}</Label>
                             <Input id="ops-role-name" value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="app-editor" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="ops-subjects" className="text-xs text-muted-foreground">Subjects (JSON array)</Label>
+                        <Label htmlFor="ops-subjects" className="text-xs text-muted-foreground">{t("dialogs:ops.createBinding.subjects")}</Label>
                         <MacTerm title="subjects.json" bodyClassName="!p-0">
                             <Textarea id="ops-subjects" value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                         </MacTerm>
@@ -713,7 +726,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
                 </div>
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" onClick={submit} disabled={busy || !name || !roleName}>
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:ops.creating") : t("common:actions.create")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -722,6 +735,7 @@ function CreateRoleBindingDialog({ open, onOpenChange, onCreated }) {
 }
 
 function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabel }) {
+    const { t } = useTranslation();
     return (
         <div className="card p-0">
             <div className="panel-h">
@@ -734,14 +748,14 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
             </div>
             <TablePanel
                 items={items}
-                empty="None found."
+                empty={t("pages:ops.noneFound")}
                 table={(rows) => (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>{items && items[0] && items[0].rules != null ? "Rules" : "Subjects"}</th>
-                                {deletable && <th><span className="sr-only">Actions</span></th>}
+                                <th>{t("common:fields.name")}</th>
+                                <th>{items && items[0] && items[0].rules != null ? t("pages:ops.rbac.columns.rules") : t("pages:ops.rbac.columns.subjects")}</th>
+                                {deletable && <th><span className="sr-only">{t("common:fields.actions")}</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -752,11 +766,11 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
                                         {r.namespace && <small>{r.namespace}</small>}
                                         {r.roleRef && <small className="mono">{r.roleRef}</small>}
                                     </td>
-                                    <td className="num">{r.rules != null ? `${r.rules} rules` : `${r.subjects} subjects`}</td>
+                                    <td className="num">{r.rules != null ? t("pages:ops.rbac.rulesCount", { n: r.rules }) : t("pages:ops.rbac.subjectsCount", { n: r.subjects })}</td>
                                     {deletable && (
                                         <td>
                                             <div className="flex justify-end">
-                                                <button type="button" className="btn btn-danger btn-sm" aria-label="Delete" title="Delete" onClick={() => onDelete(r)}>
+                                                <button type="button" className="btn btn-danger btn-sm" aria-label={t("common:actions.delete")} title={t("common:actions.delete")} onClick={() => onDelete(r)}>
                                                     <Trash2 size={13} />
                                                 </button>
                                             </div>
@@ -773,6 +787,7 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
 }
 
 function RbacRolesView() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [refresh, setRefresh] = useState(0);
     const rbac = useEndpoint("/rbac", [refresh]);
@@ -784,45 +799,45 @@ function RbacRolesView() {
 
     const deleteRole = async (r) => {
         const ok = await confirm({
-            title: `Delete role ${r.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:ops.deleteRole.title", { name: r.name }),
+            description: t("dialogs:ops.cannotUndo"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/rbac/roles/${r.namespace}/${encodeURIComponent(r.name)}`);
-            toast.success(`Deleted ${r.name}`);
+            toast.success(t("toasts:ops.rbac.deleted", { name: r.name }));
             reload();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.rbac.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
     const deleteRoleBinding = async (r) => {
         const ok = await confirm({
-            title: `Delete role binding ${r.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:ops.deleteBinding.title", { name: r.name }),
+            description: t("dialogs:ops.cannotUndo"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/rbac/rolebindings/${r.namespace}/${encodeURIComponent(r.name)}`);
-            toast.success(`Deleted ${r.name}`);
+            toast.success(t("toasts:ops.rbac.deleted", { name: r.name }));
             reload();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:ops.rbac.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const groups = [
-        { title: "Cluster roles", items: rbac.clusterRoles, deletable: false },
-        { title: "Cluster role bindings", items: rbac.clusterRoleBindings, deletable: false },
-        { title: "Roles", items: rbac.roles, deletable: true, onDelete: deleteRole, onCreate: () => setRoleOpen(true), createLabel: "New role" },
-        { title: "Role bindings", items: rbac.roleBindings, deletable: true, onDelete: deleteRoleBinding, onCreate: () => setBindingOpen(true), createLabel: "New binding" },
+        { id: "clusterRoles", title: t("pages:ops.rbac.clusterRoles"), items: rbac.clusterRoles, deletable: false },
+        { id: "clusterRoleBindings", title: t("pages:ops.rbac.clusterRoleBindings"), items: rbac.clusterRoleBindings, deletable: false },
+        { id: "roles", title: t("pages:ops.rbac.roles"), items: rbac.roles, deletable: true, onDelete: deleteRole, onCreate: () => setRoleOpen(true), createLabel: t("pages:ops.rbac.newRole") },
+        { id: "roleBindings", title: t("pages:ops.rbac.roleBindings"), items: rbac.roleBindings, deletable: true, onDelete: deleteRoleBinding, onCreate: () => setBindingOpen(true), createLabel: t("pages:ops.rbac.newBinding") },
     ];
     return (
         <div className="grid g2">
             {groups.map((g) => (
-                <RbacGroupCard key={g.title} {...g} />
+                <RbacGroupCard key={g.id} {...g} />
             ))}
             <CreateRoleDialog open={roleOpen} onOpenChange={setRoleOpen} onCreated={reload} />
             <CreateRoleBindingDialog open={bindingOpen} onOpenChange={setBindingOpen} onCreated={reload} />
@@ -834,18 +849,19 @@ function RbacRolesView() {
 // "By subject" and "Who can…" views (components/RbacExplorer.jsx). The active
 // view lives in ?view= so it survives reloads and can be linked.
 const RBAC_VIEWS = [
-    { key: "roles", label: "Roles & bindings", Panel: RbacRolesView },
-    { key: "subjects", label: "By subject", Panel: RbacBySubject },
-    { key: "who-can", label: "Who can…", Panel: RbacWhoCan },
+    { key: "roles", labelKey: "pages:ops.rbac.views.roles", Panel: RbacRolesView },
+    { key: "subjects", labelKey: "pages:ops.rbac.views.subjects", Panel: RbacBySubject },
+    { key: "who-can", labelKey: "pages:ops.rbac.views.whoCan", Panel: RbacWhoCan },
 ];
 
 function RbacTab() {
+    const { t } = useTranslation();
     const [params, setParams] = useSearchParams();
     const active = RBAC_VIEWS.find((v) => v.key === params.get("view")) || RBAC_VIEWS[0];
     const Panel = active.Panel;
     return (
         <div className="stack">
-            <div className="seg" role="group" aria-label="Access view" data-testid={RBAC.viewSwitch}>
+            <div className="seg" role="group" aria-label={t("pages:ops.rbac.accessView")} data-testid={RBAC.viewSwitch}>
                 {RBAC_VIEWS.map((v) => (
                     <button
                         key={v.key}
@@ -854,7 +870,7 @@ function RbacTab() {
                         data-testid={RBAC.viewTab(v.key)}
                         onClick={() => setParams(v.key === "roles" ? {} : { view: v.key }, { replace: true })}
                     >
-                        {v.label}
+                        {t(v.labelKey)}
                     </button>
                 ))}
             </div>
@@ -864,26 +880,27 @@ function RbacTab() {
 }
 
 function WebhooksTab() {
+    const { t } = useTranslation();
     const webhooks = useEndpoint("/admission-webhooks");
     if (!webhooks) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     const groups = [
-        ["Validating", webhooks.filter((w) => w.type === "Validating")],
-        ["Mutating", webhooks.filter((w) => w.type === "Mutating")],
+        ["Validating", t("pages:ops.webhooks.validating"), webhooks.filter((w) => w.type === "Validating")],
+        ["Mutating", t("pages:ops.webhooks.mutating"), webhooks.filter((w) => w.type === "Mutating")],
     ];
     return (
         <div className="stack">
-            {groups.map(([title, items]) => (
-                <div key={title} className="card p-0">
-                    <div className="panel-h">{title} webhooks</div>
+            {groups.map(([type, title, items]) => (
+                <div key={type} className="card p-0">
+                    <div className="panel-h">{title}</div>
                     {items.length === 0 ? (
-                        <div className="empty">None found.</div>
+                        <div className="empty">{t("pages:ops.noneFound")}</div>
                     ) : (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Webhook</th>
-                                    <th>Rules</th>
-                                    <th>Failure policy</th>
+                                    <th>{t("pages:ops.webhooks.columns.webhook")}</th>
+                                    <th>{t("pages:ops.webhooks.columns.rules")}</th>
+                                    <th>{t("pages:ops.webhooks.columns.failurePolicy")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -912,6 +929,7 @@ function WebhooksTab() {
 }
 
 function CostTab() {
+    const { t } = useTranslation();
     const cost = useEndpoint("/cost");
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     return (
@@ -919,45 +937,45 @@ function CostTab() {
             <div className="stats c3">
                 <div className="stat">
                     <b>${cost.totalMonthlyUsd}</b>
-                    <span>Total monthly cost</span>
+                    <span>{t("pages:ops.cost.totalMonthly")}</span>
                 </div>
                 <div className="stat">
                     <b>
                         ${cost.cpuRatePerCore}
-                        <small>/core</small>
+                        <small>{t("pages:ops.cost.perCore")}</small>
                     </b>
-                    <span>CPU rate</span>
+                    <span>{t("pages:ops.cost.cpuRate")}</span>
                 </div>
                 <div className="stat">
                     <b>
                         ${cost.memoryRatePerGi}
                         <small>/GiB</small>
                     </b>
-                    <span>Memory rate</span>
+                    <span>{t("pages:ops.cost.memoryRate")}</span>
                 </div>
             </div>
             <CostBudgets />
             <CostRightsizing />
             <div className="card p-0">
-                <div className="panel-h">By namespace</div>
+                <div className="panel-h">{t("pages:ops.cost.byNamespace")}</div>
                 <TablePanel
                     items={cost.namespaces}
-                    empty="No namespace cost data."
+                    empty={t("pages:ops.cost.noNamespaceData")}
                     table={(rows) => (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Namespace</th>
-                                    <th>CPU</th>
-                                    <th>Memory</th>
-                                    <th>Monthly cost</th>
+                                    <th>{t("common:fields.namespace")}</th>
+                                    <th>{t("common:fields.cpu")}</th>
+                                    <th>{t("common:fields.memory")}</th>
+                                    <th>{t("pages:ops.cost.columns.monthlyCost")}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((n) => (
                                     <tr key={n.namespace}>
                                         <td className="name">{n.namespace}</td>
-                                        <td className="text-[12.5px] text-ink-3">{n.cpuCores} cores</td>
+                                        <td className="text-[12.5px] text-ink-3">{t("pages:ops.cost.cores", { n: n.cpuCores })}</td>
                                         <td className="text-[12.5px] text-ink-3">{n.memoryGi} GiB</td>
                                         <td className="mono num">${n.monthlyUsd}</td>
                                     </tr>
@@ -968,18 +986,18 @@ function CostTab() {
                 />
             </div>
             <div className="card p-0">
-                <div className="panel-h">By workload</div>
+                <div className="panel-h">{t("pages:ops.cost.byWorkload")}</div>
                 <TablePanel
                     items={cost.workloads}
-                    empty="No workload cost data."
+                    empty={t("pages:ops.cost.noWorkloadData")}
                     table={(rows) => (
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Workload</th>
-                                    <th>CPU</th>
-                                    <th>Memory</th>
-                                    <th>Monthly cost</th>
+                                    <th>{t("pages:ops.cost.columns.workload")}</th>
+                                    <th>{t("common:fields.cpu")}</th>
+                                    <th>{t("common:fields.memory")}</th>
+                                    <th>{t("pages:ops.cost.columns.monthlyCost")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -989,7 +1007,7 @@ function CostTab() {
                                             {w.workload}
                                             <small>{w.namespace} · {w.kind}</small>
                                         </td>
-                                        <td className="text-[12.5px] text-ink-3">{w.cpuCores} cores</td>
+                                        <td className="text-[12.5px] text-ink-3">{t("pages:ops.cost.cores", { n: w.cpuCores })}</td>
                                         <td className="text-[12.5px] text-ink-3">{w.memoryGi} GiB</td>
                                         <td className="mono num">${w.monthlyUsd}</td>
                                     </tr>
@@ -1015,25 +1033,27 @@ const PANELS = {
 };
 
 export default function Ops() {
+    const { t } = useTranslation();
     const { tab } = useParams();
     const navigate = useNavigate();
-    const active = TABS.some((t) => t.key === tab) ? tab : "helm";
+    const active = TABS.some((tb) => tb.key === tab) ? tab : "helm";
     const Panel = PANELS[active];
     // runs after PageHeader's own title effect, so it wins and adds the tab name
-    usePageTitle("Ops", TABS.find((t) => t.key === active)?.label);
+    const activeTab = TABS.find((tb) => tb.key === active);
+    usePageTitle(t("pages:ops.title"), activeTab ? t(activeTab.labelKey) : undefined);
 
     return (
         <div className="page">
             <PageHeader
-                title="Ops"
-                description="Helm, GitOps, agents, identity, audit, access and cost."
+                title={t("pages:ops.title")}
+                description={t("pages:ops.description")}
             />
 
             <Tabs value={active} onValueChange={(v) => navigate(`/ops/${v}`)}>
                 <TabsList className="tabs">
-                    {TABS.map((t) => (
-                        <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
-                            <t.icon className="h-3.5 w-3.5" /> {t.label}
+                    {TABS.map((tb) => (
+                        <TabsTrigger key={tb.key} value={tb.key} className="gap-1.5">
+                            <tb.icon className="h-3.5 w-3.5" /> {t(tb.labelKey)}
                         </TabsTrigger>
                     ))}
                 </TabsList>

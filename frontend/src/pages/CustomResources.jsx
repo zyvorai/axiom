@@ -11,6 +11,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Layers, Boxes } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SearchBox from "@/components/SearchBox";
 import NamespaceFilter from "@/components/NamespaceFilter";
 import SavedViews from "@/components/SavedViews";
@@ -37,6 +38,7 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
 }
 
 export default function CustomResources() {
+    const { t } = useTranslation();
     const [crds, setCrds] = useState(null);
     const [q, setQ] = useUrlState("q", "");
     const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
@@ -113,11 +115,11 @@ export default function CustomResources() {
     return (
         <div className="page">
             <PageHeader
-                title="Custom Resources"
-                description="Browse any CustomResourceDefinition installed in the cluster."
+                title={t("pages:customResources.title")}
+                description={t("pages:customResources.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search CRDs" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:customResources.searchPlaceholder")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="custom-resources"
@@ -134,20 +136,20 @@ export default function CustomResources() {
 
             <div className="grid gap-4 lg:grid-cols-[minmax(360px,36%)_minmax(0,1fr)]">
                 <GlassCard className="overflow-hidden p-0">
-                    <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="Custom resource definitions">
+                    <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:customResources.tableAria")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>Kind</th>
-                                    <th>Group / Version</th>
-                                    <th>Scope</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("pages:customResources.columns.groupVersion")}</th>
+                                    <th>{t("pages:customResources.columns.scope")}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.length === 0 && (
                                     <tr>
                                         <td colSpan={3}>
-                                            <div className="empty">No CRDs match.</div>
+                                            <div className="empty">{t("pages:customResources.noMatch")}</div>
                                         </td>
                                     </tr>
                                 )}
@@ -184,15 +186,15 @@ export default function CustomResources() {
 
                 {selected ? (
                     <AutoTable
-                        title={`${selected.kind} instances`}
+                        title={t("pages:customResources.instances", { kind: selected.kind })}
                         icon={Boxes}
                         items={shownInstances}
-                        emptyHint={instances === null ? "Loading…" : instancesError ? `Permission denied: ${instancesError}` : "No instances found."}
+                        emptyHint={instances === null ? t("common:states.loading") : instancesError ? t("pages:customResources.permissionDenied", { error: instancesError }) : t("pages:customResources.noInstances")}
                         onRowClick={openInstance}
                     />
                 ) : (
                     <GlassCard>
-                        <div className="empty">Select a CRD to browse its instances.</div>
+                        <div className="empty">{t("pages:customResources.selectHint")}</div>
                     </GlassCard>
                 )}
             </div>

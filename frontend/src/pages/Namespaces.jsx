@@ -16,8 +16,10 @@ import { Boxes, Plus, Trash2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Namespaces() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [items, setItems] = useState(null);
     const [open, setOpen] = useState(false);
@@ -39,12 +41,12 @@ export default function Namespaces() {
         setBusy(true);
         try {
             await api.post("/namespaces", { name });
-            toast.success(`Namespace ${name} created`);
+            toast.success(t("toasts:namespaces.created", { name }));
             setOpen(false);
             setName("");
             load();
         } catch (e) {
-            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:namespaces.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -52,17 +54,17 @@ export default function Namespaces() {
 
     const remove = async (n) => {
         const ok = await confirm({
-            title: `Delete namespace ${n.name}?`,
-            description: "This deletes every resource in this namespace. This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:namespaces.delete.title", { name: n.name }),
+            description: t("dialogs:namespaces.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/namespaces/${encodeURIComponent(n.name)}`);
-            toast.success(`Deleted ${n.name}`);
+            toast.success(t("toasts:namespaces.deleted", { name: n.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:namespaces.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -82,11 +84,11 @@ export default function Namespaces() {
     return (
         <div className="page">
             <PageHeader
-                title="Namespaces"
-                description="Every namespace in the cluster, with pod and service counts."
+                title={t("pages:namespaces.title")}
+                description={t("pages:namespaces.description")}
                 action={
                     <button type="button" className="btn btn-fill" onClick={() => setOpen(true)}>
-                        <Plus size={15} /> Create namespace
+                        <Plus size={15} /> {t("pages:namespaces.create")}
                     </button>
                 }
             />
@@ -106,18 +108,18 @@ export default function Namespaces() {
                             </div>
                             <div className="tile-specs c2">
                                 <div>
-                                    Pods
+                                    {t("pages:namespaces.specs.pods")}
                                     <b>{n.pods}</b>
                                 </div>
                                 <div>
-                                    Services
+                                    {t("pages:namespaces.specs.services")}
                                     <b>{n.services}</b>
                                 </div>
                             </div>
                         </Link>
                         <div className="tile-acts justify-between items-center">
                             <Link to={`/namespaces/${encodeURIComponent(n.name)}`} className="btn btn-ghost btn-sm pl-0">
-                                Open <ChevronRight size={13} />
+                                {t("common:actions.open")} <ChevronRight size={13} />
                             </Link>
                             <div className="flex items-center gap-2">
                                 <span className="text-[12.5px] text-ink-3">{n.age}</span>
@@ -129,7 +131,7 @@ export default function Namespaces() {
                                         e.stopPropagation();
                                         remove(n);
                                     }}
-                                    aria-label={`Delete namespace ${n.name}`}
+                                    aria-label={t("pages:namespaces.deleteAria", { name: n.name })}
                                 >
                                     <Trash2 size={13} />
                                 </button>
@@ -142,12 +144,12 @@ export default function Namespaces() {
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>Create namespace</DialogTitle>
+                        <DialogTitle>{t("dialogs:namespaces.create.title")}</DialogTitle>
                     </DialogHeader>
                     <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="tenant-b" className="bg-muted/30" />
                     <DialogFooter>
                         <Button variant="brand" onClick={create} disabled={busy || !name} className="rounded-xl">
-                            {busy ? "Creating…" : "Create"}
+                            {busy ? t("dialogs:namespaces.create.creating") : t("common:actions.create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

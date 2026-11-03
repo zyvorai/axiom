@@ -1,0 +1,44 @@
+{
+  "generic": "Something went wrong",
+  "loadBanner": {
+    "offlineTitle": "Can't reach the server.",
+    "failedTitle": "Some data couldn't be loaded.",
+    "offlineHint": "Check your connection — this page may be out of date.",
+    "failedHint_one": "The server returned an error ({{count}} request). What you see may be incomplete.",
+    "failedHint_other": "The server returned an error ({{count}} requests). What you see may be incomplete."
+  },
+  "boundary": {
+    "updatedTitle": "Axiom was updated",
+    "crashTitle": "This page hit a problem",
+    "updatedHint": "A newer version is available, so this page couldn't load. Reload to get it.",
+    "crashHint": "Something went wrong while showing this page. The rest of the app is fine.",
+    "goOverview": "Go to Overview"
+  },
+  "fleet": {
+    "searchFailed": "Search failed",
+    "switchFailed": "Could not switch cluster",
+    "loadFailed": "Could not load the fleet"
+  },
+  "ops": {
+    "rulesJson": "Rules must be valid JSON",
+    "subjectsJson": "Subjects must be valid JSON"
+  },
+  "rbac": {
+    "requestFailed": "Request failed"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "Could not load"
+  },
+  "costPanels": {
+    "generic": "Something went wrong"
+  },
+  "gitops": {
+    "generic": "Something went wrong"
+  },
+  "helmCatalog": {
+    "generic": "Something went wrong"
+  },
+  "workloads": {
+    "dnsLabel": "Use lowercase letters, numbers and “-” (start and end with a letter or number, max 63)."
+  }
+}
