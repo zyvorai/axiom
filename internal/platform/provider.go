@@ -115,6 +115,10 @@ type Provider interface {
 	ListHPAs(context.Context, string) ([]HPASummary, error)
 	CreateHPA(context.Context, CreateHPARequest) (HPASummary, error)
 	DeleteHPA(context.Context, string, string) error
+	// Read-only VPA and KEDA views (autoscaling*.go); a missing CRD is
+	// Installed:false, not an error.
+	ListVPAs(context.Context, string) (VPAList, error)
+	ListScaledObjects(context.Context, string) (ScaledObjectList, error)
 
 	ListPodDisruptionBudgets(context.Context, string) ([]PDBSummary, error)
 

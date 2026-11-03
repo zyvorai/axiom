@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Autoscaling & cost
+- Autoscaling beyond CPU: `GET /api/v1/hpas` now returns every `autoscaling/v2` metric (`metrics[]` with rendered target/current, e.g. memory, Pods, Object and External metrics), `desiredReplicas`, status `conditions`, `lastScaleTime` and `behavior`; `POST /api/v1/hpas` accepts `targetMemoryPercent` and `scaleDownStabilizationSeconds` alongside `targetCpuPercent`, with stricter validation (1-100 targets, `maxReplicas` <= 1000, DNS-1123 names, Deployment/StatefulSet/ReplicaSet targets). Read-only VerticalPodAutoscaler (`GET /api/v1/vpas`, recommendations per container) and KEDA ScaledObject (`GET /api/v1/scaledobjects`, triggers by type and name only — never metadata or authentication refs) views report `installed:false` when the CRD is absent. The ClusterRole gains read on `verticalpodautoscalers.autoscaling.k8s.io` and `scaledobjects.keda.sh`
+
 ## [0.7.0] - 2026-11-04
 
 ### Added — GitOps & Helm

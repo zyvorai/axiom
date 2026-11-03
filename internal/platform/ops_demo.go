@@ -796,8 +796,34 @@ func (d *DemoProvider) DeleteCronJob(ctx context.Context, ns, name string) error
 var (
 	demoHPAsMu sync.Mutex
 	demoHPAs   = map[string]HPASummary{
-		"default/payments-api": {Namespace: "default", Name: "payments-api", TargetKind: "Deployment", TargetName: "payments-api", MinReplicas: 3, MaxReplicas: 12, CurrentReplicas: 6, TargetCPUPercent: 70, CurrentCPUPercent: 54, Age: "20d"},
-		"commerce/checkout":    {Namespace: "commerce", Name: "checkout", TargetKind: "Deployment", TargetName: "checkout", MinReplicas: 2, MaxReplicas: 8, CurrentReplicas: 3, TargetCPUPercent: 75, CurrentCPUPercent: 41, Age: "11d"},
+		"default/payments-api": {Namespace: "default", Name: "payments-api", TargetKind: "Deployment", TargetName: "payments-api", MinReplicas: 3, MaxReplicas: 12, CurrentReplicas: 6, TargetCPUPercent: 70, CurrentCPUPercent: 54, Age: "20d",
+			DesiredReplicas: 6, LastScaleTime: "2026-08-26T21:40:00Z",
+			Metrics: []HPAMetric{{Type: "Resource", Name: "cpu", TargetType: "Utilization", Target: "70%", Current: "54%"}},
+			Conditions: []AutoscalerCondition{
+				{Type: "AbleToScale", Status: "False", Reason: "FailedGetScale", Message: `the HPA controller was unable to get the target's current scale: deployments/scale.apps "payments-api" not found`},
+			}},
+		"commerce/checkout": {Namespace: "commerce", Name: "checkout", TargetKind: "Deployment", TargetName: "checkout", MinReplicas: 2, MaxReplicas: 8, CurrentReplicas: 3, TargetCPUPercent: 75, CurrentCPUPercent: 41, Age: "11d",
+			DesiredReplicas: 4, LastScaleTime: "2026-08-27T01:52:10Z", Behavior: true,
+			Metrics: []HPAMetric{
+				{Type: "Resource", Name: "cpu", TargetType: "Utilization", Target: "75%", Current: "41%"},
+				{Type: "Resource", Name: "memory", TargetType: "Utilization", Target: "80%", Current: "86%"},
+			},
+			Conditions: []AutoscalerCondition{
+				{Type: "AbleToScale", Status: "True", Reason: "ScaleDownStabilized", Message: "recent recommendations were higher than current one, applying the highest recent recommendation"},
+				{Type: "ScalingActive", Status: "True", Reason: "ValidMetricFound", Message: "the HPA was able to successfully calculate a replica count from memory resource utilization (percentage of request)"},
+				{Type: "ScalingLimited", Status: "False", Reason: "DesiredWithinRange", Message: "the desired count is within the acceptable range"},
+			}},
+		"observability/otel-collector": {Namespace: "observability", Name: "otel-collector", TargetKind: "Deployment", TargetName: "otel-collector", MinReplicas: 2, MaxReplicas: 10, CurrentReplicas: 4, Age: "19d",
+			DesiredReplicas: 4, LastScaleTime: "2026-08-26T18:05:44Z",
+			Metrics: []HPAMetric{
+				{Type: "External", Name: "kafka_consumergroup_lag", TargetType: "AverageValue", Target: "500", Current: "312"},
+				{Type: "Pods", Name: "otelcol_exporter_queue_size", TargetType: "AverageValue", Target: "1k", Current: ""},
+			},
+			Conditions: []AutoscalerCondition{
+				{Type: "AbleToScale", Status: "True", Reason: "ReadyForNewScale", Message: "recommended size matches current size"},
+				{Type: "ScalingActive", Status: "True", Reason: "ValidMetricFound", Message: "the HPA was able to successfully calculate a replica count from external metric kafka_consumergroup_lag"},
+				{Type: "ScalingLimited", Status: "False", Reason: "DesiredWithinRange", Message: "the desired count is within the acceptable range"},
+			}},
 	}
 )
 
@@ -821,29 +847,17 @@ func (d *DemoProvider) ListHPAs(ctx context.Context, ns string) ([]HPASummary, e
 }
 
 func (d *DemoProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPASummary, error) {
-	if req.Namespace == "" || req.Name == "" || req.TargetKind == "" || req.TargetName == "" {
-		return HPASummary{}, fmt.Errorf("namespace, name, targetKind, and targetName are required")
-	}
-	minReplicas := req.MinReplicas
-	if minReplicas < 1 {
-		minReplicas = 1
-	}
-	maxReplicas := req.MaxReplicas
-	if maxReplicas > 0 && maxReplicas < minReplicas {
-		return HPASummary{}, fmt.Errorf("maxReplicas (%d) must be at least minReplicas (%d)", maxReplicas, minReplicas)
-	}
-	if maxReplicas < minReplicas {
-		maxReplicas = minReplicas
-	}
-	targetCPU := req.TargetCPUPercent
-	if targetCPU <= 0 {
-		targetCPU = 80
+	req, err := normalizeCreateHPARequest(req)
+	if err != nil {
+		return HPASummary{}, err
 	}
 	h := HPASummary{
 		Namespace: req.Namespace, Name: req.Name,
 		TargetKind: req.TargetKind, TargetName: req.TargetName,
-		MinReplicas: minReplicas, MaxReplicas: maxReplicas, CurrentReplicas: minReplicas,
-		TargetCPUPercent: targetCPU, CurrentCPUPercent: 0, Age: "now",
+		MinReplicas: req.MinReplicas, MaxReplicas: req.MaxReplicas, CurrentReplicas: req.MinReplicas,
+		TargetCPUPercent: req.TargetCPUPercent, CurrentCPUPercent: 0, Age: "now",
+		Metrics: hpaRequestMetrics(req), Conditions: []AutoscalerCondition{},
+		Behavior: req.ScaleDownStabilizationSeconds > 0,
 	}
 	demoHPAsMu.Lock()
 	defer demoHPAsMu.Unlock()

@@ -334,6 +334,8 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/haven/identity",
 	"/api/v1/haven/planes",
 	"/api/v1/hpas",
+	"/api/v1/vpas",
+	"/api/v1/scaledobjects",
 	"/api/v1/poddisruptionbudgets",
 	"/api/v1/networkpolicies",
 	"/api/v1/gateways",

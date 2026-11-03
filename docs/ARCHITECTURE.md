@@ -13,7 +13,7 @@ Zyvor Axiom API (Go net/http)
   +-- Config API (ConfigMaps CRUD · ResourceQuotas · LimitRanges · Ingresses)
   +-- Pod API (logs · one-shot exec · interactive terminal WebSocket · evict · window proxy)
   +-- Node API (cordon · drain)
-  +-- Autoscaling / disruption / network-policy API (HPA · PDB · NetworkPolicy)
+  +-- Autoscaling / disruption / network-policy API (multi-metric HPA · VPA/KEDA views · PDB · NetworkPolicy)
   +-- Generic apply API (server-side apply of any manifest, kubernetes build only)
   +-- Custom resource API (list any installed CRD, browse/get its instances)
   +-- Gateway API (GatewayClass/Gateway/HTTPRoute, CRD-missing tolerant)
@@ -107,6 +107,10 @@ Per-pod metrics (`GetPodMetrics`) reuse the same raw `AbsPath("/apis/metrics.k8s
 ## Fleet health
 
 `SwitchableProvider` also owns the fleet prober (`internal/platform/fleet.go`). `ProbeAll` asks every registered cluster's own `Provider` (never the session-scoped active one) for its `Overview` under a per-probe timeout, with bounded concurrency, and caches a `ClusterHealth` per cluster: the state (`healthy` / `degraded` when nodes are not ready or the cluster reports a problem / `unreachable` when the probe errors or times out), latency, the flattened error, when the state last changed, and the headline numbers the Fleet page shows. `StartFleetProber` runs it on an interval (`AXIOM_FLEET_PROBE_INTERVAL`, started from `main.go`); a cluster registered at runtime is probed at once; `RefreshFleet` backs the "Check now" button and refuses to run more than once every 3 s. State transitions are written to the audit log. `Fleet()` assembles the roll-up served by `GET /api/v1/fleet` and probes any cluster that has never been probed, so the answer is complete even with background probing off. `ClusterInfo` (the switcher list) carries the same state, and the top-bar chip shows a green / orange / red dot for the *active* cluster. In demo mode `AXIOM_DEMO_FLEET_DOWN` / `AXIOM_DEMO_FLEET_DEGRADED` wrap a demo cluster in `simulatedClusterProvider` so the unhappy states can be tested without a broken cluster.
+
+## Autoscaling beyond CPU
+
+HPAs are read and created through `autoscaling/v2` (`internal/platform/autoscaling_kubernetes.go`), so every metric type is rendered (`HPAMetric`: Resource, ContainerResource, Pods, Object, External with target and current as display strings) together with the status conditions, desired replicas, last scale time and whether a `behavior` block is set. `CreateHPA` validates in one shared, build-tag-free function (`normalizeCreateHPARequest` in `autoscaling.go`) used by both providers, writes one Resource Utilization metric per CPU/memory target and an optional scale-down stabilization window. The VPA and KEDA views are read-only dynamic-client lists (`ListVPAs` tries `autoscaling.k8s.io/v1` then `v1beta2`; `ListScaledObjects` reads `keda.sh/v1alpha1` and joins the KEDA-owned HPA for the live replica count) that report `installed:false` instead of an error when the CRD is absent. ScaledObject triggers are reduced to type and an identifier-only name: trigger metadata and `authenticationRef` never leave the provider. Types are in `types_autoscaling.go`, routes in `internal/api/autoscaling.go`.
 
 ## Helm chart catalog
 

@@ -7,7 +7,7 @@ All endpoints except `GET /api/v1/health` require authentication (HTTP Basic —
 Errors are JSON, `{"error": "message"}`. Status classes: `400` invalid input, `401` / `403` not authenticated / not allowed, `404` not found, `409` already exists or nothing to do (e.g. rollback / undo with no previous revision), `429` blocked by a PodDisruptionBudget (eviction, drain), `5xx` a real server or upstream failure. Both the demo and Kubernetes builds classify the same way (see [ARCHITECTURE.md](ARCHITECTURE.md#http-status-mapping)). Notable validation rules:
 
 - Workload `name` must be an RFC 1123 label (lowercase letters, digits, `-`; max 63); replicas must be an integer >= 0.
-- `POST /hpas`: `maxReplicas` below `minReplicas` is a `400` (an omitted max defaults to min).
+- `POST /hpas`: `maxReplicas` below `minReplicas`, above 1000, a CPU/memory target outside 1-100, `scaleDownStabilizationSeconds` outside 0-3600, a `targetKind` other than `Deployment`/`StatefulSet`/`ReplicaSet`, or a name/namespace that is not DNS-1123 is a `400` (an omitted max defaults to min; no CPU and no memory target defaults to 80% CPU).
 - `POST /secrets` needs at least one `data` / `keys` entry.
 - `POST /users`: `username` must not contain `:` or control characters (HTTP Basic cannot carry them); password at least 8 characters.
 - `POST /apply` and `POST /validate` take exactly one object — a multi-document (`---`) manifest is reported invalid.
@@ -173,12 +173,21 @@ Exec accepts a shell string or argv array:
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/hpas?namespace=...` | List HorizontalPodAutoscalers |
-| POST | `/api/v1/hpas` | Create an HPA: `{"namespace","name","targetKind","targetName","minReplicas","maxReplicas","targetCpuPercent"}` |
+| GET | `/api/v1/hpas?namespace=...` | List HorizontalPodAutoscalers (read via `autoscaling/v2`): `namespace`, `name`, `targetKind`, `targetName`, `minReplicas`, `maxReplicas`, `currentReplicas`, `desiredReplicas`, `metrics[]` (`type` `Resource`\|`ContainerResource`\|`Pods`\|`Object`\|`External`, `name` `cpu`\|`memory`\|metric name, `targetType` `Utilization`\|`AverageValue`\|`Value`, rendered `target` such as `60%`/`500Mi`/`100`, and `current`, empty until the HPA reports it), `conditions[]` (`type`, `status`, `reason`, `message`: `AbleToScale`, `ScalingActive`, `ScalingLimited`), `lastScaleTime` (RFC 3339 or `""`), `behavior` (true when scale-up/down behavior is set) and `age`. `targetCpuPercent`/`currentCpuPercent` are still filled when a CPU Utilization metric exists |
+| POST | `/api/v1/hpas` | Create an HPA: `{"namespace","name","targetKind","targetName","minReplicas","maxReplicas","targetCpuPercent","targetMemoryPercent","scaleDownStabilizationSeconds"}`. One `Resource` Utilization metric per CPU/memory target given; `scaleDownStabilizationSeconds` > 0 sets `behavior.scaleDown.stabilizationWindowSeconds` (0 keeps the Kubernetes default) |
 | DELETE | `/api/v1/hpas/{namespace}/{name}` | Delete an HPA |
 | GET | `/api/v1/poddisruptionbudgets?namespace=...` | List PodDisruptionBudgets (read-only) |
 | GET | `/api/v1/networkpolicies?namespace=...` | List NetworkPolicies |
 | DELETE | `/api/v1/networkpolicies/{namespace}/{name}` | Delete a NetworkPolicy |
+
+### VPA and KEDA
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/vpas?namespace=...` | VerticalPodAutoscalers (`autoscaling.k8s.io` `v1`, falling back to `v1beta2`): `{"installed","items":[{"namespace","name","targetKind","targetName","updateMode","containers":[{"name","lowerBound","target","upperBound","uncappedTarget"}],"conditions","age"}]}`. Each bound is `{"cpu","memory"}` as Kubernetes quantity strings (`250m`, `512Mi`); `updateMode` is `Off`\|`Initial`\|`Recreate`\|`Auto` (`Auto` when unset, as in the VPA API) |
+| GET | `/api/v1/scaledobjects?namespace=...` | KEDA ScaledObjects (`keda.sh/v1alpha1`): `{"installed","items":[{"namespace","name","targetKind","targetName","minReplicas","maxReplicas","currentReplicas","triggers":[{"type","name"}],"ready","active","fallback","conditions","age"}]}`. `currentReplicas` comes from the HPA KEDA manages (`status.hpaName`); `minReplicas`/`maxReplicas` default to 0/100 like KEDA |
+
+Both are read-only. When the CRD is not installed the answer is `200` with `{"installed":false,"items":[]}`, not an error; any other failure (for example Axiom's ServiceAccount lacking `list`) is an error. A trigger's `name` is its own `name`, else its `metricName`/`queueName`/`topic`/`listName`/`streamName`/`subscriptionName` metadata value, else `""`; **no other trigger metadata and no `authenticationRef` is ever returned** (they can carry endpoints and credentials). Both routes are namespaced reads like `/api/v1/hpas`: a namespace-restricted account must pass `?namespace=` with one of its namespaces (`all` or no namespace is `403`).
 
 ### NetworkPolicy analysis
 
