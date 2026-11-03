@@ -414,6 +414,12 @@ func (sp *SwitchableProvider) TriggerGitOpsSync(a0 context.Context, a1 string, a
 func (sp *SwitchableProvider) CreateGitOpsApp(a0 context.Context, a1 GitOpsCreateRequest) (GitOpsCreateResult, error) {
 	return sp.current(a0).CreateGitOpsApp(a0, a1)
 }
+func (sp *SwitchableProvider) PreviewGitOpsDelete(a0 context.Context, a1 string, a2 string, a3 string) (GitOpsDeletePreview, error) {
+	return sp.current(a0).PreviewGitOpsDelete(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) DeleteGitOpsApp(a0 context.Context, a1 GitOpsDeleteRequest) (GitOpsDeleteResult, error) {
+	return sp.current(a0).DeleteGitOpsApp(a0, a1)
+}
 func (sp *SwitchableProvider) InstallHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
 	return sp.current(a0).InstallHelmChart(a0, a1)
 }

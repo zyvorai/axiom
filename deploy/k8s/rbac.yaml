@@ -114,18 +114,21 @@ rules:
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["prometheusrules", "alertmanagers"]
     verbs: ["get", "list", "watch"]
+  # delete: GitOps application deletion (admin-only, typed confirmation when
+  # the controller's finalizer/prune/uninstall would cascade).
   - apiGroups: ["argoproj.io"]
     resources: ["applications"]
-    verbs: ["get", "list", "watch", "patch", "create"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: ["kustomizations"]
-    verbs: ["get", "list", "watch", "patch", "create"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
   - apiGroups: ["helm.toolkit.fluxcd.io"]
     resources: ["helmreleases"]
-    verbs: ["get", "list", "watch", "patch", "create"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
   # GitOps application creation: the Flux source object is created first;
-  # delete is only used to roll it back when the Kustomization/HelmRelease
-  # that follows it cannot be created.
+  # delete rolls it back when the Kustomization/HelmRelease that follows it
+  # cannot be created, and removes it on application delete with
+  # removeSource=true (only when unshared and labelled managed-by zyvor-axiom).
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["gitrepositories", "helmrepositories"]
     verbs: ["get", "list", "watch", "create", "delete"]
