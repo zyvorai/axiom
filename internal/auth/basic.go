@@ -201,7 +201,7 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			w.WriteHeader(code)
 			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
 		}
-		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) {
+		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) && !isReadOnlyPost(r) {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
@@ -296,6 +296,9 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/networking/policies",
 	"/api/v1/security/reports",
 	"/api/v1/serviceaccounts",
+	// AI assistant: POST /api/v1/ai/explain?namespace=<ns>. Only the explain
+	// route is namespaced; GET /api/v1/ai/status carries no cluster data.
+	"/api/v1/ai/explain",
 	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
 	// of installed CRD definitions, which is cluster-scoped metadata with
 	// no namespace of its own) when no ?namespace= is given — an

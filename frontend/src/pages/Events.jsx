@@ -6,7 +6,9 @@ import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
-import { EVENTS, TIMELINE } from "@/constants/testIds";
+import { EVENTS, TIMELINE, AI } from "@/constants/testIds";
+import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { canExplainEvent } from "@/lib/ai";
 import { resourceHref } from "@/lib/resourceHref";
 import SearchBox from "@/components/SearchBox";
 import NamespaceFilter from "@/components/NamespaceFilter";
@@ -114,6 +116,7 @@ export default function Events() {
                                 <th>Object</th>
                                 <th>Count</th>
                                 <th>Age</th>
+                                <th><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -145,12 +148,20 @@ export default function Events() {
                                         </td>
                                         <td className="num">×{e.count}</td>
                                         <td className="mono num">{relTime(e.time)}</td>
+                                        <td>
+                                            {canExplainEvent(e) && (
+                                                <ExplainWithAiButton
+                                                    testId={AI.explainEvent(i)}
+                                                    target={{ namespace: e.namespace, kind: "event", name: e.object, reason: e.reason, label: `${e.reason}: ${e.namespace}/${e.object}` }}
+                                                />
+                                            )}
+                                        </td>
                                     </tr>
                                 );
                             })}
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={6}>
+                                    <td colSpan={7}>
                                         <div className="empty">{events.length ? "No events match the current filters." : "No recent events."}</div>
                                     </td>
                                 </tr>

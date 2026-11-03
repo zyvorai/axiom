@@ -17,3 +17,4 @@ export * from './dashboard';
 export * from './ux';
 export * from './troubleshoot';
 export * from './security';
+export * from './ai';

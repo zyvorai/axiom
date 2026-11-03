@@ -31,6 +31,16 @@ type Integrations struct {
 	SlackWebhookURL  string `json:"slackWebhookUrl,omitempty"`
 	AlertWebhookURL  string `json:"alertWebhookUrl,omitempty"`
 	NotifyOnWarnings bool   `json:"notifyOnWarnings"`
+
+	// AI assistant (see ai.go). Off by default. The API key lives in the
+	// integrations Secret only. AIRedactOff is inverted so the zero value is the
+	// safe default (redaction on).
+	AIEnabled   bool   `json:"aiEnabled"`
+	AIProvider  string `json:"aiProvider"`
+	AIBaseURL   string `json:"aiBaseUrl"`
+	AIModel     string `json:"aiModel"`
+	AIAPIKey    string `json:"aiApiKey,omitempty"`
+	AIRedactOff bool   `json:"aiRedactOff"`
 }
 
 // IntegrationsView is the safe GET payload (secrets never returned in cleartext).
@@ -62,6 +72,14 @@ type IntegrationsView struct {
 	AlertWebhookURLSet bool `json:"alertWebhookUrlSet"`
 	NotifyOnWarnings   bool `json:"notifyOnWarnings"`
 	NotifyConfigured   bool `json:"notifyConfigured"`
+
+	AIEnabled    bool   `json:"aiEnabled"`
+	AIProvider   string `json:"aiProvider"`
+	AIBaseURL    string `json:"aiBaseUrl"`
+	AIModel      string `json:"aiModel"`
+	AIAPIKeySet  bool   `json:"aiApiKeySet"`
+	AIRedact     bool   `json:"aiRedact"`
+	AIConfigured bool   `json:"aiConfigured"`
 }
 
 func (i Integrations) View() IntegrationsView {
@@ -93,6 +111,14 @@ func (i Integrations) View() IntegrationsView {
 		AlertWebhookURLSet: strings.TrimSpace(i.AlertWebhookURL) != "",
 		NotifyOnWarnings:   i.NotifyOnWarnings,
 		NotifyConfigured:   strings.TrimSpace(i.SlackWebhookURL) != "" || strings.TrimSpace(i.AlertWebhookURL) != "",
+
+		AIEnabled:    i.AIEnabled,
+		AIProvider:   i.aiProviderOrDefault(),
+		AIBaseURL:    i.AIBaseURL,
+		AIModel:      i.AIModel,
+		AIAPIKeySet:  strings.TrimSpace(i.AIAPIKey) != "",
+		AIRedact:     !i.AIRedactOff,
+		AIConfigured: i.aiConfigured(),
 	}
 }
 
@@ -123,6 +149,7 @@ func (i Integrations) Normalize() Integrations {
 
 	i.SlackWebhookURL = strings.TrimSpace(i.SlackWebhookURL)
 	i.AlertWebhookURL = strings.TrimSpace(i.AlertWebhookURL)
+	i = i.normalizeAI()
 	return i
 }
 
@@ -153,6 +180,14 @@ type IntegrationsPatch struct {
 	AlertWebhookURL      *string `json:"alertWebhookUrl"`
 	AlertWebhookURLClear bool    `json:"alertWebhookUrlClear"`
 	NotifyOnWarnings     *bool   `json:"notifyOnWarnings"`
+
+	AIEnabled     *bool   `json:"aiEnabled"`
+	AIProvider    *string `json:"aiProvider"`
+	AIBaseURL     *string `json:"aiBaseUrl"`
+	AIModel       *string `json:"aiModel"`
+	AIAPIKey      *string `json:"aiApiKey"`
+	AIAPIKeyClear bool    `json:"aiApiKeyClear"`
+	AIRedact      *bool   `json:"aiRedact"`
 }
 
 func (i Integrations) Apply(p IntegrationsPatch) Integrations {
@@ -224,6 +259,7 @@ func (i Integrations) Apply(p IntegrationsPatch) Integrations {
 	if p.NotifyOnWarnings != nil {
 		i.NotifyOnWarnings = *p.NotifyOnWarnings
 	}
+	i = i.applyAIPatch(p)
 	return i.Normalize()
 }
 

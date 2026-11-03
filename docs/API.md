@@ -408,8 +408,27 @@ Read-only aggregation of Trivy Operator `VulnerabilityReport` / `ConfigAuditRepo
 | POST | `/api/v1/integrations/probe/test` | HTTP / in-cluster probe |
 | POST | `/api/v1/integrations/slack/test` | Send a real test message to the configured Slack webhook |
 | POST | `/api/v1/integrations/webhook/test` | Send a real test POST to the configured alert webhook |
+| POST | `/api/v1/integrations/ai/test` | Send a fixed, cluster-data-free prompt to the configured AI endpoint (admin only) |
 
 `PUT /api/v1/integrations` also accepts `slackWebhookUrl`, `alertWebhookUrl`, and `notifyOnWarnings` (bool). When `notifyOnWarnings` is true and at least one webhook is set, a background dispatcher polls `GET /api/v1/alerts`-equivalent Warning events every 60s and forwards new ones to both configured channels.
+
+`PUT /api/v1/integrations` also accepts the AI assistant fields `aiEnabled` (bool), `aiProvider` (`openai-compatible` | `anthropic` | `ollama`), `aiBaseUrl` (http/https only, no embedded credentials, no query), `aiModel`, `aiRedact` (bool, default `true`), `aiApiKey` (write-only) and `aiApiKeyClear`. `GET` returns `aiApiKeySet` instead of the key. Invalid scheme/provider is a `400`.
+
+## AI assistant (opt-in)
+
+Off unless an admin enables it under Settings → AI assistant. Bring-your-own endpoint; see [DEPLOYMENT.md](DEPLOYMENT.md#ai-assistant-and-privacy) for what leaves the cluster.
+
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| GET | `/api/v1/ai/status` | any signed-in user | `{enabled, configured, provider, baseUrl, model, redact, demo}`; never contains the API key. |
+| POST | `/api/v1/ai/explain?namespace=<ns>` | viewer, operator, admin | Read-only. `namespace` is **required in the query** (no `all`); the body is `{kind: "pod"\|"event", name, reason?, question?, preview?}` where `name` is the pod name, or `Kind/name` for `event`. Unknown body fields (including `namespace`) are rejected so the namespace the auth guard authorizes is the namespace that is read. |
+
+`POST /ai/explain` behaviour:
+
+- `preview: true` returns the exact redacted payload and destination without contacting the model (and is not audited); otherwise the payload is sent and `{destination, payload, answer}` is returned. `answer` is plain text.
+- Disabled or unconfigured: `409`. Per-user rate limit: 10 sends and 30 previews per minute, `429` with `Retry-After`. Unknown pod: `404`. Model endpoint error or timeout: `502`.
+- Audit entry `ai.explain` with target `<namespace>/<kind>/<name>` only. Prompt and answer text are never stored.
+- Namespace-restricted identities may only ask about their own namespaces (route is in the namespaced-route list); `/ai/status` and the settings routes follow the usual rules (settings and `/integrations/ai/test` are admin only).
 
 ## Users
 

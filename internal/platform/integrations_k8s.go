@@ -66,6 +66,11 @@ func integrationsFromCM(cm *corev1.ConfigMap) Integrations {
 		ProbePodContainer: d["probePodContainer"],
 		ProbeURL:          d["probeUrl"],
 		NotifyOnWarnings:  d["notifyOnWarnings"] == "true",
+		AIEnabled:         d["aiEnabled"] == "true",
+		AIProvider:        d["aiProvider"],
+		AIBaseURL:         d["aiBaseUrl"],
+		AIModel:           d["aiModel"],
+		AIRedactOff:       d["aiRedact"] == "false", // absent => redaction stays on
 	}
 }
 
@@ -86,6 +91,11 @@ func integrationsToCMData(in Integrations) map[string]string {
 		"probePodContainer":  in.ProbePodContainer,
 		"probeUrl":           in.ProbeURL,
 		"notifyOnWarnings":   strconv.FormatBool(in.NotifyOnWarnings),
+		"aiEnabled":          strconv.FormatBool(in.AIEnabled),
+		"aiProvider":         in.AIProvider,
+		"aiBaseUrl":          in.AIBaseURL,
+		"aiModel":            in.AIModel,
+		"aiRedact":           strconv.FormatBool(!in.AIRedactOff),
 	}
 }
 
@@ -104,6 +114,7 @@ func (s *K8sIntegrationStore) Load(ctx context.Context) (Integrations, bool, err
 		out.PostgresPassword = string(sec.Data["postgresPassword"])
 		out.SlackWebhookURL = string(sec.Data["slackWebhookUrl"]) // webhook URLs are credentials: Secret, not ConfigMap
 		out.AlertWebhookURL = string(sec.Data["alertWebhookUrl"])
+		out.AIAPIKey = string(sec.Data["aiApiKey"]) // LLM API key: Secret only, never the ConfigMap
 	} else if !apierrors.IsNotFound(err) {
 		return Integrations{}, false, err
 	}
@@ -141,6 +152,7 @@ func (s *K8sIntegrationStore) Save(ctx context.Context, in Integrations) error {
 			"postgresPassword": []byte(in.PostgresPassword),
 			"slackWebhookUrl":  []byte(in.SlackWebhookURL),
 			"alertWebhookUrl":  []byte(in.AlertWebhookURL),
+			"aiApiKey":         []byte(in.AIAPIKey),
 		},
 	}
 	if _, err := s.client.CoreV1().Secrets(s.ns).Update(ctx, sec, metav1.UpdateOptions{}); err != nil {

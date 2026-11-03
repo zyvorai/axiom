@@ -21,6 +21,7 @@ import { THEME_LABELS, useTheme } from "@/lib/theme";
 import { useCluster } from "@/lib/cluster";
 import StatusBadge from "@/components/StatusBadge";
 import { NAV } from "@/constants/testIds";
+import AiSettingsCard from "@/components/AiSettingsCard";
 
 function Field({ label, id, ...props }) {
     const auto = useId();
@@ -526,6 +527,8 @@ export default function Settings() {
                         </div>
                     </div>
                 </div>
+
+                <AiSettingsCard data={data} onSaved={setData} />
 
                 <div className="card text-[13.5px] text-ink-2">
                     API-key sign-in is configured via the <span className="mono">AXIOM_API_KEY</span> environment variable on the Axiom process.

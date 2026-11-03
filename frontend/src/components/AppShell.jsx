@@ -9,6 +9,7 @@ import { NamespaceProvider } from "@/lib/namespace";
 import { useShortcuts } from "@/lib/shortcuts";
 import ViewerBanner from "@/components/ViewerBanner";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
+import { AiAssistantProvider } from "@/components/AiAssistantDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadErrorBanner from "@/components/LoadErrorBanner";
@@ -77,6 +78,7 @@ function Shell() {
 
     return (
         <ConfirmProvider>
+            <AiAssistantProvider>
             <div className="ax">
                 <a
                     href="#main-content"
@@ -117,6 +119,7 @@ function Shell() {
                     </main>
                 </div>
             </div>
+            </AiAssistantProvider>
         </ConfirmProvider>
     );
 }

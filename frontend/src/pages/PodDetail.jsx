@@ -51,6 +51,8 @@ import DiffReviewDialog from "@/components/DiffReviewDialog";
 import KvChip, { toneForKey } from "@/components/KvChip";
 import { maskEnvDisplay } from "@/lib/sensitive";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { AI } from "@/constants/testIds";
 
 function ExecPanel({ namespace, name, containers }) {
     const [container, setContainer] = useState(containers[0] || "");
@@ -444,6 +446,7 @@ export default function PodDetail() {
                         <div className="text-sm font-medium">Not scheduled</div>
                         <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
                     </div>
+                    <ExplainWithAiButton testId={AI.explainPod} className="ml-auto" target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
                 </GlassCard>
             )}
             {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
@@ -453,6 +456,7 @@ export default function PodDetail() {
                         <div className="text-sm font-medium">{diagnosis.phase}</div>
                         <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
                     </div>
+                    <ExplainWithAiButton testId={AI.explainPod} className="ml-auto" target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
                 </div>
             )}
 

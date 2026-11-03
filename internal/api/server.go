@@ -74,6 +74,7 @@ type Server struct {
 	hub         *platform.IntegrationHub
 	users       *platform.UserHub
 	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
+	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -287,6 +288,10 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/integrations/probe/test", s.testProbe)
 	mux.HandleFunc("POST /api/v1/integrations/slack/test", s.testSlackNotify)
 	mux.HandleFunc("POST /api/v1/integrations/webhook/test", s.testAlertWebhook)
+	// AI assistant (opt-in; see internal/api/ai.go)
+	mux.HandleFunc("POST /api/v1/integrations/ai/test", s.testAI)
+	mux.HandleFunc("GET /api/v1/ai/status", s.aiStatus)
+	mux.HandleFunc("POST /api/v1/ai/explain", s.aiExplain)
 	mux.HandleFunc("GET /api/v1/users", s.listUsers)
 	mux.HandleFunc("POST /api/v1/users", s.createUser)
 	mux.HandleFunc("PATCH /api/v1/users/{username}", s.updateUser)
