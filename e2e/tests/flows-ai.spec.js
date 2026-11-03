@@ -169,3 +169,27 @@ test("Events: Explain with AI on a Warning event opens the drawer with the same 
   expect(t.failures()).toEqual([]);
   expect(t.errors).toEqual([]);
 });
+
+test("Health check: Explain with AI on a finding opens the drawer; hidden when disabled", async ({ page }) => {
+  const t = track(page);
+  await setAi(page, false);
+  await page.goto("/health-check");
+  await expect(page.getByTestId("health-check-page")).toBeVisible();
+  await expect(page.getByTestId("health-finding-0")).toBeVisible();
+  await expect(page.getByTestId("ai-explain-finding")).toHaveCount(0);
+
+  await setAi(page, true);
+  await page.goto("/health-check");
+  await expect(page.getByTestId("health-check-page")).toBeVisible();
+  const buttons = page.getByTestId("ai-explain-finding");
+  await expect(buttons.first()).toBeVisible();
+  await buttons.first().click();
+  await expect(page.getByTestId("ai-drawer")).toBeVisible();
+  await expect(page.getByTestId("ai-send-notice")).toContainText("This data will be sent to");
+  await page.getByTestId("ai-send").click();
+  await expect(page.getByTestId("ai-answer")).toContainText("Demo assistant");
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("ai-drawer")).toBeHidden();
+  expect(t.failures()).toEqual([]);
+  expect(t.errors).toEqual([]);
+});

@@ -4,6 +4,18 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-03
+
+### Added — UX
+- Global namespace selector in the top bar; filters and search on Pods, Workloads, Events, Jobs, Services, Ingresses, Storage and Custom Resources are kept in the URL (shareable, survive reload), with saved views per page
+- Keyboard shortcuts (`/` search, `g` then `p`/`w`/`n`/`e`/`l` to navigate, `?` for the full list); a "System" theme option next to Light and Dark
+- Apply and YAML edits now go through a diff review (`POST /api/v1/apply/diff`, dry-run server-side apply) that masks Secret values and warns when another tool (Argo CD, Flux, Helm) also manages the object
+- Resource relationship graph (`GET /api/v1/graph/{namespace}/{kind}/{name}`) as a Graph tab on workloads; in-app notification inbox behind the top-bar bell
+- "Explain with AI" also appears on health-check findings
+
+### Added — security views
+- Read-only RBAC viewer (`/api/v1/rbac/subjects`, `/rbac/who-can`), ServiceAccounts list, NetworkPolicy analysis (`/networking/policies/{namespace}/analysis`) and a Security page for Trivy-operator and PolicyReport results (empty state when the operators are absent)
+
 ### Added — troubleshooting
 - **Change timeline**: `GET /api/v1/timeline` merges Kubernetes events, Axiom audit entries, alert warnings and Deployment rollout revisions into one newest-first feed (`namespace`, `object`, `since`, `limit` filters; namespace-restricted accounts must name an owned namespace). New Timeline page under Observe, a "What changed" tab on Workload detail, and an "Open timeline" link from Events.
 - **Cluster health check**: `GET /api/v1/diagnose?namespace=` runs deterministic analyzers (crash-loop / `OOMKilled` / image-pull from the last termination state, Services without endpoints, Pending PVCs, Ingresses with a missing backend, HPAs that cannot scale, node pressure) and returns findings with a severity and a suggested fix. Shown on Overview and on a new Health check page. Works in demo and Kubernetes mode.

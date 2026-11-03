@@ -4,6 +4,22 @@ import { Lightbulb } from "lucide-react";
 import { api } from "@/lib/api";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { objectHref, timelineHref } from "@/lib/troubleshoot";
+import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { AI } from "@/constants/testIds";
+
+// The assistant explains a Pod (kind "pod") or any other object through its
+// Warning context (kind "event", name = "Kind/name"). Findings need a namespace.
+function explainTarget(f) {
+    if (!f.namespace || typeof f.object !== "string" || !f.object.includes("/")) return null;
+    const isPod = f.object.startsWith("Pod/");
+    return {
+        namespace: f.namespace,
+        kind: isPod ? "pod" : "event",
+        name: isPod ? f.object.slice(4) : f.object,
+        reason: f.title,
+        label: `${f.title}: ${f.namespace}/${f.object}`,
+    };
+}
 
 /** Loads GET /diagnose for a namespace ("" or "all" = whole cluster) and refreshes on an interval. */
 export function useClusterHealth(namespace = "", refreshMs = 30000) {
@@ -52,6 +68,9 @@ export function HealthFinding({ finding, testId, compact = false }) {
                         finding.object
                     )}
                 </span>
+                {!compact && explainTarget(finding) && (
+                    <ExplainWithAiButton testId={AI.explainFinding} target={explainTarget(finding)} />
+                )}
                 {!compact && (
                     <Link
                         to={timelineHref({ namespace: finding.namespace, object: finding.object })}

@@ -156,7 +156,7 @@ func (c *SecurityPolicyCounts) add(result string) {
 	}
 }
 
-func severityRank(s string) int {
+func vulnSeverityRank(s string) int {
 	switch strings.ToUpper(s) {
 	case "CRITICAL":
 		return 5
@@ -426,7 +426,7 @@ func (s secReportSet) detail(ns, kind, name string) WorkloadSecurityDetail {
 	}
 	sort.Slice(d.Vulnerabilities, func(i, j int) bool {
 		a, b := d.Vulnerabilities[i], d.Vulnerabilities[j]
-		if ra, rb := severityRank(a.Severity), severityRank(b.Severity); ra != rb {
+		if ra, rb := vulnSeverityRank(a.Severity), vulnSeverityRank(b.Severity); ra != rb {
 			return ra > rb
 		}
 		if a.Score != b.Score {
@@ -465,7 +465,7 @@ func (s secReportSet) detail(ns, kind, name string) WorkloadSecurityDetail {
 	}
 	sort.Slice(d.Misconfigurations, func(i, j int) bool {
 		a, b := d.Misconfigurations[i], d.Misconfigurations[j]
-		if ra, rb := severityRank(a.Severity), severityRank(b.Severity); ra != rb {
+		if ra, rb := vulnSeverityRank(a.Severity), vulnSeverityRank(b.Severity); ra != rb {
 			return ra > rb
 		}
 		return a.ID < b.ID

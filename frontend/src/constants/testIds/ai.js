@@ -4,6 +4,7 @@
 export const AI = {
     explainPod: 'ai-explain-pod',
     explainEvent: (i) => `ai-explain-event-${i}`,
+    explainFinding: 'ai-explain-finding',
     drawer: 'ai-drawer',
     notice: 'ai-send-notice',
     preview: 'ai-payload-preview',

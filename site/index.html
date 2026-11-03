@@ -34,7 +34,7 @@
   <h2 id="intro" class="reveal">Kubernetes, the way<br>you wish it looked.</h2>
   <p class="lead reveal">Axiom turns a wall of resources into the things you actually run — then gets out of your way. No agents to install, no database to babysit, no tabs to juggle.</p>
   <div class="stats reveal">
-    <div><b>26</b><span>purpose-built pages</span></div>
+    <div><b>29</b><span>purpose-built pages</span></div>
     <div><b>1</b><span>static binary</span></div>
     <div><b>4</b><span>sign-in methods</span></div>
     <div><b>3</b><span>roles, enforced server-side</span></div>
@@ -89,6 +89,9 @@
     <div class="card reveal"><p class="k">Any CRD</p><h3>Bring your own.</h3><p>A generic browser for every installed CustomResourceDefinition, plus GitOps, Gateway API and KubeVirt views.</p></div>
     <div class="card reveal"><p class="k">Multi-cluster</p><h3>One switcher.</h3><p>Register more clusters and move between them from the sidebar. Kubeconfigs that could run local commands or read local files are rejected.</p></div>
     <div class="card reveal"><p class="k">Notifications</p><h3>Warnings reach people.</h3><p>Cluster Warning events forwarded to Slack or any webhook — with the secret URL never written to logs.</p></div>
+    <div class="card reveal"><p class="k">Timeline</p><h3>What changed, in order.</h3><p>Events, audit entries, alerts and rollouts on one timeline — and a “What changed” tab on every workload.</p></div>
+    <div class="card reveal"><p class="k">Health check</p><h3>Problems, with fixes.</h3><p>Crash loops, OOM kills, Services with no endpoints, Pending volumes and more — each with a suggested fix.</p></div>
+    <div class="card reveal"><p class="k">Debug</p><h3>Debug containers.</h3><p>Attach an ephemeral debug container to a running Pod. An admin-only node shell is available, off by default.</p></div>
   </div>
 </div></section>
 
@@ -100,6 +103,8 @@
     <div class="card reveal"><p class="k">Runtime</p><h3>Pod Security: restricted.</h3><p>Runs as non-root with a read-only root filesystem, every capability dropped and the RuntimeDefault seccomp profile.</p></div>
     <div class="card reveal"><p class="k">Supply chain</p><h3>Signed and checksummed.</h3><p>Release binaries ship with SHA-256 sums. Container images on GHCR are signed with cosign, keyless.</p></div>
     <div class="card reveal"><p class="k">Abuse resistance</p><h3>Rate-limited and audited.</h3><p>Login throttling per client, bounded request bodies and sessions, and an audit log of who changed what.</p></div>
+    <div class="card reveal"><p class="k">Access review</p><h3>Who can do what.</h3><p>A read-only RBAC viewer answers “who can delete Secrets here?”, plus NetworkPolicy analysis and Trivy and Kyverno report views.</p></div>
+    <div class="card reveal"><p class="k">AI, on your terms</p><h3>Bring your own model.</h3><p>Opt-in “Explain with AI” through your own OpenAI-compatible, Anthropic or local Ollama endpoint. You see the redacted payload first; Secret values never leave.</p></div>
   </div>
 </div></section>
 
@@ -128,7 +133,7 @@ helm install axiom deploy/helm/axiom \
 <footer><div class="in">
   <div class="cols">
     <div><h4>Product</h4><a href="#apps">Applications</a><a href="#ops">Operations</a><a href="#security">Security</a></div>
-    <div><h4>Docs</h4><a href="docs/quickstart.html">Quickstart</a><a href="docs/deployment.html">Deployment</a><a href="docs/api.html">API</a><a href="docs/architecture.html">Architecture</a></div>
+    <div><h4>Docs</h4><a href="docs/quickstart.html">Quickstart</a><a href="docs/deployment.html">Deployment</a><a href="docs/api.html">API</a><a href="docs/architecture.html">Architecture</a><a href="docs/roadmap.html">Roadmap</a></div>
     <div><h4>Project</h4><a href="https://github.com/zyvorai/axiom">GitHub</a><a href="https://github.com/zyvorai/axiom/releases">Releases</a><a href="https://github.com/zyvorai/axiom/blob/main/CHANGELOG.md">Changelog</a></div>
   </div>
   © 2026 Zyvor. Axiom is a Zyvor project. Metal3 workloads are intentionally unsupported.

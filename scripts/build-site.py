@@ -18,6 +18,7 @@ PAGES = [
     ("API.md", "api", "API reference", "Every REST endpoint, role and response shape.", "Understand"),
     ("BACKUP-RESTORE.md", "backup-restore", "Backup & restore", "Protect Axiom’s own configuration and cluster state.", "Operate"),
     ("COMPLIANCE.md", "compliance", "Compliance", "Controls, evidence and audit guidance.", "Operate"),
+    ("ROADMAP.md", "roadmap", "Roadmap", "What shipped, what is next, and how Axiom compares.", "Understand"),
     ("GAPS.md", "gaps", "Known limitations", "What is intentionally missing or still open.", "Operate"),
 ]
 SLUG = {p[0]: p[1] for p in PAGES}
