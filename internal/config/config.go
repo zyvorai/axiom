@@ -63,6 +63,10 @@ type Config struct {
 	// (AXIOM_FLEET_PROBE_INTERVAL, default 30s; "off" or 0 disables the
 	// background probing so clusters are only probed when /fleet is read).
 	FleetProbeInterval time.Duration
+	// BudgetCheckInterval is how often cost budgets are evaluated for
+	// warning/over notifications (AXIOM_BUDGET_CHECK_INTERVAL, default 5m,
+	// minimum 1m; "off" or 0 disables the watcher).
+	BudgetCheckInterval time.Duration
 	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
 	// responses, i.e. ones with no InResponseTo. Off by default.
 	SAMLAllowIdPInitiated bool
@@ -117,6 +121,7 @@ func FromEnv() Config {
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
 
 		FleetProbeInterval: fleetProbeInterval(),
+		BudgetCheckInterval: budgetCheckInterval(),
 		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
@@ -132,6 +137,18 @@ func fleetProbeInterval() time.Duration {
 	d := envDuration("AXIOM_FLEET_PROBE_INTERVAL", 30*time.Second)
 	if d < 5*time.Second {
 		d = 5 * time.Second // a probe may take several seconds; never run them back to back
+	}
+	return d
+}
+
+func budgetCheckInterval() time.Duration {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_BUDGET_CHECK_INTERVAL")))
+	if v == "off" || v == "0" || v == "false" {
+		return 0
+	}
+	d := envDuration("AXIOM_BUDGET_CHECK_INTERVAL", 5*time.Minute)
+	if d < time.Minute {
+		d = time.Minute // each check estimates cost for the whole cluster
 	}
 	return d
 }

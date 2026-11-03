@@ -103,11 +103,16 @@ type fleetState struct {
 	lastRefresh time.Time
 	running     bool
 	now         func() time.Time
+
+	// Notifications on state transitions (see notifyFleetTransition).
+	notifier  Notifier
+	gate      *notifyGate
+	downSince map[string]time.Time // cluster -> when it left healthy
 }
 
 func (sp *SwitchableProvider) fleet() *fleetState {
 	sp.fleetOnce.Do(func() {
-		sp.fleetSt = &fleetState{health: map[string]ClusterHealth{}, now: time.Now}
+		sp.fleetSt = &fleetState{health: map[string]ClusterHealth{}, now: time.Now, gate: newNotifyGate(), downSince: map[string]time.Time{}}
 	})
 	return sp.fleetSt
 }
@@ -179,8 +184,73 @@ func (sp *SwitchableProvider) probe(ctx context.Context, name string, p Provider
 
 	if had && prev.State != h.State && prev.State != ClusterUnknown {
 		recordFleetTransition(name, prev.State, h)
+		sp.notifyFleetTransition(ctx, name, prev, h, now)
 	}
 	return h
+}
+
+// SetFleetNotifier sets where fleet state transitions are announced (nil
+// disables it, the default).
+func (sp *SwitchableProvider) SetFleetNotifier(n Notifier) {
+	st := sp.fleet()
+	st.mu.Lock()
+	st.notifier = n
+	st.mu.Unlock()
+}
+
+// notifyFleetTransition announces a recorded transition, subject to the
+// shared debounce rule (notifyGate): a cluster going unreachable or degraded
+// is announced unless the same state was announced for it in the last
+// NotifyDebounce; a recovery is announced whenever an outage was.
+func (sp *SwitchableProvider) notifyFleetTransition(ctx context.Context, name string, prev, h ClusterHealth, now time.Time) {
+	st := sp.fleet()
+	st.mu.Lock()
+	n := st.notifier
+	if prev.State == ClusterHealthy {
+		st.downSince[name] = now
+	}
+	since, hadSince := st.downSince[name]
+	if h.State == ClusterHealthy {
+		delete(st.downSince, name)
+	}
+	st.mu.Unlock()
+	if n == nil {
+		return
+	}
+	msg := Notification{Path: "/fleet", Time: now}
+	switch h.State {
+	case ClusterUnreachable:
+		if !st.gate.allowBad(name, h.State, now) {
+			return
+		}
+		msg.Kind, msg.Severity = "fleet.cluster_unreachable", SeverityWarning
+		msg.Title = "Axiom: cluster " + name + " is unreachable"
+		msg.Detail = "The health probe failed: " + h.Error
+	case ClusterDegraded:
+		if !st.gate.allowBad(name, h.State, now) {
+			return
+		}
+		msg.Kind, msg.Severity = "fleet.cluster_degraded", SeverityWarning
+		msg.Title = "Axiom: cluster " + name + " is degraded"
+		msg.Detail = "Reachable, but " + h.Reason
+	case ClusterHealthy:
+		if !st.gate.allowGood(name) {
+			return
+		}
+		if !hadSince {
+			if t, err := time.Parse(time.RFC3339, prev.Since); err == nil {
+				since = t
+			} else {
+				since = now
+			}
+		}
+		msg.Kind, msg.Severity = "fleet.cluster_recovered", SeverityInfo
+		msg.Title = "Axiom: cluster " + name + " recovered"
+		msg.Detail = "Healthy again after " + humanDuration(now.Sub(since)) + " (was " + prev.State + ")"
+	default:
+		return
+	}
+	n.Notify(ctx, msg)
 }
 
 func recordFleetTransition(name, from string, to ClusterHealth) {
@@ -283,7 +353,9 @@ func (sp *SwitchableProvider) forgetHealth(name string) {
 	st := sp.fleet()
 	st.mu.Lock()
 	delete(st.health, name)
+	delete(st.downSince, name)
 	st.mu.Unlock()
+	st.gate.forget(name)
 }
 
 // healthOf returns a cluster's cached health, or an "unknown" placeholder.

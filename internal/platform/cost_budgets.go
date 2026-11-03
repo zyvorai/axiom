@@ -148,6 +148,23 @@ func BuildCostBudgetReport(est CostEstimate, budgets []CostBudget) CostBudgetRep
 	return rep
 }
 
+// CostBudgetReportFor loads every budget from store and compares it with
+// provider's current cost estimate. It is what GET /cost/budgets serves and
+// what the budget watcher evaluates, so the two can never disagree. provider
+// answers for whichever cluster ctx resolves to (a SwitchableProvider uses
+// the session's active cluster, or the shared default without a session).
+func CostBudgetReportFor(ctx context.Context, provider Provider, store CostBudgetStore) (CostBudgetReport, error) {
+	budgets, err := store.List(ctx)
+	if err != nil {
+		return CostBudgetReport{}, err
+	}
+	est, err := provider.EstimateCost(ctx)
+	if err != nil {
+		return CostBudgetReport{}, err
+	}
+	return BuildCostBudgetReport(est, budgets), nil
+}
+
 // CostBudgetStore persists the per-namespace budgets.
 type CostBudgetStore interface {
 	List(ctx context.Context) ([]CostBudget, error)

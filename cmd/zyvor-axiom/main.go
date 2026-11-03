@@ -56,10 +56,16 @@ func main() {
 	platform.SetAuditRingSize(cfg.AuditRingSize)
 	platform.SetAuditStore(platform.OpenAuditStore(cfg.Mode, provider))
 	platform.SetRemoteClusterStore(platform.OpenRemoteClusterStore(cfg.Mode, provider))
+	notifier := platform.NewHubNotifier(hub)
 	if sp, ok := provider.(*platform.SwitchableProvider); ok {
 		platform.LoadRemoteClustersInto(context.Background(), sp)
+		sp.SetFleetNotifier(notifier)
 		sp.StartFleetProber(dispatchCtx, cfg.FleetProbeInterval)
 	}
+	// One budget store shared by the API and the budget watcher (the demo
+	// store is in memory, so two instances would not see each other's writes).
+	costBudgets := platform.OpenCostBudgetStore(cfg.Mode, provider)
+	platform.StartBudgetWatcher(dispatchCtx, cfg.BudgetCheckInterval, provider, costBudgets, notifier)
 
 	auth.SetSessionTTL(cfg.SessionTTL)
 
@@ -75,7 +81,7 @@ func main() {
 		SessionSecret:      cfg.SessionSecret,
 		RevocationStore:    platform.OpenRevocationStore(cfg.Mode, provider),
 		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
-		CostBudgetStore:    platform.OpenCostBudgetStore(cfg.Mode, provider),
+		CostBudgetStore:    costBudgets,
 		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),

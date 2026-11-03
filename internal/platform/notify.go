@@ -67,27 +67,40 @@ func SendAlertWebhook(ctx context.Context, webhookURL string, payload map[string
 }
 
 func dispatchEvent(ctx context.Context, in Integrations, ev Event) {
+	text := fmt.Sprintf(":warning: *%s* in `%s`\n%s (%s) — %s", ev.Reason, ev.Namespace, ev.Object, ev.Type, ev.Message)
+	payload := map[string]any{
+		"source":    "zyvor-axiom",
+		"namespace": ev.Namespace,
+		"object":    ev.Object,
+		"type":      ev.Type,
+		"reason":    ev.Reason,
+		"message":   ev.Message,
+		"count":     ev.Count,
+		"time":      ev.Time,
+	}
+	deliver(ctx, in, text, payload)
+}
+
+// deliver sends one message to every configured channel: text to the Slack
+// incoming webhook, payload to the generic alert webhook. Failures are logged
+// (with the secret URL already scrubbed by postJSON), never returned.
+func deliver(ctx context.Context, in Integrations, slackText string, payload map[string]any) {
 	if strings.TrimSpace(in.SlackWebhookURL) != "" {
-		text := fmt.Sprintf(":warning: *%s* in `%s`\n%s (%s) — %s", ev.Reason, ev.Namespace, ev.Object, ev.Type, ev.Message)
-		if res := SendSlackMessage(ctx, in.SlackWebhookURL, text); res.Error != "" {
+		if res := SendSlackMessage(ctx, in.SlackWebhookURL, slackText); res.Error != "" {
 			log.Printf("notify: slack dispatch failed: %s", res.Error)
 		}
 	}
 	if strings.TrimSpace(in.AlertWebhookURL) != "" {
-		payload := map[string]any{
-			"source":    "zyvor-axiom",
-			"namespace": ev.Namespace,
-			"object":    ev.Object,
-			"type":      ev.Type,
-			"reason":    ev.Reason,
-			"message":   ev.Message,
-			"count":     ev.Count,
-			"time":      ev.Time,
-		}
 		if res := SendAlertWebhook(ctx, in.AlertWebhookURL, payload); res.Error != "" {
 			log.Printf("notify: webhook dispatch failed: %s", res.Error)
 		}
 	}
+}
+
+// notifyEnabled reports whether notifications are switched on and at least
+// one channel is configured.
+func notifyEnabled(in Integrations) bool {
+	return in.NotifyOnWarnings && (strings.TrimSpace(in.SlackWebhookURL) != "" || strings.TrimSpace(in.AlertWebhookURL) != "")
 }
 
 // RunAlertDispatcher polls for new Warning events and forwards them to
@@ -111,7 +124,7 @@ func runAlertDispatcher(ctx context.Context, provider Provider, hub *Integration
 		case <-ticker.C:
 		}
 		in := hub.Get()
-		if !in.NotifyOnWarnings || (strings.TrimSpace(in.SlackWebhookURL) == "" && strings.TrimSpace(in.AlertWebhookURL) == "") {
+		if !notifyEnabled(in) {
 			continue
 		}
 		func() {

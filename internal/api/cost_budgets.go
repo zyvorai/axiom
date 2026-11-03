@@ -31,17 +31,12 @@ func (s *Server) registerCost(mux *http.ServeMux) {
 
 func (c *costAPI) listBudgets(w http.ResponseWriter, r *http.Request) {
 	noStore(w)
-	budgets, err := c.store.List(r.Context())
+	rep, err := platform.CostBudgetReportFor(r.Context(), c.s.provider, c.store)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	est, err := c.s.provider.EstimateCost(r.Context())
-	if err != nil {
-		fail(w, platform.HTTPStatus(err), err)
-		return
-	}
-	writeJSON(w, http.StatusOK, platform.BuildCostBudgetReport(est, budgets))
+	writeJSON(w, http.StatusOK, rep)
 }
 
 func (c *costAPI) setBudget(w http.ResponseWriter, r *http.Request) {
