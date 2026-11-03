@@ -195,6 +195,23 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator cannot remove helm repo", "roper", "DELETE", "/api/v1/helm/repos/bitnami", 403},
 		{"admin removes helm repo", "demo", "DELETE", "/api/v1/helm/repos/bitnami", 204},
 		{"helm repos prefix is not a wildcard", "oper", "POST", "/api/v1/helm/reposx", 204},
+		// --- Autoscaling views (VPA, KEDA): namespaced reads, like /hpas ---
+		{"viewer lists vpas", "viewer", "GET", "/api/v1/vpas", 204},
+		{"operator lists vpas", "oper", "GET", "/api/v1/vpas?namespace=all", 204},
+		{"admin lists vpas", "demo", "GET", "/api/v1/vpas", 204},
+		{"restricted viewer vpas own namespace", "rviewer", "GET", "/api/v1/vpas?namespace=team-a", 204},
+		{"restricted viewer vpas other namespace", "rviewer", "GET", "/api/v1/vpas?namespace=team-b", 403},
+		{"restricted viewer vpas missing namespace", "rviewer", "GET", "/api/v1/vpas", 403},
+		{"restricted viewer vpas all namespaces", "rviewer", "GET", "/api/v1/vpas?namespace=all", 403},
+		{"restricted operator vpas other namespace", "roper", "GET", "/api/v1/vpas?namespace=kube-system", 403},
+		{"viewer lists scaledobjects", "viewer", "GET", "/api/v1/scaledobjects", 204},
+		{"operator lists scaledobjects", "oper", "GET", "/api/v1/scaledobjects", 204},
+		{"admin lists scaledobjects", "demo", "GET", "/api/v1/scaledobjects?namespace=all", 204},
+		{"restricted viewer scaledobjects own namespace", "rviewer", "GET", "/api/v1/scaledobjects?namespace=team-a", 204},
+		{"restricted viewer scaledobjects other namespace", "rviewer", "GET", "/api/v1/scaledobjects?namespace=team-b", 403},
+		{"restricted viewer scaledobjects missing namespace", "rviewer", "GET", "/api/v1/scaledobjects", 403},
+		{"restricted viewer scaledobjects all namespaces", "rviewer", "GET", "/api/v1/scaledobjects?namespace=all", 403},
+		{"restricted operator scaledobjects own namespace", "roper", "GET", "/api/v1/scaledobjects?namespace=team-a", 204},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

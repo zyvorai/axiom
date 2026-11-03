@@ -727,6 +727,12 @@ type HPASummary struct {
 	TargetCPUPercent  int32  `json:"targetCpuPercent,omitempty"`
 	CurrentCPUPercent int32  `json:"currentCpuPercent,omitempty"`
 	Age               string `json:"age"`
+	// autoscaling/v2 detail (types in types_autoscaling.go).
+	Metrics         []HPAMetric           `json:"metrics"`
+	DesiredReplicas int32                 `json:"desiredReplicas"`
+	Conditions      []AutoscalerCondition `json:"conditions"`
+	LastScaleTime   string                `json:"lastScaleTime"`
+	Behavior        bool                  `json:"behavior"`
 }
 
 type CreateHPARequest struct {
@@ -737,6 +743,10 @@ type CreateHPARequest struct {
 	MinReplicas      int32  `json:"minReplicas"`
 	MaxReplicas      int32  `json:"maxReplicas"`
 	TargetCPUPercent int32  `json:"targetCpuPercent"`
+	// Optional: memory Utilization target (1-100) and
+	// behavior.scaleDown.stabilizationWindowSeconds (0-3600; 0 = default).
+	TargetMemoryPercent           int32 `json:"targetMemoryPercent,omitempty"`
+	ScaleDownStabilizationSeconds int32 `json:"scaleDownStabilizationSeconds,omitempty"`
 }
 
 type PDBSummary struct {

@@ -17,7 +17,6 @@ import (
 	"time"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -1373,94 +1372,7 @@ func (k *KubernetesProvider) DeleteCronJob(ctx context.Context, ns, name string)
 
 // --- HPA ---
 
-func (k *KubernetesProvider) ListHPAs(ctx context.Context, ns string) ([]HPASummary, error) {
-	list, err := k.client.AutoscalingV2().HorizontalPodAutoscalers(nsSelector(ns)).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	out := make([]HPASummary, 0, len(list.Items))
-	for _, h := range list.Items {
-		minReplicas := int32(1)
-		if h.Spec.MinReplicas != nil {
-			minReplicas = *h.Spec.MinReplicas
-		}
-		var targetCPU, currentCPU int32
-		for _, m := range h.Spec.Metrics {
-			if m.Type == autoscalingv2.ResourceMetricSourceType && m.Resource != nil && m.Resource.Name == corev1.ResourceCPU && m.Resource.Target.AverageUtilization != nil {
-				targetCPU = *m.Resource.Target.AverageUtilization
-			}
-		}
-		for _, m := range h.Status.CurrentMetrics {
-			if m.Type == autoscalingv2.ResourceMetricSourceType && m.Resource != nil && m.Resource.Name == corev1.ResourceCPU && m.Resource.Current.AverageUtilization != nil {
-				currentCPU = *m.Resource.Current.AverageUtilization
-			}
-		}
-		out = append(out, HPASummary{
-			Namespace: h.Namespace, Name: h.Name,
-			TargetKind: h.Spec.ScaleTargetRef.Kind, TargetName: h.Spec.ScaleTargetRef.Name,
-			MinReplicas: minReplicas, MaxReplicas: h.Spec.MaxReplicas,
-			CurrentReplicas:   h.Status.CurrentReplicas,
-			TargetCPUPercent:  targetCPU,
-			CurrentCPUPercent: currentCPU,
-			Age:               age(h.CreationTimestamp.Time),
-		})
-	}
-	sort.Slice(out, func(i, j int) bool {
-		if out[i].Namespace == out[j].Namespace {
-			return out[i].Name < out[j].Name
-		}
-		return out[i].Namespace < out[j].Namespace
-	})
-	return out, nil
-}
-
-func (k *KubernetesProvider) CreateHPA(ctx context.Context, req CreateHPARequest) (HPASummary, error) {
-	if req.Namespace == "" || req.Name == "" || req.TargetKind == "" || req.TargetName == "" {
-		return HPASummary{}, fmt.Errorf("namespace, name, targetKind, and targetName are required")
-	}
-	minReplicas := req.MinReplicas
-	if minReplicas < 1 {
-		minReplicas = 1
-	}
-	maxReplicas := req.MaxReplicas
-	if maxReplicas > 0 && maxReplicas < minReplicas {
-		return HPASummary{}, fmt.Errorf("maxReplicas (%d) must be at least minReplicas (%d)", maxReplicas, minReplicas)
-	}
-	if maxReplicas < minReplicas {
-		maxReplicas = minReplicas
-	}
-	targetCPU := req.TargetCPUPercent
-	if targetCPU <= 0 {
-		targetCPU = 80
-	}
-	hpa := &autoscalingv2.HorizontalPodAutoscaler{
-		ObjectMeta: metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace},
-		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
-			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-				Kind: req.TargetKind, Name: req.TargetName, APIVersion: "apps/v1",
-			},
-			MinReplicas: &minReplicas,
-			MaxReplicas: maxReplicas,
-			Metrics: []autoscalingv2.MetricSpec{{
-				Type: autoscalingv2.ResourceMetricSourceType,
-				Resource: &autoscalingv2.ResourceMetricSource{
-					Name:   corev1.ResourceCPU,
-					Target: autoscalingv2.MetricTarget{Type: autoscalingv2.UtilizationMetricType, AverageUtilization: &targetCPU},
-				},
-			}},
-		},
-	}
-	created, err := k.client.AutoscalingV2().HorizontalPodAutoscalers(req.Namespace).Create(ctx, hpa, metav1.CreateOptions{})
-	if err != nil {
-		return HPASummary{}, err
-	}
-	return HPASummary{
-		Namespace: created.Namespace, Name: created.Name,
-		TargetKind: req.TargetKind, TargetName: req.TargetName,
-		MinReplicas: minReplicas, MaxReplicas: maxReplicas, TargetCPUPercent: targetCPU,
-		Age: age(created.CreationTimestamp.Time),
-	}, nil
-}
+// ListHPAs and CreateHPA live in autoscaling_kubernetes.go.
 
 func (k *KubernetesProvider) DeleteHPA(ctx context.Context, ns, name string) error {
 	return k.client.AutoscalingV2().HorizontalPodAutoscalers(ns).Delete(ctx, name, metav1.DeleteOptions{})

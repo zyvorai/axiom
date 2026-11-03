@@ -315,6 +315,12 @@ func (sp *SwitchableProvider) CreateHPA(a0 context.Context, a1 CreateHPARequest)
 func (sp *SwitchableProvider) DeleteHPA(a0 context.Context, a1 string, a2 string) error {
 	return sp.current(a0).DeleteHPA(a0, a1, a2)
 }
+func (sp *SwitchableProvider) ListVPAs(a0 context.Context, a1 string) (VPAList, error) {
+	return sp.current(a0).ListVPAs(a0, a1)
+}
+func (sp *SwitchableProvider) ListScaledObjects(a0 context.Context, a1 string) (ScaledObjectList, error) {
+	return sp.current(a0).ListScaledObjects(a0, a1)
+}
 func (sp *SwitchableProvider) ListPodDisruptionBudgets(a0 context.Context, a1 string) ([]PDBSummary, error) {
 	return sp.current(a0).ListPodDisruptionBudgets(a0, a1)
 }

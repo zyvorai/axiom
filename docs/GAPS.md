@@ -23,6 +23,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - Server-side session revocation: logout ends that session, "sign out everywhere", automatic revocation on role/namespace/password changes and deletion, admin "sign out everywhere", and a configurable `AXIOM_SESSION_TTL`
 - GitOps application create from the console (Ops → GitOps): Argo CD `Application`, Flux `GitRepository` + `Kustomization`, Flux `HelmRepository` + `HelmRelease`, built from typed fields with a pure YAML preview (`POST /api/v1/gitops/preview`, `POST /api/v1/gitops`), admin-only and audited
 - Read-only RBAC viewer, NetworkPolicy analysis and security-report (Trivy/PolicyReport) views
+- Autoscaling beyond CPU: HPAs show every `autoscaling/v2` metric (memory, Pods, Object, External) with conditions and can be created with CPU and/or memory targets and a scale-down stabilization window; read-only VerticalPodAutoscaler recommendation and KEDA ScaledObject views (`GET /api/v1/vpas`, `GET /api/v1/scaledobjects`)
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 
 Known security limitations (reviewed, not yet fixed):
@@ -39,6 +40,7 @@ Known security limitations (reviewed, not yet fixed):
 Known platform limitations (reviewed, not yet fixed):
 
 - **GitOps creation is create-only.** Applications are not deleted from the console (an Argo CD `resources-finalizer` cascade-deletes the workloads, so this is deliberate), and repository credentials are not managed here: Argo CD repository credentials are configured in Argo CD, and a Flux `secretRef` must name a Secret that already exists. Only the typed fields are supported (no multi-source Applications, ApplicationSets, Helm `valuesFrom`, or Kustomize patches)
+- **VPA and KEDA views are read-only.** VerticalPodAutoscalers and ScaledObjects cannot be created, edited or deleted from the console (use `POST /api/v1/apply`), KEDA `ScaledJob`s and `TriggerAuthentication`s are not shown, and HPA creation only offers CPU/memory Utilization targets (other metric types are displayed but must be applied as YAML)
 - **Fleet probing is a point-in-time overview request per cluster** (default every 30 s) with no history: the Fleet page shows now and "since when", not a trend, and a cluster that answers slowly but successfully is still `healthy`. Probes use the same credentials the console uses for that cluster. Each replica probes on its own
 
 - **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
