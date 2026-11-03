@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -274,6 +275,38 @@ func (d *DemoProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name str
 	}
 	demoGitOps[key] = g
 	return nil
+}
+
+// CreateGitOpsApp validates and renders the request like the real provider,
+// then records the application in the in-memory store so ListGitOps shows it.
+func (d *DemoProvider) CreateGitOpsApp(ctx context.Context, req GitOpsCreateRequest) (GitOpsCreateResult, error) {
+	plan, err := buildGitOps(req)
+	if err != nil {
+		return GitOpsCreateResult{}, err
+	}
+	app := plan.Objects[len(plan.Objects)-1]
+	item := GitOpsItem{Kind: app.Kind, Namespace: app.Namespace, Name: app.Name, Status: "Ready", Age: "0s"}
+	switch plan.Engine {
+	case GitOpsEngineArgoCD:
+		item.Status = "Synced"
+		item.Source = req.Source.RepoURL
+		if req.Source.Chart != "" {
+			item.Source += ":" + req.Source.Chart
+		} else if p, _ := cleanGitOpsPath(req.Source.Path); p != "." {
+			item.Source += ":" + p
+		}
+	default:
+		item.Source = plan.Objects[0].Kind + "/" + plan.Objects[0].Name
+	}
+	demoGitOpsMu.Lock()
+	defer demoGitOpsMu.Unlock()
+	key := app.Namespace + "/" + app.Name
+	if existing, ok := demoGitOps[key]; ok {
+		return GitOpsCreateResult{}, NewStatusError(http.StatusConflict,
+			fmt.Errorf("%s %s already exists", existing.Kind, key))
+	}
+	demoGitOps[key] = item
+	return GitOpsCreateResult{OK: true, Created: plan.refs(), Warnings: plan.Warnings}, nil
 }
 
 func (d *DemoProvider) ListAlerts(ctx context.Context, ns string) (AlertsResponse, error) {

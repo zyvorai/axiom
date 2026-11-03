@@ -160,6 +160,9 @@ type Provider interface {
 	DeleteRoleBinding(context.Context, string, string) error
 
 	TriggerGitOpsSync(context.Context, string, string, string) error
+	// CreateGitOpsApp creates an Argo CD Application or a Flux source plus
+	// Kustomization/HelmRelease from a typed request (see gitops_build.go).
+	CreateGitOpsApp(context.Context, GitOpsCreateRequest) (GitOpsCreateResult, error)
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)

@@ -47,6 +47,14 @@ var (
 		{Group: "helm.toolkit.fluxcd.io", Version: "v2beta2", Resource: "helmreleases"},
 		{Group: "helm.toolkit.fluxcd.io", Version: "v2beta1", Resource: "helmreleases"},
 	}
+	fluxGitRepositoryGVRs = []schema.GroupVersionResource{
+		{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "gitrepositories"},
+		{Group: "source.toolkit.fluxcd.io", Version: "v1beta2", Resource: "gitrepositories"},
+	}
+	fluxHelmRepositoryGVRs = []schema.GroupVersionResource{
+		{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "helmrepositories"},
+		{Group: "source.toolkit.fluxcd.io", Version: "v1beta2", Resource: "helmrepositories"},
+	}
 	gatewayClassGVRs = []schema.GroupVersionResource{
 		{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "gatewayclasses"},
 		{Group: "gateway.networking.k8s.io", Version: "v1beta1", Resource: "gatewayclasses"},

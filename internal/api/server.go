@@ -191,6 +191,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authLogout)
 	s.registerIdentity(mux)
 	s.registerFleet(mux)
+	s.registerGitOpsCreate(mux)
 	mux.HandleFunc("GET /api/v1/auth/saml/login", s.samlLogin)
 	mux.HandleFunc("POST /api/v1/auth/saml/acs", s.samlACS)
 	mux.HandleFunc("GET /api/v1/nodes/{name}", s.nodeDetail)
