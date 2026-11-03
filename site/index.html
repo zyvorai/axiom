@@ -42,34 +42,40 @@
 </section>
 
 <section class="band" id="apps"><div class="wrap">
-  <div class="chapter reveal">
-    <div>
-      <p class="eyebrow">Applications</p>
-      <h3>Think in apps,<br>not in objects.</h3>
-      <p>Deployments, StatefulSets, DaemonSets and CronJobs appear as applications — with everything you do to them one click away.</p>
-      <ul><li><b>Start, stop, restart, scale.</b> Immediately, with confirmation where it matters.</li><li><b>Rollout history and undo.</b> Roll back to any previous revision.</li><li><b>Why isn’t it running?</b> An automatic scheduling diagnosis explains any Pod that isn’t cleanly Running.</li></ul>
-    </div>
-    <div class="panel"><pre><i># what you would have typed</i>
-kubectl rollout history deploy/api
-kubectl rollout undo deploy/api --to-revision=7
-kubectl describe pod api-6f9c…
-kubectl get events --sort-by=…
-
-<i># what you click</i>
-Applications ▸ api ▸ Undo</pre></div>
+  <div class="feature reveal">
+    <p class="eyebrow">Applications</p>
+    <h3>Think in apps,<br>not in objects.</h3>
+    <p class="fl">Deployments, StatefulSets, DaemonSets and CronJobs appear as applications — with everything you do to them one click away.</p>
+    <div class="shot"><img src="shot-apps.png" alt="Axiom Workloads: every application with desired, ready and available counts and a health badge" width="1352" height="700" loading="lazy"></div>
+    <ul class="pts"><li><b>Start, stop, restart, scale.</b> From the row menu, with confirmation where it matters.</li><li><b>Rollout history and undo.</b> Roll back to a previous revision.</li><li><b>Why isn’t it running?</b> An automatic diagnosis explains any Pod that isn’t cleanly Running.</li></ul>
   </div>
-  <div class="chapter rev reveal">
-    <div>
-      <p class="eyebrow">Terminal &amp; logs</p>
-      <h3>Inside any container,<br>instantly.</h3>
-      <p>A multi-tab interactive terminal over WebSocket, live log tails that stay open as long as you do, and a one-click port proxy to anything listening.</p>
-      <ul><li><b>Real PTY.</b> Resize, tab completion, full-screen tools.</li><li><b>Streaming logs.</b> Follow without an artificial cutoff.</li><li><b>Port proxy.</b> Open a container’s declared ports without a port-forward.</li></ul>
-    </div>
-    <div class="panel"><pre><i># Terminal tab, attached to a container in api-6f9c…</i>
-/ # tail -f /var/log/app.log
-<i>2026-11-03T09:14:07Z</i> GET /health 200 3ms
-<i>2026-11-03T09:14:08Z</i> GET /orders 200 41ms
-<i>2026-11-03T09:14:08Z</i> POST /orders 201 87ms</pre></div>
+  <div class="feature reveal">
+    <p class="eyebrow">Logs &amp; terminal</p>
+    <h3>Inside any container,<br>instantly.</h3>
+    <p class="fl">Live log tails that stay open as long as you do, an interactive terminal per Pod, and a one-click link to any declared port.</p>
+    <div class="shot"><img src="shot-logs.png" alt="Axiom Pod Logs: a live streaming log view with INFO and WARN lines" width="1352" height="520" loading="lazy"></div>
+    <ul class="pts"><li><b>Streaming logs.</b> Follow a Pod without an artificial cutoff.</li><li><b>Terminal tab.</b> Interactive PTY on a live cluster; one-shot commands in demo mode.</li><li><b>Port links.</b> Open a container’s declared ports without a port-forward.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Nodes</p>
+    <h3>Capacity at a glance.<br>Drain in a click.</h3>
+    <p class="fl">Every node’s CPU, memory, Pod count, kubelet version and runtime on one screen — with cordon and drain right there.</p>
+    <div class="shot"><img src="shot-nodes.png" alt="Axiom Nodes: cards for each node with capacity, version and Cordon and Drain buttons" width="1352" height="592" loading="lazy"></div>
+    <ul class="pts"><li><b>Cordon and drain.</b> Safely move work off a node before maintenance.</li><li><b>Protected namespaces.</b> System namespaces are guarded from bulk eviction.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Helm</p>
+    <h3>Releases, in context.</h3>
+    <p class="fl">See every Helm release with chart, revision and health. Install a chart, roll back a revision or uninstall — without leaving the console.</p>
+    <div class="shot"><img src="shot-helm.png" alt="Axiom Ops Helm tab listing cert-manager, ingress-nginx and prometheus releases" width="1352" height="590" loading="lazy"></div>
+    <ul class="pts"><li><b>Values stay private.</b> Stored in a Secret owned by the install Job, never a permanent plain-text ConfigMap.</li><li><b>More under Ops.</b> GitOps, agents, identity, audit, access, webhooks and cost.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Backups</p>
+    <h3>Snapshots and Velero,<br>side by side.</h3>
+    <p class="fl">Volume snapshots, Velero backups and schedules in one place, with create and restore actions a click away.</p>
+    <div class="shot"><img src="shot-backups.png" alt="Axiom Backups: volume snapshots, Velero backups and Velero schedules" width="1352" height="760" loading="lazy"></div>
+    <ul class="pts"><li><b>On demand.</b> Create a snapshot or a Velero backup when you need one.</li><li><b>On a schedule.</b> See each schedule and when it last ran.</li></ul>
   </div>
 </div></section>
 
