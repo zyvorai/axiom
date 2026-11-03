@@ -900,6 +900,9 @@ type InstallHelmRequest struct {
 	ChartName    string `json:"chartName"`
 	ChartVersion string `json:"chartVersion,omitempty"`
 	Values       string `json:"values,omitempty"`
+	// OCIRef names the chart as oci://host/path/chart (an OCI repository);
+	// when set, repoUrl must be empty and chartName is not required.
+	OCIRef string `json:"ociRef,omitempty"`
 }
 
 type RBACPolicyRule struct {

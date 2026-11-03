@@ -63,7 +63,7 @@ are theirs, not ours.
 Deliberately left for later, with the reason:
 
 - **Autoscaling & cost:** create/edit VPA and KEDA objects, and real billing data instead of request-based estimates (needs a billing integration per cloud).
-- **GitOps & Helm:** editing applications in place, Argo CD repository credentials, and an OCI chart catalog.
+- **GitOps & Helm:** editing applications in place, Argo CD repository credentials, and credentials for private OCI chart registries.
 - **Reach:** internationalisation (a large string-extraction pass across every page) and serving the pod proxy from a separate origin (a deployment-topology change: a second hostname or listener).
 - **Fleet:** health history charts (state changes are audited and shown, not trended).
 

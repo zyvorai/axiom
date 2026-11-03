@@ -284,5 +284,10 @@ func (d *DemoProvider) UpgradeHelmChart(ctx context.Context, req InstallHelmRequ
 	if req.Namespace == "" || req.ReleaseName == "" {
 		return HelmActionResult{}, fmt.Errorf("namespace and releaseName are required")
 	}
+	if req.OCIRef != "" {
+		if err := ValidateHelmOCIInstall(req); err != nil {
+			return HelmActionResult{}, err
+		}
+	}
 	return HelmActionResult{OK: true, Action: "upgrade", Message: fmt.Sprintf("demo helm upgrade %s/%s", req.Namespace, req.ReleaseName)}, nil
 }

@@ -68,6 +68,15 @@ type HelmRepo struct {
 	Name    string `json:"name"`
 	URL     string `json:"url"`
 	AddedAt string `json:"addedAt"`
+	// Kind is "oci" for a registry namespace (oci://host/path); empty or
+	// "index" for a classic index.yaml repository.
+	Kind string `json:"kind,omitempty"`
+	// Charts names the charts of an OCI repository explicitly (most hosted
+	// registries do not offer /v2/_catalog).
+	Charts []string `json:"charts,omitempty"`
+	// CredentialsSecret is reserved for registry credentials; adding a
+	// repository with it set is refused (anonymous registries only).
+	CredentialsSecret string `json:"credentialsSecret,omitempty"`
 }
 
 // HelmRepoStore persists the repository list.
@@ -589,6 +598,9 @@ type helmIndexEntry struct {
 type helmIndex struct {
 	charts map[string][]*helmIndexEntry // versions newest first
 	names  []string                     // sorted
+	// pinned is the entry whose metadata was read (OCI repositories, where
+	// only the newest release's Chart.yaml is fetched).
+	pinned map[string]*helmIndexEntry
 }
 
 func (ix *helmIndex) chartCount() int {
@@ -652,6 +664,9 @@ func firstLine(s string) string {
 
 // latest is the newest non-deprecated release; if there is none, the newest.
 func (ix *helmIndex) latest(name string) *helmIndexEntry {
+	if e := ix.pinned[name]; e != nil {
+		return e
+	}
 	vs := ix.charts[name]
 	for _, e := range vs {
 		if !e.Deprecated && e.sv.valid && len(e.sv.pre) == 0 {
@@ -814,12 +829,14 @@ func sortHelmVersions(vs []*helmIndexEntry) {
 
 // HelmRepoView is a repository as the API reports it.
 type HelmRepoView struct {
-	Name       string `json:"name"`
-	URL        string `json:"url"`
-	AddedAt    string `json:"addedAt"`
-	ChartCount int    `json:"chartCount"`
-	FetchedAt  string `json:"fetchedAt"`
-	Error      string `json:"error"`
+	Name       string   `json:"name"`
+	URL        string   `json:"url"`
+	Kind       string   `json:"kind"`
+	Charts     []string `json:"charts,omitempty"`
+	AddedAt    string   `json:"addedAt"`
+	ChartCount int      `json:"chartCount"`
+	FetchedAt  string   `json:"fetchedAt"`
+	Error      string   `json:"error"`
 }
 
 type HelmChartSummary struct {
@@ -833,6 +850,8 @@ type HelmChartSummary struct {
 	Keywords    []string `json:"keywords"`
 	Deprecated  bool     `json:"deprecated"`
 	Created     string   `json:"created"`
+	Kind        string   `json:"kind"`
+	Ref         string   `json:"ref"` // oci://host/path/chart for OCI charts, "" otherwise
 }
 
 type HelmChartSearch struct {
@@ -864,6 +883,8 @@ type HelmChartDetail struct {
 	Icon        string             `json:"icon"`
 	Maintainers []HelmMaintainer   `json:"maintainers"`
 	Versions    []HelmChartVersion `json:"versions"`
+	Kind        string             `json:"kind"`
+	Ref         string             `json:"ref"`
 }
 
 type HelmChartValues struct {
@@ -911,7 +932,7 @@ func fmtTime(t time.Time) string {
 }
 
 func (c *HelmCatalog) view(r HelmRepo) HelmRepoView {
-	v := HelmRepoView{Name: r.Name, URL: r.URL, AddedAt: r.AddedAt}
+	v := HelmRepoView{Name: r.Name, URL: r.URL, AddedAt: r.AddedAt, Kind: r.kind(), Charts: r.Charts}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if e := c.cache[r.Name]; e != nil && e.url == r.URL {
@@ -937,15 +958,70 @@ func (c *HelmCatalog) Repos(ctx context.Context) ([]HelmRepoView, error) {
 
 // AddRepo validates, fetches the index once and stores the repository.
 func (c *HelmCatalog) AddRepo(ctx context.Context, name, rawURL string) (HelmRepoView, error) {
-	name = strings.TrimSpace(name)
+	return c.AddHelmRepo(ctx, HelmRepoRequest{Name: name, URL: rawURL})
+}
+
+// HelmRepoRequest is an administrator's request to add a repository.
+type HelmRepoRequest struct {
+	Name              string
+	URL               string
+	Kind              string // "", "index" or "oci" ("" infers oci from an oci:// URL)
+	Charts            []string
+	CredentialsSecret string
+}
+
+// AddHelmRepo validates the request, reads the repository once (the index,
+// or for OCI the registry, each chart's tags and its newest Chart.yaml) and
+// stores it.
+func (c *HelmCatalog) AddHelmRepo(ctx context.Context, req HelmRepoRequest) (HelmRepoView, error) {
+	name := strings.TrimSpace(req.Name)
 	if err := ValidateHelmRepoName(name); err != nil {
 		return HelmRepoView{}, err
 	}
-	u, err := c.fetcher.Policy.NormalizeHelmRepoURL(rawURL)
-	if err != nil {
-		return HelmRepoView{}, err
+	kind := strings.ToLower(strings.TrimSpace(req.Kind))
+	isOCIURL := strings.HasPrefix(strings.ToLower(strings.TrimSpace(req.URL)), "oci://")
+	switch kind {
+	case "":
+		kind = HelmRepoKindIndex
+		if isOCIURL {
+			kind = HelmRepoKindOCI
+		}
+	case HelmRepoKindIndex:
+		if isOCIURL {
+			return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New(`an oci:// URL needs kind "oci"`))
+		}
+	case HelmRepoKindOCI:
+	default:
+		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New(`kind must be "index" or "oci"`))
 	}
-	repo := HelmRepo{Name: name, URL: u, AddedAt: fmtTime(c.now())}
+	if strings.TrimSpace(req.CredentialsSecret) != "" {
+		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New("registry credentials are not supported yet: only anonymous repositories can be added"))
+	}
+	var repo HelmRepo
+	if kind == HelmRepoKindOCI {
+		u, err := c.fetcher.Policy.NormalizeHelmOCIURL(req.URL)
+		if err != nil {
+			return HelmRepoView{}, err
+		}
+		charts, err := ValidateHelmOCIChartNames(req.Charts)
+		if err != nil {
+			return HelmRepoView{}, err
+		}
+		repo = HelmRepo{Name: name, URL: u, AddedAt: fmtTime(c.now()), Kind: HelmRepoKindOCI}
+		if len(charts) > 0 {
+			repo.Charts = charts
+		}
+	} else {
+		if len(req.Charts) > 0 {
+			return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New("charts applies only to OCI repositories"))
+		}
+		u, err := c.fetcher.Policy.NormalizeHelmRepoURL(req.URL)
+		if err != nil {
+			return HelmRepoView{}, err
+		}
+		repo = HelmRepo{Name: name, URL: u, AddedAt: fmtTime(c.now())}
+	}
+	u := repo.URL
 	existing, err := c.store.List(ctx)
 	if err != nil {
 		return HelmRepoView{}, err
@@ -954,10 +1030,13 @@ func (c *HelmCatalog) AddRepo(ctx context.Context, name, rawURL string) (HelmRep
 	if _, err := helmRepoListAdd(existing, repo); err != nil {
 		return HelmRepoView{}, err
 	}
-	ix, err := c.fetcher.FetchIndex(ctx, u)
+	ix, err := c.fetchRepoIndex(ctx, repo, true)
 	if err != nil {
 		// Whatever went wrong (unreachable, refused, too large, not an
 		// index), the administrator's input is what failed to verify.
+		if repo.kind() == HelmRepoKindOCI {
+			return HelmRepoView{}, NewStatusError(http.StatusBadRequest, fmt.Errorf("could not read the OCI registry: %w", err))
+		}
 		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, fmt.Errorf("could not read the repository index: %w", err))
 	}
 	if err := c.store.Add(ctx, repo); err != nil {
@@ -1056,8 +1135,8 @@ func (c *HelmCatalog) index(ctx context.Context, r HelmRepo, refresh bool) (*hel
 		c.mu.Unlock()
 
 		// Detached from the caller: other waiters depend on this fetch.
-		fctx, cancel := context.WithTimeout(context.Background(), 2*helmRequestTimeout)
-		ix, err := c.fetcher.FetchIndex(fctx, r.URL)
+		fctx, cancel := context.WithTimeout(context.Background(), helmFetchBudget(r))
+		ix, err := c.fetchRepoIndex(fctx, r, false)
 		cancel()
 
 		c.mu.Lock()
@@ -1188,6 +1267,10 @@ func (c *HelmCatalog) Search(ctx context.Context, repoName, q string, limit int,
 			}
 			s := summarize(r.Name, e)
 			s.Name = name
+			s.Kind = r.kind()
+			if s.Kind == HelmRepoKindOCI {
+				s.Ref = helmOCIChartRef(r.URL, name)
+			}
 			rk := helmRank(name, s.Description, s.Keywords, q)
 			if rk < 0 {
 				continue
@@ -1234,7 +1317,7 @@ func (c *HelmCatalog) chartVersions(ctx context.Context, repoName, chart string)
 // Chart returns a chart's metadata (from its latest version) and up to 100
 // versions, newest first.
 func (c *HelmCatalog) Chart(ctx context.Context, repoName, chart string) (HelmChartDetail, error) {
-	_, ix, err := c.chartVersions(ctx, repoName, chart)
+	r, ix, err := c.chartVersions(ctx, repoName, chart)
 	if err != nil {
 		return HelmChartDetail{}, err
 	}
@@ -1242,7 +1325,10 @@ func (c *HelmCatalog) Chart(ctx context.Context, repoName, chart string) (HelmCh
 	d := HelmChartDetail{
 		Repo: repoName, Name: chart, Description: string(e.Description), Home: string(e.Home),
 		Sources: flexStrings(e.Sources), Keywords: flexStrings(e.Keywords), Icon: string(e.Icon),
-		Maintainers: []HelmMaintainer{}, Versions: []HelmChartVersion{},
+		Maintainers: []HelmMaintainer{}, Versions: []HelmChartVersion{}, Kind: r.kind(),
+	}
+	if d.Kind == HelmRepoKindOCI {
+		d.Ref = helmOCIChartRef(r.URL, chart)
 	}
 	for _, m := range e.Maintainers {
 		d.Maintainers = append(d.Maintainers, HelmMaintainer{Name: string(m.Name), Email: string(m.Email)})
@@ -1271,6 +1357,17 @@ func (c *HelmCatalog) ChartValues(ctx context.Context, repoName, chart, version 
 	}
 	if e == nil {
 		return HelmChartValues{}, NewStatusError(http.StatusNotFound, fmt.Errorf("chart %q has no version %q", chart, version))
+	}
+	if r.kind() == HelmRepoKindOCI {
+		values, readme, err := c.fetcher.FetchOCIChartValues(ctx, r.URL, chart, string(e.Version))
+		if err != nil {
+			if code := HTTPStatus(err); code == http.StatusBadRequest || code == http.StatusNotFound {
+				// The registry, not the caller, is what failed.
+				return HelmChartValues{}, NewStatusError(http.StatusBadGateway, fmt.Errorf("chart download failed: %w", err))
+			}
+			return HelmChartValues{}, err
+		}
+		return HelmChartValues{Version: string(e.Version), Values: values, Readme: readme}, nil
 	}
 	if len(e.URLs) == 0 || strings.TrimSpace(string(e.URLs[0])) == "" {
 		return HelmChartValues{}, NewStatusError(http.StatusBadGateway, fmt.Errorf("the repository index lists no download URL for %s %s", chart, e.Version))

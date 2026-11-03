@@ -44,14 +44,19 @@ func (h *helmCatalogAPI) listRepos(w http.ResponseWriter, r *http.Request) {
 func (h *helmCatalogAPI) addRepo(w http.ResponseWriter, r *http.Request) {
 	noStore(w)
 	var req struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
+		Name              string   `json:"name"`
+		URL               string   `json:"url"`
+		Kind              string   `json:"kind"`
+		Charts            []string `json:"charts"`
+		CredentialsSecret string   `json:"credentialsSecret"`
 	}
 	if err := decode(r, &req); err != nil {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	v, err := h.c.AddRepo(r.Context(), req.Name, req.URL)
+	v, err := h.c.AddHelmRepo(r.Context(), platform.HelmRepoRequest{
+		Name: req.Name, URL: req.URL, Kind: req.Kind, Charts: req.Charts, CredentialsSecret: req.CredentialsSecret,
+	})
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
