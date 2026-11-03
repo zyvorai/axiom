@@ -86,6 +86,10 @@ type AuthOptions struct {
 	// (AXIOM_SAML_ALLOW_IDP_INITIATED). Off by default: an unsolicited
 	// response cannot be bound to a sign-in this browser started.
 	SAMLAllowIdPInitiated bool
+
+	// PodProxy, when set (AXIOM_POD_PROXY_ADDR / AXIOM_POD_PROXY_ORIGIN), serves
+	// pod windows from a separate origin; see podproxy_origin.go. Optional.
+	PodProxy *PodProxyOrigin
 }
 
 type Server struct {
@@ -98,6 +102,7 @@ type Server struct {
 	hub         *platform.IntegrationHub
 	users       *platform.UserHub
 	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
+	podProxy    *PodProxyOrigin   // separate pod-proxy origin, or nil (podproxy_origin.go)
 	revocations *auth.Revocations // revoked sessions (logout, sign out everywhere)
 	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
 	guard       auth.Guard        // used to re-verify a password for account-security actions
@@ -153,6 +158,10 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		revocations = auth.NewRevocations(opts.RevocationStore)
 	}
 	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
+	if opts.PodProxy != nil {
+		opts.PodProxy.attach(provider, revocationsChecker{revocations})
+		s.podProxy = opts.PodProxy
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
@@ -202,6 +211,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/seal", s.sealWorkload)
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/unseal", s.unsealWorkload)
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/window/{port}/", s.podWindow)
+	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/window-link", s.podWindowLink)
 	mux.HandleFunc("GET /api/v1/auth/providers", s.authProviders)
 	mux.HandleFunc("GET /api/v1/auth/oidc/login", s.oidcLogin)
 	mux.HandleFunc("GET /api/v1/auth/oidc/callback", s.oidcCallback)
@@ -345,7 +355,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerSecurityRoutes(mux)
 
 	RegisterSSE(mux)
-	RegisterRealtime(mux, provider)
+	RegisterRealtime(mux, provider, s.podProxyEnabled)
 
 	var authenticator auth.UserAuthenticator
 	if users != nil {
@@ -809,6 +819,12 @@ func (s *Server) unsealWorkload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) podWindow(w http.ResponseWriter, r *http.Request) {
+	if s.podProxy != nil {
+		// Serving pod content from the console's origin would defeat the
+		// separate pod-proxy origin, so the in-origin route is gone.
+		fail(w, http.StatusGone, fmt.Errorf("pod windows are served from a separate origin: POST /api/v1/pods/{namespace}/{name}/window-link"))
+		return
+	}
 	port, err := strconv.ParseInt(r.PathValue("port"), 10, 32)
 	if err != nil || port <= 0 {
 		fail(w, 400, fmt.Errorf("invalid port"))

@@ -84,6 +84,11 @@ type Config struct {
 	// bearer token for it. Never logged.
 	PrometheusURL   string
 	PrometheusToken string
+	// PodProxyAddr (AXIOM_POD_PROXY_ADDR, e.g. ":5091") and PodProxyOrigin
+	// (AXIOM_POD_PROXY_ORIGIN, e.g. "https://pods.example.com") serve pod
+	// windows from a separate origin. Both must be set; off by default.
+	PodProxyAddr   string
+	PodProxyOrigin string
 }
 
 func FromEnv() Config {
@@ -137,6 +142,9 @@ func FromEnv() Config {
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
 		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
+
+		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
+		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
 	}
 }
 

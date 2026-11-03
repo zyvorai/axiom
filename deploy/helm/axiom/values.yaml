@@ -118,6 +118,20 @@ tls:
     hosts:
       - axiom.local
 
+# Optional separate origin for the pod HTTP proxy ("Open" on a pod port). Off
+# by default. When addr is set, Axiom runs a second listener for pod content and
+# the Service gains a "pod-proxy" port; origin is the public URL browsers use to
+# reach it and must differ from the console's (a separate hostname is
+# recommended). This chart does not create an Ingress for it — see
+# docs/DEPLOYMENT.md. Maps to AXIOM_POD_PROXY_ADDR / AXIOM_POD_PROXY_ORIGIN.
+podProxy:
+  addr: ""      # e.g. ":5091"
+  origin: ""    # e.g. https://pods.example.com
+  service:
+    port: 5091
+    # With expose.type=NodePort, the node port for the pod proxy (empty: none).
+    nodePort: ""
+
 # How the Service is exposed. One of: ClusterIP, NodePort, Ingress.
 expose:
   type: NodePort

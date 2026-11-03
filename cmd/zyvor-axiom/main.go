@@ -80,6 +80,12 @@ func main() {
 	revocations := auth.NewRevocations(platform.OpenRevocationStore(cfg.Mode, provider))
 	revocations.StartRefresh(dispatchCtx, cfg.RevocationRefresh)
 
+	// Optional separate origin for pod windows (see internal/api/podproxy_origin.go).
+	podProxy := api.NewPodProxyOriginFromEnv(api.PodProxyOriginConfig{
+		Addr: cfg.PodProxyAddr, Origin: cfg.PodProxyOrigin,
+		ConsoleAddr: cfg.Addr, ConsoleOrigin: cfg.AllowOrigin,
+	})
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:             cfg.APIKey,
@@ -114,6 +120,8 @@ func main() {
 		OIDCDefaultRole: cfg.OIDCDefaultRole,
 
 		SAMLAllowIdPInitiated: cfg.SAMLAllowIdPInitiated,
+
+		PodProxy: podProxy,
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some
@@ -142,12 +150,20 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	if podProxy != nil {
+		// Stopped with the process: dispatchCtx is cancelled when main returns.
+		if _, err := api.StartPodProxyOrigin(dispatchCtx, podProxy, cfg.TLSCert, cfg.TLSKey); err != nil {
+			log.Fatalf("pod proxy origin: %v", err)
+		}
+		log.Printf("pod proxy origin listening on %s origin=%s tls=%v", podProxy.Addr(), podProxy.Origin(), tlsEnabled)
+	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
+	stopDispatch()
 }
 
 func firstNonEmpty(a, b string) string {

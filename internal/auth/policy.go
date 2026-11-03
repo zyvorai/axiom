@@ -10,7 +10,8 @@ import (
 const axiomNamespace = "axiom-system"
 
 // isInteractivePath reports whether a request opens an interactive session
-// into a workload: a pod shell, a VM console, or the pod "window" proxy. These
+// into a workload: a pod shell, a VM console, or the pod "window" proxy (and
+// its separate-origin link minting, POST .../window-link). These
 // are GET/WebSocket routes, so a method check alone would let the read-only
 // viewer role through — they require operator or admin.
 func isInteractivePath(path string) bool {
@@ -18,7 +19,7 @@ func isInteractivePath(path string) bool {
 		rest := strings.TrimPrefix(path, "/api/v1/pods/")
 		parts := strings.SplitN(rest, "/", 3)
 		if len(parts) == 3 {
-			return parts[2] == "terminal" || parts[2] == "exec" || parts[2] == "debug" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window"
+			return parts[2] == "terminal" || parts[2] == "exec" || parts[2] == "debug" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window" || parts[2] == "window-link"
 		}
 		return false
 	}

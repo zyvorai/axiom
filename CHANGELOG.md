@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Security — pod proxy origin
+- Pod web UIs ("Open" on a pod port) can now be served from a separate origin. Set `AXIOM_POD_PROXY_ADDR` (e.g. `:5091`) and `AXIOM_POD_PROXY_ORIGIN` (e.g. `https://pods.example.com`; Helm `podProxy.addr` / `podProxy.origin`, which also adds a `pod-proxy` Service port) to run a second listener for pod content. The console mints a link with `POST /api/v1/pods/{namespace}/{name}/window-link` (operator/admin, namespace-checked like the window route) carrying a single-use 60-second ticket; redeeming it on the proxy origin sets a path-scoped HttpOnly session cookie there (10 minutes sliding, 1 hour max) that is checked against the console's revocations on every request. The proxy listener only serves `/p/<ticket>/` and `/s/<sid>/…`, never accepts the console's cookie or Basic/Bearer/API-key credentials, has no CORS, and forbids framing. With it on, the in-origin `/window/{port}/` route answers `410`, so no console credential goes in a URL for it any more. `GET /api/v1/realtime/capabilities` reports `podProxy`. Off by default; a missing half or a proxy origin equal to the console's is logged and leaves the old behaviour in place
+
 ## [0.9.1] - 2026-11-04
 
 ### Fixed
