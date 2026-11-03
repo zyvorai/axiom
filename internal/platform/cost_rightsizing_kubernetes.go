@@ -79,15 +79,27 @@ func (k *KubernetesProvider) snapshotUsage(ctx context.Context, namespace string
 // ListRightsizing compares each Deployment / StatefulSet / DaemonSet
 // container's requests (taken from its newest running pod) with observed
 // usage — Prometheus p95/p99 history when configured, else a metrics.k8s.io
-// snapshot — and recommends new requests. Nothing is ever applied.
+// snapshot — and recommends new requests. The report changes nothing;
+// ApplyRightsizing writes one recommendation on explicit request.
 func (k *KubernetesProvider) ListRightsizing(ctx context.Context, namespace, window string) (RightsizingReport, error) {
 	window, err := NormalizeRightsizingWindow(window)
 	if err != nil {
 		return RightsizingReport{}, err
 	}
-	pods, err := k.client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	in, err := k.gatherRightsizingInputs(ctx, namespace)
 	if err != nil {
 		return RightsizingReport{}, err
+	}
+	return runRightsizing(ctx, namespace, window, k.rightsizingSources(), in), nil
+}
+
+// gatherRightsizingInputs lists the running Deployment / StatefulSet /
+// DaemonSet containers of namespace ("" = all) with the requests of each
+// workload's newest running pod, and the pod-to-workload resolver.
+func (k *KubernetesProvider) gatherRightsizingInputs(ctx context.Context, namespace string) (rightsizingInputs, error) {
+	pods, err := k.client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return rightsizingInputs{}, err
 	}
 	type wl struct {
 		namespace, kind, name string
@@ -148,10 +160,15 @@ func (k *KubernetesProvider) ListRightsizing(ctx context.Context, namespace, win
 			return workloadFromPodName(ns, pod, known)
 		},
 	}
+	return in, nil
+}
+
+// rightsizingSources is the usage source order: Prometheus history when
+// configured, then a metrics.k8s.io snapshot.
+func (k *KubernetesProvider) rightsizingSources() []rightsizingUsageSource {
 	var sources []rightsizingUsageSource
 	if k.prometheus != nil {
 		sources = append(sources, promUsageSource{client: k.prometheus})
 	}
-	sources = append(sources, snapshotUsageSource{fetch: k.snapshotUsage})
-	return runRightsizing(ctx, namespace, window, sources, in), nil
+	return append(sources, snapshotUsageSource{fetch: k.snapshotUsage})
 }

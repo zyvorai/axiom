@@ -26,7 +26,8 @@ var demoRightsizing = []struct {
 }
 
 // ListRightsizing serves the demo rightsizing report (metrics-snapshot
-// semantics, deterministic numbers).
+// semantics, deterministic numbers), with the requests a rightsizing apply
+// wrote on this provider.
 func (d *DemoProvider) ListRightsizing(ctx context.Context, namespace, window string) (RightsizingReport, error) {
 	window, err := NormalizeRightsizingWindow(window)
 	if err != nil {
@@ -38,7 +39,7 @@ func (d *DemoProvider) ListRightsizing(ctx context.Context, namespace, window st
 		if namespace != "" && row.c.Namespace != namespace {
 			continue
 		}
-		if it, ok := recommendContainer(row.c, row.u, src.basis()); ok {
+		if it, ok := recommendContainer(d.demoRightsizingContainer(row.c), row.u, src.basis()); ok {
 			items = append(items, it)
 		}
 	}

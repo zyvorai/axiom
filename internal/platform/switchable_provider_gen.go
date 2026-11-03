@@ -216,6 +216,9 @@ func (sp *SwitchableProvider) EstimateCost(a0 context.Context) (CostEstimate, er
 func (sp *SwitchableProvider) ListRightsizing(a0 context.Context, a1 string, a2 string) (RightsizingReport, error) {
 	return sp.current(a0).ListRightsizing(a0, a1, a2)
 }
+func (sp *SwitchableProvider) ApplyRightsizing(a0 context.Context, a1 RightsizingApplyRequest) (RightsizingApplyResult, error) {
+	return sp.current(a0).ApplyRightsizing(a0, a1)
+}
 func (sp *SwitchableProvider) ValidateManifest(a0 context.Context, a1 string) (ValidateResult, error) {
 	return sp.current(a0).ValidateManifest(a0, a1)
 }
