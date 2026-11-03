@@ -16,7 +16,10 @@ import { buildTerminalTheme } from "@/lib/terminalTheme";
 
 const SHELLS = ["/bin/sh", "/bin/bash", "/bin/ash"];
 
-export default function PodTerminal({ namespace, name, containers }) {
+// `wsPath` overrides the WebSocket route (the node shell reuses this terminal);
+// `label` overrides the "namespace/name" shown in the banner and window title.
+export default function PodTerminal({ namespace, name, containers, wsPath, label }) {
+    const display = label || `${namespace}/${name}`;
     const [container, setContainer] = useState(containers[0] || "");
     const [shell, setShell] = useState(SHELLS[0]);
     const [status, setStatus] = useState("idle"); // idle | connecting | connected | closed | error
@@ -64,7 +67,7 @@ export default function PodTerminal({ namespace, name, containers }) {
         dataDispRef.current?.dispose();
         wsRef.current?.close();
         term.reset();
-        term.writeln(`\x1b[90mConnecting to ${namespace}/${name} (${shell})…\x1b[0m`);
+        term.writeln(`\x1b[90mConnecting to ${display} (${shell})…\x1b[0m`);
         setStatus("connecting");
 
         let sawOpen = false;
@@ -76,9 +79,8 @@ export default function PodTerminal({ namespace, name, containers }) {
         const params = new URLSearchParams({ shell });
         if (container) params.set("container", container);
         if (token) params.set("access_token", token);
-        const ws = new WebSocket(
-            `${proto}://${window.location.host}/api/v1/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/terminal?${params.toString()}`
-        );
+        const path = wsPath || `/api/v1/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/terminal`;
+        const ws = new WebSocket(`${proto}://${window.location.host}${path}?${params.toString()}`);
         ws.binaryType = "arraybuffer";
         wsRef.current = ws;
 
@@ -205,7 +207,7 @@ export default function PodTerminal({ namespace, name, containers }) {
                 </p>
             )}
             <MacTerm
-                title={`${namespace}/${name} — ${shell}`}
+                title={`${display} — ${shell}`}
                 actions={
                     <span className="mono text-[11px] text-term-dim">
                         <span className={`status-dot mr-1.5 inline-block align-middle ${status === "connected" ? "ok animate-pulse" : status === "error" ? "err" : "info"}`} />

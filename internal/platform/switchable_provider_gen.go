@@ -405,3 +405,15 @@ func (sp *SwitchableProvider) InstallHelmChart(a0 context.Context, a1 InstallHel
 func (sp *SwitchableProvider) UpgradeHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
 	return sp.current(a0).UpgradeHelmChart(a0, a1)
 }
+
+// Troubleshooting (Workstream B) — hand-added delegates; the generator script is
+// not in the repo, so these mirror its output.
+func (sp *SwitchableProvider) ClusterHealth(a0 context.Context, a1 string) (HealthReport, error) {
+	return sp.current(a0).ClusterHealth(a0, a1)
+}
+func (sp *SwitchableProvider) WorkloadLogs(a0 context.Context, a1 string, a2 string, a3 string, a4 WorkloadLogOptions) (io.ReadCloser, error) {
+	return sp.current(a0).WorkloadLogs(a0, a1, a2, a3, a4)
+}
+func (sp *SwitchableProvider) CreateDebugContainer(a0 context.Context, a1 string, a2 string, a3 DebugRequest) (DebugContainer, error) {
+	return sp.current(a0).CreateDebugContainer(a0, a1, a2, a3)
+}

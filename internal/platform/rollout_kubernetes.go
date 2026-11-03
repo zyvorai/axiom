@@ -101,7 +101,7 @@ func (k *KubernetesProvider) deploymentRevisionHistory(ctx context.Context, ns, 
 		if i >= 5 {
 			break
 		}
-		out = append(out, RolloutRevision{Revision: it.revision, Status: it.status, Age: age(it.age)})
+		out = append(out, RolloutRevision{Revision: it.revision, Status: it.status, Age: age(it.age), Time: it.age})
 	}
 	return out, nil
 }

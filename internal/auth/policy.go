@@ -18,14 +18,14 @@ func isInteractivePath(path string) bool {
 		rest := strings.TrimPrefix(path, "/api/v1/pods/")
 		parts := strings.SplitN(rest, "/", 3)
 		if len(parts) == 3 {
-			return parts[2] == "terminal" || parts[2] == "exec" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window"
+			return parts[2] == "terminal" || parts[2] == "exec" || parts[2] == "debug" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window"
 		}
 		return false
 	}
 	if strings.HasPrefix(path, "/api/v1/vms/") {
 		return strings.HasSuffix(path, "/vnc") || strings.HasSuffix(path, "/console")
 	}
-	return false
+	return isNodeShellPath(path)
 }
 
 // secretValuesTarget reports whether the request reads decoded Secret values,
@@ -83,6 +83,9 @@ var restrictedSensitivePrefixes = []string{
 // namespaced resource is refused (e.g. DELETE /namespaces/{name}, node drain).
 func restrictedDenied(r *http.Request) bool {
 	p := r.URL.Path
+	if isNodeShellPath(p) {
+		return true // root on a node is never namespace-scoped
+	}
 	for _, pre := range restrictedSensitivePrefixes {
 		if p == pre || strings.HasPrefix(p, pre+"/") {
 			return true

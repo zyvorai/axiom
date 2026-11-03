@@ -19,6 +19,14 @@ rules:
   - apiGroups: [""]
     resources: ["pods/eviction"]
     verbs: ["create"]
+  # Ephemeral debug containers (POST /api/v1/pods/{ns}/{name}/debug) are added
+  # through the pods/ephemeralcontainers subresource, which needs its own
+  # "update" rule. The opt-in node shell (AXIOM_ENABLE_NODE_SHELL=true) needs
+  # nothing extra: it creates/execs/deletes a pod and creates its dedicated
+  # namespace using the pods, pods/exec and namespaces rules above.
+  - apiGroups: [""]
+    resources: ["pods/ephemeralcontainers"]
+    verbs: ["update"]
   - apiGroups: ["apps"]
     resources: ["deployments", "statefulsets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

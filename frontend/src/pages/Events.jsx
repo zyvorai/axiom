@@ -6,7 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
-import { EVENTS } from "@/constants/testIds";
+import { EVENTS, TIMELINE } from "@/constants/testIds";
 import { resourceHref } from "@/lib/resourceHref";
 import SearchBox from "@/components/SearchBox";
 import NamespaceFilter from "@/components/NamespaceFilter";
@@ -14,6 +14,8 @@ import SavedViews from "@/components/SavedViews";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
+import { History } from "lucide-react";
+import { timelineHref } from "@/lib/troubleshoot";
 
 function relTime(iso) {
     try {
@@ -94,6 +96,11 @@ export default function Events() {
                         />
                     </>
                 }
+                action={
+                    <Link to="/timeline" data-testid={TIMELINE.eventsLink} className="btn btn-line">
+                        <History size={15} /> Open timeline
+                    </Link>
+                }
             />
 
             <GlassCard className="overflow-hidden p-0">
@@ -126,7 +133,15 @@ export default function Events() {
                                                 </Link>
                                             ) : (
                                                 `${e.namespace}/${e.object}`
-                                            )}
+                                            )}{" "}
+                                            <Link
+                                                to={timelineHref({ namespace: e.namespace, object: e.object })}
+                                                aria-label={`What changed for ${e.object}`}
+                                                title="What changed"
+                                                className="text-ink-3 hover:text-ink"
+                                            >
+                                                <History size={12} className="inline" aria-hidden="true" />
+                                            </Link>
                                         </td>
                                         <td className="num">×{e.count}</td>
                                         <td className="mono num">{relTime(e.time)}</td>

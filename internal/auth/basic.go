@@ -145,6 +145,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			deny(http.StatusForbidden, "read-only user: shells, consoles and the pod proxy require the operator role")
 			return
 		}
+		if isNodeShellPath(r.URL.Path) && id.Role != "admin" {
+			deny(http.StatusForbidden, "the node shell requires the admin role")
+			return
+		}
 		if sns, isVals := secretValuesTarget(r); isVals {
 			if id.Role == "viewer" {
 				deny(http.StatusForbidden, "read-only user: reading secret values requires the operator role")
@@ -219,6 +223,8 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/networkpolicies",
 	"/api/v1/gateways",
 	"/api/v1/graph",
+	"/api/v1/timeline",
+	"/api/v1/diagnose",
 	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
 	// of installed CRD definitions, which is cluster-scoped metadata with
 	// no namespace of its own) when no ?namespace= is given — an

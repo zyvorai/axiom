@@ -9,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network } from "lucide-react";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History } from "lucide-react";
+import WorkloadTimeline from "@/components/WorkloadTimeline";
+import { TIMELINE } from "@/constants/testIds";
 import CodeEditor from "@/components/CodeEditor";
 import KvChip, { toneForKey } from "@/components/KvChip";
 import FeatureTile from "@/components/FeatureTile";
@@ -135,6 +137,9 @@ export default function WorkloadDetail() {
                     <TabsTrigger value="graph" className="gap-1.5">
                         <Network className="h-3.5 w-3.5" aria-hidden="true" /> Graph
                     </TabsTrigger>
+                    <TabsTrigger value="changes" data-testid={TIMELINE.workloadTab} className="gap-1.5">
+                        <History className="h-3.5 w-3.5" /> What changed
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
@@ -230,6 +235,10 @@ export default function WorkloadDetail() {
                 </TabsContent>
                 <TabsContent value="graph" className="mt-4">
                     <ResourceGraph namespace={namespace} kind={kind} name={name} />
+                </TabsContent>
+
+                <TabsContent value="changes" className="mt-4">
+                    <WorkloadTimeline namespace={namespace} kind={kind} name={name} />
                 </TabsContent>
             </Tabs>
         </div>

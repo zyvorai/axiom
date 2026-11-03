@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Rocket } from "lucide-react";
 import { OVERVIEW } from "@/constants/testIds";
 import { useAlertsCount } from "@/lib/alerts";
+import OverviewHealth from "@/components/OverviewHealth";
 
 function SetupBanner() {
     const [needsSetup, setNeedsSetup] = useState(false);
@@ -170,6 +171,9 @@ export default function Overview() {
                     <Sparkline data={memSeries} color="var(--green)" height={100} />
                 </div>
             </div>
+
+            <div className="divider" />
+            <OverviewHealth />
 
             <div className="divider" />
             <div className="section-h">

@@ -26,6 +26,8 @@ import {
     Layers3,
     Snowflake,
     Puzzle,
+    History,
+    Stethoscope,
 } from "lucide-react";
 
 // Fixed name -> lucide-react component lookup for plugin-declared icons.
@@ -71,6 +73,8 @@ export const NAV_ITEMS = [
     { to: "/custom-resources", label: "Custom Resources", icon: Layers3, key: "custom-resources", group: "Config" },
     { to: "/logs", label: "Pod Logs", icon: ScrollText, key: "logs", group: "Observe" },
     { to: "/events", label: "Events", icon: BellRing, key: "events", group: "Observe" },
+    { to: "/timeline", label: "Timeline", icon: History, key: "timeline", group: "Observe" },
+    { to: "/health-check", label: "Health check", icon: Stethoscope, key: "health-check", group: "Observe" },
     { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts", group: "Observe" },
     { to: "/ops", label: "Ops", icon: Layers, key: "ops", group: "Observe" },
     { to: "/users", label: "Users", icon: UsersIcon, key: "users", group: "Admin" },
