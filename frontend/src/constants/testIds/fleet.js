@@ -13,8 +13,8 @@ export const FLEET = {
     search: 'fleet-search',
     searchKind: 'fleet-search-kind',
     searchResults: 'fleet-search-results',
-    searchRow: (cluster, ns, name) => `fleet-hit-${cluster}-${ns || '_'}-${name}`,
-    searchOpen: (cluster, ns, name) => `fleet-hit-open-${cluster}-${ns || '_'}-${name}`,
+    searchRow: (cluster, kind, ns, name) => `fleet-hit-${cluster}-${kind}-${ns || '_'}-${name}`,
+    searchOpen: (cluster, kind, ns, name) => `fleet-hit-open-${cluster}-${kind}-${ns || '_'}-${name}`,
     searchSkipped: 'fleet-search-skipped',
     searchNone: 'fleet-search-none',
 };

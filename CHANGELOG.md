@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-04
+
+### Added — QR enrolment and the enrolment gate
+- Two-factor enrolment now shows a QR code to scan (rendered in the browser; the secret never leaves the page), with the typed setup key as a fallback. When `AXIOM_REQUIRE_MFA` covers an account that has not enrolled, the console shows only an enrolment screen until it has
+
 ### Added — Fleet search
 - Cross-cluster search (`GET /api/v1/fleet/search?q=&kind=&limit=`): finds workloads, services and namespaces whose name or namespace (or workload image) contains the query across every registered cluster, each through its own provider, up to 8 clusters at once with a 5 s timeout each. Unreachable clusters are skipped and reported, a failing cluster is reported without failing the search, and results are ranked exact name, prefix, contains, then namespace/image matches with `total`/`truncated`. Same access as `/fleet` (namespace-restricted accounts get `403`); rate-limited to 20 searches per user per 10 s (`429` with `Retry-After`)
 ### Added — Notifications

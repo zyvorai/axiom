@@ -210,7 +210,7 @@ function FleetSearch({ currentName }) {
                                 </thead>
                                 <tbody>
                                     {res.results.map((h) => (
-                                        <tr key={`${h.cluster}/${h.kind}/${h.namespace}/${h.name}`} data-testid={FLEET.searchRow(h.cluster, h.namespace, h.name)}>
+                                        <tr key={`${h.cluster}/${h.kind}/${h.namespace}/${h.name}`} data-testid={FLEET.searchRow(h.cluster, h.kind, h.namespace, h.name)}>
                                             <td className="name">
                                                 {h.clusterLabel || h.cluster}
                                                 <small>{h.clusterState}</small>
@@ -226,7 +226,7 @@ function FleetSearch({ currentName }) {
                                             </td>
                                             <td className="text-[12.5px]">{h.status}</td>
                                             <td>
-                                                <button type="button" className="btn btn-line btn-sm" data-testid={FLEET.searchOpen(h.cluster, h.namespace, h.name)} onClick={() => open(h)}>
+                                                <button type="button" className="btn btn-line btn-sm" data-testid={FLEET.searchOpen(h.cluster, h.kind, h.namespace, h.name)} onClick={() => open(h)}>
                                                     Open
                                                 </button>
                                             </td>

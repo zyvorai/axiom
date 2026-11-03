@@ -1,9 +1,20 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.8.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.9.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.9.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Notifications | A cluster going unreachable or degraded, and a namespace budget reaching warning or over, are announced through the Slack/webhook alert destinations already configured, debounced and audited, with the Timeline showing them | Rancher/Komodor cluster alerts, Kubecost budget alerts |
+| Cross-cluster search | "Where is `payments` running?" across every registered cluster, skipping unreachable ones, with one-click switching to the cluster that has it | Rancher global search, Lens catalog search |
+| Rightsizing apply | Review the exact request changes (CPU and/or memory), then apply them with a stale-view guard; limits are never lowered; the server recomputes the recommendation | Goldilocks/Kubecost "apply" |
+| Require-MFA policy | `AXIOM_REQUIRE_MFA` (admin / operator / all) holds covered local accounts at an enrolment screen until they have a second factor; QR enrolment | Rancher/Portainer enforced 2FA |
+| Shared revocation | Logouts and session revocations reach every replica within seconds, written conflict-safely to the shared ConfigMap | — |
+| GitOps delete | Delete an Argo CD or Flux application with the consequence spelled out (finalizer, prune, Helm uninstall), a typed confirmation when it removes resources, and optional removal of an unshared source | Argo CD delete dialog |
 
 ## Shipped in 0.8.0
 
@@ -49,11 +60,13 @@ are theirs, not ours.
 
 ## Next
 
-- **Fleet:** health history and alerting on a cluster going down (today state changes are audited and shown, not notified), and cross-cluster workload search.
-- **Autoscaling & cost:** create and edit VPA/KEDA objects, applying a rightsizing recommendation in one click, budget alerts that notify, and real billing data instead of request-based estimates.
-- **Identity:** MFA for LDAP accounts, QR-code enrolment and a require-MFA policy, shared revocation across replicas.
-- **GitOps & Helm:** delete and edit applications, Argo repository credentials, an OCI chart catalog.
-- **Reach:** internationalisation, a separate origin for the pod proxy.
+Deliberately left for later, with the reason:
+
+- **Identity:** MFA for LDAP accounts needs a place to keep second factors for directory users (the user store holds only local accounts); today use SSO with an IdP that enforces MFA.
+- **Autoscaling & cost:** create/edit VPA and KEDA objects, and real billing data instead of request-based estimates (needs a billing integration per cloud).
+- **GitOps & Helm:** editing applications in place, Argo CD repository credentials, and an OCI chart catalog.
+- **Reach:** internationalisation (a large string-extraction pass across every page) and serving the pod proxy from a separate origin (a deployment-topology change: a second hostname or listener).
+- **Fleet:** health history charts (state changes are audited and shown, not trended).
 
 ## Not planned
 

@@ -106,7 +106,8 @@ test.describe("two-factor sign-in", () => {
       await expect(page.getByTestId("login-mfa-code")).toBeVisible();
       await expect(page.getByTestId("sidebar-nav")).toHaveCount(0);
       // The step before (enrolment) used the current time step, so use the next one.
-      await page.getByTestId("login-mfa-code").fill(totp(secret, 1));
+      const signInCode = totp(secret, 1); // keep the exact code: recomputing later can cross a 30 s boundary and yield a NEW valid code
+      await page.getByTestId("login-mfa-code").fill(signInCode);
       await page.getByTestId("login-mfa-submit").click();
       await expect(page.getByTestId("sidebar-nav")).toBeVisible();
       const session = await (await page.request.get("/api/v1/session")).json();
@@ -115,7 +116,7 @@ test.describe("two-factor sign-in", () => {
 
       // --- The same code is not accepted twice (new browser context, same code) ---
       const other = await browser.newContext({ baseURL: process.env.AXIOM_E2E_BASE_URL || "http://localhost:5090", ignoreHTTPSErrors: true });
-      const replay = await other.request.post("/api/v1/auth/login", { data: { username: name, password: pass, code: totp(secret, 1) } });
+      const replay = await other.request.post("/api/v1/auth/login", { data: { username: name, password: pass, code: signInCode } });
       expect(replay.status()).toBe(401);
       await other.close();
 
