@@ -174,6 +174,12 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator cannot reset mfa", "roper", "DELETE", "/api/v1/users/viewer/mfa", 403},
 		{"admin can reset mfa", "demo", "DELETE", "/api/v1/users/viewer/mfa", 204},
 		{"admin can revoke sessions", "demo", "POST", "/api/v1/users/viewer/revoke-sessions", 204},
+		{"admin lists directory mfa", "demo", "GET", "/api/v1/users/external-mfa", 204},
+		{"operator cannot list directory mfa", "oper", "GET", "/api/v1/users/external-mfa", 403},
+		{"viewer cannot list directory mfa", "viewer", "GET", "/api/v1/users/external-mfa", 403},
+		{"restricted viewer cannot list directory mfa", "rviewer", "GET", "/api/v1/users/external-mfa", 403},
+		{"restricted operator cannot list directory mfa", "roper", "GET", "/api/v1/users/external-mfa", 403},
+		{"operator cannot list directory mfa (slash)", "oper", "GET", "/api/v1/users/external-mfa/", 403},
 		// --- GitOps application creation: admin-only; list and sync unchanged ---
 		{"viewer gitops create", "viewer", "POST", "/api/v1/gitops", 403},
 		{"viewer gitops preview", "viewer", "POST", "/api/v1/gitops/preview", 403},

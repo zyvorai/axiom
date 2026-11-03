@@ -14,6 +14,7 @@ local accounts, integration settings, and the audit trail.
 | What | Resource | Kind | Notes |
 |---|---|---|---|
 | Local accounts (Settings → Users) | `zyvor-axiom-users` | Secret | bcrypt-hashed passwords |
+| Two-factor sign-in of LDAP directory accounts | `zyvor-axiom-external-mfa` | Secret | TOTP secrets and hashed recovery codes; losing it means directory users re-enrol |
 | Integration settings (Settings → Integrations: OIDC, Atlas, Postgres, probe) | `zyvor-axiom-integrations` | ConfigMap + Secret | non-secret fields in the ConfigMap, tokens/passwords in the Secret — same name, both kinds |
 | Audit log (Ops → Audit) | `zyvor-axiom-audit` | ConfigMap | only the most recent 200 entries — forward to your SIEM for anything longer-lived, see `docs/DEPLOYMENT.md` |
 | Operator credential | `zyvor-axiom-auth` | Secret | normally reproducible from your Helm `values.yaml`/deploy command, not runtime state — back up only if it was changed outside that |
