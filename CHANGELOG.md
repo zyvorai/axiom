@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Autoscaling & cost
+- Cost budgets and rightsizing: administrators set per-namespace monthly budgets (`PUT`/`DELETE /api/v1/cost/budgets/{namespace}`, kept in ConfigMap `zyvor-axiom-cost-budgets`, audited as `cost.budget_set` / `cost.budget_removed`), and `GET /api/v1/cost/budgets` compares each with the estimate (`ok` / `warning` at `warnPercent`, default 80 / `over`) and lists the biggest unbudgeted namespaces. `GET /api/v1/cost/rightsizing?namespace=&window=7d` recommends per-container CPU/memory requests (usage + 20 % / 15 % headroom) with an over / under / ok verdict and the monthly saving at the `GET /cost` rates, from Prometheus p95/p99 history when `AXIOM_PROMETHEUS_URL` (+ optional `AXIOM_PROMETHEUS_TOKEN`; Helm `cost.prometheusUrl` / `cost.prometheusToken`) is set, else a low-confidence metrics.k8s.io snapshot. Recommendations are never applied. Both endpoints are cluster-wide, so namespace-restricted accounts get `403`
+
 ## [0.7.0] - 2026-11-04
 
 ### Added — GitOps & Helm

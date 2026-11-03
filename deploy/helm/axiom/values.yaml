@@ -85,6 +85,17 @@ helmCatalog:
   # Allow http:// repositories. Maps to AXIOM_HELM_ALLOW_INSECURE_REPOS.
   allowInsecureRepos: false
 
+# Cost rightsizing (Ops -> Cost). With a Prometheus that scrapes cAdvisor
+# (container_cpu_usage_seconds_total, container_memory_working_set_bytes),
+# recommendations use p95 CPU / p99 memory over a window; without it they fall
+# back to a one-sample metrics-server snapshot.
+cost:
+  # e.g. http://prometheus-operated.monitoring.svc:9090. Maps to AXIOM_PROMETHEUS_URL.
+  prometheusUrl: ""
+  # Optional bearer token. Stored in Secret zyvor-axiom-auth (key prometheusToken);
+  # maps to AXIOM_PROMETHEUS_TOKEN.
+  prometheusToken: ""
+
 tls:
   # If set, the chart uses this pre-existing TLS Secret (type: kubernetes.io/tls)
   # instead of generating one — the right choice for a CA-issued certificate.

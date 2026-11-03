@@ -36,6 +36,9 @@ type AuthOptions struct {
 	// HelmRepoStore persists the Helm chart catalog's repository list.
 	// Optional — nil keeps it in memory.
 	HelmRepoStore platform.HelmRepoStore
+	// CostBudgetStore persists per-namespace cost budgets. Optional — nil
+	// keeps them in memory.
+	CostBudgetStore platform.CostBudgetStore
 	// TOTPSecret, when set (AXIOM_TOTP_SECRET), adds a TOTP second factor to the
 	// built-in admin account. Base32, at least 80 bits.
 	TOTPSecret string
@@ -196,6 +199,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerFleet(mux)
 	s.registerGitOpsCreate(mux)
 	s.registerHelmCatalog(mux)
+	s.registerCost(mux)
 	mux.HandleFunc("GET /api/v1/auth/saml/login", s.samlLogin)
 	mux.HandleFunc("POST /api/v1/auth/saml/acs", s.samlACS)
 	mux.HandleFunc("GET /api/v1/nodes/{name}", s.nodeDetail)

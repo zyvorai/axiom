@@ -66,6 +66,11 @@ type Config struct {
 	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
 	// responses, i.e. ones with no InResponseTo. Off by default.
 	SAMLAllowIdPInitiated bool
+	// PrometheusURL (AXIOM_PROMETHEUS_URL) backs cost rightsizing with p95/p99
+	// usage history; PrometheusToken (AXIOM_PROMETHEUS_TOKEN) is an optional
+	// bearer token for it. Never logged.
+	PrometheusURL   string
+	PrometheusToken string
 }
 
 func FromEnv() Config {
@@ -113,6 +118,9 @@ func FromEnv() Config {
 
 		FleetProbeInterval: fleetProbeInterval(),
 		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
+
+		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
+		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
 	}
 }
 

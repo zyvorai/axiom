@@ -63,12 +63,19 @@ func main() {
 
 	auth.SetSessionTTL(cfg.SessionTTL)
 
+	if prom, err := platform.NewPrometheusClient(cfg.PrometheusURL, cfg.PrometheusToken); err != nil {
+		log.Printf("rightsizing: Prometheus disabled: %v", err)
+	} else if prom != nil && platform.ConfigurePrometheus(provider, prom) {
+		log.Printf("rightsizing: Prometheus usage history enabled")
+	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:             cfg.APIKey,
 		SessionSecret:      cfg.SessionSecret,
 		RevocationStore:    platform.OpenRevocationStore(cfg.Mode, provider),
 		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
+		CostBudgetStore:    platform.OpenCostBudgetStore(cfg.Mode, provider),
 		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),

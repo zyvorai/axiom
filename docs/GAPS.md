@@ -23,6 +23,8 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - Server-side session revocation: logout ends that session, "sign out everywhere", automatic revocation on role/namespace/password changes and deletion, admin "sign out everywhere", and a configurable `AXIOM_SESSION_TTL`
 - GitOps application create from the console (Ops → GitOps): Argo CD `Application`, Flux `GitRepository` + `Kustomization`, Flux `HelmRepository` + `HelmRelease`, built from typed fields with a pure YAML preview (`POST /api/v1/gitops/preview`, `POST /api/v1/gitops`), admin-only and audited
 - Read-only RBAC viewer, NetworkPolicy analysis and security-report (Trivy/PolicyReport) views
+- Per-namespace monthly cost budgets (`/api/v1/cost/budgets`, admin-managed, ConfigMap `zyvor-axiom-cost-budgets`) with ok / warning / over state against the estimate
+- Rightsizing recommendations (`GET /api/v1/cost/rightsizing`) from Prometheus p95 CPU / p99 memory history (`AXIOM_PROMETHEUS_URL`) or, without it, a metrics.k8s.io snapshot, with per-container verdicts and monthly savings
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 
 Known security limitations (reviewed, not yet fixed):
@@ -39,6 +41,8 @@ Known security limitations (reviewed, not yet fixed):
 Known platform limitations (reviewed, not yet fixed):
 
 - **GitOps creation is create-only.** Applications are not deleted from the console (an Argo CD `resources-finalizer` cascade-deletes the workloads, so this is deliberate), and repository credentials are not managed here: Argo CD repository credentials are configured in Argo CD, and a Flux `secretRef` must name a Secret that already exists. Only the typed fields are supported (no multi-source Applications, ApplicationSets, Helm `valuesFrom`, or Kustomize patches)
+- **Cost figures are estimates of requested resources at flat rates** (20 USD per core, 5 USD per GiB per month), not usage and not your cloud bill; budgets compare against that estimate, and nothing alerts when one is exceeded (the state is shown wherever budgets are read)
+- **Rightsizing is a recommendation and is never applied automatically.** The metrics-snapshot source (no `AXIOM_PROMETHEUS_URL`) is one current sample, so its verdicts are low confidence; Prometheus covers only the cluster Axiom starts on (clusters registered later use the snapshot); requests are read from the newest running pod, so a workload scaled to zero or mid-rollout may be misjudged; Jobs, CronJobs and bare pods are not assessed, and VPA targets are not used yet
 - **Fleet probing is a point-in-time overview request per cluster** (default every 30 s) with no history: the Fleet page shows now and "since when", not a trend, and a cluster that answers slowly but successfully is still `healthy`. Probes use the same credentials the console uses for that cluster. Each replica probes on its own
 
 - **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
@@ -60,7 +64,7 @@ Still thinner than a full private-cloud suite (intentionally or next):
 
 - MFA for LDAP accounts, QR-code enrolment and a require-MFA policy
 - Embedded noVNC UI (proxy path is ready; virtctl remains supported)
-- Historical Prometheus TSDB / alert silence
+- Historical Prometheus charts in the UI / alert silence (Prometheus history is used for rightsizing only)
 - ClusterRole write UI (deliberate security boundary)
 - SOC2 / pen-test packaging
 - On-demand Velero backup (`POST /api/v1/velero/backups`) is unit-tested against a fake clientset only — no cluster in this session's environment had the Velero CRDs installed to validate it against a real one

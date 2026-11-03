@@ -69,10 +69,7 @@ var (
 	}
 )
 
-const (
-	costCPURatePerCore  = 20.0
-	costMemoryRatePerGi = 5.0
-)
+// costCPURatePerCore / costMemoryRatePerGi live in cost_rightsizing.go.
 
 func isMissingCRD(err error) bool {
 	if err == nil {
