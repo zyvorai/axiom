@@ -32,9 +32,11 @@ import {
     Tag,
     Plus,
     Trash2,
+    Terminal as TerminalIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import NodeShellPanel from "@/components/NodeShellPanel";
 
 function MetricsPanel({ name }) {
     const [series, setSeries] = useState(null);
@@ -293,6 +295,9 @@ export default function NodeDetail() {
                     <TabsTrigger value="taints" className="gap-1.5">
                         <Tag className="h-3.5 w-3.5" /> Taints ({(node.taints || []).length})
                     </TabsTrigger>
+                    <TabsTrigger value="shell" className="gap-1.5">
+                        <TerminalIcon className="h-3.5 w-3.5" /> Shell
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
@@ -326,6 +331,10 @@ export default function NodeDetail() {
 
                 <TabsContent value="taints" className="mt-4">
                     <TaintsPanel name={node.name} taints={node.taints} onChanged={load} />
+                </TabsContent>
+
+                <TabsContent value="shell" className="mt-4">
+                    <NodeShellPanel node={node.name} />
                 </TabsContent>
             </Tabs>
         </div>

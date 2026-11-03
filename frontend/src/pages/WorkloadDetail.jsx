@@ -9,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save } from "lucide-react";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, History } from "lucide-react";
+import WorkloadTimeline from "@/components/WorkloadTimeline";
+import { TIMELINE } from "@/constants/testIds";
 import { toast } from "sonner";
 import CodeEditor from "@/components/CodeEditor";
 import KvChip, { toneForKey } from "@/components/KvChip";
@@ -148,6 +150,9 @@ export default function WorkloadDetail() {
                     <TabsTrigger value="events" className="gap-1.5">
                         <BellRing className="h-3.5 w-3.5" /> Events ({(detail.relatedEvents || []).length})
                     </TabsTrigger>
+                    <TabsTrigger value="changes" data-testid={TIMELINE.workloadTab} className="gap-1.5">
+                        <History className="h-3.5 w-3.5" /> What changed
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
@@ -233,6 +238,10 @@ export default function WorkloadDetail() {
                             </div>
                         ))}
                     </GlassCard>
+                </TabsContent>
+
+                <TabsContent value="changes" className="mt-4">
+                    <WorkloadTimeline namespace={namespace} kind={kind} name={name} />
                 </TabsContent>
             </Tabs>
         </div>

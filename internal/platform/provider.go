@@ -158,4 +158,10 @@ type Provider interface {
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
+
+	// Troubleshooting (Workstream B): cluster health check, multi-pod workload
+	// logs and ephemeral debug containers.
+	ClusterHealth(context.Context, string) (HealthReport, error)
+	WorkloadLogs(context.Context, string, string, string, WorkloadLogOptions) (io.ReadCloser, error)
+	CreateDebugContainer(context.Context, string, string, DebugRequest) (DebugContainer, error)
 }

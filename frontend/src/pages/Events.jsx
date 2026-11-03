@@ -6,8 +6,10 @@ import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
-import { EVENTS } from "@/constants/testIds";
+import { EVENTS, TIMELINE } from "@/constants/testIds";
 import { resourceHref } from "@/lib/resourceHref";
+import { History } from "lucide-react";
+import { timelineHref } from "@/lib/troubleshoot";
 
 function relTime(iso) {
     try {
@@ -45,6 +47,11 @@ export default function Events() {
             <PageHeader
                 title="Events"
                 description="Kubernetes event stream, most recent first."
+                action={
+                    <Link to="/timeline" data-testid={TIMELINE.eventsLink} className="btn btn-line">
+                        <History size={15} /> Open timeline
+                    </Link>
+                }
             />
 
             <GlassCard className="overflow-hidden p-0">
@@ -77,7 +84,15 @@ export default function Events() {
                                                 </Link>
                                             ) : (
                                                 `${e.namespace}/${e.object}`
-                                            )}
+                                            )}{" "}
+                                            <Link
+                                                to={timelineHref({ namespace: e.namespace, object: e.object })}
+                                                aria-label={`What changed for ${e.object}`}
+                                                title="What changed"
+                                                className="text-ink-3 hover:text-ink"
+                                            >
+                                                <History size={12} className="inline" aria-hidden="true" />
+                                            </Link>
                                         </td>
                                         <td className="num">×{e.count}</td>
                                         <td className="mono num">{relTime(e.time)}</td>

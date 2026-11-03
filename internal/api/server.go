@@ -289,6 +289,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("PATCH /api/v1/users/{username}", s.updateUser)
 	mux.HandleFunc("DELETE /api/v1/users/{username}", s.deleteUser)
 
+	// Troubleshooting & timeline (Workstream B): routes live in troubleshoot.go.
+	s.registerTroubleshooting(mux)
+
 	RegisterSSE(mux)
 	RegisterRealtime(mux, provider)
 

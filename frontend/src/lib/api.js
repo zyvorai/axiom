@@ -77,10 +77,11 @@ export function withAccessToken(path) {
 
 // Streams a pod's log endpoint (chunked text/plain, not SSE) line by line.
 // Returns an AbortController the caller can use to stop the stream.
-export function streamPodLogs(namespace, name, { container, follow = true, tail = 200, onLine, onError, onEnd } = {}) {
+export function streamPodLogs(namespace, name, { container, follow = true, tail = 200, previous = false, onLine, onError, onEnd } = {}) {
     const controller = new AbortController();
     const params = new URLSearchParams({ follow: String(follow), tail: String(tail) });
     if (container) params.set("container", container);
+    if (previous) params.set("previous", "true");
     const url = `${API}/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/logs?${params.toString()}`;
     const headers = {};
     if (api.defaults.headers.common["Authorization"]) {
@@ -93,6 +94,57 @@ export function streamPodLogs(namespace, name, { container, follow = true, tail 
             const res = await fetch(url, { headers, signal: controller.signal });
             if (!res.ok || !res.body) {
                 onError?.(new Error(`log stream failed: ${res.status}`));
+                return;
+            }
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            for (;;) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() ?? "";
+                for (const line of lines) onLine?.(line);
+            }
+            if (buffer) onLine?.(buffer);
+            onEnd?.();
+        } catch (e) {
+            if (e.name !== "AbortError") onError?.(e);
+        }
+    })();
+
+    return controller;
+}
+
+// Streams the merged logs of every pod of a workload (GET
+// /workloads/{ns}/{kind}/{name}/logs). Each line arrives as
+// "[pod/container] <timestamp> <message>". Same contract as streamPodLogs:
+// returns an AbortController, calls onLine per line, onEnd when the server
+// closes the stream, onError on failure (with the server's message when it sent one).
+export function streamWorkloadLogs(namespace, kind, name, { container, follow = true, tail = 100, previous = false, onLine, onError, onEnd } = {}) {
+    const controller = new AbortController();
+    const params = new URLSearchParams({ follow: String(follow), tail: String(tail) });
+    if (container) params.set("container", container);
+    if (previous) params.set("previous", "true");
+    const url = `${API}/workloads/${encodeURIComponent(namespace)}/${encodeURIComponent(kind)}/${encodeURIComponent(name)}/logs?${params.toString()}`;
+    const headers = { [CLUSTER_SESSION_HEADER]: clusterSessionId() };
+    if (api.defaults.headers.common["Authorization"]) {
+        headers["Authorization"] = api.defaults.headers.common["Authorization"];
+    }
+
+    (async () => {
+        try {
+            const res = await fetch(url, { headers, signal: controller.signal });
+            if (!res.ok || !res.body) {
+                let detail = `log stream failed: ${res.status}`;
+                try {
+                    const body = await res.json();
+                    if (body?.error) detail = body.error;
+                } catch {
+                    // not JSON — keep the status message
+                }
+                onError?.(new Error(detail));
                 return;
             }
             const reader = res.body.getReader();

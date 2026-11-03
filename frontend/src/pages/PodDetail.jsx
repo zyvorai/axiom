@@ -35,9 +35,13 @@ import {
     Plus,
     X,
     ArrowRight,
+    Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import PodTerminal from "@/components/PodTerminal";
+import DebugContainerPanel from "@/components/DebugContainerPanel";
+import { copyText, portForwardCommand } from "@/lib/troubleshoot";
+import { PORTFWD } from "@/constants/testIds";
 import Sparkline from "@/components/Sparkline";
 import FeatureTile from "@/components/FeatureTile";
 import SpecTable from "@/components/SpecTable";
@@ -356,6 +360,14 @@ export default function PodDetail() {
         }
     };
 
+    // A browser cannot open a local listener, so TCP port-forwarding stays a
+    // kubectl job; hand the user the exact command instead.
+    const copyPortForward = async (port) => {
+        const cmd = portForwardCommand(namespace, name, port);
+        if (await copyText(cmd)) toast.success("Copied", { description: cmd });
+        else toast.error("Could not copy to the clipboard", { description: cmd });
+    };
+
     const pod = useMemo(() => (pods || []).find((p) => p.name === name), [pods, name]);
     const podEvents = useMemo(() => (events || []).filter((e) => e.object === `Pod/${name}`), [events, name]);
     const spec = detail && detail.manifest ? detail.manifest.spec : null;
@@ -610,14 +622,26 @@ export default function PodDetail() {
                                     <div className="mono text-sm text-tone-link">
                                         {p.container} · {p.containerPort}/{p.protocol || "TCP"}
                                     </div>
-                                    <a
-                                        href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="flex items-center gap-1 rounded-lg border border-soft-info-border bg-soft-info px-2.5 py-1 text-xs text-tone-link hover:bg-soft-info"
-                                    >
-                                        Open <ExternalLink className="h-3 w-3" />
-                                    </a>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            data-testid={PORTFWD.copy(p.containerPort)}
+                                            onClick={() => copyPortForward(p.containerPort)}
+                                            title={portForwardCommand(pod.namespace, pod.name, p.containerPort)}
+                                            className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+                                        >
+                                            <Copy className="h-3 w-3" aria-hidden="true" /> Copy kubectl port-forward
+                                        </button>
+                                        <a
+                                            data-testid={PORTFWD.open(p.containerPort)}
+                                            href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-1 rounded-lg border border-soft-info-border bg-soft-info px-2.5 py-1 text-xs text-tone-link hover:bg-soft-info"
+                                        >
+                                            Open <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    </div>
                                 </div>
                             ))}
                         </GlassCard>
@@ -635,6 +659,14 @@ export default function PodDetail() {
                             <ExecPanel namespace={pod.namespace} name={pod.name} containers={containers} />
                         </div>
                     )}
+                    <div className="mt-4">
+                        <DebugContainerPanel
+                            namespace={pod.namespace}
+                            name={pod.name}
+                            containers={containers}
+                            interactive={!!capabilities?.interactiveExec}
+                        />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="yaml" className="mt-4 space-y-3">

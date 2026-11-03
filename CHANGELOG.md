@@ -4,6 +4,14 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — troubleshooting
+- **Change timeline**: `GET /api/v1/timeline` merges Kubernetes events, Axiom audit entries, alert warnings and Deployment rollout revisions into one newest-first feed (`namespace`, `object`, `since`, `limit` filters; namespace-restricted accounts must name an owned namespace). New Timeline page under Observe, a "What changed" tab on Workload detail, and an "Open timeline" link from Events.
+- **Cluster health check**: `GET /api/v1/diagnose?namespace=` runs deterministic analyzers (crash-loop / `OOMKilled` / image-pull from the last termination state, Services without endpoints, Pending PVCs, Ingresses with a missing backend, HPAs that cannot scale, node pressure) and returns findings with a severity and a suggested fix. Shown on Overview and on a new Health check page. Works in demo and Kubernetes mode.
+- **Workload logs**: `GET /api/v1/workloads/{namespace}/{kind}/{name}/logs` merges the logs of every pod and container (prefixed `[pod/container]`); the Logs page gained a Workload mode, a regex filter, a timestamps toggle, a previous-container toggle and Download.
+- **Ephemeral debug containers**: `POST /api/v1/pods/{namespace}/{name}/debug` (operator+, audited `pod.debug`) adds a non-root, capability-dropped container (`AXIOM_DEBUG_IMAGE`, default `busybox`) through the `pods/ephemeralcontainers` subresource, with a terminal attached on the Pod page. RBAC: `pods/ephemeralcontainers` `update` in both `deploy/k8s/rbac.yaml` and the Helm chart.
+- **Node shell** (off by default): `AXIOM_ENABLE_NODE_SHELL=true` enables an admin-only, audited (`node.shell`) root shell on a node through a short-lived privileged pod in a dedicated namespace that is deleted on disconnect or timeout; refused for operators, viewers and namespace-restricted accounts. It conflicts with the Pod Security `restricted` profile on its own namespace (documented in `docs/DEPLOYMENT.md`).
+- **Port-forward helper**: "Copy kubectl port-forward" button next to each port's Open button on the Pod page (a browser cannot open a local listener, so TCP forwarding stays a kubectl job).
+
 ### Security
 - Helm install/upgrade values are stored in a Secret owned by the Job (garbage-collected with it) instead of a permanent plaintext ConfigMap; Helm Jobs honour the Axiom namespace, `AXIOM_SERVICE_ACCOUNT` and `AXIOM_HELM_IMAGE`, get DNS-safe names of at most 63 characters, and refuse release/chart/repo/version/namespace values that start with `-`
 - One-shot exec output is capped at 1 MiB, interactive terminals at 64 concurrent sessions and 1 MiB frames

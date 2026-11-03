@@ -210,6 +210,9 @@ type RolloutRevision struct {
 	Revision int    `json:"revision"`
 	Status   string `json:"status"`
 	Age      string `json:"age"`
+	// Time is the revision's creation time when the provider knows it exactly
+	// (used by the change timeline); Age is the display form.
+	Time time.Time `json:"time,omitempty"`
 }
 
 type RolloutStatus struct {

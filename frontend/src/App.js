@@ -33,6 +33,8 @@ const WorkloadDetail = lazy(() => import("@/pages/WorkloadDetail"));
 const PodDetail = lazy(() => import("@/pages/PodDetail"));
 const Logs = lazy(() => import("@/pages/Logs"));
 const Events = lazy(() => import("@/pages/Events"));
+const Timeline = lazy(() => import("@/pages/Timeline"));
+const HealthCheck = lazy(() => import("@/pages/HealthCheck"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetail = lazy(() => import("@/pages/JobDetail"));
 const CronJobDetail = lazy(() => import("@/pages/CronJobDetail"));
@@ -103,6 +105,8 @@ export default function App() {
                                 <Route path="/atlas" element={<Atlas />} />
                                 <Route path="/logs" element={<Logs />} />
                                 <Route path="/events" element={<Events />} />
+                                <Route path="/timeline" element={<Timeline />} />
+                                <Route path="/health-check" element={<HealthCheck />} />
                                 <Route path="/jobs" element={<Jobs />} />
                                 <Route path="/jobs/:namespace/:name" element={<JobDetail />} />
                                 <Route path="/cronjobs/:namespace/:name" element={<CronJobDetail />} />

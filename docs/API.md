@@ -380,6 +380,50 @@ A `viewer` account's `namespaces` field restricts it to reading only the listed 
 
 `GET /api/v1/events?namespace=...` returns cluster or namespace events sorted by time.
 
+## Troubleshooting
+
+### Change timeline
+
+`GET /api/v1/timeline?namespace=&object=&since=&limit=` merges four sources into one newest-first array of `{time, source, severity, namespace, object, summary, actor}`:
+
+| `source` | From |
+|---|---|
+| `event` | Kubernetes events (`Normal` and any `Warning` not already reported as an alert) |
+| `alert` | Warning events as reported by `GET /alerts` (severity `warning`) |
+| `audit` | Axiom's own audit entries (`actor` is the Axiom user). `pod.exec` entries omit the command line |
+| `rollout` | Deployment rollout revisions ("Rollout revision N created") |
+
+`namespace` scopes every source (cluster-wide audit actions such as `node.cordon` only appear when no namespace is given). `object` is `Kind/name` (for example `Deployment/payments-api`) and also matches the ReplicaSets and pods that workload owns. `since` is an RFC 3339 time or a lookback such as `90m`, `6h` or `7d`; `limit` defaults to 200 (max 1000). Any role may call it; namespace-restricted accounts must pass a `namespace` they own (an unscoped or `all` query is `403`).
+
+### Cluster health check
+
+`GET /api/v1/diagnose?namespace=` runs deterministic, rule-based analyzers (no LLM, nothing leaves the cluster) and returns `{namespace, generatedAt, status, counts, analyzers, findings, errors?}`. `status` is `healthy`, `warning` or `critical`; each finding is `{id, analyzer, severity, kind, namespace, name, object, title, message, suggestion}` with `severity` one of `critical`, `warning`, `info`. Findings are sorted most severe first.
+
+| `analyzer` | Reports |
+|---|---|
+| `pod-status` | Crash-looping / `OOMKilled` containers (from the last termination state), image pull failures, container-creation errors, unschedulable pods |
+| `service-endpoints` | Services with a selector but no ready endpoints (no matching pod vs. pods not Ready) |
+| `pvc-pending` | PVCs stuck `Pending` (a `WaitForFirstConsumer` class is reported as `info`) |
+| `ingress-backend` | Ingress rules whose backend Service is missing or does not expose the port |
+| `hpa` | HPAs whose scale target is missing, that cannot scale or compute metrics, or sit at `maxReplicas` |
+| `node-pressure` | Nodes that are not Ready or under memory/disk/PID pressure (only in an unscoped check) |
+
+An analyzer that cannot run (for example RBAC) is listed in `errors` instead of failing the whole check, so a partial report is never mistaken for a clean one. Namespace-restricted accounts must pass an owned `namespace`.
+
+### Workload logs
+
+`GET /api/v1/workloads/{namespace}/{kind}/{name}/logs?container=&tail=100&follow=false&previous=false` streams the merged logs of every pod of a `Deployment`, `StatefulSet`, `DaemonSet`, `ReplicaSet` or `Job` as chunked `text/plain`. Each line is `[pod/container] <RFC 3339 timestamp> <message>`. Without `follow`, lines are sorted chronologically across pods; with `follow=true` they are forwarded in arrival order. `tail` applies per container (max 5000); at most 40 pod/container streams are opened. `previous=true` reads the previous terminated instance and skips containers that have none (`404` when none do). Same access as pod logs (viewers may read). Local Basic-auth sessions opening this in a browser need `?access_token=` like the other log routes.
+
+### Ephemeral debug container
+
+`POST /api/v1/pods/{namespace}/{name}/debug` (operator or admin; audited as `pod.debug`) adds an ephemeral container to a running pod through the `pods/ephemeralcontainers` subresource. Body (optional): `{"target":"container"}` to share that container's process namespace. The image is fixed by the server (`AXIOM_DEBUG_IMAGE`, default `busybox`) — a client-supplied `image` is rejected as an unknown field. The container runs `sleep` as non-root with all capabilities dropped (it satisfies the Pod Security `restricted` profile). Returns `201` with `{namespace, pod, container, image, target?, ready, message}`; connect a terminal to it with `GET /pods/{ns}/{name}/terminal?container=<container>`. A terminated or deleting pod is `409`; an unknown pod or target is `404`. Ephemeral containers cannot be removed from a pod.
+
+`GET /api/v1/debug/capabilities` returns `{ephemeralContainers, debugImage, nodeShell, nodeShellNamespace?, nodeShellTimeoutSeconds?, interactive}` so the UI knows what to offer.
+
+### Node shell
+
+`GET /api/v1/nodes/{name}/shell?shell=/bin/sh` (**kubernetes build only**, WebSocket, same framing as the pod terminal) opens a root shell on a node. It is **off by default**: with `AXIOM_ENABLE_NODE_SHELL` unset it answers `403` with a message naming the variable. When enabled it is **admin-only** (operators, viewers and namespace-restricted accounts get `403`), audited as `node.shell`, and implemented as a short-lived privileged pod (`hostPID`, `nsenter` into the host) pinned to the node in a dedicated namespace (`AXIOM_NODE_SHELL_NAMESPACE`, default `axiom-node-shell`, created with the Pod Security `privileged` labels). The pod is deleted when the socket closes or after `AXIOM_NODE_SHELL_TIMEOUT` (default `15m`, max `1h`); leftovers from a crashed Axiom are swept on the next session. See [DEPLOYMENT.md](DEPLOYMENT.md#troubleshooting-tools-debug-containers-and-the-node-shell).
+
 ## Error shape
 
 ```json

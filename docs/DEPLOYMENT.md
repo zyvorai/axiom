@@ -190,6 +190,24 @@ Uninstall:
 ./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --uninstall
 ```
 
+## Troubleshooting tools: debug containers and the node shell
+
+Both are set with environment variables on the Axiom Deployment (for example `kubectl -n axiom-system set env deploy/zyvor-axiom AXIOM_ENABLE_NODE_SHELL=true`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AXIOM_DEBUG_IMAGE` | `busybox` | Image for ephemeral debug containers (`POST /pods/{ns}/{name}/debug`). Use a toolbox such as `nicolaka/netshoot` if you need `tcpdump`/`dig`; it must provide `sleep`. Clients cannot choose the image. |
+| `AXIOM_ENABLE_NODE_SHELL` | unset (off) | Set to `true` to enable the admin-only node shell. Anything else leaves it off and the endpoint answers `403` with an explanation. |
+| `AXIOM_NODE_SHELL_NAMESPACE` | `axiom-node-shell` | Dedicated namespace for the short-lived node-shell pods. |
+| `AXIOM_NODE_SHELL_IMAGE` | `alpine:3.20` | Image for the node-shell pod; must contain `nsenter` and be pullable by the nodes (air-gapped clusters: mirror it). |
+| `AXIOM_NODE_SHELL_TIMEOUT` | `15m` | Hard session limit (Go duration, capped at `1h`). |
+
+**RBAC.** Debug containers need `update` on `pods/ephemeralcontainers`, already in `deploy/k8s/rbac.yaml` and the Helm chart. The node shell reuses the grants Axiom already has (create namespaces, create/delete pods, `pods/exec`); no extra rule is needed. Clusters that previously applied the old ClusterRole must re-apply it for debug containers to work.
+
+**Pod Security.** The debug container is non-root with all capabilities dropped and the `RuntimeDefault` seccomp profile, so it is admitted under the `restricted` profile (Kubernetes also checks ephemeral containers against the pod's namespace policy). The node shell is the opposite: its pod is `privileged`, uses `hostPID` and `hostNetwork`, and **cannot run in a namespace enforcing `baseline` or `restricted`**. Axiom creates `axiom-node-shell` with `pod-security.kubernetes.io/enforce=privileged`; if you pre-create it, or a policy engine (Kyverno, Gatekeeper, ValidatingAdmissionPolicy) blocks privileged pods there, the shell fails with a clear error and nothing is left running. Keep that namespace exempt from, and only from, those policies — never relax them for workload namespaces.
+
+**What the node shell grants.** Root on the host: it can read every pod's volumes and credentials on that node. Enable it only where an administrator needs break-glass access, keep `AXIOM_ENABLE_NODE_SHELL` unset elsewhere, and forward the audit log (`node.shell` entries) to your SIEM. Operators, viewers and namespace-restricted accounts can never open it. Each session's pod is deleted on disconnect or timeout, has an `activeDeadlineSeconds`, and any leftover (for example after an Axiom crash) is swept at the next session.
+
 ## Production hardening checklist
 
 - Real TLS certificate (replace self-signed lab cert)
