@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Fleet search
+- Cross-cluster search (`GET /api/v1/fleet/search?q=&kind=&limit=`): finds workloads, services and namespaces whose name or namespace (or workload image) contains the query across every registered cluster, each through its own provider, up to 8 clusters at once with a 5 s timeout each. Unreachable clusters are skipped and reported, a failing cluster is reported without failing the search, and results are ranked exact name, prefix, contains, then namespace/image matches with `total`/`truncated`. Same access as `/fleet` (namespace-restricted accounts get `403`); rate-limited to 20 searches per user per 10 s (`429` with `Retry-After`)
+
 ## [0.8.0] - 2026-11-04
 
 ### Added — Autoscaling & cost

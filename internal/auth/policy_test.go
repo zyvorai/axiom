@@ -186,6 +186,12 @@ func TestGuardPolicy(t *testing.T) {
 		{"viewer can refresh fleet", "viewer", "POST", "/api/v1/fleet/refresh", 204},
 		{"restricted viewer cannot refresh fleet", "rviewer", "POST", "/api/v1/fleet/refresh", 403},
 		{"fleet refresh exemption is exact", "viewer", "POST", "/api/v1/fleet/refresh/x", 403},
+		{"viewer searches fleet", "viewer", "GET", "/api/v1/fleet/search?q=pay", 204},
+		{"operator searches fleet", "oper", "GET", "/api/v1/fleet/search?q=pay", 204},
+		{"admin searches fleet", "demo", "GET", "/api/v1/fleet/search?q=pay", 204},
+		{"restricted viewer fleet search", "rviewer", "GET", "/api/v1/fleet/search?q=pay", 403},
+		{"restricted operator fleet search", "roper", "GET", "/api/v1/fleet/search?q=pay", 403},
+		{"fleet prefix does not cover fleetx", "rviewer", "GET", "/api/v1/fleetx", 204},
 		// --- Helm chart catalog: reads for every unrestricted role, repo writes admin-only ---
 		{"viewer lists helm repos", "viewer", "GET", "/api/v1/helm/repos", 204},
 		{"operator lists helm repos", "oper", "GET", "/api/v1/helm/repos", 204},

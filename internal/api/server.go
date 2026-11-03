@@ -197,6 +197,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authLogout)
 	s.registerIdentity(mux)
 	s.registerFleet(mux)
+	s.registerFleetSearch(mux)
 	s.registerGitOpsCreate(mux)
 	s.registerHelmCatalog(mux)
 	s.registerAutoscaling(mux)
