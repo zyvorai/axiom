@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/zyvorai/axiom/internal/platform"
@@ -10,6 +11,42 @@ import (
 func (s *Server) registerFleet(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/fleet", s.fleet)
 	mux.HandleFunc("POST /api/v1/fleet/refresh", s.refreshFleet)
+	mux.HandleFunc("GET /api/v1/fleet/history", s.fleetHistory)
+}
+
+// fleetHistory returns the in-memory probe history (uptime, incidents and a
+// downsampled series) of every cluster, or of ?cluster=, over ?window=.
+// Access is that of /fleet (it is under the same restricted prefix).
+func (s *Server) fleetHistory(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	window, err := platform.NormalizeFleetHistoryWindow(q.Get("window"))
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	cluster := q.Get("cluster")
+	if q.Has("cluster") {
+		if err := platform.ValidateFleetClusterName(cluster); err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	sp := s.switchable()
+	if sp == nil {
+		if cluster != "" {
+			fail(w, http.StatusNotFound, fmt.Errorf("unknown cluster %q", cluster))
+			return
+		}
+		writeJSON(w, http.StatusOK, platform.FleetHistory{Window: window, Clusters: []platform.FleetClusterHistory{}})
+		return
+	}
+	h, err := sp.FleetHistory(r.Context(), cluster, window)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	writeJSON(w, http.StatusOK, h)
 }
 
 // fleet returns every registered cluster with its latest health and a roll-up.
