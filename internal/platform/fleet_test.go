@@ -167,6 +167,7 @@ func TestStateTransitionsAreTrackedAndAudited(t *testing.T) {
 
 	a.setErr(errors.New("connection refused"))
 	sp.ProbeAll(ctx)
+	sp.ProbeAll(ctx) // a second failed probe confirms the outage
 	down := sp.healthOf("edge")
 	if down.State != ClusterUnreachable || down.Since == "" {
 		t.Fatalf("not unreachable: %+v", down)

@@ -30,6 +30,9 @@ const (
 	fleetProbeTimeoutDefault = 8 * time.Second
 	// fleetProbeConcurrency bounds how many clusters are probed at once.
 	fleetProbeConcurrency = 8
+	// fleetFailuresBeforeUnreachable is how many probes in a row must fail before
+	// a cluster that was reachable is declared unreachable.
+	fleetFailuresBeforeUnreachable = 2
 	// fleetRefreshMinGap is the shortest gap between two on-demand refreshes.
 	fleetRefreshMinGap = 3 * time.Second
 )
@@ -99,6 +102,7 @@ type Fleet struct {
 type fleetState struct {
 	mu          sync.Mutex
 	health      map[string]ClusterHealth
+	failures    map[string]int // consecutive failed probes per cluster
 	interval    time.Duration
 	lastRefresh time.Time
 	running     bool
@@ -134,11 +138,23 @@ func classifyProbe(ov Overview, err error) ClusterHealth {
 	case ov.Nodes > 0 && ov.ReadyNodes < ov.Nodes:
 		h.State = ClusterDegraded
 		h.Reason = fmt.Sprintf("%d of %d nodes are not ready", ov.Nodes-ov.ReadyNodes, ov.Nodes)
-	case ov.Health != "" && !strings.EqualFold(ov.Health, "Healthy"):
+	case isUnhealthyClusterStatus(ov.Health):
 		h.State = ClusterDegraded
 		h.Reason = "the cluster reports " + ov.Health
 	}
 	return h
+}
+
+// isUnhealthyClusterStatus reports whether a provider's own health word means
+// something is actually wrong. "Attention" is not one of them: the Kubernetes
+// provider uses it for "there are warning events", which every busy cluster has
+// most of the time, and nodes that are not ready are already caught separately.
+func isUnhealthyClusterStatus(s string) bool {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "degraded", "unhealthy", "critical", "down", "failed", "error":
+		return true
+	}
+	return false
 }
 
 // probeError makes a transport error short and single-line for the UI.
@@ -174,6 +190,28 @@ func (sp *SwitchableProvider) probe(ctx context.Context, name string, p Provider
 
 	st.mu.Lock()
 	prev, had := st.health[name]
+	// One failed probe is not an outage: a busy API server or a brief network
+	// blip would otherwise flip an established cluster to unreachable (and, with
+	// notifications on, page someone) and back a minute later. A cluster that was
+	// reachable keeps its last known state until a SECOND consecutive probe also
+	// fails. A cluster's very first probe, and one already unreachable, report
+	// immediately.
+	if h.State == ClusterUnreachable {
+		if st.failures == nil {
+			st.failures = map[string]int{}
+		}
+		st.failures[name]++
+		if had && (prev.State == ClusterHealthy || prev.State == ClusterDegraded) && st.failures[name] < fleetFailuresBeforeUnreachable {
+			keep := prev
+			keep.CheckedAt = h.CheckedAt
+			keep.LatencyMs = h.LatencyMs
+			st.health[name] = keep
+			st.mu.Unlock()
+			return keep
+		}
+	} else if st.failures != nil {
+		delete(st.failures, name)
+	}
 	if had && prev.State == h.State {
 		h.Since = prev.Since
 	} else {

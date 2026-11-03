@@ -94,6 +94,7 @@ func TestFleetNotifyDownDegradedRecovered(t *testing.T) {
 	clk.Advance(time.Minute)
 	a.setErr(errors.New("dial tcp 10.0.0.1:6443: connection refused"))
 	sp.ProbeAll(ctx)
+	sp.ProbeAll(ctx) // a second failed probe confirms the outage
 	got := n.take()
 	if len(got) != 1 || got[0].Kind != "fleet.cluster_unreachable" || got[0].Severity != SeverityWarning {
 		t.Fatalf("down: %+v", got)
@@ -132,6 +133,7 @@ func TestFleetNotifyDebounce(t *testing.T) {
 		clk.Advance(time.Minute)
 		a.setErr(errors.New("timeout"))
 		sp.ProbeAll(ctx)
+		sp.ProbeAll(ctx) // a second failed probe confirms the outage
 		clk.Advance(time.Minute)
 		a.setErr(nil)
 		sp.ProbeAll(ctx)
@@ -161,6 +163,7 @@ func TestFleetNotifyRecoveryAlwaysFollowsAnnouncedOutage(t *testing.T) {
 	clk.Advance(time.Minute)
 	a.setErr(errors.New("timeout"))
 	sp.ProbeAll(ctx)
+	sp.ProbeAll(ctx) // a second failed probe confirms the outage
 	clk.Advance(30 * time.Second)
 	a.setErr(nil)
 	sp.ProbeAll(ctx)
@@ -169,12 +172,14 @@ func TestFleetNotifyRecoveryAlwaysFollowsAnnouncedOutage(t *testing.T) {
 	// is announced (after the window) is always followed by its recovery.
 	a.setErr(errors.New("timeout"))
 	sp.ProbeAll(ctx)
+	sp.ProbeAll(ctx) // a second failed probe confirms the outage
 	clk.Advance(15 * time.Minute)
 	a.setErr(nil)
 	sp.ProbeAll(ctx)
 	clk.Advance(time.Minute)
 	a.setErr(errors.New("timeout"))
 	sp.ProbeAll(ctx)
+	sp.ProbeAll(ctx) // a second failed probe confirms the outage
 	clk.Advance(time.Minute)
 	a.setErr(nil)
 	sp.ProbeAll(ctx)

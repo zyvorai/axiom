@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-04
+
+### Fixed
+- Fleet health no longer flaps on a real cluster. A cluster that was reachable now needs two consecutive failed probes before it is declared unreachable (one slow overview call used to flip it and, with notifications on, announce an outage that cleared a minute later), and warning events alone no longer mark a cluster degraded (the Kubernetes provider's "Attention" status means "there are warnings"; only unready nodes or an explicitly unhealthy status do). Found on the dev cluster, where it had logged repeated degraded/recovered pairs
+
 ## [0.9.0] - 2026-11-04
 
 ### Added — QR enrolment and the enrolment gate
