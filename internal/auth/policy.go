@@ -51,7 +51,9 @@ func isOperatorForbidden(r *http.Request) bool {
 	p := r.URL.Path
 	switch {
 	case strings.HasPrefix(p, "/api/v1/rbac/"):
-		return true
+		// The read-only RBAC viewer (subjects / who-can) is operator-readable;
+		// every other method and path under /rbac/ stays admin-only.
+		return !isRBACViewRead(r)
 	case p == "/api/v1/helm/install" || p == "/api/v1/helm/upgrade":
 		return true
 	case strings.HasPrefix(p, "/api/v1/integrations/"):
@@ -91,7 +93,7 @@ func restrictedDenied(r *http.Request) bool {
 	if isMutatingMethod(r.Method) {
 		if _, scoped := matchNamespacedPrefix(p); !scoped {
 			// logout and cluster activation are harmless session operations.
-			if p == "/api/v1/auth/logout" {
+			if p == "/api/v1/auth/logout" || p == "/api/v1/ws-ticket" {
 				return false
 			}
 			return true

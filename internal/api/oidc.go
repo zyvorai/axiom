@@ -93,12 +93,16 @@ func (s *Server) oidcLogin(w http.ResponseWriter, r *http.Request) {
 
 	verifier := auth.RandomURLToken(32)
 	state := auth.RandomURLToken(24)
+	nonce := auth.RandomURLToken(24)
 	sum := sha256.Sum256([]byte(verifier))
 	challenge := base64.RawURLEncoding.EncodeToString(sum[:])
 
 	secure := s.requestSecure(r)
 	http.SetCookie(w, &http.Cookie{Name: auth.OIDCVerifier, Value: verifier, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: secure, MaxAge: 600})
 	http.SetCookie(w, &http.Cookie{Name: auth.OIDCState, Value: state, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: secure, MaxAge: 600})
+	// The nonce binds the ID token to this browser: the IdP echoes it into the
+	// token and the callback compares it with this cookie (OIDC Core §3.1.2.1).
+	http.SetCookie(w, &http.Cookie{Name: oidcNonceCookie, Value: nonce, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: secure, MaxAge: 600})
 
 	q := target.Query()
 	q.Set("client_id", clientID)
@@ -106,6 +110,7 @@ func (s *Server) oidcLogin(w http.ResponseWriter, r *http.Request) {
 	q.Set("scope", "openid profile email")
 	q.Set("redirect_uri", s.publicBase(r)+"/api/v1/auth/oidc/callback")
 	q.Set("state", state)
+	q.Set("nonce", nonce)
 	q.Set("code_challenge", challenge)
 	q.Set("code_challenge_method", "S256")
 	target.RawQuery = q.Encode()
@@ -119,8 +124,9 @@ var oidcHTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 // validateIDTokenClaims checks the claims OIDC Core §3.1.3.7 requires of a
 // client: iss matches the issuer, aud contains our client ID, and the token has
-// not expired. The signature is not re-verified because the token is received
-// directly from the token endpoint over TLS (§3.1.3.7 item 6 permits this).
+// not expired. It does NOT look at the signature: the callback calls
+// verifyIDToken (oidc_jwks.go), which verifies the signature against the
+// provider's JWKS first and then runs this check plus the nonce comparison.
 func validateIDTokenClaims(idToken, issuer, clientID string, now time.Time) error {
 	parts := strings.Split(idToken, ".")
 	if len(parts) < 2 {
@@ -227,7 +233,11 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 
 	if tok.IDToken != "" {
 		wantIssuer := firstNonEmpty(disc.Issuer, issuer)
-		if err := validateIDTokenClaims(tok.IDToken, wantIssuer, clientID, time.Now()); err != nil {
+		nonce := ""
+		if c, err := r.Cookie(oidcNonceCookie); err == nil {
+			nonce = c.Value
+		}
+		if err := verifyIDToken(r.Context(), oidcJWKS, tok.IDToken, disc.JWKSURI, wantIssuer, clientID, nonce, time.Now()); err != nil {
 			http.Error(w, "OIDC id_token rejected: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -253,6 +263,7 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	// Clear PKCE cookies
 	http.SetCookie(w, &http.Cookie{Name: auth.OIDCVerifier, Value: "", Path: "/", MaxAge: -1})
 	http.SetCookie(w, &http.Cookie{Name: auth.OIDCState, Value: "", Path: "/", MaxAge: -1})
+	http.SetCookie(w, &http.Cookie{Name: oidcNonceCookie, Value: "", Path: "/", MaxAge: -1})
 	http.Redirect(w, r, "/?sso=1", http.StatusFound)
 }
 

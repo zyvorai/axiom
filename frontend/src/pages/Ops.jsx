@@ -1,6 +1,6 @@
 import { usePageTitle } from "@/lib/pageTitle";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
+import { RBAC } from "@/constants/testIds";
 
 const TABS = [
     { key: "helm", label: "Helm", icon: Anchor },
@@ -485,6 +487,9 @@ function AuditTab() {
     const exportCSV = () => {
         downloadBlob(`axiom-audit-${new Date().toISOString().slice(0, 10)}.csv`, auditToCSV(filtered || []), "text/csv");
     };
+    const exportJSON = () => {
+        downloadBlob(`axiom-audit-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(filtered || [], null, 2), "application/json");
+    };
 
     return (
         <div className="stack">
@@ -500,6 +505,9 @@ function AuditTab() {
                 </div>
                 <button type="button" className="btn btn-line btn-sm" onClick={exportCSV} disabled={!filtered || filtered.length === 0}>
                     <Download size={13} /> Export CSV
+                </button>
+                <button type="button" className="btn btn-line btn-sm" onClick={exportJSON} disabled={!filtered || filtered.length === 0}>
+                    <Download size={13} /> Export JSON
                 </button>
             </div>
             <div className="card p-0">
@@ -714,7 +722,7 @@ function RbacGroupCard({ title, items, deletable, onDelete, onCreate, createLabe
     );
 }
 
-function RbacTab() {
+function RbacRolesView() {
     const confirm = useConfirm();
     const [refresh, setRefresh] = useState(0);
     const rbac = useEndpoint("/rbac", [refresh]);
@@ -768,6 +776,39 @@ function RbacTab() {
             ))}
             <CreateRoleDialog open={roleOpen} onOpenChange={setRoleOpen} onCreated={reload} />
             <CreateRoleBindingDialog open={bindingOpen} onOpenChange={setBindingOpen} onCreated={reload} />
+        </div>
+    );
+}
+
+// Access = the existing roles/bindings management plus the read-only
+// "By subject" and "Who can…" views (components/RbacExplorer.jsx). The active
+// view lives in ?view= so it survives reloads and can be linked.
+const RBAC_VIEWS = [
+    { key: "roles", label: "Roles & bindings", Panel: RbacRolesView },
+    { key: "subjects", label: "By subject", Panel: RbacBySubject },
+    { key: "who-can", label: "Who can…", Panel: RbacWhoCan },
+];
+
+function RbacTab() {
+    const [params, setParams] = useSearchParams();
+    const active = RBAC_VIEWS.find((v) => v.key === params.get("view")) || RBAC_VIEWS[0];
+    const Panel = active.Panel;
+    return (
+        <div className="stack">
+            <div className="seg" role="group" aria-label="Access view" data-testid={RBAC.viewSwitch}>
+                {RBAC_VIEWS.map((v) => (
+                    <button
+                        key={v.key}
+                        type="button"
+                        aria-pressed={v.key === active.key}
+                        data-testid={RBAC.viewTab(v.key)}
+                        onClick={() => setParams(v.key === "roles" ? {} : { view: v.key }, { replace: true })}
+                    >
+                        {v.label}
+                    </button>
+                ))}
+            </div>
+            <Panel />
         </div>
     );
 }

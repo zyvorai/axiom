@@ -48,7 +48,21 @@ Register/unregister (and Settings → Clusters, which drives them) are restricte
 | POST | `/api/v1/auth/saml/acs` | SAML Assertion Consumer Service (HTTP-POST binding only) — verifies the response's XML-DSig signature against `AXIOM_SAML_IDP_CERT`, checks audience and validity window, then mints the same session cookie an OIDC login does. Lab-only `AXIOM_SAML_ALLOW_UNSIGNED=true` skips verification. |
 | POST | `/api/v1/auth/logout` | Clear session cookie |
 
+**OIDC verification.** The callback verifies the ID token's signature against the provider's JWKS (fetched from the discovery document's `jwks_uri`, 10 s timeout, cached 15 min, re-fetched at most every 30 s on an unknown `kid`), accepts only RS256/384/512, PS256/384/512 and ES256/384/512 (never `none` or HMAC), then checks `iss`, `aud` (and `azp` for multi-audience tokens), `exp`, `sub` and the `nonce` bound to the sign-in by the `axiom_oidc_nonce` cookie. Any failure rejects the login with `401`.
+
+**Login throttling.** Failed credentials are throttled twice: per client IP (grace of 3, then exponential backoff to 5 min) and per attempted account name (grace of 5, same backoff, keyed on the lower-cased username whether or not the account exists). A successful login clears the per-IP counter and only the account counter of the account whose own credentials were verified, so interleaving a valid login from another account no longer defeats throttling. A throttled request gets `429` with `Retry-After`; lockouts are audited as `auth.rate_limited` / `auth.account_rate_limited`. Lockout is per account, so someone who knows a username can temporarily lock it out - it clears by itself within 5 minutes.
+
 `GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured, and an `ldap` block (`enabled`/`domain`/`url`) when `AXIOM_LDAP_*` is set — LDAP has no separate login form; the same username/password fields on the local sign-in form simple-bind against `AXIOM_LDAP_URL` first, falling through to local accounts on failure.
+
+### Stream tickets
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/ws-ticket` | Mint a single-use ticket for one streaming GET path: `{"path":"/api/v1/pods/{ns}/{name}/terminal"}` → `{"ticket","path","expiresIn":30,"expiresAt"}` |
+
+Browser WebSocket/EventSource constructors cannot set headers, and credentials in the URL (`?access_token=`, `?axiom_session=`, `?api_key=`) are captured by reverse-proxy access logs. Instead, call `POST /ws-ticket` (any authenticated role, including read-only viewers and namespace-restricted accounts) and open the stream with `?ticket=<ticket>`. A ticket is random, bound to the caller's identity and to exactly that path, valid for 30 seconds and destroyed the first time it is presented (even against the wrong path). The usual role and namespace checks are re-applied when it is redeemed (a viewer's ticket for a terminal is still `403`). Eligible paths: `/api/v1/events/stream`, `/api/v1/pods/{ns}/{name}/terminal`, `/api/v1/pods/{ns}/{name}/logs`, `/api/v1/vms/{ns}/{name}/vnc`, `/api/v1/vms/{ns}/{name}/console`; anything else is `400`. A bad, reused, expired or mismatched ticket is `401` and is never rescued by other credentials on the same request. Responses are `Cache-Control: no-store`.
+
+The URL-credential forms still work but are **deprecated**: a request that authenticates with them gets `Deprecation: true` and an `X-Axiom-Deprecated` header, and the server logs a one-time warning.
 
 ## Workloads
 
@@ -139,7 +153,7 @@ Exec accepts a shell string or argv array:
 {"container":"app","command":["/bin/sh","-lc","env | sort"]}
 ```
 
-`/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header — for local Basic-auth sessions, append `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra.
+`/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header. For `/terminal` and other streams use a single-use [stream ticket](#stream-tickets) (`?ticket=`); for the `/window/{port}/` HTTP proxy, which loads many sub-resources, local Basic-auth sessions still append the deprecated `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra.
 
 ## Autoscaling, disruption budgets, network policies
 
@@ -151,6 +165,14 @@ Exec accepts a shell string or argv array:
 | GET | `/api/v1/poddisruptionbudgets?namespace=...` | List PodDisruptionBudgets (read-only) |
 | GET | `/api/v1/networkpolicies?namespace=...` | List NetworkPolicies |
 | DELETE | `/api/v1/networkpolicies/{namespace}/{name}` | Delete a NetworkPolicy |
+
+### NetworkPolicy analysis
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/networking/policies/{namespace}/analysis` | Per-pod effective NetworkPolicy position in one namespace |
+
+Returns `policies`, `pods[]` (`pod`, `labels`, `policies`, `ingressIsolated`, `egressIsolated`, and the allowed `ingress[]` / `egress[]` peers with `kind` = `any`\|`pods`\|`namespace`\|`cidr`, the matched `pods`/`namespaces`, `cidr`/`except` and `ports`), `uncovered` (pods selected by no policy: fully open both ways), `defaultDenyIngress`/`defaultDenyEgress`, `warnings` and `notes`. Computed from the policies' selectors and ports with Kubernetes semantics (union of all selecting policies; `policyTypes` default; empty `from`/`to`/`ports` = everything). Pod names are resolved only inside the analysed namespace; cross-namespace peers list the matching namespace names. The namespace is required (`all` is `400`) and is checked against namespace-restricted accounts like any `{namespace}` path. It does not know whether the CNI enforces policies.
 
 Creating a NetworkPolicy has no dedicated form endpoint — use `POST /api/v1/apply` with a NetworkPolicy manifest (see [Generic apply](#generic-apply) below).
 
@@ -302,7 +324,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | GET | `/api/v1/gitops` | GitOps applications (Flux/Argo when present) |
 | POST | `/api/v1/gitops/{kind}/{namespace}/{name}/sync` | Force a re-sync. `kind` is one of `Application` (Argo — patches the top-level `operation.sync` field, the same mechanism `argocd app sync` uses) or `Kustomization`\|`HelmRelease` (Flux — bumps the `reconcile.fluxcd.io/requestedAt` annotation, the same convention `flux reconcile` uses) |
 | GET | `/api/v1/alerts?namespace=...` | Alertmanager / Prometheus alerts |
-| GET | `/api/v1/audit` | Axiom audit log |
+| GET | `/api/v1/audit` | Axiom audit log (JSON array; the Ops → Audit tab exports the filtered view as CSV or JSON) |
 | GET | `/api/v1/rbac?namespace=...` | Roles and bindings |
 | POST | `/api/v1/rbac/roles` | Create a namespaced Role: `{"namespace","name","rules":[{"apiGroups","resources","verbs"}]}` |
 | DELETE | `/api/v1/rbac/roles/{namespace}/{name}` | Delete a Role |
@@ -311,7 +333,27 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | GET | `/api/v1/cost` | Cost / utilization estimates — `namespaces` (by namespace) and `workloads` (by owning Deployment/StatefulSet/etc., derived from the same per-pod CPU/memory-request pass) |
 | POST | `/api/v1/validate` | Dry-run manifest validation |
 
+### RBAC viewer (read-only)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/rbac/subjects` | Every user, group and ServiceAccount named by a binding (plus every ServiceAccount): `kind`, `name`, `namespace`, `bindings`, `clusterWide`, `clusterAdmin`, `roles` |
+| GET | `/api/v1/rbac/subjects/{kind}/{name}` | Effective permissions of one subject: `cluster[]` and `namespaced[]` grants, each with `binding`, `roleRef`, `namespace`, resolved `rules`, and `via` when granted through an implicit group (`system:authenticated`, `system:serviceaccounts[:ns]`). `kind` is `User`\|`Group`\|`ServiceAccount` (case-insensitive); a ServiceAccount needs `?namespace=` |
+| GET | `/api/v1/rbac/who-can?verb=&resource=&namespace=&group=&name=` | Every subject allowed `verb` on `resource` (`pods`, `pods/exec`, …), via which binding. `namespace` empty = any namespace; `group` empty = any API group (`core` for the core group); rules restricted by `resourceNames` match only when `name` is given |
+| GET | `/api/v1/serviceaccounts?namespace=...` | ServiceAccounts with their secret and binding counts (read-only) |
+
+These enumerate the whole access graph, so they require the **operator or admin** role: read-only viewers and namespace-restricted accounts get `403` (`/api/v1/rbac` is a restricted-sensitive prefix). Operators can read but, as before, still cannot write RBAC. Group membership asserted by an external IdP is not visible to Kubernetes, so a User/Group view shows only bindings that name that subject. A who-can query needs a complete snapshot: if Axiom cannot list every Role/binding the request fails (`403`/`5xx`) instead of answering from partial data.
+
 RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRoleBinding` have no create/delete endpoint and stay read-only via `GET /api/v1/rbac`. See [Security](../README.md#security) for why.
+
+## Security reports
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/security/reports?namespace=...` | Aggregated scanner output: `available`, `sources[]`, `vulnerabilities` / `misconfigurations` severity counts, `policy` result counts, `workloads[]` (riskiest first), `installHint` |
+| GET | `/api/v1/security/reports/{namespace}/{kind}/{name}` | Drill-down for one workload: `vulnerabilities[]` (sorted by severity, de-duplicated, capped at 300), `misconfigurations[]`, `policyResults[]` (failing/warning only), `images` |
+
+Read-only aggregation of Trivy Operator `VulnerabilityReport` / `ConfigAuditReport` (`aquasecurity.github.io`) and `wgpolicyk8s.io` `PolicyReport` / `ClusterPolicyReport` (Kyverno, Gatekeeper-compatible) objects through the dynamic client. Axiom runs no scanner. Missing CRDs are not an error: `available` is `false`, each source says why (`CRD not installed`, or an RBAC hint on `Forbidden`) and `installHint` explains what to install. Trivy reports a Deployment's scan against its current ReplicaSet; the pod-template-hash suffix is stripped so the row shows the Deployment. Scoped like other namespaced lists: namespace-restricted accounts must pass `?namespace=` for a namespace they hold (cluster-scoped `ClusterPolicyReport` results appear only in the all-namespaces view). Reports are paged (200 per page, 10,000 per source).
 
 ## Agent runs and platform intents
 

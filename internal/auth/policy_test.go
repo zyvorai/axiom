@@ -66,6 +66,45 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator helm install", "roper", "POST", "/api/v1/helm/install", 403},
 		{"restricted operator own-namespace write", "roper", "POST", "/api/v1/workloads/team-a/Deployment/x/restart", 204},
 		{"restricted operator other-namespace write", "roper", "POST", "/api/v1/workloads/team-b/Deployment/x/restart", 403},
+
+		// --- Workstream C: RBAC viewer (read-only; viewers + restricted denied) ---
+		{"viewer rbac subjects", "viewer", "GET", "/api/v1/rbac/subjects", 403},
+		{"viewer rbac subject detail", "viewer", "GET", "/api/v1/rbac/subjects/User/alice", 403},
+		{"viewer rbac who-can", "viewer", "GET", "/api/v1/rbac/who-can?verb=get&resource=secrets", 403},
+		{"operator rbac subjects", "oper", "GET", "/api/v1/rbac/subjects", 204},
+		{"operator rbac subject detail", "oper", "GET", "/api/v1/rbac/subjects/ServiceAccount/web?namespace=default", 204},
+		{"operator rbac who-can", "oper", "GET", "/api/v1/rbac/who-can?verb=get&resource=secrets", 204},
+		{"operator still cannot write rbac subjects", "oper", "POST", "/api/v1/rbac/subjects", 403},
+		{"operator unknown rbac sub-path still forbidden", "oper", "GET", "/api/v1/rbac/anything-else", 403},
+		{"admin rbac subjects", "demo", "GET", "/api/v1/rbac/subjects", 204},
+		{"admin rbac who-can", "demo", "GET", "/api/v1/rbac/who-can?verb=list&resource=pods&namespace=team-a", 204},
+		{"restricted viewer rbac subjects", "rviewer", "GET", "/api/v1/rbac/subjects", 403},
+		{"restricted operator rbac who-can in own ns", "roper", "GET", "/api/v1/rbac/who-can?verb=get&resource=pods&namespace=team-a", 403},
+		{"restricted operator rbac subject detail", "roper", "GET", "/api/v1/rbac/subjects/User/x", 403},
+		{"viewer service accounts list ok", "viewer", "GET", "/api/v1/serviceaccounts?namespace=team-a", 204},
+		{"restricted serviceaccounts own ns", "rviewer", "GET", "/api/v1/serviceaccounts?namespace=team-a", 204},
+		{"restricted serviceaccounts other ns", "rviewer", "GET", "/api/v1/serviceaccounts?namespace=team-b", 403},
+		{"restricted serviceaccounts all namespaces", "rviewer", "GET", "/api/v1/serviceaccounts", 403},
+		// --- NetworkPolicy analysis (namespace in the path) ---
+		{"viewer netpol analysis", "viewer", "GET", "/api/v1/networking/policies/team-a/analysis", 204},
+		{"restricted netpol analysis own ns", "rviewer", "GET", "/api/v1/networking/policies/team-a/analysis", 204},
+		{"restricted netpol analysis other ns", "rviewer", "GET", "/api/v1/networking/policies/team-b/analysis", 403},
+		{"restricted netpol analysis path/query mismatch", "rviewer", "GET", "/api/v1/networking/policies/team-b/analysis?namespace=team-a", 403},
+		// --- Security reports ---
+		{"viewer security reports", "viewer", "GET", "/api/v1/security/reports", 204},
+		{"restricted security reports own ns", "rviewer", "GET", "/api/v1/security/reports?namespace=team-a", 204},
+		{"restricted security reports no ns", "rviewer", "GET", "/api/v1/security/reports", 403},
+		{"restricted security reports other ns", "rviewer", "GET", "/api/v1/security/reports?namespace=team-b", 403},
+		{"restricted security drilldown own ns", "rviewer", "GET", "/api/v1/security/reports/team-a/Deployment/web", 204},
+		{"restricted security drilldown other ns", "rviewer", "GET", "/api/v1/security/reports/team-b/Deployment/web", 403},
+		{"restricted security drilldown mismatch", "rviewer", "GET", "/api/v1/security/reports/team-b/Deployment/web?namespace=team-a", 403},
+		// --- Stream tickets: minting is allowed for every authenticated role ---
+		{"viewer can mint a ticket", "viewer", "POST", "/api/v1/ws-ticket", 204},
+		{"operator can mint a ticket", "oper", "POST", "/api/v1/ws-ticket", 204},
+		{"restricted viewer can mint a ticket", "rviewer", "POST", "/api/v1/ws-ticket", 204},
+		{"restricted operator can mint a ticket", "roper", "POST", "/api/v1/ws-ticket", 204},
+		{"ticket exemption is not a prefix", "viewer", "POST", "/api/v1/ws-ticket/other", 403},
+		{"ticket exemption does not cover restricted writes", "roper", "POST", "/api/v1/ws-ticket/other", 403},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
