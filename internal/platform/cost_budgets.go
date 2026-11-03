@@ -10,8 +10,8 @@ import (
 	"sync"
 )
 
-// CostBudget is a monthly budget for one namespace, compared with the
-// request-based estimate GET /cost returns.
+// CostBudget is a monthly budget for one namespace, compared with what GET
+// /cost returns (actual OpenCost cost when configured, else the estimate).
 type CostBudget struct {
 	Namespace   string  `json:"namespace"`
 	MonthlyUSD  float64 `json:"monthlyUsd"`
@@ -42,6 +42,9 @@ type CostBudgetReport struct {
 	// estimate of the budgeted namespaces (so the two compare like for like).
 	TotalBudgetUSD  float64 `json:"totalBudgetUsd"`
 	TotalCurrentUSD float64 `json:"totalCurrentUsd"`
+	// Source is the GET /cost source the current values come from:
+	// "estimate" (requests at flat rates) or "opencost" (actual cost).
+	Source string `json:"source,omitempty"`
 }
 
 const (
@@ -149,7 +152,8 @@ func BuildCostBudgetReport(est CostEstimate, budgets []CostBudget) CostBudgetRep
 }
 
 // CostBudgetReportFor loads every budget from store and compares it with
-// provider's current cost estimate. It is what GET /cost/budgets serves and
+// provider's current cost (ActiveCost over 30 days: actual OpenCost cost when
+// configured, else the request-based estimate). It is what GET /cost/budgets serves and
 // what the budget watcher evaluates, so the two can never disagree. provider
 // answers for whichever cluster ctx resolves to (a SwitchableProvider uses
 // the session's active cluster, or the shared default without a session).
@@ -158,11 +162,13 @@ func CostBudgetReportFor(ctx context.Context, provider Provider, store CostBudge
 	if err != nil {
 		return CostBudgetReport{}, err
 	}
-	est, err := provider.EstimateCost(ctx)
+	est, err := ActiveCost(ctx, provider, CostDefaultWindow)
 	if err != nil {
 		return CostBudgetReport{}, err
 	}
-	return BuildCostBudgetReport(est, budgets), nil
+	rep := BuildCostBudgetReport(est, budgets)
+	rep.Source = est.Source
+	return rep, nil
 }
 
 // CostBudgetStore persists the per-namespace budgets.

@@ -105,6 +105,13 @@ cost:
   # Optional bearer token. Stored in Secret zyvor-axiom-auth (key prometheusToken);
   # maps to AXIOM_PROMETHEUS_TOKEN.
   prometheusToken: ""
+  # OpenCost (or Kubecost's bundled OpenCost) allocation API, e.g.
+  # http://opencost.opencost.svc:9003. When set, Ops -> Cost and budgets use
+  # actual cost instead of request-based estimates. Maps to AXIOM_OPENCOST_URL.
+  opencostUrl: ""
+  # Optional bearer token. Stored in Secret zyvor-axiom-auth (key opencostToken);
+  # maps to AXIOM_OPENCOST_TOKEN.
+  opencostToken: ""
 
 tls:
   # If set, the chart uses this pre-existing TLS Secret (type: kubernetes.io/tls)

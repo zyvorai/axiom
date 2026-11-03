@@ -657,6 +657,7 @@ type NamespaceCost struct {
 	CPUCores   float64 `json:"cpuCores"`
 	MemoryGi   float64 `json:"memoryGi"`
 	MonthlyUSD float64 `json:"monthlyUsd"`
+	CostBreakdown
 }
 
 type WorkloadCost struct {
@@ -666,7 +667,26 @@ type WorkloadCost struct {
 	CPUCores   float64 `json:"cpuCores"`
 	MemoryGi   float64 `json:"memoryGi"`
 	MonthlyUSD float64 `json:"monthlyUsd"`
+	CostBreakdown
 }
+
+// CostBreakdown splits an actual (OpenCost) monthly cost by resource. The
+// fields are only present when the row's cost is actual (source "opencost");
+// request-based estimates have no breakdown.
+type CostBreakdown struct {
+	CPUUSD     *float64 `json:"cpuUsd,omitempty"`
+	MemoryUSD  *float64 `json:"memoryUsd,omitempty"`
+	StorageUSD *float64 `json:"storageUsd,omitempty"`
+	NetworkUSD *float64 `json:"networkUsd,omitempty"`
+	// OtherUSD is GPU, load balancer, shared and external cost.
+	OtherUSD *float64 `json:"otherUsd,omitempty"`
+}
+
+// Cost sources reported in CostEstimate.Source.
+const (
+	CostSourceEstimate = "estimate"
+	CostSourceOpenCost = "opencost"
+)
 
 type CostEstimate struct {
 	TotalMonthlyUSD float64         `json:"totalMonthlyUsd"`
@@ -674,6 +694,17 @@ type CostEstimate struct {
 	MemoryRatePerGi float64         `json:"memoryRatePerGi"`
 	Namespaces      []NamespaceCost `json:"namespaces"`
 	Workloads       []WorkloadCost  `json:"workloads"`
+	// Source is "estimate" (requests priced at the flat rates) or "opencost"
+	// (actual allocation cost). Set by ActiveCost; providers leave it empty.
+	Source string `json:"source,omitempty"`
+	// Window is the period actual cost was read over (7d, 14d, 30d).
+	Window string `json:"window,omitempty"`
+	// IdleMonthlyUSD is OpenCost's __idle__ bucket (capacity nobody
+	// requested); UnallocatedMonthlyUSD its __unmounted__ / __unallocated__
+	// buckets. Neither is part of TotalMonthlyUSD or any namespace row.
+	IdleMonthlyUSD        float64 `json:"idleMonthlyUsd"`
+	UnallocatedMonthlyUSD float64 `json:"unallocatedMonthlyUsd,omitempty"`
+	Note                  string  `json:"note,omitempty"`
 }
 
 type ValidateResult struct {

@@ -89,6 +89,11 @@ type Config struct {
 	// windows from a separate origin. Both must be set; off by default.
 	PodProxyAddr   string
 	PodProxyOrigin string
+	// OpenCostURL (AXIOM_OPENCOST_URL) switches GET /cost from request-based
+	// estimates to actual allocation cost; OpenCostToken
+	// (AXIOM_OPENCOST_TOKEN) is an optional bearer token for it. Never logged.
+	OpenCostURL   string
+	OpenCostToken string
 }
 
 func FromEnv() Config {
@@ -145,6 +150,8 @@ func FromEnv() Config {
 
 		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
 		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
+		OpenCostURL:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
+		OpenCostToken: strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
 	}
 }
 

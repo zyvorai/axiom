@@ -74,6 +74,11 @@ func main() {
 	} else if prom != nil && platform.ConfigurePrometheus(provider, prom) {
 		log.Printf("rightsizing: Prometheus usage history enabled")
 	}
+	if oc, err := platform.NewOpenCostClient(cfg.OpenCostURL, cfg.OpenCostToken); err != nil {
+		log.Printf("cost: OpenCost disabled: %v", err)
+	} else if oc != nil && platform.ConfigureOpenCost(provider, oc) {
+		log.Printf("cost: actual allocation cost from OpenCost enabled")
+	}
 
 	// Session revocations live in a shared store; re-read it periodically so
 	// a logout on another replica applies here within the refresh interval.

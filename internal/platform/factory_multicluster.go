@@ -30,6 +30,7 @@ func NewDemoSwitchableProvider() *SwitchableProvider {
 		}
 		sp.Register(s.name, s.label, p, "demo://"+s.name)
 	}
+	seedFleetHistoryForDemo(sp, down)
 	return sp
 }
 
