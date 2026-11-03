@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/zyvorai/axiom/internal/auth"
 )
 
 type Config struct {
@@ -63,6 +65,13 @@ type Config struct {
 	// (AXIOM_FLEET_PROBE_INTERVAL, default 30s; "off" or 0 disables the
 	// background probing so clusters are only probed when /fleet is read).
 	FleetProbeInterval time.Duration
+	// RequireMFA (AXIOM_REQUIRE_MFA: off|admin|operator|all, default off) is
+	// which local accounts must enrol a second factor before using the console.
+	RequireMFA auth.MFAPolicy
+	// RevocationRefresh is how often session revocations are re-read from the
+	// shared store so other replicas' logouts apply here
+	// (AXIOM_REVOCATION_REFRESH, default 15s, minimum 5s; "off" disables).
+	RevocationRefresh time.Duration
 	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
 	// responses, i.e. ones with no InResponseTo. Off by default.
 	SAMLAllowIdPInitiated bool
@@ -117,6 +126,8 @@ func FromEnv() Config {
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
 
 		FleetProbeInterval: fleetProbeInterval(),
+		RequireMFA:         requireMFA(),
+		RevocationRefresh:  revocationRefresh(),
 		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
@@ -132,6 +143,27 @@ func fleetProbeInterval() time.Duration {
 	d := envDuration("AXIOM_FLEET_PROBE_INTERVAL", 30*time.Second)
 	if d < 5*time.Second {
 		d = 5 * time.Second // a probe may take several seconds; never run them back to back
+	}
+	return d
+}
+
+func requireMFA() auth.MFAPolicy {
+	v := os.Getenv("AXIOM_REQUIRE_MFA")
+	p, ok := auth.ParseMFAPolicy(v)
+	if !ok {
+		log.Printf("config: ignoring AXIOM_REQUIRE_MFA=%q (want off, admin, operator or all); two-factor sign-in is NOT being required", v)
+	}
+	return p
+}
+
+func revocationRefresh() time.Duration {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_REVOCATION_REFRESH")))
+	if v == "off" || v == "0" || v == "false" {
+		return 0
+	}
+	d := envDuration("AXIOM_REVOCATION_REFRESH", 15*time.Second)
+	if d < 5*time.Second {
+		d = 5 * time.Second // each refresh is an API read; do not hammer the store
 	}
 	return d
 }

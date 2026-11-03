@@ -4,6 +4,10 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Identity
+- Require-MFA policy: `AXIOM_REQUIRE_MFA` = `off` (default) | `admin` | `operator` | `all` (Helm `auth.requireMFA`) makes a second factor mandatory for local accounts in those roles. A covered account that has not enrolled can still sign in but every request except reading its session, enrolling and signing out gets `403` `{"error":"…","mfaEnrollmentRequired":true}`, enforced centrally in the auth guard. SSO/LDAP accounts and API keys are unaffected; the built-in admin is exempt (with a start-up warning) unless `AXIOM_TOTP_SECRET` is set. `GET /api/v1/session` gains `mfa: {required, enrolled}`
+- Shared session revocation across replicas: each replica re-reads the `zyvor-axiom-revocations` ConfigMap every `AXIOM_REVOCATION_REFRESH` (default 15s, minimum 5s, `off` disables; Helm `auth.revocationRefresh`) and merges it, and writes are read-modify-write with resourceVersion conflict retries, so a logout on one replica applies everywhere within the interval and concurrent revocations are never lost
+
 ## [0.8.0] - 2026-11-04
 
 ### Added — Autoscaling & cost

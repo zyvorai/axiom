@@ -39,11 +39,18 @@ auth:
   #   openssl rand -base64 32
   sessionSecret: ""
   # Login session lifetime (a Go duration, default 12h). Maps to AXIOM_SESSION_TTL.
-  # With replicaCount > 1 keep it short: session revocations are applied per replica.
+  # Revocations reach other replicas within auth.revocationRefresh (default 15s).
   sessionTTL: ""
   # How often registered clusters are health-probed (Go duration, default 30s; "off" disables
   # background probing). Maps to AXIOM_FLEET_PROBE_INTERVAL. Shown on the Fleet page.
   fleetProbeInterval: ""
+  # Require a second factor for local accounts: off (default) | admin | operator | all.
+  # Maps to AXIOM_REQUIRE_MFA. SSO/LDAP accounts and API keys are never affected; the
+  # built-in admin is exempt unless totpSecret is set (break glass).
+  requireMFA: ""
+  # How often each replica re-reads the shared session-revocation ConfigMap (Go duration,
+  # default 15s, minimum 5s; "off" disables). Maps to AXIOM_REVOCATION_REFRESH.
+  revocationRefresh: ""
   # TOTP second factor for the built-in admin account (base32, >= 16 chars). Stored in
   # Secret zyvor-axiom-auth; maps to AXIOM_TOTP_SECRET. Local accounts enrol themselves
   # from the user menu instead. Generate with: head -c20 /dev/urandom | base32

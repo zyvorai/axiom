@@ -85,6 +85,14 @@ spec:
             - name: AXIOM_FLEET_PROBE_INTERVAL
               value: {{ .Values.auth.fleetProbeInterval | quote }}
             {{- end }}
+            {{- if .Values.auth.requireMFA }}
+            - name: AXIOM_REQUIRE_MFA
+              value: {{ .Values.auth.requireMFA | quote }}
+            {{- end }}
+            {{- if .Values.auth.revocationRefresh }}
+            - name: AXIOM_REVOCATION_REFRESH
+              value: {{ .Values.auth.revocationRefresh | quote }}
+            {{- end }}
             {{- if (.Values.helmCatalog | default dict).allowPrivateRepos }}
             - name: AXIOM_HELM_ALLOW_PRIVATE_REPOS
               value: "true"

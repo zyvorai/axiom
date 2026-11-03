@@ -33,6 +33,13 @@ type AuthOptions struct {
 	// RevocationStore persists session revocations across restarts. Optional —
 	// nil keeps them in memory.
 	RevocationStore auth.RevocationStore
+	// Revocations, when set, is used instead of building one from
+	// RevocationStore, so the caller can run its cross-replica refresh
+	// (auth.Revocations.StartRefresh). Optional.
+	Revocations *auth.Revocations
+	// RequireMFA (AXIOM_REQUIRE_MFA) is which local accounts must enrol a
+	// second factor before they can use the console. Zero value: off.
+	RequireMFA auth.MFAPolicy
 	// HelmRepoStore persists the Helm chart catalog's repository list.
 	// Optional — nil keeps it in memory.
 	HelmRepoStore platform.HelmRepoStore
@@ -141,7 +148,11 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 			opts.OIDCClient = cur.OIDCClientID
 		}
 	}
-	s := &Server{revocations: auth.NewRevocations(opts.RevocationStore), provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
+	revocations := opts.Revocations
+	if revocations == nil {
+		revocations = auth.NewRevocations(opts.RevocationStore)
+	}
+	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
@@ -352,7 +363,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	guard := auth.Guard{
 		Username: username, Password: password, APIKey: opts.APIKey,
-		MFA: mfa, EnvTOTP: s.envTOTP, Revocations: s.revocations,
+		MFA: mfa, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
 		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
@@ -362,6 +373,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		},
 	}
 	s.guard = guard
+	if guard.EnvAdminExemptFromMFA() {
+		log.Printf("auth: AXIOM_REQUIRE_MFA=%s but the built-in admin has no AXIOM_TOTP_SECRET; it is exempt so you cannot lock yourself out", opts.RequireMFA)
+	}
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
 	secured := guard.Middleware(clusterSessionMiddleware(mux))
 	return s.common(secured)
@@ -465,9 +479,17 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		roleLabel = "Viewer"
 	}
 	regions := platform.DefaultRegions(cluster)
+	// mfa.required: the require-MFA policy covers this identity (the UI forces
+	// enrolment when it is true and enrolled is false). Always false for SSO,
+	// LDAP and API-key identities.
+	var mfaRequired, mfaEnrolled bool
+	if id, ok := auth.IdentityFromContext(r.Context()); ok {
+		mfaRequired, mfaEnrolled = s.guard.MFAState(id)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"user": user, "role": roleLabel, "mode": s.mode, "auth": authMethod,
 		"cluster": cluster, "region": platform.ActiveRegion(regions), "regions": regions,
+		"mfa": map[string]bool{"required": mfaRequired, "enrolled": mfaEnrolled},
 	})
 }
 func (s *Server) overview(w http.ResponseWriter, r *http.Request) {

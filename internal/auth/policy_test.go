@@ -252,3 +252,48 @@ func TestGuardPolicy(t *testing.T) {
 		})
 	}
 }
+
+// Require-MFA policy rows: under AXIOM_REQUIRE_MFA=operator, unenrolled
+// operators and admins reach only enrolment and sign-out; viewers, the
+// break-glass env admin ("demo", no AXIOM_TOTP_SECRET) and enrolled accounts
+// are unaffected.
+func TestGuardPolicyRequireMFA(t *testing.T) {
+	users := newPolicyUsers()
+	g := Guard{Username: "demo", Password: "demo", Users: users, MFA: users, RequireMFA: MFAPolicyOperator}
+	h := g.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) }))
+	cases := []struct {
+		name, user, method, path string
+		want                     int
+	}{
+		{"unenrolled operator overview", "op", "GET", "/api/v1/overview", 403},
+		{"unenrolled operator apply", "op", "POST", "/api/v1/apply", 403},
+		{"unenrolled admin users", "adm", "GET", "/api/v1/users", 403},
+		{"unenrolled operator session", "op", "GET", "/api/v1/session", 204},
+		{"unenrolled operator mfa status", "op", "GET", "/api/v1/auth/mfa", 204},
+		{"unenrolled operator mfa setup", "op", "POST", "/api/v1/auth/mfa/setup", 204},
+		{"unenrolled operator mfa enable", "op", "POST", "/api/v1/auth/mfa/enable", 204},
+		{"unenrolled operator mfa disable", "op", "POST", "/api/v1/auth/mfa/disable", 204},
+		{"unenrolled operator logout-all", "op", "POST", "/api/v1/auth/logout-all", 204},
+		{"unenrolled admin logout", "adm", "POST", "/api/v1/auth/logout", 204},
+		{"unenrolled admin providers", "adm", "GET", "/api/v1/auth/providers", 204},
+		{"unenrolled operator ticket", "op", "POST", "/api/v1/ws-ticket", 403},
+		{"uncovered viewer overview", "view", "GET", "/api/v1/overview", 204},
+		{"uncovered restricted viewer own ns", "rview", "GET", "/api/v1/pods?namespace=team-a", 204},
+		{"break-glass env admin", "demo", "GET", "/api/v1/users", 204},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest(tc.method, tc.path, nil)
+			pw := "pw"
+			if tc.user == "demo" {
+				pw = "demo"
+			}
+			r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(tc.user+":"+pw)))
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			if w.Code != tc.want {
+				t.Fatalf("%s %s as %s: got %d, want %d (%s)", tc.method, tc.path, tc.user, w.Code, tc.want, w.Body.String())
+			}
+		})
+	}
+}

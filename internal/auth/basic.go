@@ -30,8 +30,8 @@ type UserLookup interface {
 // MFAProvider is the second-factor side of local accounts. Implemented by
 // platform.UserHub.
 type MFAProvider interface {
-	// MFARequired reports whether username has two-factor sign-in enabled.
-	MFARequired(username string) bool
+	// MFAEnrolled reports whether username has two-factor sign-in enabled.
+	MFAEnrolled(username string) bool
 	// VerifySecondFactor checks a TOTP or recovery code. It must be single-use:
 	// a code that has been accepted once is never accepted again.
 	VerifySecondFactor(username, code string, now time.Time) bool
@@ -58,6 +58,9 @@ type Identity struct {
 	// whose account requires a second factor, so the caller is told to supply
 	// one rather than that the password was wrong.
 	mfaPending bool
+	// source says how this identity's credentials are managed (local account,
+	// env admin, or elsewhere); the require-MFA policy keys off it.
+	source identitySource
 }
 
 func (id Identity) namespaceRestricted() bool {
@@ -107,6 +110,10 @@ type Guard struct {
 	// with a second factor can no longer authenticate with Basic credentials
 	// alone and must sign in through POST /api/v1/auth/login.
 	MFA MFAProvider
+	// RequireMFA (AXIOM_REQUIRE_MFA) blocks covered local accounts that have
+	// not enrolled a second factor from everything but enrolment and sign-out.
+	// The zero value (MFAPolicyOff) requires nothing.
+	RequireMFA MFAPolicy
 	// EnvTOTP adds a second factor to the single env-configured account
 	// (AXIOM_TOTP_SECRET). Optional.
 	EnvTOTP *EnvTOTP
@@ -247,6 +254,12 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(code)
 			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
+		}
+		if g.mfaEnrollmentPending(id) && !isMFAEnrollmentPath(r) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(mfaEnrollmentRequiredBody))
+			return
 		}
 		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) && !isReadOnlyPost(r) && !isSelfServiceAuth(r) {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
@@ -460,7 +473,7 @@ func (g Guard) identityFromSession(sess Session) (Identity, bool) {
 	id := Identity{User: sess.User, Role: role}
 	if sess.Issuer == LocalSessionIssuer {
 		if userMatches(g.Username, sess.User) {
-			id.Role = "admin"
+			id.Role, id.source = "admin", sourceEnv
 			return id, true
 		}
 		lk, ok := g.Users.(UserLookup)
@@ -471,7 +484,7 @@ func (g Guard) identityFromSession(sess Session) (Identity, bool) {
 		if !ok {
 			return Identity{}, false
 		}
-		id.Role, id.Namespaces = r, ns
+		id.Role, id.Namespaces, id.source = r, ns, sourceLocal
 	}
 	return id, true
 }
@@ -483,7 +496,7 @@ func (g Guard) identityFromSession(sess Session) (Identity, bool) {
 // refuses).
 func (g Guard) authenticatePassword(u, p string) (Identity, bool) {
 	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
-		return Identity{User: g.Username, Role: "admin", viaCredentials: true, mfaPending: g.EnvTOTP != nil}, true
+		return Identity{User: g.Username, Role: "admin", viaCredentials: true, mfaPending: g.EnvTOTP != nil, source: sourceEnv}, true
 	}
 	// Local accounts first: it is a cheap in-memory bcrypt check, and trying
 	// LDAP first would send every local user's password to the directory on
@@ -491,7 +504,7 @@ func (g Guard) authenticatePassword(u, p string) (Identity, bool) {
 	if g.Users != nil {
 		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
 			return Identity{User: u, Role: role, Namespaces: namespaces, viaCredentials: true,
-				mfaPending: g.MFA != nil && g.MFA.MFARequired(u)}, true
+				mfaPending: g.MFA != nil && g.MFA.MFAEnrolled(u), source: sourceLocal}, true
 		}
 	}
 	if g.LDAP.Enabled || g.LDAP.URL != "" {
