@@ -40,6 +40,7 @@ Pages:
 - **Custom Resources** — a generic browser for any installed CustomResourceDefinition: pick a CRD by group/version/kind, browse its instances, open one to view its raw manifest — works for CRDs Axiom has no dedicated integration for
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
 - **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit (client-side search + CSV export) / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost (by namespace and by workload)
+- **Helm catalog and GitOps creation** (Ops → Helm / GitOps) — browse approved chart repositories and install with default values pre-filled; create Argo CD or Flux applications from a form after previewing the exact YAML
 - **Users** — local accounts (admin/operator/viewer roles) layered on top of the env-configured operator account and any SSO login; two-factor (TOTP) status, admin reset and sign-out-everywhere per account
 - **Account security** (user menu) — enrol two-factor sign-in with any authenticator app, keep one-time recovery codes, sign out of every device
 - **Settings** — OIDC, Atlas, Postgres, Probe integration cards with save + test-connection, plus Slack/webhook alert notifications

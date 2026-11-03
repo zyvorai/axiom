@@ -296,7 +296,7 @@ test.describe("create GitOps applications", () => {
       await expect(yaml).toContainText("repoURL: https://github.com/acme/shop.git");
       await expect(yaml).toContainText("path: deploy/prod");
       await expect(yaml).toContainText("namespace: shop-prod");
-      await expect(dlg.getByTestId("gitops-warnings")).toContainText(/prune/i);
+      await expect(dlg.getByTestId("gitops-warnings")).toContainText(/moving branch/i);
       await expect(dlg.getByTestId("gitops-create")).toBeEnabled();
 
       // Changing any field invalidates the preview.

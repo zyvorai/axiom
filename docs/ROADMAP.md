@@ -1,9 +1,16 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.6.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.7.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.7.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Helm chart catalog | Administrator-approved chart repositories, search, versions, default values and README, installing through the existing Helm Job; fetches are guarded against reaching private, loopback or metadata addresses | Rancher Apps & Marketplace, Portainer app templates, Lens Helm charts |
+| GitOps application creation | Create an Argo CD Application, a Flux Git source + Kustomization or a Flux Helm source + HelmRelease from typed fields, after previewing the exact YAML; admin only, no credentials in URLs, rolled back if only part of it could be created | Argo CD "New app", Rancher Fleet, Devtron |
 
 ## Shipped in 0.6.0
 
@@ -37,7 +44,7 @@ are theirs, not ours.
 - **Fleet:** health history and alerting on a cluster going down (today state changes are audited and shown, not notified), and cross-cluster workload search.
 - **Autoscaling & cost:** VPA/KEDA views, HPA beyond CPU, cost budgets and rightsizing, historical Prometheus data.
 - **Identity:** MFA for LDAP accounts, QR-code enrolment and a require-MFA policy, shared revocation across replicas.
-- **GitOps & Helm:** create Argo/Flux applications, a Helm chart catalog.
+- **GitOps & Helm:** delete and edit applications, Argo repository credentials, an OCI chart catalog.
 - **Reach:** internationalisation, a separate origin for the pod proxy.
 
 ## Not planned
