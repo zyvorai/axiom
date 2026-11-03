@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-03
+
+### Fixed
+- End-to-end mock OIDC identity provider now issues RS256-signed ID tokens with a JWKS endpoint and the echoed nonce, and tests that unsigned, wrongly-signed and wrong-nonce tokens are rejected. Test-only change; no product behaviour differs from 0.4.0, but this is the first release whose tagged commit has a green CI.
+
 ## [0.4.0] - 2026-11-03
 
 ### Added — UX
