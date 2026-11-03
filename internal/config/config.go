@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/zyvorai/axiom/internal/auth"
 )
 
 type Config struct {
@@ -67,6 +69,13 @@ type Config struct {
 	// warning/over notifications (AXIOM_BUDGET_CHECK_INTERVAL, default 5m,
 	// minimum 1m; "off" or 0 disables the watcher).
 	BudgetCheckInterval time.Duration
+	// RequireMFA (AXIOM_REQUIRE_MFA: off|admin|operator|all, default off) is
+	// which local accounts must enrol a second factor before using the console.
+	RequireMFA auth.MFAPolicy
+	// RevocationRefresh is how often session revocations are re-read from the
+	// shared store so other replicas' logouts apply here
+	// (AXIOM_REVOCATION_REFRESH, default 15s, minimum 5s; "off" disables).
+	RevocationRefresh time.Duration
 	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
 	// responses, i.e. ones with no InResponseTo. Off by default.
 	SAMLAllowIdPInitiated bool
@@ -122,6 +131,8 @@ func FromEnv() Config {
 
 		FleetProbeInterval: fleetProbeInterval(),
 		BudgetCheckInterval: budgetCheckInterval(),
+		RequireMFA:         requireMFA(),
+		RevocationRefresh:  revocationRefresh(),
 		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
@@ -149,6 +160,23 @@ func budgetCheckInterval() time.Duration {
 	d := envDuration("AXIOM_BUDGET_CHECK_INTERVAL", 5*time.Minute)
 	if d < time.Minute {
 		d = time.Minute // each check estimates cost for the whole cluster
+func requireMFA() auth.MFAPolicy {
+	v := os.Getenv("AXIOM_REQUIRE_MFA")
+	p, ok := auth.ParseMFAPolicy(v)
+	if !ok {
+		log.Printf("config: ignoring AXIOM_REQUIRE_MFA=%q (want off, admin, operator or all); two-factor sign-in is NOT being required", v)
+	}
+	return p
+}
+
+func revocationRefresh() time.Duration {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_REVOCATION_REFRESH")))
+	if v == "off" || v == "0" || v == "false" {
+		return 0
+	}
+	d := envDuration("AXIOM_REVOCATION_REFRESH", 15*time.Second)
+	if d < 5*time.Second {
+		d = 5 * time.Second // each refresh is an API read; do not hammer the store
 	}
 	return d
 }

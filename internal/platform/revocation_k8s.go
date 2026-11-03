@@ -4,6 +4,7 @@ package platform
 
 import (
 	"context"
+	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
@@ -79,3 +80,63 @@ func (s *K8sRevocationStore) Save(raw []byte) error {
 	}
 	return nil
 }
+
+// revocationMergeAttempts bounds Merge's retries on a write conflict; each
+// retry waits a short, growing, jittered delay so racing replicas spread out.
+const revocationMergeAttempts = 12
+
+// Merge implements auth.MergingRevocationStore: a read-modify-write guarded
+// by the ConfigMap's resourceVersion, retried when another replica wrote in
+// between, so concurrent revocations on different replicas are all kept.
+func (s *K8sRevocationStore) Merge(fn func(current []byte) ([]byte, error)) error {
+	var lastErr error
+	for attempt := 0; attempt < revocationMergeAttempts; attempt++ {
+		if attempt > 0 {
+			step := time.Duration(attempt) * 5 * time.Millisecond
+			time.Sleep(step + time.Duration(rand.Int64N(int64(step))))
+		}
+		lastErr = s.mergeOnce(fn)
+		if lastErr == nil || !(apierrors.IsConflict(lastErr) || apierrors.IsAlreadyExists(lastErr)) {
+			return lastErr
+		}
+	}
+	return lastErr
+}
+
+func (s *K8sRevocationStore) mergeOnce(fn func(current []byte) ([]byte, error)) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cms := s.client.CoreV1().ConfigMaps(s.ns)
+	cm, err := cms.Get(ctx, revocationsConfigMapName, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		raw, err := fn(nil)
+		if err != nil {
+			return err
+		}
+		// Create fails with AlreadyExists if another replica created it first;
+		// Merge then retries against that copy.
+		_, err = cms.Create(ctx, &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: revocationsConfigMapName, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
+			Data:       map[string]string{"revocations.json": string(raw)},
+		}, metav1.CreateOptions{})
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	raw, err := fn([]byte(cm.Data["revocations.json"]))
+	if err != nil {
+		return err
+	}
+	cm = cm.DeepCopy()
+	if cm.Data == nil {
+		cm.Data = map[string]string{}
+	}
+	cm.Data["revocations.json"] = string(raw)
+	// cm carries the resourceVersion that was read, so the API server rejects
+	// this update with a Conflict if the ConfigMap changed since.
+	_, err = cms.Update(ctx, cm, metav1.UpdateOptions{})
+	return err
+}
+
+var _ auth.MergingRevocationStore = (*K8sRevocationStore)(nil)

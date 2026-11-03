@@ -40,8 +40,8 @@ func (h *UserHub) put(ctx context.Context, u User) error {
 	return nil
 }
 
-// MFARequired reports whether the account has two-factor sign-in enabled.
-func (h *UserHub) MFARequired(username string) bool {
+// MFAEnrolled reports whether the account has two-factor sign-in enabled.
+func (h *UserHub) MFAEnrolled(username string) bool {
 	u, ok := h.user(username)
 	return ok && u.MFAEnabled
 }

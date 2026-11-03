@@ -75,11 +75,17 @@ func main() {
 		log.Printf("rightsizing: Prometheus usage history enabled")
 	}
 
+	// Session revocations live in a shared store; re-read it periodically so
+	// a logout on another replica applies here within the refresh interval.
+	revocations := auth.NewRevocations(platform.OpenRevocationStore(cfg.Mode, provider))
+	revocations.StartRefresh(dispatchCtx, cfg.RevocationRefresh)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:             cfg.APIKey,
 		SessionSecret:      cfg.SessionSecret,
-		RevocationStore:    platform.OpenRevocationStore(cfg.Mode, provider),
+		Revocations:        revocations,
+		RequireMFA:         cfg.RequireMFA,
 		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
 		CostBudgetStore:    costBudgets,
 		TOTPSecret:         cfg.TOTPSecret,

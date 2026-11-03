@@ -32,11 +32,11 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 
 Known security limitations (reviewed, not yet fixed):
 
-- **Two-factor sign-in covers local accounts and the built-in admin only.** SSO accounts rely on the IdP's MFA, and LDAP directory accounts have none (the bind password alone signs in). Enrolment shows the setup key as text (no QR code), there is no "require MFA for everyone" switch, and a person who loses both their device and their recovery codes needs an administrator to reset it
+- **Two-factor sign-in covers local accounts and the built-in admin only.** SSO accounts rely on the IdP's MFA, and LDAP directory accounts have none (the bind password alone signs in). Enrolment shows the setup key as text (no QR code), and a person who loses both their device and their recovery codes needs an administrator to reset it
 - **Outstanding SAML AuthnRequests are in-memory per replica** (capped at 4096, oldest evicted first). With `replicaCount>1` the `/saml/login` redirect and the IdP's POST to `/saml/acs` must reach the same replica (session affinity), otherwise the sign-in fails with "unknown, expired or already used". The ACS URL is derived from the request (`X-Forwarded-Proto`/`X-Forwarded-Host`), so the proxy must pass the public scheme and host for the `Recipient` check to match. With `AXIOM_SAML_ALLOW_IDP_INITIATED=true`, unsolicited responses are bound only by their validity window and Recipient, not to a browser, and can be replayed within that window
 - **Stream tickets are in-memory per replica.** With `replicaCount>1` a ticket is only redeemable on the replica that issued it, so WebSocket/SSE connections need session affinity (or a single replica); the login throttle counters are likewise per replica
 - **The pod HTTP proxy (`/pods/{ns}/{name}/window/{port}/`) still accepts `?access_token=` for plain browser navigations**: it loads many sub-resources, so a single-use ticket cannot cover it
-- **Session revocation is per replica.** Logout, sign-out-everywhere and account changes are stored in a ConfigMap and applied at once on the replica that handled them; other replicas load them at start-up, so with `replicaCount>1` a revoked session can stay valid there until it expires (use a short `AXIOM_SESSION_TTL`). A role change at an SSO identity provider is still only picked up at the next sign-in (an administrator can force that with "Sign out everywhere")
+- **Session revocation is eventually consistent across replicas.** Logout, sign-out-everywhere and account changes apply at once on the replica that handled them and on the others within `AXIOM_REVOCATION_REFRESH` (default 15 s) through the shared ConfigMap. A role change at an SSO identity provider is still only picked up at the next sign-in (an administrator can force that with "Sign out everywhere")
 - **The pod "window" proxy serves pod content from Axiom's own origin.** It is now sandboxed (CSP), strips cookies and is operator-only, but a separate origin would be the real isolation.
 - **LDAP over `ldap://` is plaintext** (no StartTLS); use `ldaps://`. `AXIOM_LDAP_BIND_DN`/`AXIOM_LDAP_BIND_PASSWORD` are read but unused.
 - **Default credentials**: the Helm chart and manifest default to `demo`/`demo`. Axiom logs a warning outside demo mode, and no longer advertises them on the login page, but does not refuse to start.
@@ -68,7 +68,7 @@ Other known gaps found by the functional test pass (see `e2e/README.md`):
 
 Still thinner than a full private-cloud suite (intentionally or next):
 
-- MFA for LDAP accounts, QR-code enrolment and a require-MFA policy
+- MFA for LDAP accounts and QR-code enrolment
 - Embedded noVNC UI (proxy path is ready; virtctl remains supported)
 - Historical Prometheus charts in the UI / alert silence (Prometheus history is used for rightsizing only)
 - ClusterRole write UI (deliberate security boundary)
