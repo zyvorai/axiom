@@ -133,8 +133,12 @@ test.describe("fleet health", () => {
 
       // The top-bar dot follows the ACTIVE cluster: switch to the dead one.
       await page.goto("/fleet");
+      const activated = page.waitForResponse((r) => r.request().method() === "POST" && /\/clusters\/ap-south-1\/activate$/.test(r.url()));
       await page.getByTestId("fleet-switch-ap-south-1").click();
-      await page.waitForLoadState("load");
+      expect((await activated).status()).toBe(200);
+      // Switching reloads the page; wait for it to settle on the new active cluster
+      // before navigating, or the reload and our goto race each other.
+      await expect(page.getByTestId("fleet-cluster-ap-south-1")).toContainText("active");
       await page.goto("/overview");
       const chip = page.locator('a.cluster[data-testid="cluster-switcher"]'); // the top-bar chip (the sidebar switcher shares the test id)
       await expect(chip).toHaveAttribute("data-state", "unreachable");
