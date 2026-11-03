@@ -119,6 +119,13 @@ type Provider interface {
 	// Installed:false, not an error.
 	ListVPAs(context.Context, string) (VPAList, error)
 	ListScaledObjects(context.Context, string) (ScaledObjectList, error)
+	// VPA and KEDA create/delete (autoscaling_build.go validates and renders;
+	// a missing CRD is a 422). ListTriggerAuthentications returns names only.
+	CreateVPA(context.Context, VPACreateRequest) (AutoscalerCreateResult, error)
+	DeleteVPA(context.Context, string, string) error
+	CreateScaledObject(context.Context, ScaledObjectCreateRequest) (AutoscalerCreateResult, error)
+	DeleteScaledObject(context.Context, string, string) error
+	ListTriggerAuthentications(context.Context, string) (TriggerAuthenticationList, error)
 
 	ListPodDisruptionBudgets(context.Context, string) ([]PDBSummary, error)
 

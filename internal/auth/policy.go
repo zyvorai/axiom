@@ -134,10 +134,12 @@ var pathNamespacePrefixes = map[string]bool{
 	"/api/v1/pods":            true,
 	"/api/v1/resourcequotas":  true,
 	"/api/v1/resources":       true,
+	"/api/v1/scaledobjects":   true,
 	"/api/v1/secrets":         true,
 	"/api/v1/services":        true,
 	"/api/v1/vms":             true,
 	"/api/v1/volumes":         true,
+	"/api/v1/vpas":            true,
 	"/api/v1/workloads":       true,
 }
 
@@ -147,6 +149,9 @@ var pathNamespacePrefixes = map[string]bool{
 // `GET /secrets/kube-system/x?namespace=team-a` would pass the guard while the
 // handler serves kube-system. An empty string means "all namespaces".
 func namespacesOfRequest(r *http.Request) ([]string, bool) {
+	if isBodyNamespaceRoute(r) {
+		return nil, false // the handler checks the body's namespace (policy_autoscaling.go)
+	}
 	prefix, ok := matchNamespacedPrefix(r.URL.Path)
 	if !ok {
 		return nil, false
