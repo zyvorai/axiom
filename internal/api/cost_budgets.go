@@ -11,7 +11,9 @@ import (
 
 // costAPI serves per-namespace cost budgets and rightsizing recommendations.
 // Reads are open to every role except namespace-restricted accounts (both are
-// cluster-wide cost data); budget writes are admin-only (auth/policy_cost.go).
+// cluster-wide cost data); budget writes are admin-only (auth/policy_cost.go);
+// applying a rightsizing recommendation is a workload write (operator and
+// admin, like scale).
 type costAPI struct {
 	s     *Server
 	store platform.CostBudgetStore
@@ -27,6 +29,7 @@ func (s *Server) registerCost(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/v1/cost/budgets/{namespace}", c.setBudget)
 	mux.HandleFunc("DELETE /api/v1/cost/budgets/{namespace}", c.deleteBudget)
 	mux.HandleFunc("GET /api/v1/cost/rightsizing", c.rightsizing)
+	mux.HandleFunc("POST /api/v1/cost/rightsizing/apply", c.applyRightsizing)
 }
 
 func (c *costAPI) listBudgets(w http.ResponseWriter, r *http.Request) {
@@ -118,4 +121,31 @@ func (c *costAPI) rightsizing(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := c.s.provider.ListRightsizing(r.Context(), ns, window)
 	respond(w, v, err)
+}
+
+// applyRightsizing recomputes the recommendation for one container on the
+// server and writes it (or only returns the changes when dryRun is set).
+func (c *costAPI) applyRightsizing(w http.ResponseWriter, r *http.Request) {
+	noStore(w)
+	var req platform.RightsizingApplyRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, fmt.Errorf("invalid JSON body: %w", err))
+		return
+	}
+	req, err := platform.NormalizeRightsizingApplyRequest(req)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	res, err := c.s.provider.ApplyRightsizing(r.Context(), req)
+	if err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
+	if !res.DryRun {
+		platform.RecordAxiomAudit("cost.rightsizing_apply", req.Kind+"/"+req.Namespace+"/"+req.Workload+"/"+req.Container,
+			res.Summary()+" (window "+req.Window+", source "+res.Source+")", c.s.auditUser(r))
+		EmitStateChanged("workload", "update")
+	}
+	writeJSON(w, http.StatusOK, res)
 }

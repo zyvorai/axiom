@@ -189,4 +189,8 @@ type Provider interface {
 	// ListRightsizing recommends container requests from observed usage
 	// (Prometheus history or a metrics.k8s.io snapshot); see cost_rightsizing.go.
 	ListRightsizing(ctx context.Context, namespace, window string) (RightsizingReport, error)
+	// ApplyRightsizing recomputes one container's recommendation and writes
+	// its requests to the workload (or only reports the changes on a dry run);
+	// see cost_rightsizing_apply.go.
+	ApplyRightsizing(ctx context.Context, req RightsizingApplyRequest) (RightsizingApplyResult, error)
 }

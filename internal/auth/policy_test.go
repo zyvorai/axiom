@@ -94,6 +94,13 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted viewer rightsizing", "rviewer", "GET", "/api/v1/cost/rightsizing?namespace=team-a", 403},
 		{"restricted operator rightsizing", "roper", "GET", "/api/v1/cost/rightsizing", 403},
 		{"admin rightsizing", "demo", "GET", "/api/v1/cost/rightsizing?window=30d", 204},
+		// Rightsizing apply changes a workload (like scale): operator and admin;
+		// a dry run is a POST too, so the viewer write-block covers it.
+		{"viewer rightsizing apply", "viewer", "POST", "/api/v1/cost/rightsizing/apply", 403},
+		{"operator rightsizing apply", "oper", "POST", "/api/v1/cost/rightsizing/apply", 204},
+		{"restricted viewer rightsizing apply", "rviewer", "POST", "/api/v1/cost/rightsizing/apply", 403},
+		{"restricted operator rightsizing apply", "roper", "POST", "/api/v1/cost/rightsizing/apply", 403},
+		{"admin rightsizing apply", "demo", "POST", "/api/v1/cost/rightsizing/apply", 204},
 		{"restricted viewer cost estimate unchanged", "rviewer", "GET", "/api/v1/cost", 204},
 		// Restricted identities cannot reach cluster-wide admin surfaces.
 		{"restricted operator apply", "roper", "POST", "/api/v1/apply", 403},

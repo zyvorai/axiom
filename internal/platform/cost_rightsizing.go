@@ -362,18 +362,8 @@ type rightsizingInputs struct {
 // source errors become a note and the next source is tried.
 func runRightsizing(ctx context.Context, namespace, window string, sources []rightsizingUsageSource, in rightsizingInputs) RightsizingReport {
 	rep := RightsizingReport{Window: window, Items: []RightsizingItem{}}
-	var notes []string
-	for _, src := range sources {
-		samples, err := src.usage(ctx, namespace, window)
-		if err != nil {
-			notes = append(notes, fmt.Sprintf("%s unavailable: %s.", sourceLabel(src.name()), err.Error()))
-			continue
-		}
-		usage := aggregateUsage(samples, in.Resolve)
-		if len(usage) == 0 {
-			notes = append(notes, fmt.Sprintf("%s returned no container usage for running workloads.", sourceLabel(src.name())))
-			continue
-		}
+	src, usage, notes := selectRightsizingUsage(ctx, namespace, window, sources, in)
+	if src != nil {
 		items := make([]RightsizingItem, 0, len(in.Containers))
 		for _, c := range in.Containers {
 			if it, ok := recommendContainer(c, usage[c.key()], src.basis()); ok {
@@ -391,6 +381,49 @@ func runRightsizing(ctx context.Context, namespace, window string, sources []rig
 	notes = append(notes, "No usage data is available, so there are no recommendations. Point AXIOM_PROMETHEUS_URL at a Prometheus that scrapes the kubelet's cAdvisor metrics (container_cpu_usage_seconds_total, container_memory_working_set_bytes) for p95/p99 history, or install metrics-server for a current-usage snapshot.")
 	rep.Note = strings.Join(notes, " ")
 	return rep
+}
+
+// selectRightsizingUsage returns the first source that yields usage for a
+// running workload container, with that usage, and notes on the sources
+// skipped. src is nil when none did.
+func selectRightsizingUsage(ctx context.Context, namespace, window string, sources []rightsizingUsageSource, in rightsizingInputs) (rightsizingUsageSource, map[string]containerUsage, []string) {
+	var notes []string
+	for _, src := range sources {
+		samples, err := src.usage(ctx, namespace, window)
+		if err != nil {
+			notes = append(notes, fmt.Sprintf("%s unavailable: %s.", sourceLabel(src.name()), err.Error()))
+			continue
+		}
+		usage := aggregateUsage(samples, in.Resolve)
+		if len(usage) == 0 {
+			notes = append(notes, fmt.Sprintf("%s returned no container usage for running workloads.", sourceLabel(src.name())))
+			continue
+		}
+		return src, usage, notes
+	}
+	return nil, nil, notes
+}
+
+// recommendOneContainer runs the same pipeline as runRightsizing (same source
+// choice, same window) for one container of in. ok is false when the
+// container is not among in's running containers or no usage is known for it.
+func recommendOneContainer(ctx context.Context, window string, sources []rightsizingUsageSource, in rightsizingInputs, key string) (RightsizingItem, rightsizingUsageSource, bool) {
+	var target *rightsizingContainer
+	for i := range in.Containers {
+		if in.Containers[i].key() == key {
+			target = &in.Containers[i]
+			break
+		}
+	}
+	if target == nil {
+		return RightsizingItem{}, nil, false
+	}
+	src, usage, _ := selectRightsizingUsage(ctx, target.Namespace, window, sources, in)
+	if src == nil {
+		return RightsizingItem{}, nil, false
+	}
+	it, ok := recommendContainer(*target, usage[key], src.basis())
+	return it, src, ok
 }
 
 func sourceLabel(name string) string {

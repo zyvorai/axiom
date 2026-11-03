@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Rightsizing apply
+- Apply a rightsizing recommendation for one container: `POST /api/v1/cost/rightsizing/apply` with `{namespace, kind, workload, container, resources:["cpu","memory"], window, dryRun, observed}`. The server recomputes the recommendation (same pipeline and window as `GET /api/v1/cost/rightsizing`; the client never sends target numbers), and `dryRun:true` returns the exact `changes` without writing. A real apply strategic-merge patches the workload's pod template requests (field manager `zyvor-axiom`), which triggers the normal rolling update; limits are never lowered or added, and an existing limit below the new request is raised to it and reported. Refused with `409` when the container is already right-sized or when `observed` no longer matches the live requests (stale view), `404` for an unknown workload/container. Operator and admin only (viewers and namespace-restricted accounts get `403`); audited as `cost.rightsizing_apply`
+
 ## [0.8.0] - 2026-11-04
 
 ### Added — Autoscaling & cost
