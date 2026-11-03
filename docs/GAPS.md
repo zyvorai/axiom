@@ -32,7 +32,7 @@ Known security limitations (reviewed, not yet fixed):
 Known platform limitations (reviewed, not yet fixed):
 
 - **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
-- **Generic manifest apply uses forced server-side apply**, which takes field ownership from Argo CD/Flux/Helm without warning; "Validate" and the real apply can also disagree for Roles/RoleBindings/ServiceAccounts because of RBAC verbs.
+- **Generic manifest apply uses forced server-side apply**, which still takes field ownership from Argo CD/Flux/Helm — but the apply dialog now shows a diff first and warns when another manager owns the fields. "Validate" and the real apply can still disagree for Roles/RoleBindings/ServiceAccounts because of RBAC verbs.
 - **Alert dispatch has no leader election**: with `replicaCount>1` every replica posts the same Slack alert, and a flapping pod re-fires every minute.
 - **Blast-radius preview and resource detail match pods by name substring** (`web` also matches `web-api-*`), and the preview's Atlas volume list can never populate (`WorkloadVolumes` is not in the Provider interface).
 - **`ListSecrets` still reads every Secret with its data**, and no list call is paginated (`Limit`/`Continue`), so very large clusters are slow.

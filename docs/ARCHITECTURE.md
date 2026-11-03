@@ -70,7 +70,7 @@ This makes local product development possible without faking HTTP endpoints in t
 
 ## Multi-cluster (SwitchableProvider)
 
-`cmd/zyvor-axiom/main.go` never constructs a `DemoProvider`/`KubernetesProvider` directly for the API server — it always wraps one or more of them in `platform.SwitchableProvider`, which itself implements the full `Provider` interface (`internal/platform/switchable_provider_gen.go`, one generated delegator method per interface method — regenerate it if `provider.go`'s interface changes). Every HTTP handler still calls `s.provider.Whatever(ctx, ...)` exactly as before; the switch happens one layer down, inside `SwitchableProvider.current(ctx)`.
+`cmd/zyvor-axiom/main.go` never constructs a `DemoProvider`/`KubernetesProvider` directly for the API server — it always wraps one or more of them in `platform.SwitchableProvider`, which itself implements the full `Provider` interface (`internal/platform/switchable_provider_gen.go`, one delegator method per interface method — the original generator script is no longer in the repo, so add a delegator by hand whenever `provider.go`'s interface gains a method). Every HTTP handler still calls `s.provider.Whatever(ctx, ...)` exactly as before; the switch happens one layer down, inside `SwitchableProvider.current(ctx)`.
 
 Registration differs by mode (`internal/platform/factory_demo.go`, `factory_kubernetes.go`, `factory_multicluster.go`):
 
@@ -88,7 +88,7 @@ Registration differs by mode (`internal/platform/factory_demo.go`, `factory_kube
 
 `GET /api/v1/realtime/capabilities` advertises `interactiveExec` (real WebSocket PTY availability, kubernetes-build-only) and `logFollow`. `GET /api/v1/pods/{namespace}/{name}/terminal` (kubernetes build only) upgrades to a WebSocket and pipes a real PTY (`remotecommand.NewSPDYExecutor` with `TTY:true`) — the client sends raw keystrokes plus a `__resize__:WIDTHxHEIGHT` control message, and receives raw terminal output as binary WebSocket frames. The frontend's `PodTerminal.jsx` component (xterm.js) implements this protocol.
 
-Because a plain WebSocket can't carry a custom `Authorization` header, local Basic-auth sessions authenticate the WebSocket (and the pod-window proxy, and a plain-link navigation to any API route) via `?access_token=<base64 user:pass>` — see `internal/auth/basic.go`'s `credentialsFromRequest`. OIDC/SAML sessions ride their cookie and need nothing extra.
+Because a plain WebSocket or EventSource can't carry a custom `Authorization` header, the SPA first calls `POST /api/v1/ws-ticket` for the exact stream path it is about to open and passes the returned single-use, 30-second ticket as `?ticket=` (`internal/auth/tickets.go`; the SPA side is `getStreamTicket` in `lib/api.js`, used by `PodTerminal.jsx`). A ticket is bound to one GET path and to the caller's resolved `Identity`, so every role and namespace check still runs when it is redeemed; only a hash of it is held in memory, and it is destroyed on first use even against the wrong path. The legacy `?access_token=` / `?axiom_session=` / `?api_key=` forms still work for scripts but answer with a `Deprecation` header. The pod HTTP proxy (`/window/{port}/`) is a plain browser navigation that loads many sub-resources, so it keeps the URL token (see `docs/GAPS.md`). OIDC/SAML sessions ride their cookie. Tickets live in each replica's memory, so a multi-replica install needs session affinity.
 
 ## Generic apply and the CRD browser
 
@@ -107,6 +107,23 @@ Per-pod metrics (`GetPodMetrics`) reuse the same raw `AbsPath("/apis/metrics.k8s
 ## Gateway API and admission webhooks
 
 `ListGateways` mirrors `ListGitOps`'s CRD-missing-tolerant dynamic-client pattern: it tries `gateway.networking.k8s.io/v1` first, falls back to `v1beta1`, and returns an empty list (not an error) if neither CRD is installed — most clusters don't have Gateway API yet. `ListAdmissionWebhooks` is simpler: `admissionregistration.k8s.io/v1` is a stable built-in API, so it uses the typed clientset directly (`k.client.AdmissionregistrationV1()`), the same shape as `ListRBAC`, with no CRD-missing handling needed.
+
+## Change safety, graph, timeline and health check
+
+These v0.4 features are all read paths over the existing `Provider`, plus one dry-run write.
+
+- **Diff before apply.** `POST /api/v1/apply/diff` calls `DiffManifest` (`internal/platform/diff*.go`), which runs server-side apply with `dryRun=All` and returns live vs. proposed per object. Secret `data` is masked on both sides, and `managedFields` managers other than `zyvor-axiom` (Argo CD, Flux, Helm) are reported so the UI can warn that a forced apply takes their fields. The apply dialog and the Workload/Pod YAML tabs enable Apply only after the diff has been shown (`DiffReview.jsx`).
+- **Relationship graph.** `GET /api/v1/graph/{namespace}/{kind}/{name}` (`graph_kubernetes.go`) walks owner references and selectors to the Services, Ingresses, HPAs, ReplicaSets/Pods and mounted PVC/ConfigMap/Secret *names* — never values. `ResourceGraph.jsx` draws it as keyboard-focusable SVG nodes.
+- **Timeline.** `GET /api/v1/timeline` merges Kubernetes events, the Axiom audit ring, alert warnings and rollout revision times into one list (`internal/platform/timeline.go`, `internal/api/timeline.go`). Namespace-restricted identities only receive entries for their namespaces.
+- **Health check.** `GET /api/v1/diagnose` runs deterministic analyzers (`internal/platform/diagnose*.go`: pod status, Service endpoints, Pending PVCs, Ingress backends, HPA targets, node pressure), each emitting a severity and a suggested fix. No model is involved.
+- **Multi-pod logs, debug container, node shell.** `GET /workloads/{ns}/{kind}/{name}/logs` merges the logs of a workload's pods. `POST /pods/{ns}/{name}/debug` adds an ephemeral container (`AXIOM_DEBUG_IMAGE`, default busybox) and the existing terminal attaches to it. The node shell is **off by default** (`AXIOM_ENABLE_NODE_SHELL=true`), admin-only and audited; it runs a short-lived privileged pod pinned to the node and removes it when the session ends.
+
+## Security views and the AI assistant
+
+- **RBAC viewer.** `/api/v1/rbac/subjects`, `/subjects/{kind}/{name}` and `/who-can` (`internal/platform/rbac_view.go`) resolve bindings through their Roles into effective permissions. They enumerate the whole access graph, so viewers and namespace-restricted accounts get `403` and operators can read but not write (`internal/auth/rbac_view.go`). A who-can answer needs a complete snapshot; if any list fails the request fails rather than answering from partial data.
+- **NetworkPolicy analysis and security reports.** `/networking/policies/{ns}/analysis` computes, per pod, whether it is isolated and which peers and ports are allowed. `/api/v1/security/reports` aggregates Trivy-operator `VulnerabilityReport` / `ConfigAuditReport` and `wgpolicyk8s.io` `PolicyReport` objects through the dynamic client when their CRDs exist, and reports "not installed" otherwise.
+- **OIDC hardening.** `internal/api/oidc_jwks.go` verifies the ID token against the provider's JWKS (algorithm allow-list, `kid`, signature, `iss`/`aud`/`azp`/`exp`/`sub`) and binds it to the sign-in with a `nonce` cookie. Login throttling is per client IP and per attempted account (`internal/auth/ratelimit.go`).
+- **AI assistant (opt-in).** Disabled until an admin configures a provider in Settings (OpenAI-compatible, Anthropic or local Ollama); the API key lives in the integrations Secret and is never returned. `POST /api/v1/ai/explain` builds its context only from what the caller may already see (events, health findings, container statuses, a log tail), passes it through the redactor in `internal/platform/ai_redact.go` (no Secret/ConfigMap values or env values; IPs and hostnames too when redaction is on), and the UI shows the redacted payload before sending. The call is read-only, rate-limited per user, and audited as `ai.explain` with the target only — the prompt and answer are not stored.
 
 ## RBAC write boundary
 

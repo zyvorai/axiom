@@ -19,7 +19,13 @@ Pages:
 - **Pod detail** (`/pods/:ns/:name`) — full container specs (resources, env, mounts, probes), volumes, tolerations, owner, conditions, an editable raw-manifest YAML tab (Save applies via server-side apply), live per-pod/per-container CPU & memory graphs (Metrics tab, rolling window from `metrics.k8s.io`), an automatic scheduling-diagnosis banner ("why is this pod not running") whenever the pod isn't cleanly Running/Succeeded, a **multi-tab interactive PTY terminal** (open several concurrent shell sessions, each its own real WebSocket connection — falls back to one-shot exec in demo mode), and per-port "Open" buttons that proxy straight into the pod's container port from the browser
 - **Platform Intents** — workloads placed via the Intent launch flow
 - **Networking · Cilium** — service graph, a live PacketWolf (eBPF/Cilium flow) panel when `AXIOM_PACKETWOLF_URL` is configured, and full NetworkPolicy list/delete + "Create via YAML"
-- **Command palette (⌘K)** — jumps to any of the 26 top-level routes and live-searches real pods/workloads/namespaces by name, not just a static page list
+- **Command palette (⌘K)** — jumps to any top-level route and live-searches real pods/workloads/namespaces by name, not just a static page list
+- **Timeline** — events, audit entries, alerts and rollouts in one filterable feed; the same data as a "What changed" tab on every workload
+- **Health check** — rule-based findings (crash loops, OOM kills, Services without endpoints, Pending volumes, broken Ingress backends, HPAs that cannot scale) with a suggested fix each
+- **Security** — Trivy-operator vulnerability and config-audit reports and PolicyReport (Kyverno) results per workload, read-only
+- **Access review** (Ops → Access) — read-only RBAC viewer: "who can delete Secrets here?" and per-subject effective permissions (admin/operator only)
+- **Resource graph, diff and shortcuts** — a relationship graph per workload, a diff review before any Apply, a global namespace selector, saved filter views, keyboard shortcuts (`?`) and an in-app notification inbox
+- **Explain with AI** (opt-in) — bring your own OpenAI-compatible, Anthropic or Ollama endpoint; the payload is redacted and previewed first and Secret values are never sent
 - **Services**, **Namespaces** (with create/delete)
 - **Virtual Machines** — KubeVirt lifecycle (start/stop/migrate), real console info (`virtctl vnc` command — Axiom has no embedded browser VNC client), and Snapshots/Clones/Exports/Restores tabs
 - **Storage** — PVCs grouped by StorageClass, plus StorageClasses and cluster-scoped PersistentVolumes as first-class objects

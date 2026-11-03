@@ -77,6 +77,34 @@
     <div class="shot"><img src="shot-backups.png" alt="Axiom Backups: volume snapshots, Velero backups and Velero schedules" width="1352" height="760" loading="lazy"></div>
     <ul class="pts"><li><b>On demand.</b> Create a snapshot or a Velero backup when you need one.</li><li><b>On a schedule.</b> See each schedule and when it last ran.</li></ul>
   </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Timeline</p>
+    <h3>What changed,<br>in one feed.</h3>
+    <p class="fl">Kubernetes events, audit entries, alerts and rollout revisions merged into a single, filterable timeline — and a “What changed” tab on every workload.</p>
+    <div class="shot"><img src="shot-timeline.png" alt="Axiom Timeline: events, audit entries and rollouts for the payments-api Deployment in one list" width="1352" height="620" loading="lazy"></div>
+    <ul class="pts"><li><b>Filter by source.</b> Event, audit, alert or rollout, by namespace and time range.</li><li><b>Namespace-aware.</b> Restricted accounts only see their own namespaces.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Health check</p>
+    <h3>Problems, each with<br>a suggested fix.</h3>
+    <p class="fl">Rule-based analysers look for crash loops, OOM kills, Services with no endpoints, Pending volumes, broken Ingress backends and HPAs that cannot scale. No data leaves the cluster.</p>
+    <div class="shot"><img src="shot-health.png" alt="Axiom Health check: a critical crash-looping container, a warning for an HPA with a missing target and an info finding, each with a suggested fix" width="1352" height="730" loading="lazy"></div>
+    <ul class="pts"><li><b>Deterministic.</b> No model involved; every finding explains why it fired.</li><li><b>One click to context.</b> Jump from a finding to what changed on that object.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Security</p>
+    <h3>Scanner findings,<br>read-only, in context.</h3>
+    <p class="fl">Trivy-operator vulnerability and config-audit reports and Kyverno-style policy reports, rolled up per workload. Without those operators, the page tells you how to install them.</p>
+    <div class="shot"><img src="shot-security.png" alt="Axiom Security: counts of critical and high vulnerabilities, misconfigurations and policy failures, with a per-workload table" width="1352" height="830" loading="lazy"></div>
+    <ul class="pts"><li><b>Riskiest first.</b> Workloads sorted by severity across all three report types.</li><li><b>No scanner required to run Axiom.</b> The page appears empty, not broken, when the CRDs are absent.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Access review</p>
+    <h3>Who can delete Secrets?<br>Ask.</h3>
+    <p class="fl">A read-only RBAC viewer answers “who can do this, where, and through which binding” — by verb and resource, or by subject. Changes stay in your GitOps flow.</p>
+    <div class="shot"><img src="shot-access.png" alt="Axiom Access: a Who can delete secrets query listing four subjects, their scope and the binding that grants it" width="1352" height="900" loading="lazy"></div>
+    <ul class="pts"><li><b>Effective permissions.</b> Bindings are resolved through their ClusterRoles, cluster-wide and per namespace.</li><li><b>Sensitive by design.</b> Admin and operator only; viewers cannot see it.</li></ul>
+  </div>
 </div></section>
 
 <section id="ops"><div class="wrap">
