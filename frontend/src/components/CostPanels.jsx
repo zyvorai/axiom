@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { COST as T } from "@/constants/testIds";
+import { COST as T, OPENCOST } from "@/constants/testIds";
 
 const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
 const usd = (v) => `$${Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -165,7 +165,8 @@ export function CostBudgets() {
             )}
             {data.budgets.length > 0 && (
                 <p className="border-t border-border px-4 py-2 text-xs text-ink-3" data-testid={T.totals}>
-                    {usd(data.totalCurrentUsd)} estimated across budgeted namespaces, of {usd(data.totalBudgetUsd)} budgeted.
+                    {usd(data.totalCurrentUsd)} {data.source === "opencost" ? "actual" : "estimated"} across budgeted namespaces, of {usd(data.totalBudgetUsd)} budgeted.
+                    <span data-testid={OPENCOST.budgetSource} className="sr-only">{data.source === "opencost" ? "Based on OpenCost" : "Based on requests"}</span>
                 </p>
             )}
             {(data.unbudgeted || []).length > 0 && !isViewer && (

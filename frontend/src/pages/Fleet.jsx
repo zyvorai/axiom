@@ -8,7 +8,7 @@ import { relTime } from "@/lib/troubleshoot";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FLEET } from "@/constants/testIds";
+import { FLEET, FLEET_HISTORY as H } from "@/constants/testIds";
 
 const POLL_MS = 30000;
 
@@ -47,7 +47,60 @@ function Metric({ label, value, of }) {
     );
 }
 
-function ClusterCard({ c, onSwitch }) {
+
+const STATE_BAR = { healthy: "var(--green)", degraded: "var(--orange)", unreachable: "var(--red)", unknown: "var(--ink-3)" };
+
+function fmtDuration(sec) {
+    if (sec == null) return "ongoing";
+    if (sec < 90) return `${Math.round(sec)}s`;
+    if (sec < 5400) return `${Math.round(sec / 60)} min`;
+    return `${(sec / 3600).toFixed(1)} h`;
+}
+
+/** A compact timeline of the cluster's state over the window: one bar per bucket. */
+function HistoryStrip({ cluster, samples }) {
+    if (!samples || samples.length === 0) return null;
+    const w = 240;
+    const bar = w / samples.length;
+    const desc = `State over the selected window: ${samples.filter((x) => x.state !== "healthy").length} of ${samples.length} intervals were not healthy`;
+    return (
+        <svg viewBox={`0 0 ${w} 14`} className="h-3.5 w-full" role="img" aria-label={desc} data-testid={H.strip(cluster)} preserveAspectRatio="none">
+            {samples.map((x, i) => (
+                <rect key={i} x={i * bar} y={0} width={Math.max(bar - 0.4, 0.6)} height={14} rx={1} style={{ fill: STATE_BAR[x.state] || STATE_BAR.unknown }} />
+            ))}
+        </svg>
+    );
+}
+
+function HistoryBlock({ h }) {
+    if (!h) return null;
+    const incidents = (h.incidents || []).slice(-3).reverse();
+    return (
+        <div className="space-y-1.5 border-t border-border pt-3">
+            <div className="flex items-baseline justify-between text-xs text-ink-3">
+                <span>
+                    Reachable <b className="mono text-ink-2" data-testid={H.uptime(h.cluster)}>{h.uptimePercent}%</b>
+                </span>
+                <span>{h.failedChecks} of {h.checks} checks failed</span>
+            </div>
+            <HistoryStrip cluster={h.cluster} samples={h.samples} />
+            {incidents.length === 0 ? (
+                <p className="text-[11.5px] text-ink-3" data-testid={H.none(h.cluster)}>No incidents in this window.</p>
+            ) : (
+                <ul className="space-y-0.5 text-[11.5px]" data-testid={H.incidents(h.cluster)}>
+                    {incidents.map((inc, i) => (
+                        <li key={`${inc.from}-${i}`} data-testid={H.incident(h.cluster, i)} className={inc.state === "unreachable" ? "text-tone-red" : "text-tone-amber"}>
+                            {inc.state === "unreachable" ? "Unreachable" : "Degraded"} for {fmtDuration(inc.durationSeconds)}
+                            <span className="text-ink-3"> · {relTime(inc.from)}{inc.reason ? ` · ${inc.reason}` : ""}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
+
+function ClusterCard({ c, onSwitch, history }) {
     const st = STATE[c.state] || STATE.unknown;
     const reachable = c.state === "healthy" || c.state === "degraded";
     return (
@@ -91,6 +144,8 @@ function ClusterCard({ c, onSwitch }) {
                     </div>
                 </>
             ) : null}
+
+            <HistoryBlock h={history} />
 
             <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3 text-xs text-ink-3">
                 <span>
@@ -250,6 +305,23 @@ export default function Fleet() {
     const [fleet, setFleet] = useState(null);
     const [error, setError] = useState("");
     const [refreshing, setRefreshing] = useState(false);
+    const [histWindow, setHistWindow] = useState("24h");
+    const [history, setHistory] = useState({});
+
+    useEffect(() => {
+        let alive = true;
+        const tick = () =>
+            api
+                .get("/fleet/history", { params: { window: histWindow } })
+                .then((r) => alive && setHistory(Object.fromEntries((r.data?.clusters || []).map((c) => [c.cluster, c]))))
+                .catch(() => alive && setHistory({}));
+        tick();
+        const t = setInterval(tick, POLL_MS);
+        return () => {
+            alive = false;
+            clearInterval(t);
+        };
+    }, [histWindow]);
 
     const load = useCallback(async (refresh) => {
         setRefreshing(true);
@@ -313,6 +385,15 @@ export default function Fleet() {
                         {stat("warnings", "Warnings", s.warnings)}
                     </div>
 
+                    <div className="flex items-center justify-end gap-2 text-xs text-ink-3">
+                        <label htmlFor="fleet-history-window">History</label>
+                        <select id="fleet-history-window" data-testid={H.window} className="select" value={histWindow} onChange={(e) => setHistWindow(e.target.value)}>
+                            <option value="1h">Last hour</option>
+                            <option value="6h">Last 6 hours</option>
+                            <option value="24h">Last 24 hours</option>
+                        </select>
+                    </div>
+
                     <FleetSearch currentName={fleet.clusters.find((c) => c.current)?.name} />
 
                     {fleet.clusters.length === 0 ? (
@@ -324,7 +405,7 @@ export default function Fleet() {
                     ) : (
                         <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
                             {fleet.clusters.map((c) => (
-                                <ClusterCard key={c.name} c={c} onSwitch={activate} />
+                                <ClusterCard key={c.name} c={c} onSwitch={activate} history={history[c.name]} />
                             ))}
                         </div>
                     )}

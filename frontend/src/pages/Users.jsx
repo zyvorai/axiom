@@ -21,7 +21,7 @@ import {
 import { UserPlus, Trash2, ShieldCheck, Eye, Pencil, KeyRound, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { MFA } from "@/constants/testIds";
+import { MFA, LDAP_MFA } from "@/constants/testIds";
 
 function parseNamespaces(text) {
     return text
@@ -199,8 +199,17 @@ export default function Users() {
     const [data, setData] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [external, setExternal] = useState([]);
 
-    const load = () => api.get("/users").then((r) => setData(r.data));
+    const loadExternal = () =>
+        api
+            .get("/users/external-mfa")
+            .then((r) => setExternal(r.data || []))
+            .catch(() => setExternal([]));
+    const load = () => {
+        loadExternal();
+        return api.get("/users").then((r) => setData(r.data));
+    };
 
     useEffect(() => {
         load();
@@ -233,6 +242,22 @@ export default function Users() {
             await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
             toast.success(`Two-factor reset for ${u.username}`);
             load();
+        } catch (e) {
+            toast.error("Reset failed", { description: e?.response?.data?.error || e.message });
+        }
+    };
+
+    const resetExternalMfa = async (u) => {
+        const ok = await confirm({
+            title: `Reset two-factor for ${u.username}?`,
+            description: "This directory account will sign in with just its directory password until it sets up two-factor again.",
+            confirmLabel: "Reset",
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
+            toast.success(`Two-factor reset for ${u.username}`);
+            loadExternal();
         } catch (e) {
             toast.error("Reset failed", { description: e?.response?.data?.error || e.message });
         }
@@ -349,6 +374,44 @@ export default function Users() {
                     </table>
                 )}
             </div>
+
+            {external.length > 0 && (
+                <div className="card p-0" data-testid={LDAP_MFA.section}>
+                    <div className="panel-h">Directory accounts with two-factor</div>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Two-factor</th>
+                                <th>Updated</th>
+                                <th><span className="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {external.map((u) => (
+                                <tr key={u.username} data-testid={LDAP_MFA.row(u.username)}>
+                                    <td className="name">{u.username}<small>directory</small></td>
+                                    <td>
+                                        {u.enabled ? (
+                                            <span className="pill" style={{ "--c": "var(--green)" }}><ShieldCheck size={11} /> on</span>
+                                        ) : (
+                                            <span className="text-[12.5px] text-ink-3">not completed</span>
+                                        )}
+                                    </td>
+                                    <td className="mono num">{u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "—"}</td>
+                                    <td>
+                                        <div className="flex justify-end">
+                                            <button type="button" className="btn btn-line btn-sm" data-testid={LDAP_MFA.reset(u.username)} aria-label={`Reset two-factor for ${u.username}`} title={`Reset two-factor for ${u.username}`} onClick={() => resetExternalMfa(u)}>
+                                                <KeyRound size={13} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <EditUserDialog user={editingUser} onOpenChange={(open) => !open && setEditingUser(null)} onUpdated={load} />

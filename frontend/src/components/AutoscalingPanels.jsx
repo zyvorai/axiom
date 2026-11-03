@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
-import { Layers3, Zap } from "lucide-react";
+import { Layers3, Plus, Trash2, Zap } from "lucide-react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AUTOSCALE as T } from "@/constants/testIds";
+import { AUTOSCALE as T, VPA_CREATE as V, KEDA_CREATE as K } from "@/constants/testIds";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { VpaCreateDialog, KedaCreateDialog } from "@/components/AutoscalingCreate";
 
 const errText = (e) => e?.response?.data?.error || e?.message || "Could not load";
 
 function useList(path) {
     const [state, setState] = useState({ data: null, error: "" });
+    const [tick2, setTick2] = useState(0);
     useEffect(() => {
         let alive = true;
         const tick = () =>
@@ -22,8 +27,23 @@ function useList(path) {
             alive = false;
             clearInterval(t);
         };
-    }, [path]);
-    return state;
+    }, [path, tick2]);
+    return { ...state, reload: () => setTick2((n) => n + 1) };
+}
+
+function useRemove(path, reload) {
+    const confirm = useConfirm();
+    return async (ns, name, what) => {
+        const ok = await confirm({ title: `Delete ${what} ${name}?`, description: "The workload itself is not touched.", confirmLabel: "Delete" });
+        if (!ok) return;
+        try {
+            await api.delete(`/${path}/${encodeURIComponent(ns)}/${encodeURIComponent(name)}`);
+            toast.success(`Deleted ${name}`);
+            reload();
+        } catch (e) {
+            toast.error("Delete failed", { description: errText(e) });
+        }
+    };
 }
 
 function Conditions({ items }) {
@@ -55,7 +75,10 @@ const q = (v) => (v == null || v === "" ? "—" : v);
 
 /** Read-only view of VerticalPodAutoscalers and what they recommend. */
 export function VpaPanel() {
-    const { data, error } = useList("/vpas");
+    const { data, error, reload } = useList("/vpas");
+    const { isViewer } = useAuth();
+    const [creating, setCreating] = useState(false);
+    const remove = useRemove("vpas", reload);
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (!data.installed) {
@@ -73,8 +96,16 @@ export function VpaPanel() {
                 <h2 className="flex items-center gap-2 text-[15px]">
                     <Layers3 size={16} className="text-tone-link" /> VerticalPodAutoscalers
                 </h2>
-                <span className="r text-[12.5px] text-ink-3">{data.items.length}</span>
+                <span className="r flex items-center gap-2 text-[12.5px] text-ink-3">
+                    {data.items.length}
+                    {!isViewer && (
+                        <button type="button" className="btn btn-fill btn-sm" data-testid={V.open} onClick={() => setCreating(true)}>
+                            <Plus size={13} /> New VPA
+                        </button>
+                    )}
+                </span>
             </div>
+            <VpaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
             {data.items.length === 0 ? (
                 <div className="empty">No VerticalPodAutoscalers.</div>
             ) : (
@@ -88,6 +119,7 @@ export function VpaPanel() {
                                 <th>Container</th>
                                 <th>CPU (lower · target · upper)</th>
                                 <th>Memory (lower · target · upper)</th>
+                                {!isViewer && <th><span className="sr-only">Actions</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -108,6 +140,15 @@ export function VpaPanel() {
                                         <td className="mono text-[12.5px]">
                                             {c ? `${q(c.lowerBound?.memory)} · ${q(c.target?.memory)} · ${q(c.upperBound?.memory)}` : "—"}
                                         </td>
+                                        {!isViewer && (
+                                            <td>
+                                                {i === 0 && (
+                                                    <button type="button" className="btn btn-danger btn-sm" data-testid={V.remove(v.namespace, v.name)} aria-label={`Delete VPA ${v.name}`} onClick={() => remove(v.namespace, v.name, "VPA")}>
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}
@@ -121,7 +162,10 @@ export function VpaPanel() {
 
 /** Read-only view of KEDA ScaledObjects. Trigger settings are never shown, only the trigger types. */
 export function KedaPanel() {
-    const { data, error } = useList("/scaledobjects");
+    const { data, error, reload } = useList("/scaledobjects");
+    const { isViewer } = useAuth();
+    const [creating, setCreating] = useState(false);
+    const remove = useRemove("scaledobjects", reload);
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     if (!data.installed) {
@@ -139,8 +183,16 @@ export function KedaPanel() {
                 <h2 className="flex items-center gap-2 text-[15px]">
                     <Zap size={16} className="text-tone-link" /> ScaledObjects
                 </h2>
-                <span className="r text-[12.5px] text-ink-3">{data.items.length}</span>
+                <span className="r flex items-center gap-2 text-[12.5px] text-ink-3">
+                    {data.items.length}
+                    {!isViewer && (
+                        <button type="button" className="btn btn-fill btn-sm" data-testid={K.open} onClick={() => setCreating(true)}>
+                            <Plus size={13} /> New ScaledObject
+                        </button>
+                    )}
+                </span>
             </div>
+            <KedaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
             {data.items.length === 0 ? (
                 <div className="empty">No ScaledObjects.</div>
             ) : (
@@ -153,6 +205,7 @@ export function KedaPanel() {
                                 <th>Replicas</th>
                                 <th>Triggers</th>
                                 <th>State</th>
+                                {!isViewer && <th><span className="sr-only">Actions</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -183,6 +236,13 @@ export function KedaPanel() {
                                             {s.fallback ? "Fallback" : s.active ? "Active" : s.ready ? "Idle" : "Not ready"}
                                         </span>
                                     </td>
+                                    {!isViewer && (
+                                        <td>
+                                            <button type="button" className="btn btn-danger btn-sm" data-testid={K.remove(s.namespace, s.name)} aria-label={`Delete ScaledObject ${s.name}`} onClick={() => remove(s.namespace, s.name, "ScaledObject")}>
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
