@@ -211,6 +211,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerFleetSearch(mux)
 	s.registerGitOpsCreate(mux)
 	s.registerGitOpsDelete(mux)
+	s.registerGitOpsEdit(mux)
+	s.registerGitOpsCredentials(mux)
 	s.registerHelmCatalog(mux)
 	s.registerAutoscaling(mux)
 	s.registerCost(mux)

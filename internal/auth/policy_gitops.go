@@ -11,9 +11,14 @@ import (
 // That deploys arbitrary workloads from a repository — the same privilege as a
 // Helm install — so it is admin-only. Listing (GET /api/v1/gitops) and the
 // sync action (POST /api/v1/gitops/{kind}/{ns}/{name}/sync) stay operator-usable.
+//
+// Editing (POST {kind}/{ns}/{name}/edit/preview, PUT {kind}/{ns}/{name}) falls
+// under "every other write" below; GET {kind}/{ns}/{name}/edit is a read like
+// the delete preview. Repository credentials are admin-only for every method
+// (isGitOpsCredentials), including the listing.
 func isGitOpsCreate(r *http.Request) bool {
 	p := strings.TrimSuffix(r.URL.Path, "/")
-	if p == "/api/v1/gitops/preview" {
+	if p == "/api/v1/gitops/preview" || isGitOpsCredentials(r) {
 		return true
 	}
 	if r.Method == http.MethodGet || r.Method == http.MethodHead {
@@ -31,4 +36,13 @@ func isGitOpsCreate(r *http.Request) bool {
 		return !isSync
 	}
 	return false
+}
+
+// isGitOpsCredentials reports whether the request touches GitOps repository
+// credentials (/api/v1/gitops/credentials and below). Every method, GET
+// included, is admin-only: even the listing reveals which repositories are
+// used and with what kind of access. The guard denies viewers and operators.
+func isGitOpsCredentials(r *http.Request) bool {
+	p := strings.TrimSuffix(r.URL.Path, "/")
+	return p == "/api/v1/gitops/credentials" || strings.HasPrefix(p, "/api/v1/gitops/credentials/")
 }

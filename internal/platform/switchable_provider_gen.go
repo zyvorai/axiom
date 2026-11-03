@@ -420,6 +420,24 @@ func (sp *SwitchableProvider) PreviewGitOpsDelete(a0 context.Context, a1 string,
 func (sp *SwitchableProvider) DeleteGitOpsApp(a0 context.Context, a1 GitOpsDeleteRequest) (GitOpsDeleteResult, error) {
 	return sp.current(a0).DeleteGitOpsApp(a0, a1)
 }
+func (sp *SwitchableProvider) GetGitOpsEditable(a0 context.Context, a1 GitOpsRef) (GitOpsEditable, error) {
+	return sp.current(a0).GetGitOpsEditable(a0, a1)
+}
+func (sp *SwitchableProvider) PreviewGitOpsEdit(a0 context.Context, a1 GitOpsRef, a2 GitOpsEditRequest) (GitOpsEditPreview, error) {
+	return sp.current(a0).PreviewGitOpsEdit(a0, a1, a2)
+}
+func (sp *SwitchableProvider) UpdateGitOpsApp(a0 context.Context, a1 GitOpsRef, a2 GitOpsEditRequest) (GitOpsEditResult, error) {
+	return sp.current(a0).UpdateGitOpsApp(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListGitOpsCredentials(a0 context.Context, a1 string, a2 string) ([]GitOpsCredential, error) {
+	return sp.current(a0).ListGitOpsCredentials(a0, a1, a2)
+}
+func (sp *SwitchableProvider) CreateGitOpsCredential(a0 context.Context, a1 GitOpsCredentialRequest) (GitOpsCredentialResult, error) {
+	return sp.current(a0).CreateGitOpsCredential(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteGitOpsCredential(a0 context.Context, a1 string, a2 string, a3 string) error {
+	return sp.current(a0).DeleteGitOpsCredential(a0, a1, a2, a3)
+}
 func (sp *SwitchableProvider) InstallHelmChart(a0 context.Context, a1 InstallHelmRequest) (HelmActionResult, error) {
 	return sp.current(a0).InstallHelmChart(a0, a1)
 }

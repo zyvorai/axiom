@@ -265,6 +265,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
+		if id.Role != "admin" && isGitOpsCredentials(r) {
+			deny(http.StatusForbidden, "GitOps repository credentials require the admin role")
+			return
+		}
 		if id.Role == "viewer" && isInteractivePath(r.URL.Path) {
 			deny(http.StatusForbidden, "read-only user: shells, consoles and the pod proxy require the operator role")
 			return
