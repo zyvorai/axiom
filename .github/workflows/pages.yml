@@ -3,7 +3,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "docs/**", "scripts/build-site.py", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -24,8 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install markdown==3.7 && python scripts/build-site.py _site
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

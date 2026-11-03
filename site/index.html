@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zyvor Axiom — The private-cloud console for Kubernetes</title>
-<meta name="description" content="Applications first, Pods one click away. A single Go binary control plane for k3s and Kubernetes with logs, terminal, scaling, drain and more.">
+<meta name="description" content="Applications first, Pods one click away. A single Go binary control plane for k3s and Kubernetes with logs, terminal, scaling, drain, Helm, backups and enterprise sign-in.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Zyvor Axiom — The private-cloud console for Kubernetes">
 <meta property="og:description" content="Applications first, Pods one click away. One Go binary. k3s and Kubernetes.">
@@ -15,82 +16,117 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://zyvorai.github.io/axiom/og.png">
-<style>
-:root{--bg:#000;--bg2:#1d1d1f;--ink:#f5f5f7;--ink2:#a1a1a6;--line:rgba(255,255,255,.16);--blue:#0071e3;--link:#4aa8ff;
---font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
-@media (prefers-color-scheme:light){:root{--bg:#fff;--bg2:#f5f5f7;--ink:#1d1d1f;--ink2:#6e6e73;--line:#d2d2d7;--link:#0066cc}}
-*{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.47}
-a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
-nav{position:sticky;top:0;z-index:10;backdrop-filter:saturate(180%) blur(20px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--line)}
-nav div{max-width:1024px;margin:auto;height:48px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
-nav b{font-weight:600;font-size:15px;letter-spacing:-.01em}nav span a{color:var(--ink2);margin-left:24px}nav span a:hover{color:var(--ink);text-decoration:none}
-.hero{text-align:center;padding:96px 22px 56px;background:radial-gradient(60% 50% at 50% 0,rgba(0,113,227,.28),transparent 70%)}
-.eyebrow{font-size:14px;font-weight:600;color:var(--link);letter-spacing:.02em}
-h1{font-size:clamp(40px,8vw,80px);line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 18px;max-width:900px}
-.sub{font-size:clamp(19px,2.6vw,28px);color:var(--ink2);max-width:700px;margin:0 auto;letter-spacing:-.01em;line-height:1.25}
-.cta{margin-top:32px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center}
-.btn{display:inline-block;background:var(--blue);color:#fff;padding:12px 24px;border-radius:980px;font-size:17px}
-.btn:hover{filter:brightness(1.08);text-decoration:none}.cta a.l{font-size:17px}
-.shot{max-width:1100px;margin:56px auto 0;border-radius:28px;border:1px solid var(--line);overflow:hidden;box-shadow:0 40px 120px rgba(0,113,227,.25)}
-.shot img{display:block;width:100%;height:auto}
-section{max-width:1024px;margin:auto;padding:96px 22px}
-h2{font-size:clamp(32px,5vw,56px);letter-spacing:-.025em;line-height:1.08;font-weight:600;text-align:center}
-.lead{text-align:center;color:var(--ink2);font-size:21px;max-width:680px;margin:16px auto 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-top:56px}
-.card{background:var(--bg2);border:1px solid var(--line);border-radius:28px;padding:32px}
-.card h3{font-size:24px;letter-spacing:-.015em;font-weight:600;margin-bottom:8px}.card p{color:var(--ink2);font-size:17px}
-.card.wide{grid-column:1/-1;text-align:center;padding:56px 32px}
-.card.wide h3{font-size:40px;letter-spacing:-.02em}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-top:48px;text-align:center}
-.stats b{display:block;font-size:56px;letter-spacing:-.03em;font-weight:600;background:linear-gradient(180deg,var(--ink),var(--ink2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.stats span{color:var(--ink2);font-size:15px}
-pre{background:#111;color:#f5f5f7;border-radius:18px;padding:22px 24px;margin:40px auto 0;max-width:760px;overflow:auto;font:14px/1.7 var(--mono);border:1px solid var(--line)}
-pre i{color:#6e6e73;font-style:normal}
-footer{border-top:1px solid var(--line);color:var(--ink2);font-size:12px;text-align:center;padding:32px 22px}
-</style>
 </head>
 <body>
-<nav><div><b>Axiom</b><span><a href="#features">Features</a><a href="#install">Install</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span></div></nav>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="top"><div><b><a href="./">Axiom</a></b><span><a href="#apps">Apps</a><a href="#ops">Operate</a><a href="#security">Security</a><a href="docs/">Docs</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span></div></nav>
 
+<main id="main">
 <header class="hero">
   <p class="eyebrow">Zyvor Axiom</p>
   <h1>Your cluster.<br>Finally legible.</h1>
   <p class="sub">The private-cloud console for k3s and Kubernetes. Applications first, Pods one click away — in a single Go binary.</p>
-  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a class="l" href="#features">Learn more ›</a></div>
+  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a class="l" href="docs/quickstart.html">Get started ›</a></div>
   <div class="shot"><img src="shot-overview.png" alt="Axiom Overview: cluster health, metric rings and activity" width="1600" height="1000"></div>
 </header>
 
-<section id="features">
-  <h2>Everything you reach for.<br>Nothing you don’t.</h2>
-  <p class="lead">Day-2 operations without a pile of tabs and kubectl one-liners.</p>
-  <div class="grid">
-    <div class="card"><h3>Apps first</h3><p>Deployments, StatefulSets, DaemonSets and CronJobs as applications, with start, stop, restart, scale, rollout history and undo.</p></div>
-    <div class="card"><h3>Live terminal & logs</h3><p>Multi-tab interactive PTY over WebSocket, chunked live log tail, and one-click port proxy into any container.</p></div>
-    <div class="card"><h3>Nodes & drain</h3><p>Cordon, drain and taint nodes with live CPU and memory history. Evict Pods singly or in bulk.</p></div>
-    <div class="card"><h3>Why isn’t it running?</h3><p>An automatic scheduling diagnosis explains any Pod that isn’t cleanly Running — right on the detail page.</p></div>
-    <div class="card"><h3>Real auth</h3><p>Local accounts, OIDC, SAML and LDAP with admin, operator and viewer roles enforced at the middleware.</p></div>
-    <div class="card"><h3>Bring your own CRDs</h3><p>A generic browser for any installed CustomResourceDefinition, plus Helm, GitOps, Gateway API, KubeVirt and backups.</p></div>
-    <div class="card wide"><h3>One binary. Zero sprawl.</h3><p>The React UI is embedded in the Go binary. Run it in-cluster with a ServiceAccount or point it at a kubeconfig.</p>
-      <div class="stats"><div><b>26</b><span>pages</span></div><div><b>1</b><span>static binary</span></div><div><b>4</b><span>sign-in methods</span></div><div><b>∞</b><span>CRDs browsable</span></div></div></div>
+<section class="wrap" aria-labelledby="intro">
+  <h2 id="intro" class="reveal">Kubernetes, the way<br>you wish it looked.</h2>
+  <p class="lead reveal">Axiom turns a wall of resources into the things you actually run — then gets out of your way. No agents to install, no database to babysit, no tabs to juggle.</p>
+  <div class="stats reveal">
+    <div><b>26</b><span>purpose-built pages</span></div>
+    <div><b>1</b><span>static binary</span></div>
+    <div><b>4</b><span>sign-in methods</span></div>
+    <div><b>3</b><span>roles, enforced server-side</span></div>
   </div>
 </section>
 
-<section id="install">
-  <h2>Up in a minute.</h2>
-  <p class="lead">Grab the binary for your platform from the latest release.</p>
-<pre><i># pick your platform from the latest release, verify, extract</i>
-sha256sum -c --ignore-missing SHA256SUMS
-tar xzf zyvor-axiom_*_linux_amd64.tar.gz
+<section class="band" id="apps"><div class="wrap">
+  <div class="chapter reveal">
+    <div>
+      <p class="eyebrow">Applications</p>
+      <h3>Think in apps,<br>not in objects.</h3>
+      <p>Deployments, StatefulSets, DaemonSets and CronJobs appear as applications — with everything you do to them one click away.</p>
+      <ul><li><b>Start, stop, restart, scale.</b> Immediately, with confirmation where it matters.</li><li><b>Rollout history and undo.</b> Roll back to any previous revision.</li><li><b>Why isn’t it running?</b> An automatic scheduling diagnosis explains any Pod that isn’t cleanly Running.</li></ul>
+    </div>
+    <div class="panel"><pre><i># what you would have typed</i>
+kubectl rollout history deploy/api
+kubectl rollout undo deploy/api --to-revision=7
+kubectl describe pod api-6f9c…
+kubectl get events --sort-by=…
 
-<i># try it with no cluster at all (demo data)</i>
+<i># what you click</i>
+Applications ▸ api ▸ Undo</pre></div>
+  </div>
+  <div class="chapter rev reveal">
+    <div>
+      <p class="eyebrow">Terminal &amp; logs</p>
+      <h3>Inside any container,<br>instantly.</h3>
+      <p>A multi-tab interactive terminal over WebSocket, live log tails that stay open as long as you do, and a one-click port proxy to anything listening.</p>
+      <ul><li><b>Real PTY.</b> Resize, tab completion, full-screen tools.</li><li><b>Streaming logs.</b> Follow without an artificial cutoff.</li><li><b>Port proxy.</b> Open a container’s declared ports without a port-forward.</li></ul>
+    </div>
+    <div class="panel"><pre><i># Terminal tab, attached to a container in api-6f9c…</i>
+/ # tail -f /var/log/app.log
+<i>2026-11-03T09:14:07Z</i> GET /health 200 3ms
+<i>2026-11-03T09:14:08Z</i> GET /orders 200 41ms
+<i>2026-11-03T09:14:08Z</i> POST /orders 201 87ms</pre></div>
+  </div>
+</div></section>
+
+<section id="ops"><div class="wrap">
+  <h2 class="reveal">Everything you reach for.<br>Nothing you don’t.</h2>
+  <p class="lead reveal">Day-2 operations without a pile of kubectl one-liners.</p>
+  <div class="grid">
+    <div class="card reveal"><p class="k">Nodes</p><h3>Cordon, drain, taint.</h3><p>Live CPU and memory history per node. Evict Pods singly or in bulk, with protected namespaces guarded.</p></div>
+    <div class="card reveal"><p class="k">Helm</p><h3>Releases, in context.</h3><p>Browse, install, upgrade and roll back Helm releases. Values never sit in a permanent plain-text ConfigMap.</p></div>
+    <div class="card reveal"><p class="k">Backups</p><h3>Velero, built in.</h3><p>See Velero backups and schedules, and create a backup on demand from the same console you operate from.</p></div>
+    <div class="card reveal"><p class="k">Any CRD</p><h3>Bring your own.</h3><p>A generic browser for every installed CustomResourceDefinition, plus GitOps, Gateway API and KubeVirt views.</p></div>
+    <div class="card reveal"><p class="k">Multi-cluster</p><h3>One switcher.</h3><p>Register more clusters and move between them from the sidebar. Kubeconfigs that could run local commands or read local files are rejected.</p></div>
+    <div class="card reveal"><p class="k">Notifications</p><h3>Warnings reach people.</h3><p>Cluster Warning events forwarded to Slack or any webhook — with the secret URL never written to logs.</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="security"><div class="wrap">
+  <h2 class="reveal">Secure by default.<br>Boringly so.</h2>
+  <p class="lead reveal">A console with cluster access has to be the most careful thing in the cluster. Axiom is built that way.</p>
+  <div class="grid">
+    <div class="card reveal"><p class="k">Identity</p><h3>Local, OIDC, SAML, LDAP.</h3><p>Admin, operator and viewer roles checked in middleware. Restrict any account to specific namespaces. SAML assertions are signature-verified.</p></div>
+    <div class="card reveal"><p class="k">Runtime</p><h3>Pod Security: restricted.</h3><p>Runs as non-root with a read-only root filesystem, every capability dropped and the RuntimeDefault seccomp profile.</p></div>
+    <div class="card reveal"><p class="k">Supply chain</p><h3>Signed and checksummed.</h3><p>Release binaries ship with SHA-256 sums. Container images on GHCR are signed with cosign, keyless.</p></div>
+    <div class="card reveal"><p class="k">Abuse resistance</p><h3>Rate-limited and audited.</h3><p>Login throttling per client, bounded request bodies and sessions, and an audit log of who changed what.</p></div>
+  </div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2 class="reveal">Up in a minute.</h2>
+  <p class="lead reveal">Try it with no cluster at all, then point it at a real one with Helm.</p>
+<pre class="reveal"><i># try it with demo data — no cluster needed</i>
+tar xzf zyvor-axiom_*_linux_amd64.tar.gz
 AXIOM_MODE=demo AXIOM_USERNAME=demo AXIOM_PASSWORD=demo \
   ./zyvor-axiom_*/zyvor-axiom
-<i># then open http://localhost:5090</i></pre>
-  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Latest release</a><a class="l" href="https://github.com/zyvorai/axiom#readme">Read the docs ›</a></div>
-</section>
+<i># then open http://localhost:5090</i>
 
-<footer>© 2026 Zyvor. Axiom is a Zyvor project. Metal3 workloads are intentionally unsupported.</footer>
+<i># install into a cluster</i>
+helm install axiom deploy/helm/axiom \
+  --set auth.username=admin --set auth.password='…'</pre>
+  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Latest release</a><a class="l" href="docs/deployment.html">Deployment guide ›</a></div>
+</div></section>
+
+<section class="band final"><div class="wrap">
+  <h2 class="reveal">Meet your cluster<br>again.</h2>
+  <p class="lead reveal">One binary. Four platforms. Ready when you are.</p>
+  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Download Axiom</a><a class="l" href="docs/">Read the docs ›</a></div>
+</div></section>
+</main>
+
+<footer><div class="in">
+  <div class="cols">
+    <div><h4>Product</h4><a href="#apps">Applications</a><a href="#ops">Operations</a><a href="#security">Security</a></div>
+    <div><h4>Docs</h4><a href="docs/quickstart.html">Quickstart</a><a href="docs/deployment.html">Deployment</a><a href="docs/api.html">API</a><a href="docs/architecture.html">Architecture</a></div>
+    <div><h4>Project</h4><a href="https://github.com/zyvorai/axiom">GitHub</a><a href="https://github.com/zyvorai/axiom/releases">Releases</a><a href="https://github.com/zyvorai/axiom/blob/main/CHANGELOG.md">Changelog</a></div>
+  </div>
+  © 2026 Zyvor. Axiom is a Zyvor project. Metal3 workloads are intentionally unsupported.
+</div></footer>
+<script src="assets/site.js" defer></script>
 </body>
 </html>
