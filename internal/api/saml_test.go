@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -44,6 +45,108 @@ func getSAML(h http.Handler, form url.Values) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, r)
 	return w
+}
+
+const (
+	testIdPSSO        = "https://idp.example.test/sso"
+	testSessionSecret = "test-session-secret"
+	// httptest requests have Host example.com and no TLS, so publicBase is
+	// http://example.com.
+	testACSURL = "http://example.com" + samlACSPath
+)
+
+func postSAMLWithCookie(h http.Handler, form url.Values, cookies ...*http.Cookie) *httptest.ResponseRecorder {
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/auth/saml/acs", strings.NewReader(form.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, c := range cookies {
+		if c != nil {
+			r.AddCookie(c)
+		}
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	return w
+}
+
+// samlLoginStart runs GET /api/v1/auth/saml/login and returns the ID of the
+// AuthnRequest it sent to the IdP plus the axiom_saml_req cookie it set.
+func samlLoginStart(t *testing.T, h http.Handler) (string, *http.Cookie) {
+	t.Helper()
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/v1/auth/saml/login?next=/pods", nil))
+	if w.Code != http.StatusFound {
+		t.Fatalf("saml/login: want 302, got %d: %s", w.Code, w.Body.String())
+	}
+	loc, err := url.Parse(w.Header().Get("Location"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := loc.Scheme + "://" + loc.Host + loc.Path; got != testIdPSSO {
+		t.Fatalf("saml/login redirected to %q, want the IdP SSO URL", got)
+	}
+	if rs := loc.Query().Get("RelayState"); rs != "/pods" {
+		t.Fatalf("RelayState = %q, want /pods", rs)
+	}
+	deflated, err := base64.StdEncoding.DecodeString(loc.Query().Get("SAMLRequest"))
+	if err != nil {
+		t.Fatalf("SAMLRequest is not base64: %v", err)
+	}
+	reqXML, err := io.ReadAll(flate.NewReader(bytes.NewReader(deflated)))
+	if err != nil {
+		t.Fatalf("SAMLRequest is not DEFLATE-compressed: %v", err)
+	}
+	doc := etree.NewDocument()
+	if err := doc.ReadFromBytes(reqXML); err != nil {
+		t.Fatalf("SAMLRequest is not XML: %v", err)
+	}
+	root := doc.Root()
+	if root.Tag != "AuthnRequest" {
+		t.Fatalf("SAMLRequest root = %q, want AuthnRequest", root.Tag)
+	}
+	id := root.SelectAttrValue("ID", "")
+	if len(id) < 2 || id[0] != '_' {
+		t.Fatalf("AuthnRequest ID %q is not an NCName of the form _<hex>", id)
+	}
+	if acs := root.SelectAttrValue("AssertionConsumerServiceURL", ""); acs != testACSURL {
+		t.Fatalf("AssertionConsumerServiceURL = %q, want %q", acs, testACSURL)
+	}
+	if dest := root.SelectAttrValue("Destination", ""); dest != testIdPSSO {
+		t.Fatalf("Destination = %q, want %q", dest, testIdPSSO)
+	}
+	var c *http.Cookie
+	for _, ck := range w.Result().Cookies() {
+		if ck.Name == samlReqCookie {
+			c = ck
+		}
+	}
+	if c == nil {
+		t.Fatal("saml/login did not set the axiom_saml_req cookie")
+	}
+	return id, c
+}
+
+// withInResponseTo adds InResponseTo to the root samlp:Response of an
+// (unsigned) samlXML document.
+func withInResponseTo(doc, id string) string {
+	return strings.Replace(doc, "<samlp:Response ", fmt.Sprintf(`<samlp:Response InResponseTo="%s" `, id), 1)
+}
+
+// bearerSC is a bearer SubjectConfirmation; empty inResponseTo / recipient
+// leave the attribute out.
+func bearerSC(inResponseTo, recipient string, notOnOrAfter time.Time) string {
+	return subjectConfirmation(samlBearerMethod, inResponseTo, recipient, notOnOrAfter)
+}
+
+func subjectConfirmation(method, inResponseTo, recipient string, notOnOrAfter time.Time) string {
+	attrs := ""
+	if inResponseTo != "" {
+		attrs += fmt.Sprintf(` InResponseTo="%s"`, inResponseTo)
+	}
+	if recipient != "" {
+		attrs += fmt.Sprintf(` Recipient="%s"`, recipient)
+	}
+	attrs += fmt.Sprintf(` NotOnOrAfter="%s"`, notOnOrAfter.UTC().Format(time.RFC3339))
+	return fmt.Sprintf(`<saml:SubjectConfirmation Method="%s"><saml:SubjectConfirmationData%s/></saml:SubjectConfirmation>`, method, attrs)
 }
 
 // samlXML builds a minimal SAMLResponse document with a Subject NameID,
@@ -163,11 +266,13 @@ func TestSAMLACSRejectsWithoutCertOrAllowUnsigned(t *testing.T) {
 func TestSAMLACSAllowUnsignedMintsSession(t *testing.T) {
 	const secret = "test-session-secret"
 	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
+		SAMLLogin:         testIdPSSO,
 		SAMLEntityID:      "https://sp.example.test",
 		SAMLAllowUnsigned: true,
 		SessionSecret:     secret,
 	})
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXML("alice", "alice@example.test", nil, nil))}})
+	id, reqCookie := samlLoginStart(t, h)
+	w := postSAMLWithCookie(h, url.Values{"SAMLResponse": {b64XML(withInResponseTo(samlXML("alice", "alice@example.test", nil, nil), id))}}, reqCookie)
 	if w.Code != http.StatusFound {
 		t.Fatalf("expected 302 redirect after a successful ACS, got %d: %s", w.Code, w.Body.String())
 	}
@@ -235,11 +340,24 @@ func newIdP(t *testing.T, cn string) idp {
 
 const spEntity = "https://sp.example.test"
 
-// signedSAML builds a Response whose Assertion is enveloped-signed by signer.
+// signedSAML builds a Response whose Assertion is enveloped-signed by signer,
+// with no SubjectConfirmation and no InResponseTo.
 func signedSAML(t *testing.T, signer idp, nameID, audience string, notBefore, notOnOrAfter time.Time) string {
 	t.Helper()
-	xml := fmt.Sprintf(`<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_resp1"><saml:Assertion ID="_assert1"><saml:Subject><saml:NameID>%s</saml:NameID></saml:Subject><saml:Conditions NotBefore="%s" NotOnOrAfter="%s"><saml:AudienceRestriction><saml:Audience>%s</saml:Audience></saml:AudienceRestriction></saml:Conditions></saml:Assertion></samlp:Response>`,
-		nameID, notBefore.UTC().Format(time.RFC3339), notOnOrAfter.UTC().Format(time.RFC3339), audience)
+	return signedSAMLWith(t, signer, nameID, audience, notBefore, notOnOrAfter, "", "")
+}
+
+// signedSAMLWith is signedSAML plus a raw SubjectConfirmation element placed
+// inside the (signed) Subject, and an InResponseTo on the (unsigned, when
+// only the Assertion is signed) outer Response.
+func signedSAMLWith(t *testing.T, signer idp, nameID, audience string, notBefore, notOnOrAfter time.Time, subjectConfirmation, outerInResponseTo string) string {
+	t.Helper()
+	outer := ""
+	if outerInResponseTo != "" {
+		outer = fmt.Sprintf(` InResponseTo="%s"`, outerInResponseTo)
+	}
+	xml := fmt.Sprintf(`<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_resp1"%s><saml:Assertion ID="_assert1"><saml:Subject><saml:NameID>%s</saml:NameID>%s</saml:Subject><saml:Conditions NotBefore="%s" NotOnOrAfter="%s"><saml:AudienceRestriction><saml:Audience>%s</saml:Audience></saml:AudienceRestriction></saml:Conditions></saml:Assertion></samlp:Response>`,
+		outer, nameID, subjectConfirmation, notBefore.UTC().Format(time.RFC3339), notOnOrAfter.UTC().Format(time.RFC3339), audience)
 	doc := etree.NewDocument()
 	if err := doc.ReadFromString(xml); err != nil {
 		t.Fatal(err)
@@ -271,15 +389,37 @@ func signedSAML(t *testing.T, signer idp, nameID, audience string, notBefore, no
 }
 
 func samlHandler(pemCert string) http.Handler {
+	return samlHandlerIdPInit(pemCert, false)
+}
+
+func samlHandlerIdPInit(pemCert string, allowIdPInitiated bool) http.Handler {
 	return New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
-		SAMLEntityID: spEntity, SAMLIDPCert: pemCert, SessionSecret: "test-session-secret",
+		SAMLLogin: testIdPSSO, SAMLEntityID: spEntity, SAMLIDPCert: pemCert, SessionSecret: testSessionSecret,
+		SAMLAllowIdPInitiated: allowIdPInitiated,
 	})
+}
+
+// signedForLogin is a well-formed SP-initiated response to AuthnRequest id:
+// bearer SubjectConfirmation addressed to this ACS, InResponseTo id on both
+// the SubjectConfirmationData and the Response.
+func signedForLogin(t *testing.T, signer idp, nameID, audience string, notBefore, notOnOrAfter time.Time, id string) string {
+	t.Helper()
+	return signedSAMLWith(t, signer, nameID, audience, notBefore, notOnOrAfter, bearerSC(id, testACSURL, time.Now().Add(5*time.Minute)), id)
+}
+
+// acsAfterLogin runs GET /saml/login, builds the response for the issued
+// AuthnRequest ID and POSTs it to the ACS with the request cookie.
+func acsAfterLogin(t *testing.T, h http.Handler, build func(id string) string) *httptest.ResponseRecorder {
+	t.Helper()
+	id, c := samlLoginStart(t, h)
+	return postSAMLWithCookie(h, url.Values{"SAMLResponse": {b64XML(build(id))}}, c)
 }
 
 func TestSAMLACSSignedAssertionAccepted(t *testing.T) {
 	i := newIdP(t, "idp.example.test")
-	x := signedSAML(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
-	w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+	w := acsAfterLogin(t, samlHandler(i.pem), func(id string) string {
+		return signedForLogin(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour), id)
+	})
 	if w.Code != http.StatusFound {
 		t.Fatalf("a correctly signed, in-window, right-audience assertion must be accepted, got %d: %s", w.Code, w.Body.String())
 	}
@@ -294,15 +434,19 @@ func TestSAMLACSRejectsUnsignedAssertionCarryingThePinnedCert(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("forged unsigned assertion must be rejected with 401, got %d: %s", w.Code, w.Body.String())
 	}
-	if len(w.Result().Cookies()) != 0 {
-		t.Fatal("no session cookie may be issued for a forged assertion")
+	for _, c := range w.Result().Cookies() {
+		// The only cookie allowed is the cleared axiom_saml_req.
+		if c.Name != samlReqCookie || c.MaxAge >= 0 {
+			t.Fatalf("no session cookie may be issued for a forged assertion, got %+v", c)
+		}
 	}
 }
 
 func TestSAMLACSRejectsAssertionSignedByAnotherKey(t *testing.T) {
 	good, attacker := newIdP(t, "idp.example.test"), newIdP(t, "attacker.example.test")
-	x := signedSAML(t, attacker, "mallory", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
-	w := postSAML(samlHandler(good.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+	w := acsAfterLogin(t, samlHandler(good.pem), func(id string) string {
+		return signedForLogin(t, attacker, "mallory", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour), id)
+	})
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("assertion signed by an unpinned key must be rejected, got %d: %s", w.Code, w.Body.String())
 	}
@@ -310,9 +454,10 @@ func TestSAMLACSRejectsAssertionSignedByAnotherKey(t *testing.T) {
 
 func TestSAMLACSRejectsTamperedSignedAssertion(t *testing.T) {
 	i := newIdP(t, "idp.example.test")
-	x := signedSAML(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
-	tampered := strings.Replace(x, ">carol<", ">admin<", 1)
-	w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(tampered)}})
+	w := acsAfterLogin(t, samlHandler(i.pem), func(id string) string {
+		x := signedForLogin(t, i, "carol", spEntity, time.Now().Add(-time.Minute), time.Now().Add(time.Hour), id)
+		return strings.Replace(x, ">carol<", ">admin<", 1)
+	})
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("modifying a signed assertion must invalidate it, got %d: %s", w.Code, w.Body.String())
 	}
@@ -320,16 +465,215 @@ func TestSAMLACSRejectsTamperedSignedAssertion(t *testing.T) {
 
 func TestSAMLACSRejectsWrongAudienceAndExpired(t *testing.T) {
 	i := newIdP(t, "idp.example.test")
-	cases := map[string]string{
-		"wrong audience": signedSAML(t, i, "carol", "https://other-sp.example", time.Now().Add(-time.Minute), time.Now().Add(time.Hour)),
-		"expired":        signedSAML(t, i, "carol", spEntity, time.Now().Add(-3*time.Hour), time.Now().Add(-time.Hour)),
-		"not yet valid":  signedSAML(t, i, "carol", spEntity, time.Now().Add(time.Hour), time.Now().Add(2*time.Hour)),
+	type window struct {
+		audience        string
+		notBefore, nooa time.Time
 	}
-	for name, x := range cases {
-		w := postSAML(samlHandler(i.pem), url.Values{"SAMLResponse": {b64XML(x)}})
+	cases := map[string]window{
+		"wrong audience": {"https://other-sp.example", time.Now().Add(-time.Minute), time.Now().Add(time.Hour)},
+		"expired":        {spEntity, time.Now().Add(-3 * time.Hour), time.Now().Add(-time.Hour)},
+		"not yet valid":  {spEntity, time.Now().Add(time.Hour), time.Now().Add(2 * time.Hour)},
+	}
+	for name, c := range cases {
+		w := acsAfterLogin(t, samlHandler(i.pem), func(id string) string {
+			return signedForLogin(t, i, "carol", c.audience, c.notBefore, c.nooa, id)
+		})
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("%s: want 401, got %d: %s", name, w.Code, w.Body.String())
 		}
+	}
+}
+
+// InResponseTo request tracking and SubjectConfirmationData checks.
+func TestSAMLACSInResponseToAndSubjectConfirmation(t *testing.T) {
+	i := newIdP(t, "idp.example.test")
+	nb, nooa := time.Now().Add(-time.Minute), time.Now().Add(time.Hour)
+	soon := time.Now().Add(5 * time.Minute)
+	good := func(id string) string { return signedForLogin(t, i, "carol", spEntity, nb, nooa, id) }
+	keep := func(id string, c *http.Cookie) *http.Cookie { return c }
+
+	cases := []struct {
+		name     string
+		allowIdP bool
+		build    func(id string) string
+		// cookie picks the axiom_saml_req cookie sent with the ACS POST.
+		cookie func(id string, c *http.Cookie) *http.Cookie
+		// prep runs between login and the ACS POST.
+		prep     func(t *testing.T, h http.Handler, form url.Values, c *http.Cookie)
+		want     int
+		wantBody string
+	}{
+		{name: "valid SP-initiated flow", build: good, cookie: keep, want: http.StatusFound},
+		{name: "valid with InResponseTo only on SubjectConfirmationData", cookie: keep, want: http.StatusFound,
+			build: func(id string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC(id, testACSURL, soon), "")
+			}},
+		{name: "wrong InResponseTo", cookie: keep, want: http.StatusUnauthorized, wantBody: "does not match the sign-in",
+			build: func(string) string { return good("_0123456789abcdef") }},
+		{name: "replay of a consumed response", build: good, cookie: keep, want: http.StatusUnauthorized, wantBody: "already used",
+			prep: func(t *testing.T, h http.Handler, form url.Values, c *http.Cookie) {
+				if w := postSAMLWithCookie(h, form, c); w.Code != http.StatusFound {
+					t.Fatalf("first use must succeed, got %d: %s", w.Code, w.Body.String())
+				}
+			}},
+		{name: "missing request cookie", build: good, want: http.StatusUnauthorized, wantBody: "missing axiom_saml_req",
+			cookie: func(string, *http.Cookie) *http.Cookie { return nil }},
+		{name: "cookie signed with another secret", build: good, want: http.StatusUnauthorized, wantBody: "cookie is invalid",
+			cookie: func(id string, c *http.Cookie) *http.Cookie {
+				return &http.Cookie{Name: samlReqCookie, Value: signSAMLRequestCookie("another-secret", id, soon)}
+			}},
+		{name: "tampered cookie ID", build: good, want: http.StatusUnauthorized, wantBody: "cookie is invalid",
+			cookie: func(id string, c *http.Cookie) *http.Cookie {
+				// Swap in another ID but keep the original expiry and MAC.
+				return &http.Cookie{Name: samlReqCookie, Value: "_deadbeef" + c.Value[len(id):]}
+			}},
+		{name: "expired request (cookie and outstanding entry)", build: good, cookie: keep, want: http.StatusUnauthorized, wantBody: "expired",
+			prep: func(t *testing.T, _ http.Handler, _ url.Values, _ *http.Cookie) {
+				advanceSAMLClock(t, samlReqTTL+time.Minute)
+			}},
+		{name: "expired outstanding entry, cookie still valid", build: good, want: http.StatusUnauthorized, wantBody: "unknown, expired or already used",
+			cookie: func(id string, c *http.Cookie) *http.Cookie {
+				return &http.Cookie{Name: samlReqCookie, Value: signSAMLRequestCookie(testSessionSecret, id, time.Now().Add(time.Hour))}
+			},
+			prep: func(t *testing.T, _ http.Handler, _ url.Values, _ *http.Cookie) {
+				advanceSAMLClock(t, samlReqTTL+time.Minute)
+			}},
+		{name: "IdP-initiated rejected by default", cookie: keep, want: http.StatusUnauthorized, wantBody: "AXIOM_SAML_ALLOW_IDP_INITIATED",
+			build: func(string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC("", testACSURL, soon), "")
+			}},
+		{name: "IdP-initiated accepted with the flag", allowIdP: true, want: http.StatusFound,
+			cookie: func(string, *http.Cookie) *http.Cookie { return nil },
+			build: func(string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC("", testACSURL, soon), "")
+			}},
+		{name: "IdP-initiated with the flag still checks Recipient", allowIdP: true, want: http.StatusUnauthorized, wantBody: "Recipient",
+			cookie: func(string, *http.Cookie) *http.Cookie { return nil },
+			build: func(string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC("", "https://other-sp.example/acs", soon), "")
+			}},
+		{name: "InResponseTo only on the unsigned outer Response is not trusted", cookie: keep, want: http.StatusUnauthorized, wantBody: "unsolicited",
+			build: func(id string) string { return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, "", id) }},
+		{name: "outer Response InResponseTo contradicts the signed one", cookie: keep, want: http.StatusUnauthorized, wantBody: "does not match the signed assertion",
+			build: func(id string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC(id, testACSURL, soon), "_0123456789abcdef")
+			}},
+		{name: "wrong Recipient", cookie: keep, want: http.StatusUnauthorized, wantBody: "Recipient",
+			build: func(id string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC(id, "https://other-sp.example/acs", soon), id)
+			}},
+		{name: "expired SubjectConfirmationData NotOnOrAfter", cookie: keep, want: http.StatusUnauthorized, wantBody: "SubjectConfirmationData has expired",
+			build: func(id string) string {
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, bearerSC(id, testACSURL, time.Now().Add(-10*time.Minute)), id)
+			}},
+		{name: "non-bearer SubjectConfirmation Method", cookie: keep, want: http.StatusUnauthorized, wantBody: "only bearer",
+			build: func(id string) string {
+				sc := subjectConfirmation("urn:oasis:names:tc:SAML:2.0:cm:holder-of-key", id, testACSURL, soon)
+				return signedSAMLWith(t, i, "carol", spEntity, nb, nooa, sc, id)
+			}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := samlHandlerIdPInit(i.pem, tc.allowIdP)
+			id, loginCookie := samlLoginStart(t, h)
+			form := url.Values{"SAMLResponse": {b64XML(tc.build(id))}}
+			c := tc.cookie(id, loginCookie)
+			if tc.prep != nil {
+				tc.prep(t, h, form, c)
+			}
+			w := postSAMLWithCookie(h, form, c)
+			if w.Code != tc.want {
+				t.Fatalf("want %d, got %d: %s", tc.want, w.Code, w.Body.String())
+			}
+			if tc.wantBody != "" && !strings.Contains(w.Body.String(), tc.wantBody) {
+				t.Fatalf("want body containing %q, got: %s", tc.wantBody, w.Body.String())
+			}
+			cleared, session := false, false
+			for _, ck := range w.Result().Cookies() {
+				switch ck.Name {
+				case samlReqCookie:
+					cleared = ck.MaxAge < 0
+				case auth.SessionCookie:
+					session = ck.Value != ""
+				}
+			}
+			if !cleared {
+				t.Error("every ACS attempt must clear the axiom_saml_req cookie")
+			}
+			if session != (tc.want == http.StatusFound) {
+				t.Errorf("session cookie issued = %v, want %v", session, tc.want == http.StatusFound)
+			}
+		})
+	}
+}
+
+// advanceSAMLClock moves the request-tracking clock forward for one test.
+func advanceSAMLClock(t *testing.T, d time.Duration) {
+	t.Helper()
+	prev := samlNow
+	samlNow = func() time.Time { return time.Now().Add(d) }
+	t.Cleanup(func() { samlNow = prev })
+}
+
+func TestSAMLLoginRequestCookie(t *testing.T) {
+	h := samlHandler("")
+	_, c := samlLoginStart(t, h)
+	if !c.HttpOnly || c.MaxAge != int(samlReqTTL/time.Second) || c.Path != "/api/v1/auth/saml" {
+		t.Fatalf("unexpected axiom_saml_req cookie attributes: %+v", c)
+	}
+	if c.Secure || c.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("plain-HTTP request cookie should be SameSite=Lax without Secure: %+v", c)
+	}
+
+	// Over HTTPS the cookie must survive the IdP's cross-site POST to the ACS.
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/auth/saml/login", nil)
+	r.Header.Set("X-Forwarded-Proto", "https")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	for _, ck := range w.Result().Cookies() {
+		if ck.Name == samlReqCookie {
+			if !ck.Secure || ck.SameSite != http.SameSiteNoneMode {
+				t.Fatalf("HTTPS request cookie should be SameSite=None; Secure: %+v", ck)
+			}
+			return
+		}
+	}
+	t.Fatal("no axiom_saml_req cookie over HTTPS")
+}
+
+func TestSAMLLoginIDsAreUnique(t *testing.T) {
+	h := samlHandler("")
+	a, _ := samlLoginStart(t, h)
+	b, _ := samlLoginStart(t, h)
+	if a == b {
+		t.Fatalf("two logins produced the same AuthnRequest ID %q", a)
+	}
+}
+
+func TestSAMLRequestStoreIsBoundedAndSingleUse(t *testing.T) {
+	var st samlRequestStore
+	exp := time.Now().Add(samlReqTTL)
+	for n := 0; n < samlReqStoreCap+50; n++ {
+		st.add(fmt.Sprintf("_%d", n), exp.Add(time.Duration(n)*time.Millisecond))
+	}
+	if len(st.ids) > samlReqStoreCap {
+		t.Fatalf("store grew to %d entries, cap is %d", len(st.ids), samlReqStoreCap)
+	}
+	if st.consume("_0") {
+		t.Fatal("the entry closest to expiry should have been evicted at capacity")
+	}
+	last := fmt.Sprintf("_%d", samlReqStoreCap+49)
+	if !st.consume(last) {
+		t.Fatal("newest entry should be outstanding")
+	}
+	if st.consume(last) {
+		t.Fatal("an entry must be usable only once")
+	}
+	// Expired entries are swept on insert.
+	st.add("_stale", time.Now().Add(-time.Second))
+	st.add("_fresh", exp)
+	if _, ok := st.ids["_stale"]; ok {
+		t.Fatal("expired entries should be swept on insert")
 	}
 }
 
@@ -354,12 +698,14 @@ func TestSAMLACSSignatureWrappingUsesOnlySignedContent(t *testing.T) {
 func TestSAMLACSNoUserFallsBackToSAMLUser(t *testing.T) {
 	const secret = "test-session-secret"
 	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "", AuthOptions{
+		SAMLLogin:         testIdPSSO,
 		SAMLEntityID:      "https://sp.example.test",
 		SAMLAllowUnsigned: true,
 		SessionSecret:     secret,
 	})
+	id, reqCookie := samlLoginStart(t, h)
 	// Empty NameID and no email/uid attribute at all.
-	w := postSAML(h, url.Values{"SAMLResponse": {b64XML(samlXML("", "", nil, nil))}})
+	w := postSAMLWithCookie(h, url.Values{"SAMLResponse": {b64XML(withInResponseTo(samlXML("", "", nil, nil), id))}}, reqCookie)
 	if w.Code != http.StatusFound {
 		t.Fatalf("expected success even with no NameID, got %d: %s", w.Code, w.Body.String())
 	}

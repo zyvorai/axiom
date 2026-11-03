@@ -59,6 +59,9 @@ type Config struct {
 	// (AXIOM_SESSION_TTL, a Go duration such as 8h; default 12h).
 	TOTPSecret string
 	SessionTTL time.Duration
+	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
+	// responses, i.e. ones with no InResponseTo. Off by default.
+	SAMLAllowIdPInitiated bool
 }
 
 func FromEnv() Config {
@@ -103,6 +106,7 @@ func FromEnv() Config {
 
 		TOTPSecret: strings.TrimSpace(os.Getenv("AXIOM_TOTP_SECRET")),
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
+		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 	}
 }
 

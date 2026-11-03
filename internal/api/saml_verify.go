@@ -151,3 +151,115 @@ func checkSAMLConditions(xmlBytes []byte, audience string, now time.Time) error 
 	}
 	return nil
 }
+
+const samlBearerMethod = "urn:oasis:names:tc:SAML:2.0:cm:bearer"
+
+// samlElements returns every element under (and including) root with the
+// given local name.
+func samlElements(root *etree.Element, tag string) []*etree.Element {
+	var out []*etree.Element
+	var walk func(e *etree.Element)
+	walk = func(e *etree.Element) {
+		if e.Tag == tag {
+			out = append(out, e)
+		}
+		for _, c := range e.ChildElements() {
+			walk(c)
+		}
+	}
+	if root != nil {
+		walk(root)
+	}
+	return out
+}
+
+// samlInResponseTo returns the InResponseTo carried by trusted XML (the
+// signature-verified content, or the whole document in unsigned lab mode):
+// the Response's own attribute when the Response itself is the trusted root,
+// plus every SubjectConfirmationData InResponseTo. All values present must
+// agree; "" means the response is unsolicited (IdP-initiated).
+func samlInResponseTo(xmlBytes []byte) (string, error) {
+	doc := etree.NewDocument()
+	if err := doc.ReadFromBytes(xmlBytes); err != nil {
+		return "", err
+	}
+	root := doc.Root()
+	if root == nil {
+		return "", errors.New("empty SAML document")
+	}
+	var vals []string
+	if root.Tag == "Response" {
+		if v := strings.TrimSpace(root.SelectAttrValue("InResponseTo", "")); v != "" {
+			vals = append(vals, v)
+		}
+	}
+	for _, scd := range samlElements(root, "SubjectConfirmationData") {
+		if v := strings.TrimSpace(scd.SelectAttrValue("InResponseTo", "")); v != "" {
+			vals = append(vals, v)
+		}
+	}
+	irt := ""
+	for _, v := range vals {
+		if irt == "" {
+			irt = v
+		} else if v != irt {
+			return "", errors.New("conflicting InResponseTo values in SAML response")
+		}
+	}
+	return irt, nil
+}
+
+// samlOuterInResponseTo reads the InResponseTo attribute of the document's
+// root element without trusting it (it lies outside the signed Assertion when
+// only the Assertion is signed); it is used only as a consistency check.
+func samlOuterInResponseTo(xmlBytes []byte) string {
+	doc := etree.NewDocument()
+	if err := doc.ReadFromBytes(xmlBytes); err != nil || doc.Root() == nil {
+		return ""
+	}
+	return strings.TrimSpace(doc.Root().SelectAttrValue("InResponseTo", ""))
+}
+
+// checkSAMLSubjectConfirmation enforces the Web Browser SSO profile rules
+// (SAML Profiles §4.1.4.3) on trusted XML: every SubjectConfirmation must use
+// the bearer method, and a SubjectConfirmationData, when present, must name
+// this ACS as Recipient and must not have expired (NotOnOrAfter, with the same
+// clock skew as checkSAMLConditions).
+func checkSAMLSubjectConfirmation(xmlBytes []byte, acsURL string, now time.Time) error {
+	doc := etree.NewDocument()
+	if err := doc.ReadFromBytes(xmlBytes); err != nil {
+		return err
+	}
+	for _, sc := range samlElements(doc.Root(), "SubjectConfirmation") {
+		if m := strings.TrimSpace(sc.SelectAttrValue("Method", "")); m != samlBearerMethod {
+			return fmt.Errorf("unsupported SubjectConfirmation Method %q (only bearer is accepted)", m)
+		}
+		for _, scd := range sc.ChildElements() {
+			if scd.Tag != "SubjectConfirmationData" {
+				continue
+			}
+			if rcpt := strings.TrimSpace(scd.SelectAttrValue("Recipient", "")); rcpt != "" && rcpt != acsURL {
+				return fmt.Errorf("SubjectConfirmationData Recipient %q does not match this ACS (%s)", rcpt, acsURL)
+			}
+			if nooa := scd.SelectAttrValue("NotOnOrAfter", ""); nooa != "" {
+				end, err := time.Parse(time.RFC3339, nooa)
+				if err != nil {
+					return fmt.Errorf("bad SubjectConfirmationData NotOnOrAfter: %w", err)
+				}
+				if !now.Add(-samlClockSkew).Before(end) {
+					return errors.New("SubjectConfirmationData has expired")
+				}
+			}
+			if nb := scd.SelectAttrValue("NotBefore", ""); nb != "" {
+				start, err := time.Parse(time.RFC3339, nb)
+				if err != nil {
+					return fmt.Errorf("bad SubjectConfirmationData NotBefore: %w", err)
+				}
+				if now.Add(samlClockSkew).Before(start) {
+					return errors.New("SubjectConfirmationData is not valid yet")
+				}
+			}
+		}
+	}
+	return nil
+}

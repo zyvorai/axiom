@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,12 +18,26 @@ import (
 
 // samlACS accepts a SAMLResponse over the HTTP-POST binding, verifies its
 // XML signature against AXIOM_SAML_IDP_CERT (plus audience and validity
-// window), extracts the subject, and mints an Axiom session cookie.
+// window), checks SubjectConfirmationData (bearer, Recipient, expiry) and
+// binds the response to the AuthnRequest this browser started (InResponseTo,
+// see saml_request.go), extracts the subject, and mints an Axiom session
+// cookie.
 func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 	if s.auth.SAMLLogin == "" && s.auth.SAMLEntityID == "" {
 		http.Error(w, "SAML is not configured", http.StatusNotImplemented)
 		return
 	}
+	// The request-tracking cookie is single use: read it, clear it on every
+	// ACS attempt, and take its ID out of the outstanding set right away, so
+	// neither a retry nor a replay of this response can reuse it.
+	secure := s.requestSecure(r)
+	reqID, reqErr := "", errSAMLReqMissing
+	if c, err := r.Cookie(samlReqCookie); err == nil {
+		reqID, reqErr = parseSAMLRequestCookie(s.sessionSecret(), c.Value)
+	}
+	clearSAMLRequestCookie(w, secure)
+	outstanding := reqErr == nil && s.samlReqs.consume(reqID)
+
 	if err := r.ParseForm(); err != nil && r.Method == http.MethodPost {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
@@ -39,6 +54,7 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid SAMLResponse encoding: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	received := xmlBytes
 	if s.auth.SAMLIDPCert != "" {
 		// Verify the XML signature against the pinned certificate and continue
 		// with only the signed content, then enforce audience and validity.
@@ -57,9 +73,19 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// From here on xmlBytes is the trusted content (signed subtree, or the
+	// whole document in unsigned lab mode).
 	user, email, groups, err := parseSAMLAssertion(xmlBytes)
 	if err != nil {
 		http.Error(w, "SAML assertion parse failed: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := checkSAMLSubjectConfirmation(xmlBytes, s.samlACSURL(r), time.Now()); err != nil {
+		http.Error(w, "SAML assertion rejected: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if err := s.checkSAMLInResponseTo(xmlBytes, received, reqID, reqErr, outstanding); err != nil {
+		http.Error(w, "SAML response rejected: "+err.Error(), http.StatusUnauthorized)
 		return
 	}
 	if user == "" {
@@ -71,7 +97,7 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 		Email:  email,
 		Issuer: firstNonEmpty(s.auth.SAMLEntityID, "saml"),
 		Role:   role,
-		Exp:    time.Now().Add(12 * time.Hour).Unix(),
+		Exp:    time.Now().Add(auth.SessionTTL()).Unix(),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -80,6 +106,40 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 	auth.SetSessionCookie(w, token, s.requestSecure(r))
 	platform.RecordAxiomAudit("auth.saml_login", user, role, user)
 	http.Redirect(w, r, "/?sso=1", http.StatusFound)
+}
+
+// checkSAMLInResponseTo binds the response to an AuthnRequest this browser
+// started: the trusted InResponseTo must equal the ID in the signed
+// axiom_saml_req cookie and must still have been outstanding (consumed by the
+// caller). A response without InResponseTo is unsolicited (IdP-initiated) and
+// is accepted only with AXIOM_SAML_ALLOW_IDP_INITIATED=true.
+func (s *Server) checkSAMLInResponseTo(trusted, received []byte, reqID string, reqErr error, outstanding bool) error {
+	irt, err := samlInResponseTo(trusted)
+	if err != nil {
+		return err
+	}
+	// The outer Response attribute is unsigned when only the Assertion is
+	// signed; it can never stand in for a missing signed value, but it must
+	// not contradict the signed one either.
+	if outer := samlOuterInResponseTo(received); outer != "" && irt != "" && outer != irt {
+		return errors.New("Response InResponseTo does not match the signed assertion")
+	}
+	if irt == "" {
+		if s.auth.SAMLAllowIdPInitiated {
+			return nil
+		}
+		return errors.New("unsolicited (IdP-initiated) response: no signed InResponseTo. Start sign-in at /api/v1/auth/saml/login, or set AXIOM_SAML_ALLOW_IDP_INITIATED=true")
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	if irt != reqID {
+		return errors.New("InResponseTo does not match the sign-in started in this browser")
+	}
+	if !outstanding {
+		return errors.New("sign-in request is unknown, expired or already used; start the sign-in again")
+	}
+	return nil
 }
 
 func decodeSAMLResponse(raw string) ([]byte, error) {

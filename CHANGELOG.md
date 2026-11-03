@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Security
+- SAML: `GET /api/v1/auth/saml/login` now sends a real AuthnRequest with a random ID, tracked in a signed 5-minute `axiom_saml_req` cookie and a single-use in-memory set (per replica). The ACS requires the signed `InResponseTo` to match and consumes it, so a captured SAMLResponse can no longer be replayed within its validity window. `SubjectConfirmation` must be bearer, and `SubjectConfirmationData` `Recipient` must equal the ACS URL and `NotOnOrAfter` must not have passed. IdP-initiated (unsolicited) responses are now rejected unless `AXIOM_SAML_ALLOW_IDP_INITIATED=true` — **breaking** for setups that sign in from an IdP dashboard tile. With several replicas, SAML sign-in needs session affinity.
+
 ## [0.4.2] - 2026-11-03
 
 ### Fixed

@@ -68,6 +68,11 @@ type AuthOptions struct {
 	OIDCAdminGroup   string
 	OIDCViewerGroup  string
 	OIDCDefaultRole  string
+
+	// SAMLAllowIdPInitiated accepts SAML responses with no InResponseTo
+	// (AXIOM_SAML_ALLOW_IDP_INITIATED). Off by default: an unsolicited
+	// response cannot be bound to a sign-in this browser started.
+	SAMLAllowIdPInitiated bool
 }
 
 type Server struct {
@@ -84,6 +89,8 @@ type Server struct {
 	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
 	guard       auth.Guard        // used to re-verify a password for account-security actions
 	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
+
+	samlReqs samlRequestStore // outstanding SAML AuthnRequest IDs (saml.go; zero value ready)
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {

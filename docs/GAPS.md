@@ -2,7 +2,8 @@
 
 Closed or substantially narrowed in the current tree (see CHANGELOG):
 
-- SAML ACS sessions (`POST /api/v1/auth/saml/acs`) — the response's enveloped XML-DSig signature is verified against the pinned `AXIOM_SAML_IDP_CERT` (only the signed content is trusted, which defeats signature wrapping), and the audience (`AXIOM_SAML_ENTITY_ID`) and `NotBefore`/`NotOnOrAfter` window are enforced. Not yet checked: `InResponseTo` (replay within the validity window is possible) and `SubjectConfirmationData`
+- SAML ACS sessions (`POST /api/v1/auth/saml/acs`) — the response's enveloped XML-DSig signature is verified against the pinned `AXIOM_SAML_IDP_CERT` (only the signed content is trusted, which defeats signature wrapping), and the audience (`AXIOM_SAML_ENTITY_ID`) and `NotBefore`/`NotOnOrAfter` window are enforced
+- SAML `InResponseTo` and `SubjectConfirmationData` — `GET /api/v1/auth/saml/login` sends a real AuthnRequest with a random ID, recorded in a signed 5-minute `axiom_saml_req` cookie and in a single-use in-memory set; the ACS requires the signed `InResponseTo` to match both and consumes it, so a captured response cannot be replayed (not even in the same browser). Unsolicited (IdP-initiated) responses are rejected unless `AXIOM_SAML_ALLOW_IDP_INITIATED=true`. A `SubjectConfirmation` must use the bearer method, and its `SubjectConfirmationData` `Recipient` must equal this ACS URL and `NotOnOrAfter` must not have passed
 - LDAP simple-bind via the local username/password form (`AXIOM_LDAP_*`)
 - Operator role + safer OIDC default role env (`AXIOM_OIDC_DEFAULT_ROLE`)
 - Fleet cluster register/unregister from kubeconfig (Settings → Clusters)
@@ -22,6 +23,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 Known security limitations (reviewed, not yet fixed):
 
 - **No MFA / TOTP.** Password guessing is throttled per IP and per account, but a stolen or guessed password is still sufficient to sign in. Use SSO with an IdP that enforces MFA where it matters
+- **Outstanding SAML AuthnRequests are in-memory per replica** (capped at 4096, oldest evicted first). With `replicaCount>1` the `/saml/login` redirect and the IdP's POST to `/saml/acs` must reach the same replica (session affinity), otherwise the sign-in fails with "unknown, expired or already used". The ACS URL is derived from the request (`X-Forwarded-Proto`/`X-Forwarded-Host`), so the proxy must pass the public scheme and host for the `Recipient` check to match. With `AXIOM_SAML_ALLOW_IDP_INITIATED=true`, unsolicited responses are bound only by their validity window and Recipient, not to a browser, and can be replayed within that window
 - **Stream tickets are in-memory per replica.** With `replicaCount>1` a ticket is only redeemable on the replica that issued it, so WebSocket/SSE connections need session affinity (or a single replica); the login throttle counters are likewise per replica
 - **The pod HTTP proxy (`/pods/{ns}/{name}/window/{port}/`) still accepts `?access_token=` for plain browser navigations**: it loads many sub-resources, so a single-use ticket cannot cover it
 - **Sessions are stateless (12 h)**: logout only clears the cookie and a role change at the IdP is not picked up until the session expires.
@@ -49,7 +51,6 @@ Other known gaps found by the functional test pass (see `e2e/README.md`):
 
 Still thinner than a full private-cloud suite (intentionally or next):
 
-- SAML `InResponseTo` request tracking (needs a server-side store of outstanding AuthnRequests)
 - TOTP / MFA for local accounts
 - Embedded noVNC UI (proxy path is ready; virtctl remains supported)
 - GitOps Application create / Helm chart catalog browse
