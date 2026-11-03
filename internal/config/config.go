@@ -84,6 +84,11 @@ type Config struct {
 	// bearer token for it. Never logged.
 	PrometheusURL   string
 	PrometheusToken string
+	// OpenCostURL (AXIOM_OPENCOST_URL) switches GET /cost from request-based
+	// estimates to actual allocation cost; OpenCostToken
+	// (AXIOM_OPENCOST_TOKEN) is an optional bearer token for it. Never logged.
+	OpenCostURL   string
+	OpenCostToken string
 }
 
 func FromEnv() Config {
@@ -137,6 +142,9 @@ func FromEnv() Config {
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
 		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
+
+		OpenCostURL:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
+		OpenCostToken: strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
 	}
 }
 

@@ -79,8 +79,8 @@ func (c *costAPI) setBudget(w http.ResponseWriter, r *http.Request) {
 	platform.RecordAxiomAudit("cost.budget_set", ns,
 		"monthlyUsd="+strconv.FormatFloat(b.MonthlyUSD, 'f', -1, 64)+" warnPercent="+strconv.FormatFloat(b.WarnPercent, 'f', -1, 64),
 		c.s.auditUser(r))
-	// The row reports the current estimate; an estimate failure does not undo the write.
-	est, _ := c.s.provider.EstimateCost(r.Context())
+	// The row reports the current cost; a cost failure does not undo the write.
+	est, _ := platform.ActiveCost(r.Context(), c.s.provider, platform.CostDefaultWindow)
 	writeJSON(w, http.StatusOK, platform.CostBudgetRowFor(b, est))
 }
 

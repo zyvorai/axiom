@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — OpenCost & fleet history
+- Actual cost from OpenCost: with `AXIOM_OPENCOST_URL` (+ optional `AXIOM_OPENCOST_TOKEN`; Helm `cost.opencostUrl` / `cost.opencostToken`) `GET /api/v1/cost` reads OpenCost's `/allocation/compute` (aggregated by namespace and controller) and reports actual cost scaled to a 30-day month: `source: "opencost"`, `window` (`?window=7d|14d|30d`, default 30d, anything else `400`), per-row `cpuUsd` / `memoryUsd` / `storageUsd` / `networkUsd` / `otherUsd`, `idleMonthlyUsd`, `unallocatedMonthlyUsd` and a `note`; `cpuCores` / `memoryGi` stay the requests. OpenCost failures fall back to the request estimate (`source: "estimate"`, HTTP 200, the reason in `note`, never the URL). Answers are cached 60 s with a single flight; the client has the Prometheus client's limits (10 s, 8 MiB, no proxy, same-host redirects). Budgets (`GET /api/v1/cost/budgets`, the budget watcher) compare against the active source and report it as `source`. Rightsizing savings keep the request rates. Demo: `AXIOM_DEMO_OPENCOST=true` serves fixed OpenCost-shaped actuals
+
 ## [0.9.1] - 2026-11-04
 
 ### Fixed

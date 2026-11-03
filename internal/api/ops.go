@@ -310,7 +310,12 @@ func (s *Server) deleteRoleBinding(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) cost(w http.ResponseWriter, r *http.Request) {
-	v, err := s.provider.EstimateCost(r.Context())
+	window, err := platform.NormalizeCostWindow(r.URL.Query().Get("window"))
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := platform.ActiveCost(r.Context(), s.provider, window)
 	respond(w, v, err)
 }
 
