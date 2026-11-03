@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — OCI Helm catalog
+- Browse and install Helm charts from OCI registries. `POST /api/v1/helm/repos` accepts `{"name","url":"oci://host/path","charts":[…]}`: charts are listed explicitly (most hosted registries do not offer `/v2/_catalog`, which is used when `charts` is omitted), versions are the tags that parse as semver, metadata comes from the Helm config blob of the newest release, and values/README are read from the chart layer, so a catalog entry is built without downloading the chart. Anonymous registries only, with the standard bearer-token challenge answered by an anonymous token; `credentialsSecret` is refused for now. The add verifies the registry and every listed chart. Repository rows and chart entries gain `kind` (`index`/`oci`), chart entries gain `ref` (`oci://host/path/chart`), and `POST /api/v1/helm/install` / `/helm/upgrade` accept `ociRef`, which runs `helm install <release> oci://…` (no `--repo`, literal args, validated against flags, userinfo and whitespace). The SSRF rules, caps, cache and the 20-repository limit are shared with index repositories and cover the token realm and every blob redirect; blob digests are verified while streaming and a mismatch is refused. `AXIOM_HELM_ALLOW_PRIVATE_REPOS` / `AXIOM_HELM_ALLOW_INSECURE_REPOS` apply to OCI registries too
+
 ## [0.9.1] - 2026-11-04
 
 ### Fixed

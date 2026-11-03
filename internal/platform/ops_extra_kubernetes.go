@@ -111,13 +111,20 @@ func (k *KubernetesProvider) runHelmJob(ctx context.Context, ns, release, action
 // injection surface regardless of what characters are in the release/chart
 // name or repo URL.
 func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHelmRequest) (HelmActionResult, error) {
-	if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.ReleaseName) == "" ||
-		strings.TrimSpace(req.RepoURL) == "" || strings.TrimSpace(req.ChartName) == "" {
-		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
-	}
+	oci := req.OCIRef != ""
+	if oci {
+		if err := ValidateHelmOCIInstall(req); err != nil {
+			return HelmActionResult{}, err
+		}
+	} else {
+		if strings.TrimSpace(req.Namespace) == "" || strings.TrimSpace(req.ReleaseName) == "" ||
+			strings.TrimSpace(req.RepoURL) == "" || strings.TrimSpace(req.ChartName) == "" {
+			return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
+		}
 
-	if err := rejectFlagLike(req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName, req.ChartVersion); err != nil {
-		return HelmActionResult{}, err
+		if err := rejectFlagLike(req.Namespace, req.ReleaseName, req.RepoURL, req.ChartName, req.ChartVersion); err != nil {
+			return HelmActionResult{}, err
+		}
 	}
 	jobNS, helmSA, helmImage := helmJobConfig()
 	jobName := helmJobName("install", req.ReleaseName)
@@ -129,6 +136,10 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 	// resources were created successfully but the Job still reported
 	// failure because `helm install --wait` couldn't poll rollout status.
 	args := []string{"install", req.ReleaseName, req.ChartName, "--repo", req.RepoURL, "-n", req.Namespace, "--create-namespace"}
+	if oci {
+		// helm pulls oci:// references directly; there is no --repo.
+		args = []string{"install", req.ReleaseName, req.OCIRef, "-n", req.Namespace, "--create-namespace"}
+	}
 	if req.ChartVersion != "" {
 		args = append(args, "--version", req.ChartVersion)
 	}

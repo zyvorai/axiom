@@ -86,6 +86,8 @@ Helm chart catalog (Ops → Helm repository browsing; see `docs/API.md` → Helm
 | `AXIOM_HELM_ALLOW_PRIVATE_REPOS` | `false` | `true` lets chart repositories (and the chart archives their indexes name) live on loopback, private, link-local or CGNAT addresses — needed for an in-cluster ChartMuseum or Harbor. Off, Axiom refuses to connect to any non-public address, so the catalog cannot be used to reach internal services or the cloud metadata endpoint. Helm: `helmCatalog.allowPrivateRepos`. |
 | `AXIOM_HELM_ALLOW_INSECURE_REPOS` | `false` | `true` allows `http://` chart repositories and archive URLs. Off, only `https://` is fetched (redirects included). Helm: `helmCatalog.allowInsecureRepos`. |
 
+Both flags also govern OCI chart repositories (`oci://host/path`): with `AXIOM_HELM_ALLOW_PRIVATE_REPOS` an in-cluster or loopback registry can be added, and with `AXIOM_HELM_ALLOW_INSECURE_REPOS` a registry that does not speak TLS is browsed over plain `http://` (the install Job itself still pulls over https). OCI registries must allow anonymous pulls; registry credentials are not supported.
+
 Cost rightsizing (Ops → Cost; see `docs/API.md` → Cost budgets and rightsizing):
 
 | Variable | Default | Effect |
