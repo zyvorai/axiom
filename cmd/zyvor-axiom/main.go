@@ -86,6 +86,8 @@ func main() {
 		OIDCAdminGroup:  cfg.OIDCAdminGroup,
 		OIDCViewerGroup: cfg.OIDCViewerGroup,
 		OIDCDefaultRole: cfg.OIDCDefaultRole,
+
+		SAMLAllowIdPInitiated: cfg.SAMLAllowIdPInitiated,
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some

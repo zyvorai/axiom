@@ -51,6 +51,10 @@ type Config struct {
 	OIDCAdminGroup  string
 	OIDCViewerGroup string
 	OIDCDefaultRole string
+
+	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
+	// responses, i.e. ones with no InResponseTo. Off by default.
+	SAMLAllowIdPInitiated bool
 }
 
 func FromEnv() Config {
@@ -92,6 +96,8 @@ func FromEnv() Config {
 		OIDCAdminGroup:  strings.TrimSpace(os.Getenv("AXIOM_OIDC_ADMIN_GROUP")),
 		OIDCViewerGroup: strings.TrimSpace(os.Getenv("AXIOM_OIDC_VIEWER_GROUP")),
 		OIDCDefaultRole: env("AXIOM_OIDC_DEFAULT_ROLE", "admin"),
+
+		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 	}
 }
 

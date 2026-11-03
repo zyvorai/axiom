@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/zyvorai/axiom/internal/platform"
 )
@@ -117,25 +116,6 @@ func (s *Server) publicClusterContext(r *http.Request) map[string]any {
 		delete(out, "context_names")
 	}
 	return out
-}
-
-func (s *Server) samlLogin(w http.ResponseWriter, r *http.Request) {
-	if s.auth.SAMLLogin == "" {
-		fail(w, http.StatusNotImplemented, errSSO("SAML is not configured. Set AXIOM_SAML_LOGIN_URL to your IdP SSO URL."))
-		return
-	}
-	target, err := url.Parse(s.auth.SAMLLogin)
-	if err != nil {
-		fail(w, http.StatusBadRequest, err)
-		return
-	}
-	next := r.URL.Query().Get("next")
-	q := target.Query()
-	if next != "" && q.Get("RelayState") == "" {
-		q.Set("RelayState", next)
-		target.RawQuery = q.Encode()
-	}
-	http.Redirect(w, r, target.String(), http.StatusFound)
 }
 
 func (s *Server) nodeDetail(w http.ResponseWriter, r *http.Request) {
