@@ -638,7 +638,20 @@
     "totals": "Totals count the clusters that answered",
     "lastCheck": " · last check {{time}}",
     "interval": " · checked every {{n}}s",
-    "backgroundOff": " · background checks are off"
+    "backgroundOff": " · background checks are off",
+    "history": {
+      "ongoing": "ongoing",
+      "stripAria": "State over the selected window: {{bad}} of {{total}} intervals were not healthy",
+      "reachable": "Reachable <b>{{pct}}%</b>",
+      "failedChecks": "{{failed}} of {{total}} checks failed",
+      "noIncidents": "No incidents in this window.",
+      "unreachableFor": "Unreachable for {{duration}}",
+      "degradedFor": "Degraded for {{duration}}",
+      "label": "History",
+      "last1h": "Last hour",
+      "last6h": "Last 6 hours",
+      "last24h": "Last 24 hours"
+    }
   },
   "healthFindings": {
     "whatChanged": "What changed",
@@ -714,7 +727,8 @@
       },
       "sync": "Sync",
       "syncAria": "Sync {{name}}",
-      "deleteAria": "Delete {{name}}"
+      "deleteAria": "Delete {{name}}",
+      "editAria": "Edit {{name}}"
     },
     "agents": {
       "approve": "Approve proposal",
@@ -786,9 +800,18 @@
       "noWorkloadData": "No workload cost data.",
       "columns": {
         "monthlyCost": "Monthly cost",
-        "workload": "Workload"
+        "workload": "Workload",
+        "whereItGoes": "Where it goes"
       },
-      "cores": "{{n}} cores"
+      "cores": "{{n}} cores",
+      "totalMonthlyActual": "Total monthly cost (actual)",
+      "sourceActual": "Actual cost · OpenCost",
+      "sourceEstimate": "Estimate from requests",
+      "window": "Cost window",
+      "last7d": "Last 7 days",
+      "last14d": "Last 14 days",
+      "last30d": "Last 30 days",
+      "idle": "Idle (allocated but unused)"
     }
   },
   "rbac": {
@@ -1002,7 +1025,9 @@
         "container": "Container",
         "cpu": "CPU (lower · target · upper)",
         "memory": "Memory (lower · target · upper)"
-      }
+      },
+      "new": "New VPA",
+      "deleteAria": "Delete VPA {{name}}"
     },
     "keda": {
       "notInstalled": "KEDA is not installed in this cluster.",
@@ -1018,7 +1043,9 @@
         "active": "Active",
         "idle": "Idle",
         "notReady": "Not ready"
-      }
+      },
+      "new": "New ScaledObject",
+      "deleteAria": "Delete ScaledObject {{name}}"
     }
   },
   "backups": {
@@ -1097,7 +1124,10 @@
     },
     "used": "(used {{value}})",
     "applyEllipsis": "Apply…",
-    "footnote": "Recommendations add headroom over observed usage. Axiom never changes requests on its own: Apply shows the exact change first and only acts when you confirm."
+    "footnote": "Recommendations add headroom over observed usage. Axiom never changes requests on its own: Apply shows the exact change first and only acts when you confirm.",
+    "totalsActual": "{{current}} actual across budgeted namespaces, of {{budget}} budgeted.",
+    "basedOnOpenCost": "Based on OpenCost",
+    "basedOnRequests": "Based on requests"
   },
   "helmCatalog": {
     "repositories": "Repositories",
@@ -1118,7 +1148,14 @@
     "noMatch": "No charts match.",
     "appVersion": "app {{version}}",
     "deprecated": "deprecated",
-    "showing": "Showing {{shown}} of {{total}} charts."
+    "showing": "Showing {{shown}} of {{total}} charts.",
+    "oci": {
+      "chartNames": "Chart names",
+      "chartNamesPlaceholder": "Chart names in this registry, separated by commas (e.g. nginx, redis)",
+      "kindLabel": "Repository type",
+      "index": "Chart repository",
+      "registry": "OCI registry"
+    }
   },
   "storage": {
     "title": "Storage",

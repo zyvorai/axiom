@@ -40,5 +40,8 @@
   },
   "workloads": {
     "dnsLabel": "Verwenden Sie Kleinbuchstaben, Ziffern und „-“ (Anfang und Ende mit Buchstabe oder Ziffer, max. 63)."
+  },
+  "autoscalingCreate": {
+    "generic": "Etwas ist schiefgelaufen"
   }
 }

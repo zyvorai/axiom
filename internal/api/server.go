@@ -46,6 +46,9 @@ type AuthOptions struct {
 	// CostBudgetStore persists per-namespace cost budgets. Optional — nil
 	// keeps them in memory.
 	CostBudgetStore platform.CostBudgetStore
+	// ExternalMFAStore holds second factors for directory (LDAP) accounts.
+	// Optional — nil keeps them in memory.
+	ExternalMFAStore *platform.ExternalMFAStore
 	// TOTPSecret, when set (AXIOM_TOTP_SECRET), adds a TOTP second factor to the
 	// built-in admin account. Base32, at least 80 bits.
 	TOTPSecret string
@@ -86,6 +89,10 @@ type AuthOptions struct {
 	// (AXIOM_SAML_ALLOW_IDP_INITIATED). Off by default: an unsolicited
 	// response cannot be bound to a sign-in this browser started.
 	SAMLAllowIdPInitiated bool
+
+	// PodProxy, when set (AXIOM_POD_PROXY_ADDR / AXIOM_POD_PROXY_ORIGIN), serves
+	// pod windows from a separate origin; see podproxy_origin.go. Optional.
+	PodProxy *PodProxyOrigin
 }
 
 type Server struct {
@@ -98,12 +105,16 @@ type Server struct {
 	hub         *platform.IntegrationHub
 	users       *platform.UserHub
 	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
+	podProxy    *PodProxyOrigin   // separate pod-proxy origin, or nil (podproxy_origin.go)
 	revocations *auth.Revocations // revoked sessions (logout, sign out everywhere)
 	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
 	guard       auth.Guard        // used to re-verify a password for account-security actions
 	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
 
 	samlReqs samlRequestStore // outstanding SAML AuthnRequest IDs (saml.go; zero value ready)
+
+	// externalMFA holds second factors of directory (LDAP) accounts.
+	externalMFA *platform.ExternalMFAStore
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -153,6 +164,10 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		revocations = auth.NewRevocations(opts.RevocationStore)
 	}
 	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
+	if opts.PodProxy != nil {
+		opts.PodProxy.attach(provider, revocationsChecker{revocations})
+		s.podProxy = opts.PodProxy
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
@@ -202,6 +217,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/seal", s.sealWorkload)
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/unseal", s.unsealWorkload)
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/window/{port}/", s.podWindow)
+	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/window-link", s.podWindowLink)
 	mux.HandleFunc("GET /api/v1/auth/providers", s.authProviders)
 	mux.HandleFunc("GET /api/v1/auth/oidc/login", s.oidcLogin)
 	mux.HandleFunc("GET /api/v1/auth/oidc/callback", s.oidcCallback)
@@ -211,6 +227,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerFleetSearch(mux)
 	s.registerGitOpsCreate(mux)
 	s.registerGitOpsDelete(mux)
+	s.registerGitOpsEdit(mux)
+	s.registerGitOpsCredentials(mux)
 	s.registerHelmCatalog(mux)
 	s.registerAutoscaling(mux)
 	s.registerCost(mux)
@@ -345,7 +363,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerSecurityRoutes(mux)
 
 	RegisterSSE(mux)
-	RegisterRealtime(mux, provider)
+	RegisterRealtime(mux, provider, s.podProxyEnabled)
 
 	var authenticator auth.UserAuthenticator
 	if users != nil {
@@ -358,6 +376,11 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		// namespaces, MFA changes, deletion) revokes them.
 		users.SetInvalidateHook(s.revocations.RevokeUser)
 	}
+	s.externalMFA = opts.ExternalMFAStore
+	if s.externalMFA == nil {
+		s.externalMFA = platform.NewMemoryExternalMFAStore()
+	}
+	s.externalMFA.SetInvalidateHook(s.revocations.RevokeUser)
 	if et, ok := auth.NewEnvTOTP(opts.TOTPSecret); !ok {
 		log.Printf("auth: AXIOM_TOTP_SECRET is not a valid base32 secret (at least 16 characters); ignoring it")
 	} else {
@@ -365,7 +388,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	guard := auth.Guard{
 		Username: username, Password: password, APIKey: opts.APIKey,
-		MFA: mfa, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
+		MFA: mfa, ExternalMFA: s.externalMFA, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
 		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
@@ -464,12 +487,17 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		authMethod = "oidc"
 		if sess.Issuer == auth.LocalSessionIssuer {
 			authMethod = "local"
+		} else if sess.Issuer == auth.LDAPSessionIssuer {
+			authMethod = "ldap"
 		}
 		if sess.Role != "" {
 			role = sess.Role
 		}
 	} else if id, ok := auth.IdentityFromContext(r.Context()); ok {
 		user = id.User
+		if id.ViaLDAP() {
+			authMethod = "ldap"
+		}
 		if id.Role != "" {
 			role = id.Role
 		}
@@ -482,8 +510,8 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	}
 	regions := platform.DefaultRegions(cluster)
 	// mfa.required: the require-MFA policy covers this identity (the UI forces
-	// enrolment when it is true and enrolled is false). Always false for SSO,
-	// LDAP and API-key identities.
+	// enrolment when it is true and enrolled is false). Always false for SSO
+	// and API-key identities.
 	var mfaRequired, mfaEnrolled bool
 	if id, ok := auth.IdentityFromContext(r.Context()); ok {
 		mfaRequired, mfaEnrolled = s.guard.MFAState(id)
@@ -809,6 +837,12 @@ func (s *Server) unsealWorkload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) podWindow(w http.ResponseWriter, r *http.Request) {
+	if s.podProxy != nil {
+		// Serving pod content from the console's origin would defeat the
+		// separate pod-proxy origin, so the in-origin route is gone.
+		fail(w, http.StatusGone, fmt.Errorf("pod windows are served from a separate origin: POST /api/v1/pods/{namespace}/{name}/window-link"))
+		return
+	}
 	port, err := strconv.ParseInt(r.PathValue("port"), 10, 32)
 	if err != nil || port <= 0 {
 		fail(w, 400, fmt.Errorf("invalid port"))

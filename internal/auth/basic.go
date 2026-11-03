@@ -40,6 +40,13 @@ type MFAProvider interface {
 // LocalSessionIssuer marks sessions created by POST /api/v1/auth/login.
 const LocalSessionIssuer = "local"
 
+// LDAPSessionIssuer marks sessions POST /api/v1/auth/login creates for a
+// directory (LDAP) account. They carry the role mapped at bind time and are not
+// re-resolved per request (there is no local account to look up): a directory
+// group change takes effect at the next sign-in. Revocation applies as to any
+// session.
+const LDAPSessionIssuer = "ldap"
+
 // Identity is the resolved caller of an authorized request, attached to the
 // request context so handlers and audit logging can read who acted and
 // with what role without re-parsing credentials.
@@ -110,6 +117,11 @@ type Guard struct {
 	// with a second factor can no longer authenticate with Basic credentials
 	// alone and must sign in through POST /api/v1/auth/login.
 	MFA MFAProvider
+	// ExternalMFA, when set, supplies two-factor sign-in for directory (LDAP)
+	// accounts, keyed by the directory username. It is consulted only for an
+	// identity established by the LDAP bind, and only when no local account has
+	// that name (the local account's own second factor applies then).
+	ExternalMFA MFAProvider
 	// RequireMFA (AXIOM_REQUIRE_MFA) blocks covered local accounts that have
 	// not enrolled a second factor from everything but enrolment and sign-out.
 	// The zero value (MFAPolicyOff) requires nothing.
@@ -265,6 +277,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
+		if id.Role != "admin" && isGitOpsCredentials(r) {
+			deny(http.StatusForbidden, "GitOps repository credentials require the admin role")
+			return
+		}
 		if id.Role == "viewer" && isInteractivePath(r.URL.Path) {
 			deny(http.StatusForbidden, "read-only user: shells, consoles and the pod proxy require the operator role")
 			return
@@ -286,6 +302,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 				deny(http.StatusForbidden, "secret values in the Axiom namespace require the admin role")
 				return
 			}
+		}
+		if id.Role != "admin" && isAdminOnlyRead(r) {
+			deny(http.StatusForbidden, "this view requires the admin role")
+			return
 		}
 		if id.Role == "operator" && ((isMutatingMethod(r.Method) && isAdminOnlyPath(r.URL.Path)) || isOperatorForbidden(r)) {
 			deny(http.StatusForbidden, "operator role cannot manage users, integrations, RBAC, Helm installs, or the cluster registry")
@@ -349,6 +369,7 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/hpas",
 	"/api/v1/vpas",
 	"/api/v1/scaledobjects",
+	"/api/v1/triggerauthentications",
 	"/api/v1/poddisruptionbudgets",
 	"/api/v1/networkpolicies",
 	"/api/v1/gateways",
@@ -471,6 +492,11 @@ func (g Guard) identityFromSession(sess Session) (Identity, bool) {
 		role = "admin"
 	}
 	id := Identity{User: sess.User, Role: role}
+	if sess.Issuer == LDAPSessionIssuer {
+		// Role as mapped by the directory at sign-in; nothing to re-resolve.
+		id.source = sourceLDAP
+		return id, true
+	}
 	if sess.Issuer == LocalSessionIssuer {
 		if userMatches(g.Username, sess.User) {
 			id.Role, id.source = "admin", sourceEnv
@@ -508,8 +534,12 @@ func (g Guard) authenticatePassword(u, p string) (Identity, bool) {
 		}
 	}
 	if g.LDAP.Enabled || g.LDAP.URL != "" {
-		if role, ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
-			return Identity{User: u, Role: role, viaCredentials: true}, true
+		// The directory password is verified before anything about the
+		// account's second factor is looked at (same ordering as local).
+		if role, ok, err := ldapAuthenticate(g.LDAP, u, p); ok && err == nil {
+			mfa := g.ldapMFAProvider(u)
+			return Identity{User: u, Role: role, viaCredentials: true,
+				mfaPending: mfa != nil && mfa.MFAEnrolled(u), source: sourceLDAP}, true
 		}
 	}
 	return Identity{}, false

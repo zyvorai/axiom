@@ -29,7 +29,9 @@ func TestTimelineMergesSources(t *testing.T) {
 	if w := request(t, h, "POST", "/api/v1/workloads/payments/Deployment/payments-api/restart", ""); w.Code != 200 {
 		t.Fatalf("restart: %d", w.Code)
 	}
-	entries := getTimeline(t, h, "")
+	// The audit log is process-global, so other tests' entries are the newest;
+	// ask for the maximum so they cannot push the other sources out.
+	entries := getTimeline(t, h, "?limit=1000")
 	sources := map[string]bool{}
 	for i, e := range entries {
 		sources[e.Source] = true

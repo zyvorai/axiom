@@ -205,7 +205,8 @@
   "podDetail": {
     "copyFailed": "Could not copy to the clipboard",
     "evicted": "Evicted {{name}}",
-    "evictFailed": "Evict failed"
+    "evictFailed": "Evict failed",
+    "openPortFailed": "Could not open the port"
   },
   "pods": {
     "evicted": "Evicted {{name}}",
@@ -237,5 +238,21 @@
     "bulkDeleted_other": "Deleted {{count}} workloads{{note}}",
     "bulkRestarted_one": "Restarted {{count}} workload{{note}}",
     "bulkRestarted_other": "Restarted {{count}} workloads{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "Created {{name}}"
+  },
+  "gitopsEdit": {
+    "updated": "Updated {{name}}"
+  },
+  "autoscalingPanels": {
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "gitopsCredentials": {
+    "saved": "Saved credentials {{name}}",
+    "savedDescription": "The secret is write-only and cannot be shown again.",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
   }
 }

@@ -69,8 +69,15 @@ func (e *EnvTOTP) Verify(code string, now time.Time) bool {
 	return ok
 }
 
-func (g Guard) verifySecondFactor(user, code string) bool {
+func (g Guard) verifySecondFactor(id Identity, code string) bool {
 	now := time.Now()
+	user := id.User
+	if id.source == sourceLDAP {
+		if mfa := g.ldapMFAProvider(user); mfa != nil {
+			return mfa.VerifySecondFactor(user, code, now)
+		}
+		return false
+	}
 	if userMatches(g.Username, user) && g.EnvTOTP != nil {
 		return g.EnvTOTP.Verify(code, now)
 	}
@@ -82,7 +89,8 @@ func (g Guard) verifySecondFactor(user, code string) bool {
 
 // VerifyPassword reports whether password is the current password of user. The
 // account-security endpoints use it to confirm the caller really is the
-// account owner (a stolen session alone must not be able to change MFA).
+// account owner (a stolen session alone must not be able to change MFA). For a
+// directory account the password is checked with an LDAP bind.
 func (g Guard) VerifyPassword(user, password string) bool {
 	id, ok := g.authenticatePassword(user, password)
 	return ok && id.viaCredentials
@@ -164,7 +172,7 @@ func (g Guard) serveLogin(w http.ResponseWriter, r *http.Request, limiter, acctL
 			writeLoginJSON(w, http.StatusUnauthorized, map[string]any{"error": "two-factor code required", "mfa": true})
 			return
 		}
-		if !g.verifySecondFactor(id.User, code) {
+		if !g.verifySecondFactor(id, code) {
 			failed("auth.mfa_failed", map[string]any{"error": "invalid two-factor code", "mfa": true})
 			return
 		}
@@ -173,7 +181,11 @@ func (g Guard) serveLogin(w http.ResponseWriter, r *http.Request, limiter, acctL
 	if acct != "" {
 		acctLimiter.RecordSuccess(acct)
 	}
-	token, err := SignSession(g.sessionSecret(), Session{User: id.User, Role: id.Role, Issuer: LocalSessionIssuer})
+	issuer := LocalSessionIssuer
+	if id.source == sourceLDAP {
+		issuer = LDAPSessionIssuer
+	}
+	token, err := SignSession(g.sessionSecret(), Session{User: id.User, Role: id.Role, Issuer: issuer})
 	if err != nil {
 		writeLoginJSON(w, http.StatusInternalServerError, map[string]any{"error": "could not create a session"})
 		return
@@ -182,6 +194,9 @@ func (g Guard) serveLogin(w http.ResponseWriter, r *http.Request, limiter, acctL
 	detail := "password"
 	if id.mfaPending {
 		detail = "password+mfa"
+	}
+	if id.source == sourceLDAP {
+		detail = "ldap " + detail
 	}
 	if g.Audit != nil {
 		g.Audit.Record("auth.login", key, detail, id.User)

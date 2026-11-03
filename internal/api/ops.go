@@ -310,7 +310,12 @@ func (s *Server) deleteRoleBinding(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) cost(w http.ResponseWriter, r *http.Request) {
-	v, err := s.provider.EstimateCost(r.Context())
+	window, err := platform.NormalizeCostWindow(r.URL.Query().Get("window"))
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	v, err := platform.ActiveCost(r.Context(), s.provider, window)
 	respond(w, v, err)
 }
 
@@ -399,7 +404,11 @@ func (s *Server) helmInstall(w http.ResponseWriter, r *http.Request) {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, req.RepoURL+" "+req.ChartName, s.auditUser(r))
+	detail := req.RepoURL + " " + req.ChartName
+	if req.OCIRef != "" {
+		detail = req.OCIRef
+	}
+	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, detail, s.auditUser(r))
 	EmitStateChanged("helm", "install")
 	writeJSON(w, http.StatusAccepted, v)
 }

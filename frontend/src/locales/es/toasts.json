@@ -205,7 +205,8 @@
   "podDetail": {
     "copyFailed": "No se pudo copiar al portapapeles",
     "evicted": "{{name}} desalojado",
-    "evictFailed": "Error al desalojar"
+    "evictFailed": "Error al desalojar",
+    "openPortFailed": "No se pudo abrir el puerto"
   },
   "pods": {
     "evicted": "{{name}} desalojado",
@@ -237,5 +238,21 @@
     "bulkDeleted_other": "{{count}} cargas de trabajo eliminadas{{note}}",
     "bulkRestarted_one": "{{count}} carga de trabajo reiniciada{{note}}",
     "bulkRestarted_other": "{{count}} cargas de trabajo reiniciadas{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} creado"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} actualizado"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
+  },
+  "gitopsCredentials": {
+    "saved": "Credenciales {{name}} guardadas",
+    "savedDescription": "El secreto es de solo escritura y no se puede volver a mostrar.",
+    "deleted": "{{name}} eliminado",
+    "deleteFailed": "Error al eliminar"
   }
 }

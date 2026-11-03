@@ -9,7 +9,8 @@
     "resetMfaTitle": "¿Restablecer los dos factores de {{name}}?",
     "resetMfaDescription": "Podrá iniciar sesión solo con su contraseña y volver a configurar los dos factores. Úselo cuando alguien haya perdido su dispositivo y sus códigos de recuperación.",
     "revokeTitle": "¿Cerrar la sesión de {{name}} en todas partes?",
-    "revokeDescription": "Se cierran todas las sesiones abiertas de esta cuenta; deberá volver a iniciar sesión."
+    "revokeDescription": "Se cierran todas las sesiones abiertas de esta cuenta; deberá volver a iniciar sesión.",
+    "resetExternalMfaDescription": "Esta cuenta de directorio iniciará sesión solo con su contraseña de directorio hasta que vuelva a configurar los dos factores."
   },
   "settings": {
     "registerCluster": {
@@ -383,5 +384,100 @@
       "validate": "Validar",
       "applyTitle": "Aplicar manifiesto de carga de trabajo"
     }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "Nuevo VerticalPodAutoscaler",
+      "description": "Recomienda requests de CPU y memoria para una carga de trabajo. En modo Off solo recomienda y nunca reinicia pods.",
+      "region": "Ajustes del VPA",
+      "updateMode": "Modo de actualización",
+      "modes": {
+        "off": "Off — solo recomendar",
+        "initial": "Initial — aplicar a pods nuevos",
+        "recreate": "Recreate — reiniciar pods para aplicar"
+      }
+    },
+    "keda": {
+      "title": "Nuevo ScaledObject de KEDA",
+      "description": "Escalar una carga de trabajo según eventos. Las credenciales nunca se introducen aquí: elija una TriggerAuthentication existente.",
+      "region": "Ajustes del ScaledObject",
+      "trigger": "Disparador {{n}}",
+      "removeTrigger": "Quitar disparador {{n}}",
+      "credentials": "Credenciales (TriggerAuthentication)",
+      "addTrigger": "Añadir disparador",
+      "triggers": {
+        "cron": "Programación cron",
+        "prometheus": "Consulta de Prometheus",
+        "kafka": "Retraso de Kafka",
+        "redis": "Longitud de lista de Redis",
+        "rabbitmq": "Cola de RabbitMQ",
+        "awsSqs": "Cola de AWS SQS"
+      },
+      "fields": {
+        "metricType": "Tipo de métrica",
+        "targetValue": "Valor objetivo",
+        "timezone": "Zona horaria",
+        "start": "Inicio",
+        "end": "Fin",
+        "replicasInWindow": "Réplicas en la ventana",
+        "serverAddress": "Dirección del servidor",
+        "query": "Consulta",
+        "threshold": "Umbral",
+        "bootstrapServers": "Servidores bootstrap",
+        "consumerGroup": "Grupo de consumidores",
+        "topic": "Tema",
+        "lagThreshold": "Umbral de retraso",
+        "address": "Dirección",
+        "list": "Lista",
+        "lengthThreshold": "Umbral de longitud",
+        "queue": "Cola",
+        "mode": "Modo",
+        "queueUrl": "URL de la cola",
+        "queueLength": "Longitud de la cola",
+        "region": "Región"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "Editar {{name}}",
+    "description": "{{kind}} · {{namespace}}. Solo se cambian los campos siguientes; el resto del objeto no se modifica.",
+    "staleHint": " Cierre este diálogo y vuelva a abrirlo para partir de la versión actual.",
+    "notEditable": "Esta aplicación usa ajustes que el formulario no puede representar, por lo que se muestra en solo lectura:",
+    "region": "Ajustes de la aplicación",
+    "valuesYaml": "YAML de values",
+    "automated": "Sincronizar automáticamente",
+    "prune": "Eliminar recursos quitados de Git (prune)",
+    "selfHeal": "Revertir cambios manuales (self-heal)",
+    "noop": "No cambiaría nada.",
+    "none": "(ninguno)",
+    "staleChange": "Ha cambiado un campo después de la vista previa: vuelva a generarla.",
+    "comparing": "Comparando…",
+    "previewChanges": "Previsualizar cambios"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "¿Eliminar {{kind}} {{name}}?",
+    "deleteDescription": "La carga de trabajo en sí no se modifica."
+  },
+  "gitopsCredentials": {
+    "title": "Credenciales de repositorio",
+    "description": "Para repositorios privados de Git y Helm. Axiom las guarda como Secrets para Argo CD o Flux y no las vuelve a mostrar.",
+    "region": "Credenciales",
+    "empty": "Aún no hay credenciales creadas con Axiom.",
+    "deleteTitle": "¿Eliminar las credenciales {{name}}?",
+    "deleteDescription": "Las aplicaciones que las usan dejarán de poder leer del repositorio.",
+    "deleteAria": "Eliminar credenciales {{name}}",
+    "add": "Añadir credenciales",
+    "writeOnly": "Solo escritura: una vez guardado, el secreto no se puede leer; para rotarlo, elimínelo y vuelva a crearlo.",
+    "for": "Para",
+    "url": "URL del repositorio",
+    "auth": "Autenticación",
+    "authToken": "Token de acceso",
+    "authBasic": "Usuario y contraseña",
+    "authSsh": "Clave SSH",
+    "token": "Token",
+    "privateKey": "Clave privada",
+    "knownHosts": "known_hosts (opcional)",
+    "save": "Guardar credenciales",
+    "button": "Credenciales"
   }
 }

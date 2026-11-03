@@ -1,8 +1,12 @@
 package platform
 
-import "context"
+import (
+	"context"
+	"sort"
+)
 
-// Deterministic demo data for the read-only VPA and KEDA views. The demo pods
+// Deterministic seed data for the demo VPA and KEDA views (the in-memory
+// store in autoscaling_create_demo.go starts from it). The demo pods
 // run with 500m CPU / 512Mi memory, so the Auto-mode checkout VPA below
 // recommends far more than the workload currently asks for.
 
@@ -74,21 +78,41 @@ func demoNamespaceMatch(filter, ns string) bool {
 }
 
 func (d *DemoProvider) ListVPAs(ctx context.Context, ns string) (VPAList, error) {
+	demoAutoscalersMu.Lock()
+	defer demoAutoscalersMu.Unlock()
+	demoAutoscalersInitLocked()
 	out := VPAList{Installed: true, Items: []VPASummary{}}
-	for _, v := range demoVPAs() {
+	for _, v := range demoVPAStore {
 		if demoNamespaceMatch(ns, v.Namespace) {
 			out.Items = append(out.Items, v)
 		}
 	}
+	sort.Slice(out.Items, func(i, j int) bool {
+		a, b := out.Items[i], out.Items[j]
+		if a.Namespace == b.Namespace {
+			return a.Name < b.Name
+		}
+		return a.Namespace < b.Namespace
+	})
 	return out, nil
 }
 
 func (d *DemoProvider) ListScaledObjects(ctx context.Context, ns string) (ScaledObjectList, error) {
+	demoAutoscalersMu.Lock()
+	defer demoAutoscalersMu.Unlock()
+	demoAutoscalersInitLocked()
 	out := ScaledObjectList{Installed: true, Items: []ScaledObjectSummary{}}
-	for _, s := range demoScaledObjects() {
+	for _, s := range demoScaledObjectStore {
 		if demoNamespaceMatch(ns, s.Namespace) {
 			out.Items = append(out.Items, s)
 		}
 	}
+	sort.Slice(out.Items, func(i, j int) bool {
+		a, b := out.Items[i], out.Items[j]
+		if a.Namespace == b.Namespace {
+			return a.Name < b.Name
+		}
+		return a.Namespace < b.Namespace
+	})
 	return out, nil
 }

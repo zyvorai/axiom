@@ -63,28 +63,37 @@ func NewPrometheusClient(rawURL, token string) (*PrometheusClient, error) {
 	u.Path = strings.TrimRight(u.Path, "/")
 	u.RawPath = ""
 	c := &PrometheusClient{base: u, token: strings.TrimSpace(token), timeout: prometheusQueryTimeout, maxBytes: prometheusMaxBody}
+	c.http = newOperatorHTTPClient(u, prometheusQueryTimeout)
+	return c, nil
+}
+
+// newOperatorHTTPClient is the HTTP client for an operator-configured
+// backend (Prometheus, OpenCost): it ignores HTTP(S)_PROXY, bounds dialing,
+// TLS and response headers, and only follows a few redirects to the same
+// scheme and host as base.
+func newOperatorHTTPClient(base *url.URL, timeout time.Duration) *http.Client {
 	transport := &http.Transport{
 		Proxy:                 nil, // never route through HTTP(S)_PROXY
 		DialContext:           (&net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
 		TLSHandshakeTimeout:   5 * time.Second,
-		ResponseHeaderTimeout: prometheusQueryTimeout,
+		ResponseHeaderTimeout: timeout,
 		MaxIdleConns:          4,
 		IdleConnTimeout:       90 * time.Second,
 		ForceAttemptHTTP2:     true,
 	}
-	c.http = &http.Client{
+	scheme, host := base.Scheme, base.Host
+	return &http.Client{
 		Transport: transport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= prometheusMaxRedirects {
 				return errors.New("too many redirects")
 			}
-			if req.URL.Scheme != c.base.Scheme || !strings.EqualFold(req.URL.Host, c.base.Host) {
+			if req.URL.Scheme != scheme || !strings.EqualFold(req.URL.Host, host) {
 				return errors.New("redirect to another host refused")
 			}
 			return nil
 		},
 	}
-	return c, nil
 }
 
 // promSample is one element of an instant-vector result.

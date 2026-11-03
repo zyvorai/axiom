@@ -9,7 +9,8 @@
     "resetMfaTitle": "Réinitialiser les deux facteurs de {{name}} ?",
     "resetMfaDescription": "La personne pourra se connecter avec son seul mot de passe et reconfigurer les deux facteurs. À utiliser quand l'appareil et les codes de récupération sont perdus.",
     "revokeTitle": "Déconnecter {{name}} partout ?",
-    "revokeDescription": "Toutes les sessions ouvertes de ce compte sont fermées ; une nouvelle connexion sera nécessaire."
+    "revokeDescription": "Toutes les sessions ouvertes de ce compte sont fermées ; une nouvelle connexion sera nécessaire.",
+    "resetExternalMfaDescription": "Ce compte d'annuaire se connectera avec son seul mot de passe d'annuaire jusqu'à ce qu'il reconfigure les deux facteurs."
   },
   "settings": {
     "registerCluster": {
@@ -383,5 +384,100 @@
       "validate": "Valider",
       "applyTitle": "Appliquer le manifeste de la charge de travail"
     }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "Nouveau VerticalPodAutoscaler",
+      "description": "Recommande des requests CPU et mémoire pour une charge de travail. En mode Off, il se contente de recommander et ne redémarre jamais les pods.",
+      "region": "Paramètres du VPA",
+      "updateMode": "Mode de mise à jour",
+      "modes": {
+        "off": "Off — recommander uniquement",
+        "initial": "Initial — appliquer aux nouveaux pods",
+        "recreate": "Recreate — redémarrer les pods pour appliquer"
+      }
+    },
+    "keda": {
+      "title": "Nouvel objet ScaledObject KEDA",
+      "description": "Mettre à l'échelle une charge de travail selon des événements. Les identifiants ne sont jamais saisis ici : choisissez une TriggerAuthentication existante.",
+      "region": "Paramètres du ScaledObject",
+      "trigger": "Déclencheur {{n}}",
+      "removeTrigger": "Retirer le déclencheur {{n}}",
+      "credentials": "Identifiants (TriggerAuthentication)",
+      "addTrigger": "Ajouter un déclencheur",
+      "triggers": {
+        "cron": "Planification cron",
+        "prometheus": "Requête Prometheus",
+        "kafka": "Retard Kafka",
+        "redis": "Longueur de liste Redis",
+        "rabbitmq": "File RabbitMQ",
+        "awsSqs": "File AWS SQS"
+      },
+      "fields": {
+        "metricType": "Type de métrique",
+        "targetValue": "Valeur cible",
+        "timezone": "Fuseau horaire",
+        "start": "Début",
+        "end": "Fin",
+        "replicasInWindow": "Réplicas dans la fenêtre",
+        "serverAddress": "Adresse du serveur",
+        "query": "Requête",
+        "threshold": "Seuil",
+        "bootstrapServers": "Serveurs bootstrap",
+        "consumerGroup": "Groupe de consommateurs",
+        "topic": "Topic",
+        "lagThreshold": "Seuil de retard",
+        "address": "Adresse",
+        "list": "Liste",
+        "lengthThreshold": "Seuil de longueur",
+        "queue": "File",
+        "mode": "Mode",
+        "queueUrl": "URL de la file",
+        "queueLength": "Longueur de la file",
+        "region": "Région"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "Modifier {{name}}",
+    "description": "{{kind}} · {{namespace}}. Seuls les champs ci-dessous sont modifiés ; le reste de l'objet reste inchangé.",
+    "staleHint": " Fermez cette boîte de dialogue et rouvrez-la pour repartir de la version actuelle.",
+    "notEditable": "Cette application utilise des paramètres que le formulaire ne peut pas représenter ; elle est donc affichée en lecture seule :",
+    "region": "Paramètres de l'application",
+    "valuesYaml": "YAML des values",
+    "automated": "Synchroniser automatiquement",
+    "prune": "Supprimer les ressources retirées de Git (prune)",
+    "selfHeal": "Annuler les modifications manuelles (self-heal)",
+    "noop": "Rien ne changerait.",
+    "none": "(aucun)",
+    "staleChange": "Vous avez modifié un champ après l'aperçu — relancez l'aperçu.",
+    "comparing": "Comparaison…",
+    "previewChanges": "Prévisualiser les modifications"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "Supprimer {{kind}} {{name}} ?",
+    "deleteDescription": "La charge de travail elle-même n'est pas modifiée."
+  },
+  "gitopsCredentials": {
+    "title": "Identifiants de dépôt",
+    "description": "Pour les dépôts Git et Helm privés. Axiom les stocke comme Secrets pour Argo CD ou Flux et ne les affiche plus jamais.",
+    "region": "Identifiants",
+    "empty": "Aucun identifiant créé via Axiom pour l'instant.",
+    "deleteTitle": "Supprimer les identifiants {{name}} ?",
+    "deleteDescription": "Les applications qui les référencent ne pourront plus lire le dépôt.",
+    "deleteAria": "Supprimer les identifiants {{name}}",
+    "add": "Ajouter des identifiants",
+    "writeOnly": "Écriture seule : une fois enregistré, le secret ne peut plus être relu — pour le changer, supprimez-le et recréez-le.",
+    "for": "Pour",
+    "url": "URL du dépôt",
+    "auth": "Authentification",
+    "authToken": "Jeton d'accès",
+    "authBasic": "Nom d'utilisateur et mot de passe",
+    "authSsh": "Clé SSH",
+    "token": "Jeton",
+    "privateKey": "Clé privée",
+    "knownHosts": "known_hosts (facultatif)",
+    "save": "Enregistrer les identifiants",
+    "button": "Identifiants"
   }
 }

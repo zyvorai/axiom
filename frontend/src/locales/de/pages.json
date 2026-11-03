@@ -638,7 +638,20 @@
     "totals": "Summen zählen die Cluster, die geantwortet haben",
     "lastCheck": " · letzte Prüfung {{time}}",
     "interval": " · Prüfung alle {{n}} s",
-    "backgroundOff": " · Hintergrundprüfungen sind aus"
+    "backgroundOff": " · Hintergrundprüfungen sind aus",
+    "history": {
+      "ongoing": "andauernd",
+      "stripAria": "Zustand im gewählten Zeitraum: {{bad}} von {{total}} Intervallen waren nicht fehlerfrei",
+      "reachable": "Erreichbar <b>{{pct}} %</b>",
+      "failedChecks": "{{failed}} von {{total}} Prüfungen fehlgeschlagen",
+      "noIncidents": "Keine Vorfälle in diesem Zeitraum.",
+      "unreachableFor": "Nicht erreichbar für {{duration}}",
+      "degradedFor": "Beeinträchtigt für {{duration}}",
+      "label": "Verlauf",
+      "last1h": "Letzte Stunde",
+      "last6h": "Letzte 6 Stunden",
+      "last24h": "Letzte 24 Stunden"
+    }
   },
   "healthFindings": {
     "whatChanged": "Was hat sich geändert",
@@ -714,7 +727,8 @@
       },
       "sync": "Synchronisieren",
       "syncAria": "{{name}} synchronisieren",
-      "deleteAria": "{{name}} löschen"
+      "deleteAria": "{{name}} löschen",
+      "editAria": "{{name}} bearbeiten"
     },
     "agents": {
       "approve": "Vorschlag genehmigen",
@@ -786,9 +800,18 @@
       "noWorkloadData": "Keine Kostendaten für Workloads.",
       "columns": {
         "monthlyCost": "Monatliche Kosten",
-        "workload": "Workload"
+        "workload": "Workload",
+        "whereItGoes": "Aufteilung"
       },
-      "cores": "{{n}} Kerne"
+      "cores": "{{n}} Kerne",
+      "totalMonthlyActual": "Monatliche Gesamtkosten (tatsächlich)",
+      "sourceActual": "Tatsächliche Kosten · OpenCost",
+      "sourceEstimate": "Schätzung aus Requests",
+      "window": "Kostenzeitraum",
+      "last7d": "Letzte 7 Tage",
+      "last14d": "Letzte 14 Tage",
+      "last30d": "Letzte 30 Tage",
+      "idle": "Ungenutzt (zugewiesen, aber nicht verwendet)"
     }
   },
   "rbac": {
@@ -1002,7 +1025,9 @@
         "container": "Container",
         "cpu": "CPU (unten · Ziel · oben)",
         "memory": "Arbeitsspeicher (unten · Ziel · oben)"
-      }
+      },
+      "new": "Neuer VPA",
+      "deleteAria": "VPA {{name}} löschen"
     },
     "keda": {
       "notInstalled": "KEDA ist in diesem Cluster nicht installiert.",
@@ -1018,7 +1043,9 @@
         "active": "Aktiv",
         "idle": "Untätig",
         "notReady": "Nicht bereit"
-      }
+      },
+      "new": "Neues ScaledObject",
+      "deleteAria": "ScaledObject {{name}} löschen"
     }
   },
   "backups": {
@@ -1097,7 +1124,10 @@
     },
     "used": "(genutzt {{value}})",
     "applyEllipsis": "Anwenden…",
-    "footnote": "Empfehlungen enthalten einen Puffer über der beobachteten Nutzung. Axiom ändert Requests nie selbstständig: Anwenden zeigt zuerst die genaue Änderung und handelt erst nach Ihrer Bestätigung."
+    "footnote": "Empfehlungen enthalten einen Puffer über der beobachteten Nutzung. Axiom ändert Requests nie selbstständig: Anwenden zeigt zuerst die genaue Änderung und handelt erst nach Ihrer Bestätigung.",
+    "totalsActual": "{{current}} tatsächlich in Namespaces mit Budget, von {{budget}} Budget.",
+    "basedOnOpenCost": "Auf Basis von OpenCost",
+    "basedOnRequests": "Auf Basis der Requests"
   },
   "helmCatalog": {
     "repositories": "Repositorys",
@@ -1118,7 +1148,14 @@
     "noMatch": "Keine passenden Charts.",
     "appVersion": "App {{version}}",
     "deprecated": "veraltet",
-    "showing": "{{shown}} von {{total}} Charts."
+    "showing": "{{shown}} von {{total}} Charts.",
+    "oci": {
+      "chartNames": "Chart-Namen",
+      "chartNamesPlaceholder": "Chart-Namen in dieser Registry, kommagetrennt (z. B. nginx, redis)",
+      "kindLabel": "Repository-Typ",
+      "index": "Chart-Repository",
+      "registry": "OCI-Registry"
+    }
   },
   "storage": {
     "title": "Speicher",

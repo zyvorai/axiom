@@ -74,11 +74,22 @@ func main() {
 	} else if prom != nil && platform.ConfigurePrometheus(provider, prom) {
 		log.Printf("rightsizing: Prometheus usage history enabled")
 	}
+	if oc, err := platform.NewOpenCostClient(cfg.OpenCostURL, cfg.OpenCostToken); err != nil {
+		log.Printf("cost: OpenCost disabled: %v", err)
+	} else if oc != nil && platform.ConfigureOpenCost(provider, oc) {
+		log.Printf("cost: actual allocation cost from OpenCost enabled")
+	}
 
 	// Session revocations live in a shared store; re-read it periodically so
 	// a logout on another replica applies here within the refresh interval.
 	revocations := auth.NewRevocations(platform.OpenRevocationStore(cfg.Mode, provider))
 	revocations.StartRefresh(dispatchCtx, cfg.RevocationRefresh)
+
+	// Optional separate origin for pod windows (see internal/api/podproxy_origin.go).
+	podProxy := api.NewPodProxyOriginFromEnv(api.PodProxyOriginConfig{
+		Addr: cfg.PodProxyAddr, Origin: cfg.PodProxyOrigin,
+		ConsoleAddr: cfg.Addr, ConsoleOrigin: cfg.AllowOrigin,
+	})
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
@@ -88,6 +99,7 @@ func main() {
 		RequireMFA:         cfg.RequireMFA,
 		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
 		CostBudgetStore:    costBudgets,
+		ExternalMFAStore:   platform.OpenExternalMFAStore(cfg.Mode, provider),
 		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
@@ -114,6 +126,8 @@ func main() {
 		OIDCDefaultRole: cfg.OIDCDefaultRole,
 
 		SAMLAllowIdPInitiated: cfg.SAMLAllowIdPInitiated,
+
+		PodProxy: podProxy,
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some
@@ -142,12 +156,20 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	if podProxy != nil {
+		// Stopped with the process: dispatchCtx is cancelled when main returns.
+		if _, err := api.StartPodProxyOrigin(dispatchCtx, podProxy, cfg.TLSCert, cfg.TLSKey); err != nil {
+			log.Fatalf("pod proxy origin: %v", err)
+		}
+		log.Printf("pod proxy origin listening on %s origin=%s tls=%v", podProxy.Addr(), podProxy.Origin(), tlsEnabled)
+	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
+	stopDispatch()
 }
 
 func firstNonEmpty(a, b string) string {

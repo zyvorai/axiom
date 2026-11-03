@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
-import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,11 +24,13 @@ import {
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
-import { RBAC, HELM_CATALOG, GITOPS_CREATE } from "@/constants/testIds";
+import { RBAC, HELM_CATALOG, GITOPS_CREATE, OPENCOST, GITOPS_EDIT } from "@/constants/testIds";
 import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
+import GitOpsEditDialog from "@/components/GitOpsEditDialog";
+import GitOpsCredentials, { CredentialsButton } from "@/components/GitOpsCredentials";
 import { useAuth } from "@/lib/auth";
 
 const TABS = [
@@ -292,6 +294,8 @@ function GitOpsTab() {
     const [syncing, setSyncing] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [editing, setEditing] = useState(null);
+    const [credsOpen, setCredsOpen] = useState(false);
     const { isViewer } = useAuth();
 
     const sync = async (a) => {
@@ -310,7 +314,8 @@ function GitOpsTab() {
 
     return (
         <div className="stack">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+            {!isViewer && <CredentialsButton onClick={() => setCredsOpen(true)} />}
             <button type="button" className="btn btn-fill btn-sm" data-testid={GITOPS_CREATE.open} onClick={() => setCreateOpen(true)}>
                 <Plus size={14} /> {t("pages:ops.gitops.newApplication")}
             </button>
@@ -355,6 +360,18 @@ function GitOpsTab() {
                                             {!isViewer && (
                                                 <button
                                                     type="button"
+                                                    className="btn btn-line btn-sm"
+                                                    data-testid={GITOPS_EDIT.open(a.kind, a.namespace, a.name)}
+                                                    title={t("pages:ops.gitops.editAria", { name: a.name })}
+                                                    aria-label={t("pages:ops.gitops.editAria", { name: a.name })}
+                                                    onClick={() => setEditing(a)}
+                                                >
+                                                    <Pencil size={13} />
+                                                </button>
+                                            )}
+                                            {!isViewer && (
+                                                <button
+                                                    type="button"
                                                     className="btn btn-danger btn-sm"
                                                     data-testid={GITOPS_CREATE.deleteRow(a.kind, a.namespace, a.name)}
                                                     title={t("pages:ops.gitops.deleteAria", { name: a.name })}
@@ -374,6 +391,8 @@ function GitOpsTab() {
             />
         </div>
         <GitOpsCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => setRefresh((n) => n + 1)} />
+        <GitOpsEditDialog app={editing} onClose={() => setEditing(null)} onSaved={() => setRefresh((n) => n + 1)} />
+        <GitOpsCredentials open={credsOpen} onOpenChange={setCredsOpen} />
         <GitOpsDeleteDialog app={deleting} onClose={() => setDeleting(null)} onDeleted={() => setRefresh((n) => n + 1)} />
         </div>
     );
@@ -930,29 +949,56 @@ function WebhooksTab() {
 
 function CostTab() {
     const { t } = useTranslation();
-    const cost = useEndpoint("/cost");
+    const [windowSel, setWindowSel] = useState("30d");
+    const cost = useEndpoint(`/cost?window=${windowSel}`, [windowSel]);
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
+    const actual = cost.source === "opencost";
     return (
         <div className="stack">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-[12.5px] text-ink-3" data-testid={OPENCOST.source}>
+                    <span className="pill" style={{ "--c": actual ? "var(--green)" : "var(--blue)" }}>
+                        <i aria-hidden="true" />
+                        {actual ? t("pages:ops.cost.sourceActual") : t("pages:ops.cost.sourceEstimate")}
+                    </span>
+                    {cost.note ? <span data-testid={OPENCOST.note}>{cost.note}</span> : null}
+                </div>
+                {actual && (
+                    <select aria-label={t("pages:ops.cost.window")} data-testid={OPENCOST.window} className="select" value={windowSel} onChange={(e) => setWindowSel(e.target.value)}>
+                        <option value="7d">{t("pages:ops.cost.last7d")}</option>
+                        <option value="14d">{t("pages:ops.cost.last14d")}</option>
+                        <option value="30d">{t("pages:ops.cost.last30d")}</option>
+                    </select>
+                )}
+            </div>
             <div className="stats c3">
                 <div className="stat">
                     <b>${cost.totalMonthlyUsd}</b>
-                    <span>{t("pages:ops.cost.totalMonthly")}</span>
+                    <span>{actual ? t("pages:ops.cost.totalMonthlyActual") : t("pages:ops.cost.totalMonthly")}</span>
                 </div>
-                <div className="stat">
-                    <b>
-                        ${cost.cpuRatePerCore}
-                        <small>{t("pages:ops.cost.perCore")}</small>
-                    </b>
-                    <span>{t("pages:ops.cost.cpuRate")}</span>
-                </div>
-                <div className="stat">
-                    <b>
-                        ${cost.memoryRatePerGi}
-                        <small>/GiB</small>
-                    </b>
-                    <span>{t("pages:ops.cost.memoryRate")}</span>
-                </div>
+                {actual ? (
+                    <div className="stat" data-testid={OPENCOST.idle}>
+                        <b>${cost.idleMonthlyUsd ?? 0}</b>
+                        <span>{t("pages:ops.cost.idle")}</span>
+                    </div>
+                ) : (
+                    <div className="stat">
+                        <b>
+                            ${cost.cpuRatePerCore}
+                            <small>{t("pages:ops.cost.perCore")}</small>
+                        </b>
+                        <span>{t("pages:ops.cost.cpuRate")}</span>
+                    </div>
+                )}
+                {!actual && (
+                    <div className="stat">
+                        <b>
+                            ${cost.memoryRatePerGi}
+                            <small>/GiB</small>
+                        </b>
+                        <span>{t("pages:ops.cost.memoryRate")}</span>
+                    </div>
+                )}
             </div>
             <CostBudgets />
             <CostRightsizing />
@@ -968,6 +1014,7 @@ function CostTab() {
                                     <th>{t("common:fields.namespace")}</th>
                                     <th>{t("common:fields.cpu")}</th>
                                     <th>{t("common:fields.memory")}</th>
+                                    {actual && <th>{t("pages:ops.cost.columns.whereItGoes")}</th>}
                                     <th>{t("pages:ops.cost.columns.monthlyCost")}</th>
                                 </tr>
                             </thead>
@@ -977,6 +1024,11 @@ function CostTab() {
                                         <td className="name">{n.namespace}</td>
                                         <td className="text-[12.5px] text-ink-3">{t("pages:ops.cost.cores", { n: n.cpuCores })}</td>
                                         <td className="text-[12.5px] text-ink-3">{n.memoryGi} GiB</td>
+                                        {actual && (
+                                            <td className="mono text-[11.5px] text-ink-3" data-testid={OPENCOST.breakdown(n.namespace)}>
+                                                cpu ${n.cpuUsd ?? 0} · mem ${n.memoryUsd ?? 0} · storage ${n.storageUsd ?? 0} · net ${n.networkUsd ?? 0}
+                                            </td>
+                                        )}
                                         <td className="mono num">${n.monthlyUsd}</td>
                                     </tr>
                                 ))}

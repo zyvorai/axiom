@@ -9,7 +9,8 @@
     "resetMfaTitle": "Reset two-factor for {{name}}?",
     "resetMfaDescription": "They will be able to sign in with just their password and can set up two-factor again. Use this when someone has lost their device and recovery codes.",
     "revokeTitle": "Sign {{name}} out everywhere?",
-    "revokeDescription": "Every session this account has open is ended; they must sign in again."
+    "revokeDescription": "Every session this account has open is ended; they must sign in again.",
+    "resetExternalMfaDescription": "This directory account will sign in with just its directory password until it sets up two-factor again."
   },
   "settings": {
     "registerCluster": {
@@ -383,5 +384,100 @@
       "validate": "Validate",
       "applyTitle": "Apply workload manifest"
     }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "New VerticalPodAutoscaler",
+      "description": "Recommends CPU and memory requests for a workload. In Off mode it only recommends and never restarts pods.",
+      "region": "VPA settings",
+      "updateMode": "Update mode",
+      "modes": {
+        "off": "Off — recommend only",
+        "initial": "Initial — apply to new pods",
+        "recreate": "Recreate — restart pods to apply"
+      }
+    },
+    "keda": {
+      "title": "New KEDA ScaledObject",
+      "description": "Scale a workload on events. Credentials are never entered here: pick an existing TriggerAuthentication.",
+      "region": "ScaledObject settings",
+      "trigger": "Trigger {{n}}",
+      "removeTrigger": "Remove trigger {{n}}",
+      "credentials": "Credentials (TriggerAuthentication)",
+      "addTrigger": "Add trigger",
+      "triggers": {
+        "cron": "Cron schedule",
+        "prometheus": "Prometheus query",
+        "kafka": "Kafka lag",
+        "redis": "Redis list length",
+        "rabbitmq": "RabbitMQ queue",
+        "awsSqs": "AWS SQS queue"
+      },
+      "fields": {
+        "metricType": "Metric type",
+        "targetValue": "Target value",
+        "timezone": "Timezone",
+        "start": "Start",
+        "end": "End",
+        "replicasInWindow": "Replicas in window",
+        "serverAddress": "Server address",
+        "query": "Query",
+        "threshold": "Threshold",
+        "bootstrapServers": "Bootstrap servers",
+        "consumerGroup": "Consumer group",
+        "topic": "Topic",
+        "lagThreshold": "Lag threshold",
+        "address": "Address",
+        "list": "List",
+        "lengthThreshold": "Length threshold",
+        "queue": "Queue",
+        "mode": "Mode",
+        "queueUrl": "Queue URL",
+        "queueLength": "Queue length",
+        "region": "Region"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "Edit {{name}}",
+    "description": "{{kind}} · {{namespace}}. Only the fields below are changed; everything else on the object is left alone.",
+    "staleHint": " Close this dialog and open it again to start from the current version.",
+    "notEditable": "This application uses settings the form cannot represent, so it is shown read-only:",
+    "region": "Application settings",
+    "valuesYaml": "Values YAML",
+    "automated": "Sync automatically",
+    "prune": "Prune resources removed from Git",
+    "selfHeal": "Self-heal manual changes",
+    "noop": "Nothing would change.",
+    "none": "(none)",
+    "staleChange": "You changed a field after previewing — preview again.",
+    "comparing": "Comparing…",
+    "previewChanges": "Preview changes"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "Delete {{kind}} {{name}}?",
+    "deleteDescription": "The workload itself is not touched."
+  },
+  "gitopsCredentials": {
+    "title": "Repository credentials",
+    "description": "For private Git and Helm repositories. Axiom stores them as Secrets for Argo CD or Flux to use and never shows them again.",
+    "region": "Credentials",
+    "empty": "No credentials created through Axiom yet.",
+    "deleteTitle": "Delete the credentials {{name}}?",
+    "deleteDescription": "Applications that reference them will stop being able to pull from the repository.",
+    "deleteAria": "Delete credentials {{name}}",
+    "add": "Add credentials",
+    "writeOnly": "Write-only: once saved, the secret cannot be read back — to rotate it, delete and recreate.",
+    "for": "For",
+    "url": "Repository URL",
+    "auth": "Authentication",
+    "authToken": "Access token",
+    "authBasic": "Username and password",
+    "authSsh": "SSH key",
+    "token": "Token",
+    "privateKey": "Private key",
+    "knownHosts": "known_hosts (optional)",
+    "save": "Save credentials",
+    "button": "Credentials"
   }
 }

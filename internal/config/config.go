@@ -84,6 +84,16 @@ type Config struct {
 	// bearer token for it. Never logged.
 	PrometheusURL   string
 	PrometheusToken string
+	// PodProxyAddr (AXIOM_POD_PROXY_ADDR, e.g. ":5091") and PodProxyOrigin
+	// (AXIOM_POD_PROXY_ORIGIN, e.g. "https://pods.example.com") serve pod
+	// windows from a separate origin. Both must be set; off by default.
+	PodProxyAddr   string
+	PodProxyOrigin string
+	// OpenCostURL (AXIOM_OPENCOST_URL) switches GET /cost from request-based
+	// estimates to actual allocation cost; OpenCostToken
+	// (AXIOM_OPENCOST_TOKEN) is an optional bearer token for it. Never logged.
+	OpenCostURL   string
+	OpenCostToken string
 }
 
 func FromEnv() Config {
@@ -137,6 +147,11 @@ func FromEnv() Config {
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
 		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
+
+		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
+		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
+		OpenCostURL:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
+		OpenCostToken: strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
 	}
 }
 

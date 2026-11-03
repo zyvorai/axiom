@@ -9,7 +9,8 @@
     "resetMfaTitle": "Zwei-Faktor für {{name}} zurücksetzen?",
     "resetMfaDescription": "Die Person kann sich dann nur mit ihrem Passwort anmelden und Zwei-Faktor erneut einrichten. Verwenden Sie dies, wenn Gerät und Wiederherstellungscodes verloren sind.",
     "revokeTitle": "{{name}} überall abmelden?",
-    "revokeDescription": "Jede offene Sitzung dieses Kontos wird beendet; eine erneute Anmeldung ist nötig."
+    "revokeDescription": "Jede offene Sitzung dieses Kontos wird beendet; eine erneute Anmeldung ist nötig.",
+    "resetExternalMfaDescription": "Dieses Verzeichniskonto meldet sich nur mit dem Verzeichnispasswort an, bis es Zwei-Faktor erneut einrichtet."
   },
   "settings": {
     "registerCluster": {
@@ -383,5 +384,100 @@
       "validate": "Validieren",
       "applyTitle": "Workload-Manifest anwenden"
     }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "Neuer VerticalPodAutoscaler",
+      "description": "Empfiehlt CPU- und Arbeitsspeicher-Requests für einen Workload. Im Modus Off wird nur empfohlen, Pods werden nie neu gestartet.",
+      "region": "VPA-Einstellungen",
+      "updateMode": "Update-Modus",
+      "modes": {
+        "off": "Off — nur empfehlen",
+        "initial": "Initial — auf neue Pods anwenden",
+        "recreate": "Recreate — Pods zum Anwenden neu starten"
+      }
+    },
+    "keda": {
+      "title": "Neues KEDA-ScaledObject",
+      "description": "Einen Workload anhand von Ereignissen skalieren. Zugangsdaten werden hier nie eingegeben: Wählen Sie eine vorhandene TriggerAuthentication.",
+      "region": "ScaledObject-Einstellungen",
+      "trigger": "Trigger {{n}}",
+      "removeTrigger": "Trigger {{n}} entfernen",
+      "credentials": "Zugangsdaten (TriggerAuthentication)",
+      "addTrigger": "Trigger hinzufügen",
+      "triggers": {
+        "cron": "Cron-Zeitplan",
+        "prometheus": "Prometheus-Abfrage",
+        "kafka": "Kafka-Lag",
+        "redis": "Redis-Listenlänge",
+        "rabbitmq": "RabbitMQ-Queue",
+        "awsSqs": "AWS-SQS-Queue"
+      },
+      "fields": {
+        "metricType": "Metriktyp",
+        "targetValue": "Zielwert",
+        "timezone": "Zeitzone",
+        "start": "Beginn",
+        "end": "Ende",
+        "replicasInWindow": "Replikas im Zeitfenster",
+        "serverAddress": "Serveradresse",
+        "query": "Abfrage",
+        "threshold": "Schwellenwert",
+        "bootstrapServers": "Bootstrap-Server",
+        "consumerGroup": "Consumer-Gruppe",
+        "topic": "Topic",
+        "lagThreshold": "Lag-Schwellenwert",
+        "address": "Adresse",
+        "list": "Liste",
+        "lengthThreshold": "Längen-Schwellenwert",
+        "queue": "Queue",
+        "mode": "Modus",
+        "queueUrl": "Queue-URL",
+        "queueLength": "Queue-Länge",
+        "region": "Region"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "{{name}} bearbeiten",
+    "description": "{{kind}} · {{namespace}}. Nur die folgenden Felder werden geändert; alles andere am Objekt bleibt unverändert.",
+    "staleHint": " Schließen Sie diesen Dialog und öffnen Sie ihn erneut, um mit der aktuellen Version zu beginnen.",
+    "notEditable": "Diese Anwendung verwendet Einstellungen, die das Formular nicht darstellen kann, daher wird sie schreibgeschützt angezeigt:",
+    "region": "Anwendungseinstellungen",
+    "valuesYaml": "Values-YAML",
+    "automated": "Automatisch synchronisieren",
+    "prune": "Aus Git entfernte Ressourcen bereinigen (Prune)",
+    "selfHeal": "Manuelle Änderungen selbst heilen (Self-heal)",
+    "noop": "Es würde sich nichts ändern.",
+    "none": "(keine)",
+    "staleChange": "Sie haben nach der Vorschau ein Feld geändert — erneut Vorschau anzeigen.",
+    "comparing": "Wird verglichen…",
+    "previewChanges": "Änderungen anzeigen"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "{{kind}} {{name}} löschen?",
+    "deleteDescription": "Der Workload selbst bleibt unverändert."
+  },
+  "gitopsCredentials": {
+    "title": "Repository-Zugangsdaten",
+    "description": "Für private Git- und Helm-Repositories. Axiom speichert sie als Secrets für Argo CD oder Flux und zeigt sie nie wieder an.",
+    "region": "Zugangsdaten",
+    "empty": "Noch keine über Axiom erstellten Zugangsdaten.",
+    "deleteTitle": "Zugangsdaten {{name}} löschen?",
+    "deleteDescription": "Anwendungen, die darauf verweisen, können dann nicht mehr aus dem Repository lesen.",
+    "deleteAria": "Zugangsdaten {{name}} löschen",
+    "add": "Zugangsdaten hinzufügen",
+    "writeOnly": "Nur schreibbar: Nach dem Speichern kann das Geheimnis nicht mehr gelesen werden — zum Wechseln löschen und neu anlegen.",
+    "for": "Für",
+    "url": "Repository-URL",
+    "auth": "Authentifizierung",
+    "authToken": "Zugriffstoken",
+    "authBasic": "Benutzername und Passwort",
+    "authSsh": "SSH-Schlüssel",
+    "token": "Token",
+    "privateKey": "Privater Schlüssel",
+    "knownHosts": "known_hosts (optional)",
+    "save": "Zugangsdaten speichern",
+    "button": "Zugangsdaten"
   }
 }

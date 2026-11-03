@@ -112,6 +112,9 @@ type fleetState struct {
 	notifier  Notifier
 	gate      *notifyGate
 	downSince map[string]time.Time // cluster -> when it left healthy
+
+	// history holds the recent samples per cluster (fleet_history.go).
+	history map[string][]fleetRecord
 }
 
 func (sp *SwitchableProvider) fleet() *fleetState {
@@ -207,6 +210,8 @@ func (sp *SwitchableProvider) probe(ctx context.Context, name string, p Provider
 			keep.LatencyMs = h.LatencyMs
 			st.health[name] = keep
 			st.mu.Unlock()
+			// History records the held state: what the console showed.
+			sp.recordHistory(name, keep, true, now)
 			return keep
 		}
 	} else if st.failures != nil {
@@ -219,6 +224,7 @@ func (sp *SwitchableProvider) probe(ctx context.Context, name string, p Provider
 	}
 	st.health[name] = h
 	st.mu.Unlock()
+	sp.recordHistory(name, h, h.State == ClusterUnreachable, now)
 
 	if had && prev.State != h.State && prev.State != ClusterUnknown {
 		recordFleetTransition(name, prev.State, h)
@@ -392,6 +398,7 @@ func (sp *SwitchableProvider) forgetHealth(name string) {
 	st.mu.Lock()
 	delete(st.health, name)
 	delete(st.downSince, name)
+	st.forgetHistoryLocked(name)
 	st.mu.Unlock()
 	st.gate.forget(name)
 }

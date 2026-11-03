@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { COST as T } from "@/constants/testIds";
+import { COST as T, OPENCOST } from "@/constants/testIds";
 
 const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:costPanels.generic");
 const usd = (v) => formatCurrency(v);
@@ -169,7 +169,8 @@ export function CostBudgets() {
             )}
             {data.budgets.length > 0 && (
                 <p className="border-t border-border px-4 py-2 text-xs text-ink-3" data-testid={T.totals}>
-                    {t("pages:costPanels.totals", { current: usd(data.totalCurrentUsd), budget: usd(data.totalBudgetUsd) })}
+                    {t(data.source === "opencost" ? "pages:costPanels.totalsActual" : "pages:costPanels.totals", { current: usd(data.totalCurrentUsd), budget: usd(data.totalBudgetUsd) })}
+                    <span data-testid={OPENCOST.budgetSource} className="sr-only">{data.source === "opencost" ? t("pages:costPanels.basedOnOpenCost") : t("pages:costPanels.basedOnRequests")}</span>
                 </p>
             )}
             {(data.unbudgeted || []).length > 0 && !isViewer && (

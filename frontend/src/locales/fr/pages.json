@@ -638,7 +638,20 @@
     "totals": "Les totaux comptent les clusters qui ont répondu",
     "lastCheck": " · dernière vérification {{time}}",
     "interval": " · vérifié toutes les {{n}} s",
-    "backgroundOff": " · les vérifications en arrière-plan sont désactivées"
+    "backgroundOff": " · les vérifications en arrière-plan sont désactivées",
+    "history": {
+      "ongoing": "en cours",
+      "stripAria": "État sur la période choisie : {{bad}} intervalles sur {{total}} n'étaient pas sains",
+      "reachable": "Joignable <b>{{pct}} %</b>",
+      "failedChecks": "{{failed}} vérifications sur {{total}} en échec",
+      "noIncidents": "Aucun incident sur cette période.",
+      "unreachableFor": "Injoignable pendant {{duration}}",
+      "degradedFor": "Dégradé pendant {{duration}}",
+      "label": "Historique",
+      "last1h": "Dernière heure",
+      "last6h": "6 dernières heures",
+      "last24h": "24 dernières heures"
+    }
   },
   "healthFindings": {
     "whatChanged": "Ce qui a changé",
@@ -714,7 +727,8 @@
       },
       "sync": "Synchroniser",
       "syncAria": "Synchroniser {{name}}",
-      "deleteAria": "Supprimer {{name}}"
+      "deleteAria": "Supprimer {{name}}",
+      "editAria": "Modifier {{name}}"
     },
     "agents": {
       "approve": "Approuver la proposition",
@@ -786,9 +800,18 @@
       "noWorkloadData": "Aucune donnée de coût par charge de travail.",
       "columns": {
         "monthlyCost": "Coût mensuel",
-        "workload": "Charge de travail"
+        "workload": "Charge de travail",
+        "whereItGoes": "Répartition"
       },
-      "cores": "{{n}} cœurs"
+      "cores": "{{n}} cœurs",
+      "totalMonthlyActual": "Coût mensuel total (réel)",
+      "sourceActual": "Coût réel · OpenCost",
+      "sourceEstimate": "Estimation d'après les requests",
+      "window": "Période de coût",
+      "last7d": "7 derniers jours",
+      "last14d": "14 derniers jours",
+      "last30d": "30 derniers jours",
+      "idle": "Inactif (alloué mais inutilisé)"
     }
   },
   "rbac": {
@@ -1002,7 +1025,9 @@
         "container": "Conteneur",
         "cpu": "CPU (bas · cible · haut)",
         "memory": "Mémoire (bas · cible · haut)"
-      }
+      },
+      "new": "Nouveau VPA",
+      "deleteAria": "Supprimer le VPA {{name}}"
     },
     "keda": {
       "notInstalled": "KEDA n'est pas installé dans ce cluster.",
@@ -1018,7 +1043,9 @@
         "active": "Actif",
         "idle": "Inactif",
         "notReady": "Pas prêt"
-      }
+      },
+      "new": "Nouveau ScaledObject",
+      "deleteAria": "Supprimer le ScaledObject {{name}}"
     }
   },
   "backups": {
@@ -1097,7 +1124,10 @@
     },
     "used": "(utilisé {{value}})",
     "applyEllipsis": "Appliquer…",
-    "footnote": "Les recommandations ajoutent une marge au-dessus de l'utilisation observée. Axiom ne modifie jamais les requests de lui-même : Appliquer montre d'abord la modification exacte et n'agit qu'après votre confirmation."
+    "footnote": "Les recommandations ajoutent une marge au-dessus de l'utilisation observée. Axiom ne modifie jamais les requests de lui-même : Appliquer montre d'abord la modification exacte et n'agit qu'après votre confirmation.",
+    "totalsActual": "{{current}} réels sur les namespaces budgétés, pour {{budget}} budgétés.",
+    "basedOnOpenCost": "D'après OpenCost",
+    "basedOnRequests": "D'après les requests"
   },
   "helmCatalog": {
     "repositories": "Dépôts",
@@ -1118,7 +1148,14 @@
     "noMatch": "Aucun chart ne correspond.",
     "appVersion": "app {{version}}",
     "deprecated": "obsolète",
-    "showing": "{{shown}} charts sur {{total}} affichés."
+    "showing": "{{shown}} charts sur {{total}} affichés.",
+    "oci": {
+      "chartNames": "Noms des charts",
+      "chartNamesPlaceholder": "Noms des charts de ce registre, séparés par des virgules (ex. nginx, redis)",
+      "kindLabel": "Type de dépôt",
+      "index": "Dépôt de charts",
+      "registry": "Registre OCI"
+    }
   },
   "storage": {
     "title": "Stockage",

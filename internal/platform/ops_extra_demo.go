@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -58,6 +59,13 @@ func (d *DemoProvider) HelmRollback(ctx context.Context, ns, name string, revisi
 }
 
 func (d *DemoProvider) InstallHelmChart(ctx context.Context, req InstallHelmRequest) (HelmActionResult, error) {
+	if req.OCIRef != "" {
+		if err := ValidateHelmOCIInstall(req); err != nil {
+			return HelmActionResult{}, err
+		}
+		chart := req.OCIRef[strings.LastIndexByte(req.OCIRef, '/')+1:]
+		req.RepoURL, req.ChartName = strings.TrimSuffix(req.OCIRef, "/"+chart), chart
+	}
 	if req.Namespace == "" || req.ReleaseName == "" || req.RepoURL == "" || req.ChartName == "" {
 		return HelmActionResult{}, fmt.Errorf("namespace, releaseName, repoUrl, and chartName are required")
 	}

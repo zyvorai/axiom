@@ -10,7 +10,8 @@ import (
 const axiomNamespace = "axiom-system"
 
 // isInteractivePath reports whether a request opens an interactive session
-// into a workload: a pod shell, a VM console, or the pod "window" proxy. These
+// into a workload: a pod shell, a VM console, or the pod "window" proxy (and
+// its separate-origin link minting, POST .../window-link). These
 // are GET/WebSocket routes, so a method check alone would let the read-only
 // viewer role through — they require operator or admin.
 func isInteractivePath(path string) bool {
@@ -18,7 +19,7 @@ func isInteractivePath(path string) bool {
 		rest := strings.TrimPrefix(path, "/api/v1/pods/")
 		parts := strings.SplitN(rest, "/", 3)
 		if len(parts) == 3 {
-			return parts[2] == "terminal" || parts[2] == "exec" || parts[2] == "debug" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window"
+			return parts[2] == "terminal" || parts[2] == "exec" || parts[2] == "debug" || strings.HasPrefix(parts[2], "window/") || parts[2] == "window" || parts[2] == "window-link"
 		}
 		return false
 	}
@@ -133,10 +134,12 @@ var pathNamespacePrefixes = map[string]bool{
 	"/api/v1/pods":            true,
 	"/api/v1/resourcequotas":  true,
 	"/api/v1/resources":       true,
+	"/api/v1/scaledobjects":   true,
 	"/api/v1/secrets":         true,
 	"/api/v1/services":        true,
 	"/api/v1/vms":             true,
 	"/api/v1/volumes":         true,
+	"/api/v1/vpas":            true,
 	"/api/v1/workloads":       true,
 }
 
@@ -146,6 +149,9 @@ var pathNamespacePrefixes = map[string]bool{
 // `GET /secrets/kube-system/x?namespace=team-a` would pass the guard while the
 // handler serves kube-system. An empty string means "all namespaces".
 func namespacesOfRequest(r *http.Request) ([]string, bool) {
+	if isBodyNamespaceRoute(r) {
+		return nil, false // the handler checks the body's namespace (policy_autoscaling.go)
+	}
 	prefix, ok := matchNamespacedPrefix(r.URL.Path)
 	if !ok {
 		return nil, false

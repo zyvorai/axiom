@@ -40,5 +40,8 @@
   },
   "workloads": {
     "dnsLabel": "Use lowercase letters, numbers and “-” (start and end with a letter or number, max 63)."
+  },
+  "autoscalingCreate": {
+    "generic": "Something went wrong"
   }
 }

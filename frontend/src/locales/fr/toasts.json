@@ -205,7 +205,8 @@
   "podDetail": {
     "copyFailed": "Impossible de copier dans le presse-papiers",
     "evicted": "{{name}} évincé",
-    "evictFailed": "Échec de l'éviction"
+    "evictFailed": "Échec de l'éviction",
+    "openPortFailed": "Impossible d'ouvrir le port"
   },
   "pods": {
     "evicted": "{{name}} évincé",
@@ -237,5 +238,21 @@
     "bulkDeleted_other": "{{count}} charges de travail supprimées{{note}}",
     "bulkRestarted_one": "{{count}} charge de travail redémarrée{{note}}",
     "bulkRestarted_other": "{{count}} charges de travail redémarrées{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} créé"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} mis à jour"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "gitopsCredentials": {
+    "saved": "Identifiants {{name}} enregistrés",
+    "savedDescription": "Le secret est en écriture seule et ne peut plus être affiché.",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
   }
 }

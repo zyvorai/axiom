@@ -205,7 +205,8 @@
   "podDetail": {
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "evicted": "{{name}} entfernt",
-    "evictFailed": "Entfernen fehlgeschlagen"
+    "evictFailed": "Entfernen fehlgeschlagen",
+    "openPortFailed": "Port konnte nicht geöffnet werden"
   },
   "pods": {
     "evicted": "{{name}} entfernt",
@@ -237,5 +238,21 @@
     "bulkDeleted_other": "{{count}} Workloads gelöscht{{note}}",
     "bulkRestarted_one": "{{count}} Workload neu gestartet{{note}}",
     "bulkRestarted_other": "{{count}} Workloads neu gestartet{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} erstellt"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} aktualisiert"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "gitopsCredentials": {
+    "saved": "Zugangsdaten {{name}} gespeichert",
+    "savedDescription": "Das Geheimnis ist nur schreibbar und kann nicht erneut angezeigt werden.",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
   }
 }

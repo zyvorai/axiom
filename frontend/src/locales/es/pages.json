@@ -638,7 +638,20 @@
     "totals": "Los totales cuentan los clústeres que respondieron",
     "lastCheck": " · última comprobación {{time}}",
     "interval": " · comprobado cada {{n}} s",
-    "backgroundOff": " · las comprobaciones en segundo plano están desactivadas"
+    "backgroundOff": " · las comprobaciones en segundo plano están desactivadas",
+    "history": {
+      "ongoing": "en curso",
+      "stripAria": "Estado en el periodo seleccionado: {{bad}} de {{total}} intervalos no estaban correctos",
+      "reachable": "Accesible <b>{{pct}} %</b>",
+      "failedChecks": "{{failed}} de {{total}} comprobaciones fallidas",
+      "noIncidents": "Sin incidentes en este periodo.",
+      "unreachableFor": "Inaccesible durante {{duration}}",
+      "degradedFor": "Degradado durante {{duration}}",
+      "label": "Historial",
+      "last1h": "Última hora",
+      "last6h": "Últimas 6 horas",
+      "last24h": "Últimas 24 horas"
+    }
   },
   "healthFindings": {
     "whatChanged": "Qué ha cambiado",
@@ -714,7 +727,8 @@
       },
       "sync": "Sincronizar",
       "syncAria": "Sincronizar {{name}}",
-      "deleteAria": "Eliminar {{name}}"
+      "deleteAria": "Eliminar {{name}}",
+      "editAria": "Editar {{name}}"
     },
     "agents": {
       "approve": "Aprobar propuesta",
@@ -786,9 +800,18 @@
       "noWorkloadData": "No hay datos de coste por carga de trabajo.",
       "columns": {
         "monthlyCost": "Coste mensual",
-        "workload": "Carga de trabajo"
+        "workload": "Carga de trabajo",
+        "whereItGoes": "Desglose"
       },
-      "cores": "{{n}} núcleos"
+      "cores": "{{n}} núcleos",
+      "totalMonthlyActual": "Coste mensual total (real)",
+      "sourceActual": "Coste real · OpenCost",
+      "sourceEstimate": "Estimación a partir de requests",
+      "window": "Periodo de coste",
+      "last7d": "Últimos 7 días",
+      "last14d": "Últimos 14 días",
+      "last30d": "Últimos 30 días",
+      "idle": "Inactivo (asignado pero sin usar)"
     }
   },
   "rbac": {
@@ -1002,7 +1025,9 @@
         "container": "Contenedor",
         "cpu": "CPU (inferior · objetivo · superior)",
         "memory": "Memoria (inferior · objetivo · superior)"
-      }
+      },
+      "new": "Nuevo VPA",
+      "deleteAria": "Eliminar VPA {{name}}"
     },
     "keda": {
       "notInstalled": "KEDA no está instalado en este clúster.",
@@ -1018,7 +1043,9 @@
         "active": "Activo",
         "idle": "Inactivo",
         "notReady": "No listo"
-      }
+      },
+      "new": "Nuevo ScaledObject",
+      "deleteAria": "Eliminar ScaledObject {{name}}"
     }
   },
   "backups": {
@@ -1097,7 +1124,10 @@
     },
     "used": "(usado {{value}})",
     "applyEllipsis": "Aplicar…",
-    "footnote": "Las recomendaciones añaden margen sobre el uso observado. Axiom nunca cambia los requests por su cuenta: Aplicar muestra primero el cambio exacto y solo actúa tras su confirmación."
+    "footnote": "Las recomendaciones añaden margen sobre el uso observado. Axiom nunca cambia los requests por su cuenta: Aplicar muestra primero el cambio exacto y solo actúa tras su confirmación.",
+    "totalsActual": "{{current}} reales en los namespaces con presupuesto, de {{budget}} presupuestados.",
+    "basedOnOpenCost": "Basado en OpenCost",
+    "basedOnRequests": "Basado en los requests"
   },
   "helmCatalog": {
     "repositories": "Repositorios",
@@ -1118,7 +1148,14 @@
     "noMatch": "Ningún chart coincide.",
     "appVersion": "app {{version}}",
     "deprecated": "obsoleto",
-    "showing": "Mostrando {{shown}} de {{total}} charts."
+    "showing": "Mostrando {{shown}} de {{total}} charts.",
+    "oci": {
+      "chartNames": "Nombres de charts",
+      "chartNamesPlaceholder": "Nombres de charts en este registro, separados por comas (p. ej. nginx, redis)",
+      "kindLabel": "Tipo de repositorio",
+      "index": "Repositorio de charts",
+      "registry": "Registro OCI"
+    }
   },
   "storage": {
     "title": "Almacenamiento",

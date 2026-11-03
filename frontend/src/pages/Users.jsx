@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@/lib/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { MFA } from "@/constants/testIds";
+import { MFA, LDAP_MFA } from "@/constants/testIds";
 
 function parseNamespaces(text) {
     return text
@@ -204,8 +204,17 @@ export default function Users() {
     const [data, setData] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [external, setExternal] = useState([]);
 
-    const load = () => api.get("/users").then((r) => setData(r.data));
+    const loadExternal = () =>
+        api
+            .get("/users/external-mfa")
+            .then((r) => setExternal(r.data || []))
+            .catch(() => setExternal([]));
+    const load = () => {
+        loadExternal();
+        return api.get("/users").then((r) => setData(r.data));
+    };
 
     useEffect(() => {
         load();
@@ -238,6 +247,22 @@ export default function Users() {
             await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
             toast.success(t("toasts:users.mfaReset", { name: u.username }));
             load();
+        } catch (e) {
+            toast.error(t("toasts:users.resetFailed"), { description: e?.response?.data?.error || e.message });
+        }
+    };
+
+    const resetExternalMfa = async (u) => {
+        const ok = await confirm({
+            title: t("dialogs:users.resetMfaTitle", { name: u.username }),
+            description: t("dialogs:users.resetExternalMfaDescription"),
+            confirmLabel: t("common:actions.reset"),
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/users/${encodeURIComponent(u.username)}/mfa`);
+            toast.success(t("toasts:users.mfaReset", { name: u.username }));
+            loadExternal();
         } catch (e) {
             toast.error(t("toasts:users.resetFailed"), { description: e?.response?.data?.error || e.message });
         }
@@ -354,6 +379,44 @@ export default function Users() {
                     </table>
                 )}
             </div>
+
+            {external.length > 0 && (
+                <div className="card p-0" data-testid={LDAP_MFA.section}>
+                    <div className="panel-h">{t("auth:users.directoryTitle")}</div>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("auth:login.username")}</th>
+                                <th>{t("auth:users.twoFactor")}</th>
+                                <th>{t("common:fields.updated")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {external.map((u) => (
+                                <tr key={u.username} data-testid={LDAP_MFA.row(u.username)}>
+                                    <td className="name">{u.username}<small>{t("auth:users.directory")}</small></td>
+                                    <td>
+                                        {u.enabled ? (
+                                            <span className="pill" style={{ "--c": "var(--green)" }}><ShieldCheck size={11} /> {t("auth:users.mfaOn")}</span>
+                                        ) : (
+                                            <span className="text-[12.5px] text-ink-3">{t("auth:users.mfaIncomplete")}</span>
+                                        )}
+                                    </td>
+                                    <td className="mono num">{u.updatedAt ? formatDate(u.updatedAt) : "—"}</td>
+                                    <td>
+                                        <div className="flex justify-end">
+                                            <button type="button" className="btn btn-line btn-sm" data-testid={LDAP_MFA.reset(u.username)} aria-label={t("auth:users.resetMfa", { name: u.username })} title={t("auth:users.resetMfa", { name: u.username })} onClick={() => resetExternalMfa(u)}>
+                                                <KeyRound size={13} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <EditUserDialog user={editingUser} onOpenChange={(open) => !open && setEditingUser(null)} onUpdated={load} />

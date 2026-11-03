@@ -8,9 +8,10 @@ import (
 	"net/http"
 )
 
-func RegisterRealtime(mux *http.ServeMux, provider platform.Provider) {
+// podProxy reports whether pod windows use the separate origin (window-link).
+func RegisterRealtime(mux *http.ServeMux, provider platform.Provider, podProxy func() bool) {
 	mux.HandleFunc("GET /api/v1/realtime/capabilities", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{"interactiveExec": true, "logFollow": true, "mode": "kubernetes"})
+		writeJSON(w, 200, map[string]any{"interactiveExec": true, "logFollow": true, "mode": "kubernetes", "podProxy": podProxy != nil && podProxy()})
 	})
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/terminal", func(w http.ResponseWriter, r *http.Request) {
 		p, ok := platform.CurrentKubernetesProvider(r.Context(), provider)

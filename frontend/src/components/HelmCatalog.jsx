@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HELM_CATALOG as T } from "@/constants/testIds";
+import { HELM_CATALOG as T, OCI } from "@/constants/testIds";
 
 const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:helmCatalog.generic");
 
@@ -32,15 +32,23 @@ function RepoManager({ repos, onChanged, canWrite }) {
     const confirm = useConfirm();
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
+    const [kind, setKind] = useState("index");
+    const [charts, setCharts] = useState("");
     const [busy, setBusy] = useState(false);
 
     const add = async (n, u) => {
         setBusy(true);
         try {
-            await api.post("/helm/repos", { name: n, url: u });
+            const body = { name: n, url: u };
+            if (kind === "oci") {
+                // A registry has no index: list the charts to browse (most hosted registries refuse the catalog API).
+                body.charts = charts.split(/[\s,]+/).map((c) => c.trim()).filter(Boolean);
+            }
+            await api.post("/helm/repos", body);
             toast.success(t("toasts:helmCatalog.repoAdded", { name: n }));
             setName("");
             setUrl("");
+            setCharts("");
             onChanged();
         } catch (e) {
             toast.error(t("toasts:helmCatalog.repoAddFailed"), { description: errText(e) });
@@ -78,7 +86,10 @@ function RepoManager({ repos, onChanged, canWrite }) {
                     {repos.map((r) => (
                         <li key={r.name} className="flex items-center justify-between gap-3 py-2" data-testid={T.repoRow(r.name)}>
                             <div className="min-w-0">
-                                <div className="text-sm font-medium">{r.name}</div>
+                                <div className="text-sm font-medium">
+                                    {r.name}
+                                    {r.kind === "oci" ? <span className="pill soft ml-2 text-[10px]">OCI</span> : null}
+                                </div>
                                 <div className="mono truncate text-[11.5px] text-ink-3" title={r.url}>{r.url}</div>
                                 {r.error ? <div className="text-xs text-tone-red">{r.error}</div> : null}
                             </div>
@@ -96,6 +107,16 @@ function RepoManager({ repos, onChanged, canWrite }) {
             )}
             {canWrite && (
                 <>
+                    <div className="flex items-center gap-4 text-sm" role="radiogroup" aria-label={t("pages:helmCatalog.oci.kindLabel")} data-testid={OCI.kind}>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="helm-repo-kind" checked={kind === "index"} onChange={() => setKind("index")} className="accent-primary" />
+                            {t("pages:helmCatalog.oci.index")}
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="helm-repo-kind" data-testid={OCI.kindOci} checked={kind === "oci"} onChange={() => setKind("oci")} className="accent-primary" />
+                            {t("pages:helmCatalog.oci.registry")}
+                        </label>
+                    </div>
                     <form
                         className="grid gap-2 sm:grid-cols-[10rem_1fr_auto]"
                         onSubmit={(e) => {
@@ -109,13 +130,19 @@ function RepoManager({ repos, onChanged, canWrite }) {
                         </div>
                         <div>
                             <Label htmlFor="helm-repo-url" className="sr-only">{t("pages:helmCatalog.repoUrl")}</Label>
-                            <Input id="helm-repo-url" data-testid={T.repoUrl} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://charts.example.com" className="bg-muted/30" />
+                            <Input id="helm-repo-url" data-testid={T.repoUrl} value={url} onChange={(e) => setUrl(e.target.value)} placeholder={kind === "oci" ? "oci://ghcr.io/org/charts" : "https://charts.example.com"} className="bg-muted/30" />
                         </div>
-                        <button type="submit" className="btn btn-fill btn-sm" data-testid={T.repoAdd} disabled={busy || !name || !url}>
+                        {kind === "oci" && (
+                            <div className="sm:col-span-3">
+                                <Label htmlFor="helm-repo-oci-charts" className="sr-only">{t("pages:helmCatalog.oci.chartNames")}</Label>
+                                <Input id="helm-repo-oci-charts" data-testid={OCI.charts} value={charts} onChange={(e) => setCharts(e.target.value)} placeholder={t("pages:helmCatalog.oci.chartNamesPlaceholder")} className="bg-muted/30" />
+                            </div>
+                        )}
+                        <button type="submit" className="btn btn-fill btn-sm" data-testid={T.repoAdd} disabled={busy || !name || !url || (kind === "oci" && !charts.trim())}>
                             <Plus size={14} /> {busy ? t("pages:helmCatalog.adding") : t("common:actions.add")}
                         </button>
                     </form>
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-3">
+                    <div className={`flex flex-wrap items-center gap-1.5 text-xs text-ink-3 ${kind === "oci" ? "hidden" : ""}`}>
                         <span>{t("pages:helmCatalog.suggested")}</span>
                         {SUGGESTED.filter((s) => !known.has(s.name)).map((s) => (
                             <button key={s.name} type="button" className="pill soft" data-testid={T.repoSuggest(s.name)} disabled={busy} onClick={() => add(s.name, s.url)}>
@@ -179,14 +206,12 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
     const install = async () => {
         setBusy(true);
         try {
-            await api.post("/helm/install", {
-                namespace,
-                releaseName: release,
-                repoUrl: repo.url,
-                chartName: chart.name,
-                chartVersion: version,
-                values,
-            });
+            await api.post(
+                "/helm/install",
+                chart.kind === "oci"
+                    ? { namespace, releaseName: release, ociRef: chart.ref, chartVersion: version, values }
+                    : { namespace, releaseName: release, repoUrl: repo.url, chartName: chart.name, chartVersion: version, values }
+            );
             toast.success(t("toasts:helmCatalog.installStarted", { name: release }), { description: t("toasts:helmCatalog.installStartedDescription") });
             onInstalled();
             onClose();
@@ -206,6 +231,9 @@ function ChartDialog({ chart, repo, onClose, onInstalled }) {
                     <DialogTitle>{chart.name}</DialogTitle>
                     <DialogDescription>
                         {chart.description || t("pages:helmCatalog.noDescription")} · <Trans i18nKey="dialogs:helmCatalog.chart.from" values={{ repo: chart.repo }} components={{ code: <span className="mono" /> }} />
+                        {chart.kind === "oci" && chart.ref ? (
+                            <span className="mono mt-1 block text-[11.5px]" data-testid={OCI.ref}>{chart.ref}</span>
+                        ) : null}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -399,6 +427,7 @@ export default function HelmCatalog({ onInstalled }) {
                                         <p className="line-clamp-2 text-[12.5px] text-ink-3">{c.description || t("pages:helmCatalog.noDescription")}</p>
                                         <div className="mt-auto flex items-center gap-2 pt-1 text-[11.5px] text-ink-3">
                                             <span className="pill soft">{c.repo}</span>
+                                            {c.kind === "oci" ? <span className="pill soft" data-testid={OCI.badge(c.repo, c.name)}>OCI</span> : null}
                                             {c.appVersion ? <span>{t("pages:helmCatalog.appVersion", { version: c.appVersion })}</span> : null}
                                             {c.deprecated ? <span className="text-tone-amber">{t("pages:helmCatalog.deprecated")}</span> : null}
                                         </div>

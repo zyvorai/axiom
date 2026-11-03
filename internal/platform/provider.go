@@ -119,6 +119,13 @@ type Provider interface {
 	// Installed:false, not an error.
 	ListVPAs(context.Context, string) (VPAList, error)
 	ListScaledObjects(context.Context, string) (ScaledObjectList, error)
+	// VPA and KEDA create/delete (autoscaling_build.go validates and renders;
+	// a missing CRD is a 422). ListTriggerAuthentications returns names only.
+	CreateVPA(context.Context, VPACreateRequest) (AutoscalerCreateResult, error)
+	DeleteVPA(context.Context, string, string) error
+	CreateScaledObject(context.Context, ScaledObjectCreateRequest) (AutoscalerCreateResult, error)
+	DeleteScaledObject(context.Context, string, string) error
+	ListTriggerAuthentications(context.Context, string) (TriggerAuthenticationList, error)
 
 	ListPodDisruptionBudgets(context.Context, string) ([]PDBSummary, error)
 
@@ -173,6 +180,15 @@ type Provider interface {
 	// optionally removes an unshared, Axiom-created Flux source.
 	PreviewGitOpsDelete(ctx context.Context, kind, namespace, name string) (GitOpsDeletePreview, error)
 	DeleteGitOpsApp(context.Context, GitOpsDeleteRequest) (GitOpsDeleteResult, error)
+	// GitOps edit in place (gitops_edit.go): the current typed fields, a
+	// managed-field diff, and a resourceVersion-guarded patch of only those fields.
+	GetGitOpsEditable(context.Context, GitOpsRef) (GitOpsEditable, error)
+	PreviewGitOpsEdit(context.Context, GitOpsRef, GitOpsEditRequest) (GitOpsEditPreview, error)
+	UpdateGitOpsApp(context.Context, GitOpsRef, GitOpsEditRequest) (GitOpsEditResult, error)
+	// Write-only GitOps repository credentials (gitops_repocreds.go).
+	ListGitOpsCredentials(ctx context.Context, engine, namespace string) ([]GitOpsCredential, error)
+	CreateGitOpsCredential(context.Context, GitOpsCredentialRequest) (GitOpsCredentialResult, error)
+	DeleteGitOpsCredential(ctx context.Context, engine, namespace, name string) error
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)

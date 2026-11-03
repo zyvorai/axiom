@@ -40,5 +40,8 @@
   },
   "workloads": {
     "dnsLabel": "Utilisez des minuscules, des chiffres et « - » (commencer et finir par une lettre ou un chiffre, 63 max.)."
+  },
+  "autoscalingCreate": {
+    "generic": "Une erreur s'est produite"
   }
 }

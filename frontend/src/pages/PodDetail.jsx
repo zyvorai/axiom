@@ -361,6 +361,28 @@ export default function PodDetail() {
         else toast.error(t("toasts:podDetail.copyFailed"), { description: cmd });
     };
 
+    // With the separate pod-proxy origin on (capabilities.podProxy), "Open"
+    // mints a single-use link on that origin instead of navigating to the
+    // in-origin window route (which then answers 410). The tab is opened
+    // synchronously so popup blockers allow it, then pointed at the link.
+    const openPortWindow = async (event, port) => {
+        if (!capabilities?.podProxy) return; // default <a> navigation
+        event.preventDefault();
+        const win = window.open("about:blank", "_blank");
+        try {
+            const r = await api.post(`/pods/${namespace}/${encodeURIComponent(name)}/window-link`, { port, path: "/" });
+            if (win) {
+                win.opener = null;
+                win.location.href = r.data.url;
+            } else {
+                window.open(r.data.url, "_blank", "noopener,noreferrer");
+            }
+        } catch (e) {
+            win?.close();
+            toast.error(t("toasts:podDetail.openPortFailed"), { description: e?.response?.data?.error || e.message });
+        }
+    };
+
     const pod = useMemo(() => (pods || []).find((p) => p.name === name), [pods, name]);
     const podEvents = useMemo(() => (events || []).filter((e) => e.object === `Pod/${name}`), [events, name]);
     const spec = detail && detail.manifest ? detail.manifest.spec : null;
@@ -629,7 +651,8 @@ export default function PodDetail() {
                                         </button>
                                         <a
                                             data-testid={PORTFWD.open(p.containerPort)}
-                                            href={withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
+                                            href={capabilities?.podProxy ? "#" : withAccessToken(`/pods/${pod.namespace}/${encodeURIComponent(pod.name)}/window/${p.containerPort}/`)}
+                                            onClick={(e) => openPortWindow(e, p.containerPort)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="flex items-center gap-1 rounded-lg border border-soft-info-border bg-soft-info px-2.5 py-1 text-xs text-tone-link hover:bg-soft-info"

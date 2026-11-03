@@ -56,6 +56,9 @@ type KubernetesProvider struct {
 	// prometheus, when set (ConfigurePrometheus), backs rightsizing with
 	// p95/p99 usage history. Only the cluster Axiom starts on gets it.
 	prometheus *PrometheusClient
+	// opencost, when set (ConfigureOpenCost), makes GET /cost report actual
+	// allocation cost. Only the cluster Axiom starts on gets it.
+	opencost *OpenCostClient
 }
 
 func NewKubernetesProvider(kubeconfig string) (*KubernetesProvider, error) {
