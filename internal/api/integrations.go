@@ -28,6 +28,10 @@ func (s *Server) putIntegrations(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
+	if err := platform.ValidateAIPatch(patch); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
 	view, err := s.hub.Update(r.Context(), patch)
 	if err != nil {
 		fail(w, http.StatusInternalServerError, err)

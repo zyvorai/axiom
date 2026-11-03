@@ -190,6 +190,29 @@ Uninstall:
 ./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --uninstall
 ```
 
+## AI assistant and privacy
+
+The "Explain with AI" feature (pod diagnosis banner, Warning events) is **off by default** and is configured by an admin under Settings → AI assistant: provider (`openai-compatible`, `anthropic` or `ollama`), base URL, model, API key and a redaction switch. It works with any endpoint you control, including a self-hosted Ollama or vLLM, so it can run fully air-gapped.
+
+What is sent, per click (after you review the redacted payload in the side drawer and press *Send*):
+
+- the pod's status, container states, restart count, limits and image;
+- the built-in diagnosis and the Warning events for that object;
+- a short tail (about 40 lines) of the logs of up to three unhealthy containers;
+- your optional question.
+
+What is never read or sent: Secret or ConfigMap data, environment variable values, pod IPs, labels and annotations. Before sending, a redactor also removes bearer tokens, JWTs, well-known API-key formats, PEM blocks, kubeconfig text, URL credentials, `password=`/`token:`-style assignments, env-dump lines and base64-looking blobs. With "mask IP addresses and hostnames" on (the default) IPs and DNS names are replaced too. Redaction is pattern based and best effort: log lines can still contain business data, so review the preview, and point the assistant at a model you trust with that data.
+
+Controls and guarantees:
+
+- Disabled means the buttons are hidden and `/api/v1/ai/explain` returns `409`.
+- Read only: the model returns text; there are no tool calls and nothing is ever applied to the cluster.
+- Scoped to the caller: only the namespace in the request (authorized like every other namespaced route) is read; namespace-restricted accounts cannot ask about other namespaces.
+- Each send is audited as `ai.explain` with the target only (never the prompt or answer) and is rate limited per user.
+- The API key lives only in the `zyvor-axiom-integrations` Secret and is never returned by the API.
+- Outbound traffic: TLS verification stays on, redirects to a different host are refused, request bodies are capped at 64 KiB and responses at 1 MiB, timeouts are 60 s (10 s for the connection test). Only `http`/`https` base URLs are accepted. The base URL is chosen by an admin and is therefore a deliberate egress destination (including internal addresses such as a local Ollama); restrict who is admin and use an egress NetworkPolicy if you need to pin it.
+- Demo mode returns canned answers and contacts no model.
+
 ## Production hardening checklist
 
 - Real TLS certificate (replace self-signed lab cert)

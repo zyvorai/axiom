@@ -6,6 +6,7 @@ import TopBar from "@/components/TopBar";
 import CommandPalette from "@/components/CommandPalette";
 import ViewerBanner from "@/components/ViewerBanner";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
+import { AiAssistantProvider } from "@/components/AiAssistantDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadErrorBanner from "@/components/LoadErrorBanner";
@@ -65,6 +66,7 @@ export default function AppShell() {
 
     return (
         <ConfirmProvider>
+            <AiAssistantProvider>
             <div className="ax">
                 <a
                     href="#main-content"
@@ -104,6 +106,7 @@ export default function AppShell() {
                     </main>
                 </div>
             </div>
+            </AiAssistantProvider>
         </ConfirmProvider>
     );
 }

@@ -6,7 +6,9 @@ import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
-import { EVENTS } from "@/constants/testIds";
+import { EVENTS, AI } from "@/constants/testIds";
+import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { canExplainEvent } from "@/lib/ai";
 import { resourceHref } from "@/lib/resourceHref";
 
 function relTime(iso) {
@@ -58,6 +60,7 @@ export default function Events() {
                                 <th>Object</th>
                                 <th>Count</th>
                                 <th>Age</th>
+                                <th><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,12 +84,20 @@ export default function Events() {
                                         </td>
                                         <td className="num">×{e.count}</td>
                                         <td className="mono num">{relTime(e.time)}</td>
+                                        <td>
+                                            {canExplainEvent(e) && (
+                                                <ExplainWithAiButton
+                                                    testId={AI.explainEvent(i)}
+                                                    target={{ namespace: e.namespace, kind: "event", name: e.object, reason: e.reason, label: `${e.reason}: ${e.namespace}/${e.object}` }}
+                                                />
+                                            )}
+                                        </td>
                                     </tr>
                                 );
                             })}
                             {events.length === 0 && (
                                 <tr>
-                                    <td colSpan={6}>
+                                    <td colSpan={7}>
                                         <div className="empty">No recent events.</div>
                                     </td>
                                 </tr>

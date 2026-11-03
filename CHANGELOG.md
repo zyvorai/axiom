@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added
+- Opt-in, bring-your-own-LLM "Explain with AI" (off by default): Settings → AI assistant (OpenAI-compatible, Anthropic or Ollama endpoint, model, write-only API key stored in the integrations Secret, redaction switch, connection test); an "Explain with AI" action on the pod diagnosis banner and on Warning events opens a right-hand drawer that states where the data will be sent and shows the exact redacted payload before anything leaves the cluster. Context is limited to the caller's namespace (events, diagnosis, container status, a short log tail), never includes Secret/ConfigMap data or env values, and is scrubbed of tokens, keys, JWTs, kubeconfig text, base64 blobs and (optionally) IPs/hostnames. Read-only (no tool calls), rate limited per user, audited as `ai.explain` (target only). New `POST /api/v1/ai/explain`, `GET /api/v1/ai/status`, `POST /api/v1/integrations/ai/test`. See `docs/DEPLOYMENT.md` (AI assistant and privacy).
+
 ### Security
 - Helm install/upgrade values are stored in a Secret owned by the Job (garbage-collected with it) instead of a permanent plaintext ConfigMap; Helm Jobs honour the Axiom namespace, `AXIOM_SERVICE_ACCOUNT` and `AXIOM_HELM_IMAGE`, get DNS-safe names of at most 63 characters, and refuse release/chart/repo/version/namespace values that start with `-`
 - One-shot exec output is capped at 1 MiB, interactive terminals at 64 concurrent sessions and 1 MiB frames
