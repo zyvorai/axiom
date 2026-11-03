@@ -70,6 +70,12 @@ Sign-in hardening variables:
 | `AXIOM_SESSION_TTL` | `12h` | Lifetime of login sessions (a Go duration such as `8h`; clamped to 1 minute – 30 days). Helm: `auth.sessionTTL`. |
 | `AXIOM_TOTP_SECRET` | unset | Adds a TOTP second factor to the built-in admin account (`AXIOM_USERNAME`). Base32, at least 16 characters; generate one with `head -c20 /dev/urandom \| base32`. Once set, that account signs in through `POST /api/v1/auth/login` with a code instead of HTTP Basic, which the web UI does automatically; keep the API key (`AXIOM_API_KEY`) for automation. Local accounts enrol themselves from the user menu → **Account security**. Helm: `auth.totpSecret` (kept in Secret `zyvor-axiom-auth`). |
 
+Fleet health probing (clusters registered under Settings → Clusters):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_FLEET_PROBE_INTERVAL` | `30s` | How often every registered cluster is asked for its overview to decide healthy / degraded / unreachable (minimum `5s`). `off` or `0` disables background probing; clusters are then probed only when the Fleet page or `GET /api/v1/fleet` is read. Each probe is one overview request per cluster, so keep it generous for large fleets. Helm: `fleetProbeInterval`. |
+
 SAML is configured with these variables (register `https://<axiom-host>/api/v1/auth/saml/acs` as the ACS URL at the IdP):
 
 | Variable | Default | Effect |

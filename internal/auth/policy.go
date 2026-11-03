@@ -67,6 +67,7 @@ func isOperatorForbidden(r *http.Request) bool {
 var restrictedSensitivePrefixes = []string{
 	"/api/v1/apply",
 	"/api/v1/rbac",
+	"/api/v1/fleet", // cluster-wide health, capacity and errors for every registered cluster
 	"/api/v1/audit",
 	"/api/v1/users",
 	"/api/v1/integrations",

@@ -41,6 +41,9 @@ auth:
   # Login session lifetime (a Go duration, default 12h). Maps to AXIOM_SESSION_TTL.
   # With replicaCount > 1 keep it short: session revocations are applied per replica.
   sessionTTL: ""
+  # How often registered clusters are health-probed (Go duration, default 30s; "off" disables
+  # background probing). Maps to AXIOM_FLEET_PROBE_INTERVAL. Shown on the Fleet page.
+  fleetProbeInterval: ""
   # TOTP second factor for the built-in admin account (base32, >= 16 chars). Stored in
   # Secret zyvor-axiom-auth; maps to AXIOM_TOTP_SECRET. Local accounts enrol themselves
   # from the user menu instead. Generate with: head -c20 /dev/urandom | base32

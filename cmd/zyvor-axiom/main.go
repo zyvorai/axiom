@@ -58,6 +58,7 @@ func main() {
 	platform.SetRemoteClusterStore(platform.OpenRemoteClusterStore(cfg.Mode, provider))
 	if sp, ok := provider.(*platform.SwitchableProvider); ok {
 		platform.LoadRemoteClustersInto(context.Background(), sp)
+		sp.StartFleetProber(dispatchCtx, cfg.FleetProbeInterval)
 	}
 
 	auth.SetSessionTTL(cfg.SessionTTL)

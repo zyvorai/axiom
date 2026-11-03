@@ -336,7 +336,10 @@ export default function Settings() {
                                                     <small>{c.server || c.name}</small>
                                                 </td>
                                                 <td>
-                                                    <StatusBadge status={c.healthy ? "Healthy" : "NotReady"} />
+                                                    <span title={c.error || undefined}>
+                                                        <StatusBadge status={c.state === "degraded" ? "Degraded" : c.state === "unknown" ? "Pending" : c.healthy ? "Healthy" : "NotReady"} />
+                                                    </span>
+                                                    {c.state && c.state !== "unknown" && <small>{c.state === "unreachable" ? "unreachable" : `${c.latencyMs} ms`}</small>}
                                                 </td>
                                                 <td>
                                                     {!isActive && (

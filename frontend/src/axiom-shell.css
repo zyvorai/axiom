@@ -111,6 +111,15 @@
   border-radius: 50%;
   background: var(--green);
 }
+.cluster[data-state="degraded"] i {
+  background: var(--orange);
+}
+.cluster[data-state="unreachable"] i {
+  background: var(--red);
+}
+.cluster[data-state="unknown"] i {
+  background: var(--ink-3);
+}
 .cluster:hover {
   background: var(--active);
   color: var(--ink);

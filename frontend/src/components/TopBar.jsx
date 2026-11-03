@@ -12,7 +12,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function TopBar({ onToggleSidebar }) {
     const { preference, setTheme } = useTheme();
-    const { active } = useCluster();
+    const { active, clusters } = useCluster();
     const { namespace, namespaces, setNamespace } = useNamespace();
     const ThemeIcon = { light: Sun, dark: Moon, system: Monitor }[preference] || Moon;
     // keep the current choice selectable even if it is not (or no longer) in the list
@@ -33,7 +33,13 @@ export default function TopBar({ onToggleSidebar }) {
             </Link>
 
             {active && (
-                <Link to="/settings#clusters" className="cluster" data-testid={NAV.clusterSwitcher}>
+                <Link
+                    to={clusters.length > 1 ? "/fleet" : "/settings#clusters"}
+                    className="cluster"
+                    data-testid={NAV.clusterSwitcher}
+                    data-state={active.state || "unknown"}
+                    title={active.state && active.state !== "healthy" ? `${active.label || active.name}: ${active.state}${active.error ? " — " + active.error : ""}` : undefined}
+                >
                     <i aria-hidden="true" />
                     {active.label || active.name}
                 </Link>

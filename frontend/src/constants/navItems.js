@@ -29,6 +29,7 @@ import {
     History,
     Stethoscope,
     ShieldAlert,
+  Globe2,
 } from "lucide-react";
 
 // Fixed name -> lucide-react component lookup for plugin-declared icons.
@@ -54,6 +55,7 @@ export function resolveIcon(name) {
 export const NAV_ITEMS = [
     { to: "/getting-started", label: "Getting Started", icon: Rocket, key: "getting-started", group: "Core" },
     { to: "/overview", label: "Overview", icon: LayoutDashboard, key: "overview", group: "Core" },
+    { to: "/fleet", label: "Fleet", icon: Globe2, key: "fleet", group: "Cluster" },
     { to: "/nodes", label: "Nodes", icon: Server, key: "nodes", group: "Cluster" },
     { to: "/workloads", label: "Workloads", icon: Boxes, key: "workloads", group: "Cluster" },
     { to: "/jobs", label: "Jobs & CronJobs", icon: CalendarClock, key: "jobs", group: "Cluster" },

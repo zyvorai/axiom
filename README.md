@@ -26,6 +26,7 @@ Pages:
 - **Access review** (Ops → Access) — read-only RBAC viewer: "who can delete Secrets here?" and per-subject effective permissions (admin/operator only)
 - **Resource graph, diff and shortcuts** — a relationship graph per workload, a diff review before any Apply, a global namespace selector, saved filter views, keyboard shortcuts (`?`) and an in-app notification inbox
 - **Explain with AI** (opt-in) — bring your own OpenAI-compatible, Anthropic or Ollama endpoint; the payload is redacted and previewed first and Secret values are never sent
+- **Fleet** — every registered cluster at a glance: reachable / degraded / unreachable (probed in the background), latency, nodes ready, pods running, warnings and CPU/memory, with one-click switching; the cluster chip in the top bar carries the active cluster's state
 - **Services**, **Namespaces** (with create/delete)
 - **Virtual Machines** — KubeVirt lifecycle (start/stop/migrate), real console info (`virtctl vnc` command — Axiom has no embedded browser VNC client), and Snapshots/Clones/Exports/Restores tabs
 - **Storage** — PVCs grouped by StorageClass, plus StorageClasses and cluster-scoped PersistentVolumes as first-class objects

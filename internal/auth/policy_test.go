@@ -136,6 +136,14 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator cannot reset mfa", "roper", "DELETE", "/api/v1/users/viewer/mfa", 403},
 		{"admin can reset mfa", "demo", "DELETE", "/api/v1/users/viewer/mfa", 204},
 		{"admin can revoke sessions", "demo", "POST", "/api/v1/users/viewer/revoke-sessions", 204},
+		// --- Fleet: cluster-wide, so never for namespace-restricted accounts ---
+		{"viewer reads fleet", "viewer", "GET", "/api/v1/fleet", 204},
+		{"operator reads fleet", "oper", "GET", "/api/v1/fleet", 204},
+		{"restricted viewer fleet", "rviewer", "GET", "/api/v1/fleet", 403},
+		{"restricted operator fleet", "roper", "GET", "/api/v1/fleet", 403},
+		{"viewer can refresh fleet", "viewer", "POST", "/api/v1/fleet/refresh", 204},
+		{"restricted viewer cannot refresh fleet", "rviewer", "POST", "/api/v1/fleet/refresh", 403},
+		{"fleet refresh exemption is exact", "viewer", "POST", "/api/v1/fleet/refresh/x", 403},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

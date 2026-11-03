@@ -59,6 +59,10 @@ type Config struct {
 	// (AXIOM_SESSION_TTL, a Go duration such as 8h; default 12h).
 	TOTPSecret string
 	SessionTTL time.Duration
+	// FleetProbeInterval is how often registered clusters are health-probed
+	// (AXIOM_FLEET_PROBE_INTERVAL, default 30s; "off" or 0 disables the
+	// background probing so clusters are only probed when /fleet is read).
+	FleetProbeInterval time.Duration
 	// SAMLAllowIdPInitiated accepts unsolicited (IdP-initiated) SAML
 	// responses, i.e. ones with no InResponseTo. Off by default.
 	SAMLAllowIdPInitiated bool
@@ -106,8 +110,22 @@ func FromEnv() Config {
 
 		TOTPSecret: strings.TrimSpace(os.Getenv("AXIOM_TOTP_SECRET")),
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
+
+		FleetProbeInterval: fleetProbeInterval(),
 		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 	}
+}
+
+func fleetProbeInterval() time.Duration {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_FLEET_PROBE_INTERVAL")))
+	if v == "off" || v == "0" || v == "false" {
+		return 0
+	}
+	d := envDuration("AXIOM_FLEET_PROBE_INTERVAL", 30*time.Second)
+	if d < 5*time.Second {
+		d = 5 * time.Second // a probe may take several seconds; never run them back to back
+	}
+	return d
 }
 
 func envDuration(k string, fallback time.Duration) time.Duration {

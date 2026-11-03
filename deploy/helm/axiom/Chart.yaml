@@ -2,8 +2,8 @@ apiVersion: v2
 name: axiom
 description: Zyvor Axiom — a private-cloud control plane for k3s and Kubernetes
 type: application
-version: 0.5.0
-appVersion: "0.5.0"
+version: 0.6.0
+appVersion: "0.6.0"
 home: https://github.com/zyvorai/axiom
 sources:
   - https://github.com/zyvorai/axiom

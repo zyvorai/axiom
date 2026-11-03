@@ -4,6 +4,18 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-03
+
+### Added — Fleet
+- Real cluster health probing: every registered cluster is asked for its overview in the background (`AXIOM_FLEET_PROBE_INTERVAL`, default 30s; 8s timeout each, so one dead cluster never stalls the rest) and reported as healthy, degraded (nodes not ready) or unreachable, with latency, the last error and since when. Registered clusters used to be reported Healthy unconditionally
+- A **Fleet** page (`/fleet`, `GET /api/v1/fleet`, `POST /api/v1/fleet/refresh`) showing every cluster's state, nodes ready, pods running, warnings and CPU/memory with a roll-up and one-click "Switch to"; Settings → Clusters shows the same state, and the top-bar cluster chip has a state dot for the active cluster
+- State changes are written to the audit log (`fleet.cluster_unreachable`, `fleet.cluster_degraded`, `fleet.cluster_recovered`); a cluster registered from Settings is probed immediately
+- Demo mode can simulate an outage (`AXIOM_DEMO_FLEET_DOWN`, `AXIOM_DEMO_FLEET_DEGRADED`) for testing
+
+### Changed
+- `GET /api/v1/clusters` now carries `state`, `latencyMs` and `error`; its `healthy` flag is false only for an unreachable cluster
+- The fleet endpoints are cluster-wide, so namespace-restricted accounts get `403`
+
 ## [0.5.0] - 2026-11-03
 
 ### Added — Identity

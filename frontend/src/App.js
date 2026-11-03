@@ -34,6 +34,7 @@ const PodDetail = lazy(() => import("@/pages/PodDetail"));
 const Logs = lazy(() => import("@/pages/Logs"));
 const Events = lazy(() => import("@/pages/Events"));
 const Timeline = lazy(() => import("@/pages/Timeline"));
+const Fleet = lazy(() => import("@/pages/Fleet"));
 const HealthCheck = lazy(() => import("@/pages/HealthCheck"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetail = lazy(() => import("@/pages/JobDetail"));
@@ -107,6 +108,7 @@ export default function App() {
                                 <Route path="/logs" element={<Logs />} />
                                 <Route path="/events" element={<Events />} />
                                 <Route path="/timeline" element={<Timeline />} />
+                                <Route path="/fleet" element={<Fleet />} />
                                 <Route path="/health-check" element={<HealthCheck />} />
                                 <Route path="/jobs" element={<Jobs />} />
                                 <Route path="/jobs/:namespace/:name" element={<JobDetail />} />

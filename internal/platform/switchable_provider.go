@@ -7,13 +7,18 @@ import (
 )
 
 // ClusterInfo describes one cluster registered with a SwitchableProvider,
-// as surfaced to the Settings → Clusters UI.
+// as surfaced to the Settings → Clusters UI. State, LatencyMs and Error come
+// from the fleet prober (see fleet.go); Healthy is kept for older clients and
+// is false only for an unreachable cluster.
 type ClusterInfo struct {
-	Name    string `json:"name"`
-	Label   string `json:"label"`
-	Current bool   `json:"current"`
-	Healthy bool   `json:"healthy"`
-	Server  string `json:"server,omitempty"`
+	Name      string `json:"name"`
+	Label     string `json:"label"`
+	Current   bool   `json:"current"`
+	Healthy   bool   `json:"healthy"`
+	Server    string `json:"server,omitempty"`
+	State     string `json:"state"`
+	LatencyMs int64  `json:"latencyMs"`
+	Error     string `json:"error,omitempty"`
 }
 
 type clusterEntry struct {
@@ -40,6 +45,9 @@ type SwitchableProvider struct {
 	perSession    map[string]string
 	entries       map[string]*clusterEntry
 	order         []string
+
+	fleetOnce sync.Once
+	fleetSt   *fleetState
 }
 
 func NewSwitchableProvider() *SwitchableProvider {
@@ -57,6 +65,17 @@ func (sp *SwitchableProvider) Register(name, label string, p Provider, server st
 	sp.entries[name] = &clusterEntry{name: name, label: label, provider: p, server: server}
 	if sp.defaultActive == "" {
 		sp.defaultActive = name
+	}
+	// A cluster registered while the fleet prober is running (Settings →
+	// Clusters) is probed straight away rather than waiting for the next tick.
+	if st := sp.fleet(); st != nil {
+		st.mu.Lock()
+		running := st.running
+		delete(st.health, name) // a re-registered name starts from a clean slate
+		st.mu.Unlock()
+		if running {
+			go sp.probe(context.Background(), name, p)
+		}
 	}
 }
 
@@ -98,9 +117,11 @@ func (sp *SwitchableProvider) Clusters(ctx context.Context) []ClusterInfo {
 	out := make([]ClusterInfo, 0, len(sp.order))
 	for _, name := range sp.order {
 		e := sp.entries[name]
+		h := sp.healthOf(e.name)
 		out = append(out, ClusterInfo{
 			Name: e.name, Label: e.label, Current: e.name == active,
-			Healthy: e.provider != nil, Server: e.server,
+			Healthy: e.provider != nil && h.State != ClusterUnreachable, Server: e.server,
+			State: h.State, LatencyMs: h.LatencyMs, Error: h.Error,
 		})
 	}
 	return out
@@ -150,6 +171,7 @@ func (sp *SwitchableProvider) Unregister(name string) error {
 		return fmt.Errorf("cannot unregister the last cluster")
 	}
 	delete(sp.entries, name)
+	sp.forgetHealth(name)
 	out := sp.order[:0]
 	for _, n := range sp.order {
 		if n != name {

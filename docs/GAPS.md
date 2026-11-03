@@ -17,6 +17,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - OIDC ID tokens are verified against the provider's JWKS (algorithm allow-list, `kid`, signature, `iss`/`aud`/`azp`/`exp`/`sub`) and bound to the sign-in by a `nonce` cookie (`internal/api/oidc_jwks.go`)
 - Browser WebSocket/EventSource auth uses single-use, 30-second tickets (`POST /api/v1/ws-ticket`) instead of credentials in the URL; the legacy `?access_token=`/`?axiom_session=`/`?api_key=` forms still work but are deprecated
 - Audit log export as JSON as well as CSV
+- Fleet health: registered clusters are probed in the background and reported healthy / degraded / unreachable with latency and the last error (`GET /api/v1/fleet`, the Fleet page, the switcher dot); state changes are audited
 - TOTP two-factor sign-in for local accounts and the built-in admin (`POST /api/v1/auth/login`, `AXIOM_TOTP_SECRET`, enrolment and recovery codes from the user menu), with replay protection and throttling shared with passwords
 - Server-side session revocation: logout ends that session, "sign out everywhere", automatic revocation on role/namespace/password changes and deletion, admin "sign out everywhere", and a configurable `AXIOM_SESSION_TTL`
 - Read-only RBAC viewer, NetworkPolicy analysis and security-report (Trivy/PolicyReport) views
@@ -35,6 +36,8 @@ Known security limitations (reviewed, not yet fixed):
 
 Known platform limitations (reviewed, not yet fixed):
 
+- **Fleet probing is a point-in-time overview request per cluster** (default every 30 s) with no history: the Fleet page shows now and "since when", not a trend, and a cluster that answers slowly but successfully is still `healthy`. Probes use the same credentials the console uses for that cluster. Each replica probes on its own
+
 - **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
 - **Generic manifest apply uses forced server-side apply**, which still takes field ownership from Argo CD/Flux/Helm — but the apply dialog now shows a diff first and warns when another manager owns the fields. "Validate" and the real apply can still disagree for Roles/RoleBindings/ServiceAccounts because of RBAC verbs.
 - **Alert dispatch has no leader election**: with `replicaCount>1` every replica posts the same Slack alert, and a flapping pod re-fires every minute.
@@ -45,7 +48,6 @@ Known platform limitations (reviewed, not yet fixed):
 
 Other known gaps found by the functional test pass (see `e2e/README.md`):
 
-- Registered clusters are always reported `Healthy` (`internal/platform/switchable_provider.go`) — there is no probe
 - `POST /api/v1/users` maps an unknown role to `admin` (`NormalizeRole`, documented as intentional; consider fail-closed)
 - A saved Slack / webhook URL cannot be cleared from the UI (the API's `*Clear` flags have no control), and the Atlas token has no UI field
 - `/api/v1/session` reports `role: "Platform Admin"` for operators and `auth: "oidc"` for SAML sessions (sessions from the local sign-in now correctly report `local`)

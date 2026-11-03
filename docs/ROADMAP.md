@@ -1,9 +1,16 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 and 0.5.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.6.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.6.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Fleet health | Every registered cluster probed in the background and reported healthy / degraded / unreachable with latency and the last error; state changes audited | Rancher cluster states, Portainer environment status |
+| Fleet page | All clusters at a glance — nodes ready, pods running, warnings, CPU/memory, since-when — with a roll-up and one-click switching; the top-bar chip shows the active cluster's state | Rancher cluster list, Lens catalog |
 
 ## Shipped in 0.5.0
 
@@ -27,7 +34,7 @@ are theirs, not ours.
 
 ## Next
 
-- **Fleet:** a cross-cluster overview and real cluster health probing (registered clusters currently always report Healthy).
+- **Fleet:** health history and alerting on a cluster going down (today state changes are audited and shown, not notified), and cross-cluster workload search.
 - **Autoscaling & cost:** VPA/KEDA views, HPA beyond CPU, cost budgets and rightsizing, historical Prometheus data.
 - **Identity:** MFA for LDAP accounts, QR-code enrolment and a require-MFA policy, shared revocation across replicas.
 - **GitOps & Helm:** create Argo/Flux applications, a Helm chart catalog.
