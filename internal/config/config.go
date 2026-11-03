@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -51,6 +53,12 @@ type Config struct {
 	OIDCAdminGroup  string
 	OIDCViewerGroup string
 	OIDCDefaultRole string
+
+	// TOTPSecret adds a TOTP second factor to the built-in admin account
+	// (AXIOM_TOTP_SECRET). SessionTTL is how long a login session lasts
+	// (AXIOM_SESSION_TTL, a Go duration such as 8h; default 12h).
+	TOTPSecret string
+	SessionTTL time.Duration
 }
 
 func FromEnv() Config {
@@ -92,7 +100,23 @@ func FromEnv() Config {
 		OIDCAdminGroup:  strings.TrimSpace(os.Getenv("AXIOM_OIDC_ADMIN_GROUP")),
 		OIDCViewerGroup: strings.TrimSpace(os.Getenv("AXIOM_OIDC_VIEWER_GROUP")),
 		OIDCDefaultRole: env("AXIOM_OIDC_DEFAULT_ROLE", "admin"),
+
+		TOTPSecret: strings.TrimSpace(os.Getenv("AXIOM_TOTP_SECRET")),
+		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
 	}
+}
+
+func envDuration(k string, fallback time.Duration) time.Duration {
+	v := strings.TrimSpace(os.Getenv(k))
+	if v == "" {
+		return fallback
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil || d <= 0 {
+		log.Printf("config: ignoring %s=%q (want a duration such as 8h)", k, v)
+		return fallback
+	}
+	return d
 }
 
 func envInt(k string, fallback int) int {

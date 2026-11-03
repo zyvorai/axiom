@@ -95,8 +95,9 @@ func restrictedDenied(r *http.Request) bool {
 	}
 	if isMutatingMethod(r.Method) {
 		if _, scoped := matchNamespacedPrefix(p); !scoped {
-			// logout and cluster activation are harmless session operations.
-			if p == "/api/v1/auth/logout" || p == "/api/v1/ws-ticket" {
+			// logout, ticket minting and a person's own sign-out-everywhere and
+			// two-factor settings only ever act on the caller's own account.
+			if p == "/api/v1/auth/logout" || p == "/api/v1/ws-ticket" || isSelfServiceAuth(r) {
 				return false
 			}
 			return true

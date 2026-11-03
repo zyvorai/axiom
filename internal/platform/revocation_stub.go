@@ -1,0 +1,11 @@
+//go:build !kubernetes
+
+package platform
+
+import "github.com/zyvorai/axiom/internal/auth"
+
+// OpenRevocationStore returns nil in the demo build: session revocations stay
+// in memory, which is fine for a local lab run.
+func OpenRevocationStore(mode string, provider Provider) auth.RevocationStore {
+	return nil
+}

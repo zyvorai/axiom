@@ -43,19 +43,32 @@ type User struct {
 	Role         string   `json:"role"`
 	Namespaces   []string `json:"namespaces,omitempty"`
 	CreatedAt    string   `json:"createdAt"`
+
+	// Two-factor sign-in (TOTP). MFASecret is the active shared secret and is
+	// only meaningful while MFAEnabled; MFAPending holds a secret that has been
+	// issued but not yet confirmed with a code. MFARecovery are SHA-256 hashes of
+	// the unused one-time recovery codes. MFALastStep is the last TOTP time step
+	// accepted, which stops a code being replayed. These live in the same Secret
+	// as the password hashes and are never returned by the API.
+	MFAEnabled  bool     `json:"mfaEnabled,omitempty"`
+	MFASecret   string   `json:"mfaSecret,omitempty"`
+	MFAPending  string   `json:"mfaPending,omitempty"`
+	MFARecovery []string `json:"mfaRecovery,omitempty"`
+	MFALastStep int64    `json:"mfaLastStep,omitempty"`
 }
 
 // UserView is the safe representation returned by the Users API — never
-// includes the password hash.
+// includes the password hash or any second-factor secret.
 type UserView struct {
 	Username   string   `json:"username"`
 	Role       string   `json:"role"`
 	Namespaces []string `json:"namespaces,omitempty"`
 	CreatedAt  string   `json:"createdAt"`
+	MFAEnabled bool     `json:"mfaEnabled"`
 }
 
 func (u User) View() UserView {
-	return UserView{Username: u.Username, Role: u.Role, Namespaces: u.Namespaces, CreatedAt: u.CreatedAt}
+	return UserView{Username: u.Username, Role: u.Role, Namespaces: u.Namespaces, CreatedAt: u.CreatedAt, MFAEnabled: u.MFAEnabled}
 }
 
 // normalizeNamespaces trims/dedupes and enforces that only viewers/operators
@@ -161,6 +174,28 @@ type UserHub struct {
 	mu    sync.RWMutex
 	store UserStore
 	cache map[string]User
+	// mfaMu serialises second-factor checks, which read-modify-write the
+	// replay counter and recovery codes and persist the result.
+	mfaMu sync.Mutex
+	// onInvalidate is called with a username whenever something that should end
+	// that person's sessions changes (password, role, namespaces, MFA, delete).
+	onInvalidate func(username string)
+}
+
+// SetInvalidateHook registers the function that revokes a user's sessions.
+func (h *UserHub) SetInvalidateHook(fn func(username string)) {
+	h.mu.Lock()
+	h.onInvalidate = fn
+	h.mu.Unlock()
+}
+
+func (h *UserHub) invalidate(username string) {
+	h.mu.RLock()
+	fn := h.onInvalidate
+	h.mu.RUnlock()
+	if fn != nil {
+		fn(username)
+	}
 }
 
 func NewUserHub(store UserStore) *UserHub {
@@ -256,6 +291,7 @@ func (h *UserHub) UpdateRole(ctx context.Context, username, role string) (UserVi
 	h.mu.Lock()
 	h.cache[key] = u
 	h.mu.Unlock()
+	h.invalidate(u.Username)
 	return u.View(), nil
 }
 
@@ -280,6 +316,7 @@ func (h *UserHub) UpdateNamespaces(ctx context.Context, username string, namespa
 	h.mu.Lock()
 	h.cache[key] = u
 	h.mu.Unlock()
+	h.invalidate(u.Username)
 	return u.View(), nil
 }
 
@@ -306,6 +343,7 @@ func (h *UserHub) ResetPassword(ctx context.Context, username, password string) 
 	h.mu.Lock()
 	h.cache[key] = u
 	h.mu.Unlock()
+	h.invalidate(u.Username)
 	return u.View(), nil
 }
 
@@ -316,6 +354,7 @@ func (h *UserHub) Delete(ctx context.Context, username string) error {
 	h.mu.Lock()
 	delete(h.cache, strings.ToLower(username))
 	h.mu.Unlock()
+	h.invalidate(username)
 	return nil
 }
 

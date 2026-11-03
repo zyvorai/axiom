@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/zyvorai/axiom/internal/api"
+	"github.com/zyvorai/axiom/internal/auth"
 	"github.com/zyvorai/axiom/internal/config"
 	"github.com/zyvorai/axiom/internal/platform"
 	"github.com/zyvorai/axiom/internal/ui"
@@ -59,10 +60,14 @@ func main() {
 		platform.LoadRemoteClustersInto(context.Background(), sp)
 	}
 
+	auth.SetSessionTTL(cfg.SessionTTL)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
 		APIKey:             cfg.APIKey,
 		SessionSecret:      cfg.SessionSecret,
+		RevocationStore:    platform.OpenRevocationStore(cfg.Mode, provider),
+		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
 		OIDCIssuer:         firstNonEmpty(cur.OIDCIssuer, cfg.OIDCIssuer),

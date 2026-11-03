@@ -26,7 +26,32 @@ type Session struct {
 	Issuer string `json:"iss,omitempty"`
 	Role   string `json:"r,omitempty"`
 	Exp    int64  `json:"exp"`
+	// ID names this one session so it can be revoked individually (logout).
+	// IatMs is when it was issued, in Unix milliseconds, so "sign out
+	// everywhere" can revoke every session a user opened before a moment.
+	// Tokens minted before these fields existed carry neither and are revoked
+	// only by the per-user cut-off.
+	ID    string `json:"jti,omitempty"`
+	IatMs int64  `json:"iat,omitempty"`
 }
+
+// sessionTTL is how long a session stays valid. Override with SetSessionTTL
+// (AXIOM_SESSION_TTL); never below a minute or above 30 days.
+var sessionTTL = 12 * time.Hour
+
+// SetSessionTTL changes the lifetime of sessions issued from now on.
+func SetSessionTTL(d time.Duration) {
+	switch {
+	case d < time.Minute:
+		d = time.Minute
+	case d > 30*24*time.Hour:
+		d = 30 * 24 * time.Hour
+	}
+	sessionTTL = d
+}
+
+// SessionTTL reports the current session lifetime.
+func SessionTTL() time.Duration { return sessionTTL }
 
 func (s Session) Valid() bool {
 	return s.User != "" && s.Exp > time.Now().Unix()
@@ -37,8 +62,15 @@ func SignSession(secret string, s Session) (string, error) {
 	if secret == "" {
 		return "", fmt.Errorf("session secret is empty")
 	}
+	now := time.Now()
 	if s.Exp == 0 {
-		s.Exp = time.Now().Add(12 * time.Hour).Unix()
+		s.Exp = now.Add(sessionTTL).Unix()
+	}
+	if s.ID == "" {
+		s.ID = RandomURLToken(12)
+	}
+	if s.IatMs == 0 {
+		s.IatMs = now.UnixMilli()
 	}
 	raw, err := json.Marshal(s)
 	if err != nil {
@@ -109,7 +141,7 @@ func SetSessionCookie(w http.ResponseWriter, token string, secure bool) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   secure,
-		MaxAge:   int((12 * time.Hour).Seconds()),
+		MaxAge:   int(sessionTTL.Seconds()),
 	})
 }
 

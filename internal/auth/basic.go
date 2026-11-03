@@ -18,6 +18,28 @@ type UserAuthenticator interface {
 	Authenticate(username, password string) (role string, namespaces []string, ok bool)
 }
 
+// UserLookup resolves a local account's current role and namespace restriction
+// without a password. Sessions issued by the local login (Issuer "local") are
+// re-resolved through it on every request, so a role change, a new namespace
+// restriction or a deleted account takes effect immediately rather than when
+// the session expires. Implemented by platform.UserHub.
+type UserLookup interface {
+	Lookup(username string) (role string, namespaces []string, ok bool)
+}
+
+// MFAProvider is the second-factor side of local accounts. Implemented by
+// platform.UserHub.
+type MFAProvider interface {
+	// MFARequired reports whether username has two-factor sign-in enabled.
+	MFARequired(username string) bool
+	// VerifySecondFactor checks a TOTP or recovery code. It must be single-use:
+	// a code that has been accepted once is never accepted again.
+	VerifySecondFactor(username, code string, now time.Time) bool
+}
+
+// LocalSessionIssuer marks sessions created by POST /api/v1/auth/login.
+const LocalSessionIssuer = "local"
+
 // Identity is the resolved caller of an authorized request, attached to the
 // request context so handlers and audit logging can read who acted and
 // with what role without re-parsing credentials.
@@ -32,6 +54,10 @@ type Identity struct {
 	// verifying a username/password supplied with this request (not by a
 	// session, API key or ticket).
 	viaCredentials bool
+	// mfaPending is set on a rejected identity whose password was right but
+	// whose account requires a second factor, so the caller is told to supply
+	// one rather than that the password was wrong.
+	mfaPending bool
 }
 
 func (id Identity) namespaceRestricted() bool {
@@ -77,6 +103,16 @@ type Guard struct {
 	// from another account does not defeat throttling. Optional — created
 	// automatically in Middleware when left nil.
 	AccountLimiter *RateLimiter
+	// MFA, when set, supplies two-factor sign-in for local accounts: an account
+	// with a second factor can no longer authenticate with Basic credentials
+	// alone and must sign in through POST /api/v1/auth/login.
+	MFA MFAProvider
+	// EnvTOTP adds a second factor to the single env-configured account
+	// (AXIOM_TOTP_SECRET). Optional.
+	EnvTOTP *EnvTOTP
+	// Revocations ends sessions before they expire (logout, sign-out
+	// everywhere, role/password changes). Optional — nil revokes nothing.
+	Revocations *Revocations
 	// Tickets redeems single-use ?ticket= credentials for WebSocket/SSE/log
 	// streams (POST /api/v1/ws-ticket). Optional — nil disables tickets.
 	Tickets *TicketStore
@@ -129,6 +165,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 		acctLimiter = NewAccountRateLimiter(time.Now)
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && r.URL.Path == LoginPath {
+			g.serveLogin(w, r, limiter, acctLimiter)
+			return
+		}
 		if isPublicPath(r) {
 			next.ServeHTTP(w, r)
 			return
@@ -169,6 +209,13 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			}
 			id, ok = g.authorizeDetail(r)
 		}
+		if !ok && id.mfaPending {
+			// The password was right, so this is not a failed guess; tell the
+			// client a second factor is needed (see POST /api/v1/auth/login).
+			w.Header().Set(MFAHeader, "required")
+			http.Error(w, "unauthorized: two-factor code required", http.StatusUnauthorized)
+			return
+		}
 		if !ok {
 			limiter.RecordFailure(key)
 			if acct != "" && !viaTicket {
@@ -201,7 +248,7 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			w.WriteHeader(code)
 			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
 		}
-		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) && !isReadOnlyPost(r) {
+		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) && !isReadOnlyPost(r) && !isSelfServiceAuth(r) {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
@@ -359,11 +406,11 @@ func (g Guard) authorize(r *http.Request) bool {
 
 func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 	if sess, ok := SessionFromRequest(g.sessionSecret(), r); ok {
-		role := sess.Role
-		if role == "" {
-			role = "admin"
+		if id, ok := g.identityFromSession(sess); ok {
+			return id, true
 		}
-		return Identity{User: sess.User, Role: role}, true
+		// A revoked session, or one for an account that no longer exists, is
+		// simply not a session: fall through to whatever else the request has.
 	}
 	if g.APIKey != "" {
 		if bearer := bearerToken(r.Header.Get("Authorization")); bearer != "" {
@@ -387,15 +434,62 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 		}
 		return Identity{}, false
 	}
+	id, ok := g.authenticatePassword(u, p)
+	if ok && id.mfaPending {
+		// Right password, but this account needs a second factor and HTTP Basic
+		// cannot carry one: refuse, and say why so the client can ask for it.
+		return Identity{User: id.User, mfaPending: true}, false
+	}
+	return id, ok
+}
+
+// identityFromSession turns a valid signed session into an Identity, or
+// reports false if it has been revoked or its local account is gone. Sessions
+// from the local login are re-resolved against the live account so role and
+// namespace changes apply at once.
+func (g Guard) identityFromSession(sess Session) (Identity, bool) {
+	if g.Revocations.Revoked(sess) {
+		return Identity{}, false
+	}
+	role := sess.Role
+	if role == "" {
+		role = "admin"
+	}
+	id := Identity{User: sess.User, Role: role}
+	if sess.Issuer == LocalSessionIssuer {
+		if userMatches(g.Username, sess.User) {
+			id.Role = "admin"
+			return id, true
+		}
+		lk, ok := g.Users.(UserLookup)
+		if !ok {
+			return Identity{}, false
+		}
+		r, ns, ok := lk.Lookup(sess.User)
+		if !ok {
+			return Identity{}, false
+		}
+		id.Role, id.Namespaces = r, ns
+	}
+	return id, true
+}
+
+// authenticatePassword checks a username and password against the env account,
+// local accounts and LDAP. When it succeeds for an account that requires a
+// second factor the returned identity has mfaPending set; the caller decides
+// whether that is acceptable (the login endpoint collects the code, Basic auth
+// refuses).
+func (g Guard) authenticatePassword(u, p string) (Identity, bool) {
 	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
-		return Identity{User: g.Username, Role: "admin", viaCredentials: true}, true
+		return Identity{User: g.Username, Role: "admin", viaCredentials: true, mfaPending: g.EnvTOTP != nil}, true
 	}
 	// Local accounts first: it is a cheap in-memory bcrypt check, and trying
 	// LDAP first would send every local user's password to the directory on
 	// every API call (and count each miss toward AD lockout policy).
 	if g.Users != nil {
 		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
-			return Identity{User: u, Role: role, Namespaces: namespaces, viaCredentials: true}, true
+			return Identity{User: u, Role: role, Namespaces: namespaces, viaCredentials: true,
+				mfaPending: g.MFA != nil && g.MFA.MFARequired(u)}, true
 		}
 	}
 	if g.LDAP.Enabled || g.LDAP.URL != "" {

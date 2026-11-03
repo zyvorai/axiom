@@ -30,7 +30,13 @@ type AuthOptions struct {
 	// address. Only set this when Axiom sits behind a reverse proxy that
 	// itself sets/overwrites the header — see auth.Guard's doc comment.
 	TrustedProxyHeader string
-	OIDCLogin          string
+	// RevocationStore persists session revocations across restarts. Optional —
+	// nil keeps them in memory.
+	RevocationStore auth.RevocationStore
+	// TOTPSecret, when set (AXIOM_TOTP_SECRET), adds a TOTP second factor to the
+	// built-in admin account. Base32, at least 80 bits.
+	TOTPSecret string
+	OIDCLogin  string
 	OIDCIssuer         string
 	OIDCClient         string
 	SAMLLogin          string
@@ -74,6 +80,9 @@ type Server struct {
 	hub         *platform.IntegrationHub
 	users       *platform.UserHub
 	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
+	revocations *auth.Revocations // revoked sessions (logout, sign out everywhere)
+	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
+	guard       auth.Guard        // used to re-verify a password for account-security actions
 	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
 }
 
@@ -119,7 +128,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 			opts.OIDCClient = cur.OIDCClientID
 		}
 	}
-	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
+	s := &Server{revocations: auth.NewRevocations(opts.RevocationStore), provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
@@ -173,6 +182,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/auth/oidc/login", s.oidcLogin)
 	mux.HandleFunc("GET /api/v1/auth/oidc/callback", s.oidcCallback)
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authLogout)
+	s.registerIdentity(mux)
 	mux.HandleFunc("GET /api/v1/auth/saml/login", s.samlLogin)
 	mux.HandleFunc("POST /api/v1/auth/saml/acs", s.samlACS)
 	mux.HandleFunc("GET /api/v1/nodes/{name}", s.nodeDetail)
@@ -310,8 +320,21 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	if users != nil {
 		authenticator = users
 	}
+	var mfa auth.MFAProvider
+	if users != nil {
+		mfa = users
+		// Anything that should end a person's sessions (password, role,
+		// namespaces, MFA changes, deletion) revokes them.
+		users.SetInvalidateHook(s.revocations.RevokeUser)
+	}
+	if et, ok := auth.NewEnvTOTP(opts.TOTPSecret); !ok {
+		log.Printf("auth: AXIOM_TOTP_SECRET is not a valid base32 secret (at least 16 characters); ignoring it")
+	} else {
+		s.envTOTP = et
+	}
 	guard := auth.Guard{
 		Username: username, Password: password, APIKey: opts.APIKey,
+		MFA: mfa, EnvTOTP: s.envTOTP, Revocations: s.revocations,
 		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
@@ -320,6 +343,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 			GroupAttr: opts.LDAPGroupAttr, AdminGroup: opts.LDAPAdminGroup, ViewerGroup: opts.LDAPViewerGroup,
 		},
 	}
+	s.guard = guard
 	// Keep health + auth discovery/redirects public. Everything else stays behind Basic/API-key/OIDC session.
 	secured := guard.Middleware(clusterSessionMiddleware(mux))
 	return s.common(secured)
@@ -404,6 +428,9 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	if sess, ok := auth.SessionFromRequest(s.sessionSecret(), r); ok {
 		user = sess.User
 		authMethod = "oidc"
+		if sess.Issuer == auth.LocalSessionIssuer {
+			authMethod = "local"
+		}
 		if sess.Role != "" {
 			role = sess.Role
 		}

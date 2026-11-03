@@ -252,7 +252,7 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		Email:  email,
 		Issuer: issuer,
 		Role:   role,
-		Exp:    time.Now().Add(12 * time.Hour).Unix(),
+		Exp:    time.Now().Add(auth.SessionTTL()).Unix(),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -265,11 +265,6 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: auth.OIDCState, Value: "", Path: "/", MaxAge: -1})
 	http.SetCookie(w, &http.Cookie{Name: oidcNonceCookie, Value: "", Path: "/", MaxAge: -1})
 	http.Redirect(w, r, "/?sso=1", http.StatusFound)
-}
-
-func (s *Server) authLogout(w http.ResponseWriter, r *http.Request) {
-	auth.ClearSessionCookie(w, s.requestSecure(r))
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
 func (s *Server) fetchOIDCDiscovery(r *http.Request, issuer string) (oidcDiscovery, error) {
