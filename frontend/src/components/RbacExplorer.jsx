@@ -399,7 +399,7 @@ export function RbacWhoCan() {
                                                 <td>{a.scope === "cluster" ? "cluster-wide" : `namespace ${a.namespace}`}</td>
                                                 <td className="mono wrap">
                                                     {a.binding}
-                                                    <small>{a.roleRef}</small>
+                                                    <small className="block">{a.roleRef}</small>
                                                 </td>
                                             </tr>
                                         </Fragment>

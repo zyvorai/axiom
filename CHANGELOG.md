@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-03
+
+### Fixed
+- Access → "Who can…": the binding and its role were run together in the Via column ("ClusterRoleBinding/cluster-adminClusterRole/cluster-admin"); the role now sits on its own line.
+
 ## [0.4.1] - 2026-11-03
 
 ### Fixed
