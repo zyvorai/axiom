@@ -21,6 +21,7 @@ All notable changes to Zyvor Axiom are documented here.
 - Login page: SSO is now a plain "Sign in with SSO"/"Sign in with SAML" text link under the password form instead of per-provider (Google/GitHub/Okta) icon buttons; added a "Remember me on this device" checkbox (persists only the username) and an inline error banner on failed sign-in.
 
 ### Fixed
+- `scripts/deploy-remote.sh` reuses the existing `zyvor-axiom-auth` Secret on the target instead of resetting it to demo/demo on every redeploy
 - Log follow is no longer cut off at the API timeout; every client path (in-cluster, multi-context, remote clusters) now has the same timeout and a 50 QPS / 100 burst limit
 - Persisted audit ring is trimmed (oldest first) to stay under the 1 MiB ConfigMap limit instead of silently failing to save
 - Helm release listing selects `owner=helm` Secrets and decodes only each release's newest revision
