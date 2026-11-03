@@ -517,11 +517,23 @@ test.describe("plugin page (CRD-backed instances, demo data)", () => {
 // (c1) OIDC against a mock IdP
 // ---------------------------------------------------------------------------
 const b64url = (b) => Buffer.from(b).toString("base64url");
-const jwt = (claims) => `${b64url(JSON.stringify({ alg: "none", typ: "JWT" }))}.${b64url(JSON.stringify(claims))}.`;
+// A conformant IdP: RS256-signed id_tokens with a kid that its jwks_uri publishes, and the
+// auth request's nonce echoed back. Axiom verifies the signature and the nonce (oidc_jwks.go),
+// so unsigned (alg=none) or wrongly-signed tokens must be refused — see the failure-path test.
+const IDP_KEY = crypto.generateKeyPairSync("rsa", { modulusLength: 2048 });
+const ROGUE_KEY = crypto.generateKeyPairSync("rsa", { modulusLength: 2048 });
+const IDP_KID = "e2e-key-1";
+const jwk = { ...IDP_KEY.publicKey.export({ format: "jwk" }), kid: IDP_KID, alg: "RS256", use: "sig" };
+const jwt = (claims, { alg = "RS256", key = IDP_KEY.privateKey } = {}) => {
+  const head = b64url(JSON.stringify(alg === "none" ? { alg: "none", typ: "JWT" } : { alg, typ: "JWT", kid: IDP_KID }));
+  const body = b64url(JSON.stringify(claims));
+  if (alg === "none") return `${head}.${body}.`;
+  return `${head}.${body}.${crypto.sign("RSA-SHA256", Buffer.from(`${head}.${body}`), key).toString("base64url")}`;
+};
 
 async function startOidcIdp() {
   const st = {
-    mode: "ok", // ok | deny | badstate | token500
+    mode: "ok", // ok | deny | badstate | token500 | unsigned | wrongkey | badnonce
     claims: { preferred_username: "oidc-alice", email: "alice@corp.test", sub: "sub-alice", groups: [] },
     authRequests: [], tokenRequests: [], pkceVerified: [], codes: new Map(), n: 0, lastCallback: "",
   };
@@ -537,6 +549,7 @@ async function startOidcIdp() {
         jwks_uri: `${base}/realms/e2e/protocol/openid-connect/certs`,
       });
     }
+    if (u.pathname === "/realms/e2e/protocol/openid-connect/certs") return json(res, 200, { keys: [jwk] });
     if (u.pathname === "/realms/e2e/protocol/openid-connect/auth") {
       const q = Object.fromEntries(u.searchParams);
       st.authRequests.push(q);
@@ -547,7 +560,7 @@ async function startOidcIdp() {
         back.searchParams.set("state", q.state);
       } else {
         const code = `code-${++st.n}`;
-        st.codes.set(code, { challenge: q.code_challenge, redirect_uri: q.redirect_uri, client_id: q.client_id, used: false });
+        st.codes.set(code, { challenge: q.code_challenge, redirect_uri: q.redirect_uri, client_id: q.client_id, nonce: q.nonce, used: false });
         back.searchParams.set("code", code);
         back.searchParams.set("state", st.mode === "badstate" ? "tampered-state" : q.state);
       }
@@ -567,7 +580,9 @@ async function startOidcIdp() {
         return json(res, 400, { error: "invalid_grant" });
       }
       c.used = true;
-      return json(res, 200, { access_token: "at-e2e", token_type: "Bearer", id_token: jwt({ iss: `${base}/realms/e2e`, aud: c.client_id, exp: Math.floor(Date.now() / 1000) + 300, ...st.claims }) });
+      const claims = { iss: `${base}/realms/e2e`, aud: c.client_id, exp: Math.floor(Date.now() / 1000) + 300, nonce: st.mode === "badnonce" ? "not-the-nonce" : c.nonce, ...st.claims };
+      const idToken = st.mode === "unsigned" ? jwt(claims, { alg: "none" }) : st.mode === "wrongkey" ? jwt(claims, { key: ROGUE_KEY.privateKey }) : jwt(claims);
+      return json(res, 200, { access_token: "at-e2e", token_type: "Bearer", id_token: idToken });
     }
     return json(res, 404, { error: "not found" });
   });
@@ -699,6 +714,16 @@ test.describe("OIDC SSO (mock IdP)", () => {
         expect(r.status()).toBe(502);
         expect(await body()).toMatch(/token exchange HTTP 500/);
         await noSession();
+
+        // id_token trust: unsigned, wrongly-signed and wrong-nonce tokens are all refused
+        for (const [mode, why] of [["unsigned", /id_token rejected/], ["wrongkey", /id_token rejected/], ["badnonce", /id_token rejected: .*nonce/]]) {
+          idp.st.mode = mode;
+          await recover(srv.url);
+          r = await attempt();
+          expect(r.status(), mode).toBe(401);
+          expect(await body(), mode).toMatch(why);
+          await noSession();
+        }
 
         // direct callback hits: no code / no cookies
         expect((await page.request.get("/api/v1/auth/oidc/callback")).status()).toBe(400);
