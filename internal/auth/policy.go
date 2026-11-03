@@ -108,6 +108,7 @@ var pathNamespacePrefixes = map[string]bool{
 	"/api/v1/agent-runs":      true,
 	"/api/v1/configmaps":      true,
 	"/api/v1/cronjobs":        true,
+	"/api/v1/graph":           true,
 	"/api/v1/helm/releases":   true,
 	"/api/v1/hpas":            true,
 	"/api/v1/ingresses":       true,

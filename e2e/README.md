@@ -54,6 +54,7 @@ uniquely named resources and cleans up.
 | `flows-workloads` | Run wizard (form / intent / validate), scale, rollout, delete, pods, jobs / cronjobs, nodes |
 | `flows-ops` | VMs, backups / Velero, Atlas, Helm, GitOps, agent runs, RBAC |
 | `flows-admin` | Users (incl. real sign-in of created users), Settings integrations + Test buttons, clusters |
+| `flows-ux` | Namespace selector + URL filters, saved views, keyboard shortcuts / `?` dialog, system theme, YAML diff gate before apply, relationship graph, notification inbox |
 | `flows-integrations` | PacketWolf (mock server), plugin page, OIDC / SAML / LDAP against in-process mock IdPs |
 
 ```sh

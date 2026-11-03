@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Search, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
@@ -26,6 +26,11 @@ import {
 } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ConfirmDialog";
 import MacTerm from "@/components/MacTerm";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 
 function ExecDialog({ pod, onOpenChange }) {
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
@@ -98,8 +103,8 @@ function ExecDialog({ pod, onOpenChange }) {
 export default function Pods() {
     const confirm = useConfirm();
     const [data, setData] = useState(null);
-    const [q, setQ] = useState("");
-    const [ns, setNs] = useState("all");
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
     const [execTarget, setExecTarget] = useState(null);
     const [selected, setSelected] = useState(new Set());
     const [bulkBusy, setBulkBusy] = useState(false);
@@ -119,14 +124,14 @@ export default function Pods() {
 
     const { namespaces, rows } = useMemo(() => {
         if (!data) return { namespaces: [], rows: [] };
-        const namespaces = [...new Set(data.map((p) => p.namespace))].sort();
+        const namespaces = [...new Set([...knownNamespaces, ...data.map((p) => p.namespace)])].sort();
         const rows = data.filter(
             (p) =>
                 (ns === "all" || p.namespace === ns) &&
                 (q === "" || p.name.toLowerCase().includes(q.toLowerCase()))
         );
         return { namespaces, rows };
-    }, [data, q, ns]);
+    }, [data, q, ns, knownNamespaces]);
 
     const evict = async (p) => {
         const ok = await confirm({
@@ -210,27 +215,16 @@ export default function Pods() {
                 }
                 tools={
                     <>
-                        <div className="input">
-                            <Search size={15} className="text-ink-3" />
-                            <input
-                                placeholder="Search pod name"
-                                value={q}
-                                onChange={(e) => setQ(e.target.value)} className="bare-input"
-                            />
-                        </div>
-                        <Select value={ns} onValueChange={setNs}>
-                            <SelectTrigger aria-label="Filter by namespace" className="w-[180px] bg-muted/30">
-                                <SelectValue placeholder="Namespace" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All namespaces</SelectItem>
-                                {namespaces.map((n) => (
-                                    <SelectItem key={n} value={n}>
-                                        {n}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SearchBox placeholder="Search pod name" value={q} onChange={setQ} />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
+                        <SavedViews
+                            pageKey="pods"
+                            filters={{ q, ns }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                            }}
+                        />
                     </>
                 }
             />

@@ -1,18 +1,22 @@
 import { Link } from "react-router-dom";
-import { Search, Command, Zap, PanelLeft, Bell, Sun, Moon } from "lucide-react";
+import { Search, Command, Zap, PanelLeft, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
-import { NAV } from "@/constants/testIds";
+import { NAV, NS_SELECT } from "@/constants/testIds";
 import { useCluster } from "@/lib/cluster";
-import { useTheme } from "@/lib/theme";
-import { useAlertsCount } from "@/lib/alerts";
+import { THEME_LABELS, nextPreference, useTheme } from "@/lib/theme";
+import { ALL_NAMESPACES, useNamespace } from "@/lib/namespace";
+import NotificationInbox from "@/components/NotificationInbox";
 import UserMenu from "@/components/UserMenu";
 import ZyvorMark from "@/components/ZyvorMark";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function TopBar({ onToggleSidebar }) {
-    const { theme, setTheme } = useTheme();
+    const { preference, setTheme } = useTheme();
     const { active } = useCluster();
-    const alertCount = useAlertsCount();
+    const { namespace, namespaces, setNamespace } = useNamespace();
+    const ThemeIcon = { light: Sun, dark: Moon, system: Monitor }[preference] || Moon;
+    // keep the current choice selectable even if it is not (or no longer) in the list
+    const nsOptions = [...new Set([...namespaces, ...(namespace !== ALL_NAMESPACES ? [namespace] : [])])].sort();
     const openPalette = () => window.dispatchEvent(new Event("axiom:palette"));
 
     return (
@@ -34,6 +38,25 @@ export default function TopBar({ onToggleSidebar }) {
                     {active.label || active.name}
                 </Link>
             )}
+
+            <label className="sr-only" htmlFor="topbar-namespace-select">
+                Namespace
+            </label>
+            <select
+                id="topbar-namespace-select"
+                data-testid={NS_SELECT.global}
+                className="ns-switch"
+                value={namespace}
+                onChange={(e) => setNamespace(e.target.value)}
+                title="Namespace scope for all pages"
+            >
+                <option value={ALL_NAMESPACES}>All namespaces</option>
+                {nsOptions.map((n) => (
+                    <option key={n} value={n}>
+                        {n}
+                    </option>
+                ))}
+            </select>
 
             <Breadcrumbs />
 
@@ -60,19 +83,17 @@ export default function TopBar({ onToggleSidebar }) {
                     Connect
                 </button>
 
-                <Link to="/alerts" className="ic" aria-label="Alerts">
-                    <Bell size={16} />
-                    {alertCount > 0 && <span className="dot" />}
-                </Link>
+                <NotificationInbox />
 
                 <button
                     type="button"
                     data-testid={NAV.themeToggle}
                     className="ic"
-                    aria-label="Toggle theme"
-                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    aria-label={`Toggle theme (currently ${THEME_LABELS[preference] || "Dark"})`}
+                    title={`Theme: ${THEME_LABELS[preference] || "Dark"}`}
+                    onClick={() => setTheme(nextPreference(preference))}
                 >
-                    {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                    <ThemeIcon size={16} aria-hidden="true" />
                 </button>
 
                 <UserMenu />

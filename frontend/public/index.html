@@ -13,6 +13,7 @@
                 try {
                     var s = localStorage.getItem("axiom-theme") || localStorage.getItem("kubecloud.theme");
                     if (s === "light") t = "light";
+                    else if (s === "system" && window.matchMedia && !window.matchMedia("(prefers-color-scheme: dark)").matches) t = "light";
                 } catch (e) {}
                 var r = document.documentElement;
                 r.dataset.theme = t;

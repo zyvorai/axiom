@@ -122,6 +122,11 @@ type Provider interface {
 	DeleteNetworkPolicy(context.Context, string, string) error
 
 	ApplyManifest(context.Context, string) (ApplyResult, error)
+	// DiffManifest previews ApplyManifest without changing anything: live vs proposed per object.
+	DiffManifest(context.Context, string) (DiffResult, error)
+	// ResourceGraph returns the relationship graph (owners, selecting Services, Ingress routes,
+	// HPA, mounted PVC/ConfigMap/Secret names) around one resource.
+	ResourceGraph(context.Context, string, string, string) (ResourceGraph, error)
 
 	GetPodMetrics(context.Context, string, string) (PodMetricSeries, error)
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
@@ -9,6 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import { CalendarClock, PlayCircle, Boxes, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
     return (
@@ -57,6 +62,8 @@ export default function Jobs() {
     const confirm = useConfirm();
     const [cronJobs, setCronJobs] = useState(null);
     const [jobs, setJobs] = useState(null);
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
 
     const load = () => {
         Promise.all([
@@ -127,6 +134,14 @@ export default function Jobs() {
         }
     };
 
+    const matches = (r) => (ns === "all" || r.namespace === ns) && (q === "" || r.name.toLowerCase().includes(q.toLowerCase()));
+    const shownCronJobs = useMemo(() => (cronJobs || []).filter(matches), [cronJobs, q, ns]); // eslint-disable-line react-hooks/exhaustive-deps
+    const shownJobs = useMemo(() => (jobs || []).filter(matches), [jobs, q, ns]); // eslint-disable-line react-hooks/exhaustive-deps
+    const namespaces = useMemo(
+        () => [...new Set([...knownNamespaces, ...(cronJobs || []).map((r) => r.namespace), ...(jobs || []).map((r) => r.namespace)])].sort(),
+        [knownNamespaces, cronJobs, jobs]
+    );
+
     if (!cronJobs) {
         return (
             <div className="page">
@@ -141,13 +156,27 @@ export default function Jobs() {
             <PageHeader
                 title="Jobs & CronJobs"
                 description="Scheduled and one-off batch workloads across all namespaces."
+                tools={
+                    <>
+                        <SearchBox placeholder="Search job name" value={q} onChange={setQ} />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
+                        <SavedViews
+                            pageKey="jobs"
+                            filters={{ q, ns }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                            }}
+                        />
+                    </>
+                }
             />
 
             <Section
                 title="CronJobs"
                 icon={CalendarClock}
-                rows={cronJobs}
-                empty="No CronJobs configured."
+                rows={shownCronJobs}
+                empty={cronJobs.length ? "No CronJobs match the current filters." : "No CronJobs configured."}
                 columns={[
                     {
                         key: "name",
@@ -190,8 +219,8 @@ export default function Jobs() {
             <Section
                 title="Jobs"
                 icon={Boxes}
-                rows={jobs || []}
-                empty="No Jobs found."
+                rows={shownJobs}
+                empty={(jobs || []).length ? "No Jobs match the current filters." : "No Jobs found."}
                 columns={[
                     {
                         key: "name",

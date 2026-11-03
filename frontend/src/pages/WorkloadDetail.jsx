@@ -9,11 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network } from "lucide-react";
 import CodeEditor from "@/components/CodeEditor";
 import KvChip, { toneForKey } from "@/components/KvChip";
 import FeatureTile from "@/components/FeatureTile";
+import DiffReviewDialog from "@/components/DiffReviewDialog";
+import ResourceGraph from "@/components/ResourceGraph";
 
 export default function WorkloadDetail() {
     const { namespace, kind, name } = useParams();
@@ -21,7 +22,7 @@ export default function WorkloadDetail() {
     const [detail, setDetail] = useState(null);
     const [error, setError] = useState(null);
     const [manifestText, setManifestText] = useState("");
-    const [saving, setSaving] = useState(false);
+    const [reviewOpen, setReviewOpen] = useState(false);
     const [summary, setSummary] = useState(null);
 
     // Replica/status summary comes from the workloads list (the detail
@@ -61,23 +62,6 @@ export default function WorkloadDetail() {
             setDetail(r.data);
             setManifestText(JSON.stringify(r.data.manifest, null, 2));
         });
-    };
-
-    const saveManifest = async () => {
-        setSaving(true);
-        try {
-            const { data } = await api.post("/apply", { manifest: manifestText });
-            if (!data.valid) {
-                toast.error("Apply failed", { description: (data.errors || [data.message]).filter(Boolean).join(", ") });
-                return;
-            }
-            toast.success(`Applied ${data.kind || kind}`);
-            load();
-        } catch (e) {
-            toast.error("Apply failed", { description: e?.response?.data?.error || e.message });
-        } finally {
-            setSaving(false);
-        }
     };
 
     if (error) {
@@ -148,6 +132,9 @@ export default function WorkloadDetail() {
                     <TabsTrigger value="events" className="gap-1.5">
                         <BellRing className="h-3.5 w-3.5" /> Events ({(detail.relatedEvents || []).length})
                     </TabsTrigger>
+                    <TabsTrigger value="graph" className="gap-1.5">
+                        <Network className="h-3.5 w-3.5" aria-hidden="true" /> Graph
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
@@ -189,10 +176,17 @@ export default function WorkloadDetail() {
                 <TabsContent value="yaml" className="mt-4 space-y-3">
                     <CodeEditor value={manifestText} onChange={setManifestText} />
                     <div className="flex justify-end">
-                        <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
-                            <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+                        <Button variant="brand" onClick={() => setReviewOpen(true)} disabled={!manifestText.trim()} className="rounded-xl">
+                            <Save className="mr-1.5 h-3.5 w-3.5" /> Save
                         </Button>
                     </div>
+                    <DiffReviewDialog
+                        open={reviewOpen}
+                        onOpenChange={setReviewOpen}
+                        manifest={manifestText}
+                        fallbackKind={kind}
+                        onApplied={load}
+                    />
                 </TabsContent>
 
                 <TabsContent value="pods" className="mt-4">
@@ -233,6 +227,9 @@ export default function WorkloadDetail() {
                             </div>
                         ))}
                     </GlassCard>
+                </TabsContent>
+                <TabsContent value="graph" className="mt-4">
+                    <ResourceGraph namespace={namespace} kind={kind} name={name} />
                 </TabsContent>
             </Tabs>
         </div>

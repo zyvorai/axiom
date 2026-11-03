@@ -10,7 +10,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Layers, Boxes } from "lucide-react";
+import { Layers, Boxes } from "lucide-react";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 import CodeEditor from "@/components/CodeEditor";
 import { breakable } from "@/lib/text";
 
@@ -33,8 +38,10 @@ function InstanceDetail({ crd, instance, onOpenChange }) {
 
 export default function CustomResources() {
     const [crds, setCrds] = useState(null);
-    const [q, setQ] = useState("");
-    const [selected, setSelected] = useState(null);
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
+    // the open CRD lives in the URL too (?crd=group/version/plural) so a deep link reopens it
+    const [crdKey, setCrdKey] = useUrlState("crd", "");
     const [instances, setInstances] = useState(null);
     const [instancesError, setInstancesError] = useState(null);
     const [detail, setDetail] = useState(null);
@@ -42,6 +49,11 @@ export default function CustomResources() {
     useEffect(() => {
         api.get("/crds").then((r) => setCrds(r.data || []));
     }, []);
+
+    const selected = useMemo(
+        () => (crds || []).find((c) => `${c.group}/${c.version}/${c.plural}` === crdKey) || null,
+        [crds, crdKey]
+    );
 
     useEffect(() => {
         if (!selected) return;
@@ -67,6 +79,15 @@ export default function CustomResources() {
         const needle = q.toLowerCase();
         return crds.filter((c) => c.kind.toLowerCase().includes(needle) || c.group.toLowerCase().includes(needle));
     }, [crds, q]);
+
+    const shownInstances = useMemo(() => {
+        if (!instances) return instances;
+        return ns === "all" ? instances : instances.filter((r) => (r.metadata?.namespace || r.namespace) === ns);
+    }, [instances, ns]);
+    const namespaces = useMemo(
+        () => [...new Set([...knownNamespaces, ...(instances || []).map((r) => r.metadata?.namespace || r.namespace).filter(Boolean)])].sort(),
+        [knownNamespaces, instances]
+    );
 
     const openInstance = (row) => {
         const ns = row.metadata?.namespace || row.namespace;
@@ -95,14 +116,19 @@ export default function CustomResources() {
                 title="Custom Resources"
                 description="Browse any CustomResourceDefinition installed in the cluster."
                 tools={
-                    <div className="input">
-                        <Search size={15} className="text-ink-3" />
-                        <input
-                            placeholder="Search CRDs"
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)} className="bare-input"
+                    <>
+                        <SearchBox placeholder="Search CRDs" value={q} onChange={setQ} />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
+                        <SavedViews
+                            pageKey="custom-resources"
+                            filters={{ q, ns, crd: crdKey }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                                setCrdKey(f.crd ?? "");
+                            }}
                         />
-                    </div>
+                    </>
                 }
             />
 
@@ -131,7 +157,7 @@ export default function CustomResources() {
                                         <tr
                                             key={`${c.group}/${c.version}/${c.plural}`}
                                             onClick={() => {
-                                                setSelected(c);
+                                                setCrdKey(`${c.group}/${c.version}/${c.plural}`);
                                                 setDetail(null);
                                             }}
                                             className={active ? "cursor-pointer bg-[var(--active)]" : "cursor-pointer"}
@@ -160,7 +186,7 @@ export default function CustomResources() {
                     <AutoTable
                         title={`${selected.kind} instances`}
                         icon={Boxes}
-                        items={instances}
+                        items={shownInstances}
                         emptyHint={instances === null ? "Loading…" : instancesError ? `Permission denied: ${instancesError}` : "No instances found."}
                         onRowClick={openInstance}
                     />

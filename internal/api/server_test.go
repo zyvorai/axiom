@@ -87,3 +87,32 @@ func TestAuthProvidersExposeKubectlContext(t *testing.T) {
 		}
 	}
 }
+
+func TestApplyDiffAndGraphEndpoints(t *testing.T) {
+	h := New(platform.NewDemoProvider(), "demo", "demo", "demo", "")
+
+	w := request(t, h, "POST", "/api/v1/apply/diff", `{"manifest":"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: fresh\n  namespace: apps\n"}`)
+	if w.Code != 200 || !bytes.Contains(w.Body.Bytes(), []byte(`"valid":true`)) || !bytes.Contains(w.Body.Bytes(), []byte(`"exists":false`)) {
+		t.Fatalf("diff: %d %s", w.Code, w.Body.String())
+	}
+	if w = request(t, h, "POST", "/api/v1/apply/diff", `{"manifest":""}`); w.Code != 200 || !bytes.Contains(w.Body.Bytes(), []byte(`"valid":false`)) {
+		t.Fatalf("empty diff: %d %s", w.Code, w.Body.String())
+	}
+	if w = request(t, h, "POST", "/api/v1/apply/diff", `not json`); w.Code != http.StatusBadRequest {
+		t.Fatalf("malformed body: %d", w.Code)
+	}
+	// a diff never changes anything and is not audited
+	before := len(platform.ListAxiomAudit())
+	request(t, h, "POST", "/api/v1/apply/diff", `{"manifest":"apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: x\n"}`)
+	if after := len(platform.ListAxiomAudit()); after != before {
+		t.Fatalf("diff wrote audit entries: %d -> %d", before, after)
+	}
+
+	w = request(t, h, "GET", "/api/v1/graph/payments/Deployment/payments-api", "")
+	if w.Code != 200 || !bytes.Contains(w.Body.Bytes(), []byte(`"root":"deployment/payments/payments-api"`)) {
+		t.Fatalf("graph: %d %s", w.Code, w.Body.String())
+	}
+	if w = request(t, h, "GET", "/api/v1/graph/payments/Deployment/missing", ""); w.Code != http.StatusNotFound {
+		t.Fatalf("missing graph: %d %s", w.Code, w.Body.String())
+	}
+}

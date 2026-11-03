@@ -215,6 +215,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/networkpolicies", s.listNetworkPolicies)
 	mux.HandleFunc("DELETE /api/v1/networkpolicies/{namespace}/{name}", s.deleteNetworkPolicy)
 	mux.HandleFunc("POST /api/v1/apply", s.applyManifest)
+	mux.HandleFunc("POST /api/v1/apply/diff", s.diffManifest)
+	mux.HandleFunc("GET /api/v1/graph/{namespace}/{kind}/{name}", s.resourceGraph)
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/metrics", s.podMetrics)
 	mux.HandleFunc("GET /api/v1/crds", s.listCRDs)
 	mux.HandleFunc("GET /api/v1/crds/{group}/{version}/{plural}", s.listCRDInstances)

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -842,33 +841,6 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 	}, nil
 }
 
-// errMultiDocument is returned for a manifest holding several YAML documents. Validate and
-// apply handle exactly one object; parsing "a --- b" as one document used to apply only the
-// first and report success, silently dropping the rest.
-const errMultiDocument = "multiple YAML documents are not supported: apply one object at a time"
-
-// hasMultipleDocuments reports whether manifest has more than one non-empty YAML document.
-func hasMultipleDocuments(manifest string) bool {
-	docs := 0
-	for _, part := range regexp.MustCompile(`(?m)^---[ \t]*$`).Split(manifest, -1) {
-		trimmed := strings.TrimSpace(part)
-		if trimmed == "" {
-			continue
-		}
-		onlyComments := true
-		for _, line := range strings.Split(trimmed, "\n") {
-			if l := strings.TrimSpace(line); l != "" && !strings.HasPrefix(l, "#") {
-				onlyComments = false
-				break
-			}
-		}
-		if !onlyComments {
-			docs++
-		}
-	}
-	return docs > 1
-}
-
 func (k *KubernetesProvider) ValidateManifest(ctx context.Context, manifest string) (ValidateResult, error) {
 	manifest = strings.TrimSpace(manifest)
 	if manifest == "" {
@@ -1582,6 +1554,8 @@ func (k *KubernetesProvider) ApplyManifest(ctx context.Context, manifest string)
 	if gvk.Kind == "" || gvk.Version == "" {
 		return ApplyResult{Valid: false, Errors: []string{"kind and apiVersion are required"}}, nil
 	}
+	// see DiffManifest: managedFields copied from a live object must not be sent in an apply
+	unstructured.RemoveNestedField(obj.Object, "metadata", "managedFields")
 	name := obj.GetName()
 	ns := obj.GetNamespace()
 	if name == "" {

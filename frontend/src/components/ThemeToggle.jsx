@@ -1,26 +1,40 @@
-import { useTheme } from "@/lib/theme";
-import { Sun, Moon } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { NAV } from "@/constants/testIds";
+import { THEME_LABELS, THEME_PREFERENCES, useTheme } from "@/lib/theme";
 
+const ICONS = { light: Sun, dark: Moon, system: Monitor };
+
+// Light / Dark / System segmented control (Settings → Appearance). "System" follows the OS
+// colour scheme live.
 export default function ThemeToggle() {
-    const { theme, setTheme } = useTheme();
-    const isDark = theme === "dark";
+    const { preference, setTheme } = useTheme();
     return (
-        <button
+        <div
             data-testid={NAV.themeToggle}
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="relative inline-flex h-9 w-16 items-center rounded-full border border-border bg-secondary px-1 transition-colors duration-300 ease-apple"
-            aria-label="Toggle theme"
+            role="radiogroup"
+            aria-label="Theme"
+            className="inline-flex items-center gap-0.5 rounded-full border border-border bg-secondary p-1"
         >
-            <span
-                className={`absolute top-1 flex h-7 w-7 items-center justify-center rounded-full bg-card shadow-pop transition-transform duration-300 ease-apple ${isDark ? "translate-x-7" : "translate-x-0"}`}
-            >
-                {isDark ? (
-                    <Moon className="h-3.5 w-3.5 text-tone-link" />
-                ) : (
-                    <Sun className="h-3.5 w-3.5 text-tone-amber" />
-                )}
-            </span>
-        </button>
+            {THEME_PREFERENCES.map((p) => {
+                const Icon = ICONS[p];
+                const on = preference === p;
+                return (
+                    <button
+                        key={p}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        data-testid={`theme-option-${p}`}
+                        onClick={() => setTheme(p)}
+                        className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] transition-colors duration-200 ease-apple ${
+                            on ? "bg-card text-foreground shadow-pop" : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                        {THEME_LABELS[p]}
+                    </button>
+                );
+            })}
+        </div>
     );
 }

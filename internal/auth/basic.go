@@ -218,6 +218,7 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/poddisruptionbudgets",
 	"/api/v1/networkpolicies",
 	"/api/v1/gateways",
+	"/api/v1/graph",
 	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
 	// of installed CRD definitions, which is cluster-scoped metadata with
 	// no namespace of its own) when no ?namespace= is given — an

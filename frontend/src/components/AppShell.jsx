@@ -4,6 +4,9 @@ import "@/axiom-shell.css";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import CommandPalette from "@/components/CommandPalette";
+import ShortcutsDialog from "@/components/ShortcutsDialog";
+import { NamespaceProvider } from "@/lib/namespace";
+import { useShortcuts } from "@/lib/shortcuts";
 import ViewerBanner from "@/components/ViewerBanner";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +20,15 @@ import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/sidebar";
 const MOBILE_BREAKPOINT = 900;
 
 export default function AppShell() {
+    return (
+        <NamespaceProvider>
+            <Shell />
+        </NamespaceProvider>
+    );
+}
+
+function Shell() {
+    useShortcuts();
     const [collapsed, setCollapsed] = useState(loadSidebarCollapsed);
     const [mobileOpen, setMobileOpen] = useState(false);
     const mainRef = useRef(null);
@@ -77,6 +89,7 @@ export default function AppShell() {
                     Skip to content
                 </a>
                 <CommandPalette />
+                <ShortcutsDialog />
                 <TopBar onToggleSidebar={handleToggleSidebar} />
                 <div className="frame">
                     <Sidebar

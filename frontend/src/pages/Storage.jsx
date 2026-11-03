@@ -6,11 +6,18 @@ import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Database, HardDrive, Layers } from "lucide-react";
 import { STORAGE } from "@/constants/testIds";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 
 export default function Storage() {
     const [volumes, setVolumes] = useState(null);
     const [storageClasses, setStorageClasses] = useState(null);
     const [persistentVolumes, setPersistentVolumes] = useState(null);
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
 
     useEffect(() => {
         let alive = true;
@@ -36,6 +43,18 @@ export default function Storage() {
         return [...byClass.values()];
     }, [volumes]);
 
+    const claims = useMemo(
+        () =>
+            (volumes || []).filter(
+                (p) => (ns === "all" || p.namespace === ns) && (q === "" || p.name.toLowerCase().includes(q.toLowerCase()))
+            ),
+        [volumes, q, ns]
+    );
+    const namespaces = useMemo(
+        () => [...new Set([...knownNamespaces, ...(volumes || []).map((p) => p.namespace)])].sort(),
+        [knownNamespaces, volumes]
+    );
+
     if (!volumes) {
         return (
             <div data-testid={STORAGE.root} className="page">
@@ -50,6 +69,20 @@ export default function Storage() {
             <PageHeader
                 title="Storage"
                 description="StorageClasses and PersistentVolumeClaims across all namespaces."
+                tools={
+                    <>
+                        <SearchBox placeholder="Search claim name" value={q} onChange={setQ} />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
+                        <SavedViews
+                            pageKey="storage"
+                            filters={{ q, ns }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                            }}
+                        />
+                    </>
+                }
             />
 
             <div className="grid g3">
@@ -80,7 +113,7 @@ export default function Storage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {volumes.map((p) => (
+                            {claims.map((p) => (
                                 <tr key={`${p.namespace}/${p.name}`} data-testid={STORAGE.pvcRow(p.name)}>
                                     <td className="name">
                                         <span className="flex gap-2 items-center">
@@ -98,6 +131,13 @@ export default function Storage() {
                                     </td>
                                 </tr>
                             ))}
+                            {claims.length === 0 && (
+                                <tr>
+                                    <td colSpan={7}>
+                                        <div className="empty">No claims match the current filters.</div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

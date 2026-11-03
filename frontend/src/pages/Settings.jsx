@@ -17,7 +17,7 @@ import {
 import { ShieldCheck, PlugZap, Save, Database, Activity, BellRing, SunMoon, Cloud, Check } from "lucide-react";
 import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
-import { useTheme } from "@/lib/theme";
+import { THEME_LABELS, useTheme } from "@/lib/theme";
 import { useCluster } from "@/lib/cluster";
 import StatusBadge from "@/components/StatusBadge";
 import { NAV } from "@/constants/testIds";
@@ -73,7 +73,7 @@ function IntegrationCard({ title, icon: Icon, configured, children, onSave, onTe
 
 export default function Settings() {
     const { hash } = useLocation();
-    const { theme } = useTheme();
+    const { preference } = useTheme();
     const { clusters, active, activate, loading: clustersLoading, refresh: refreshClusters } = useCluster();
     const [data, setData] = useState(null);
     const [form, setForm] = useState(null);
@@ -404,12 +404,12 @@ export default function Settings() {
                             <SunMoon size={16} />
                             Appearance
                         </h2>
-                        <p className="lead">Theme is stored in this browser.</p>
+                        <p className="lead">Theme is stored in this browser. System follows your device appearance.</p>
                         <div className="rule-row">
                             <div>
                                 <div className="text-[14px]">Theme</div>
                                 <div className="text-[12.5px] text-ink-3">
-                                    {theme === "dark" ? "Dark" : "Light"}
+                                    {THEME_LABELS[preference] || "Dark"}
                                 </div>
                             </div>
                             <ThemeToggle />

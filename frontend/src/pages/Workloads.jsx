@@ -46,7 +46,6 @@ import {
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-    Search,
     MoreHorizontal,
     Play,
     Square,
@@ -61,6 +60,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 
 function RolloutDialog({ workload, onOpenChange }) {
     const [status, setStatus] = useState(null);
@@ -505,9 +509,9 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
 export default function Workloads() {
     const confirm = useConfirm();
     const [data, setData] = useState(null);
-    const [q, setQ] = useState("");
-    const [ns, setNs] = useState("all");
-    const [kind, setKind] = useState("all");
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
+    const [kind, setKind] = useUrlState("kind", "all");
     const [scaleTarget, setScaleTarget] = useState(null);
     const [rolloutTarget, setRolloutTarget] = useState(null);
     const [launchOpen, setLaunchOpen] = useState(false);
@@ -529,7 +533,7 @@ export default function Workloads() {
 
     const { namespaces, kinds, rows } = useMemo(() => {
         if (!data) return { namespaces: [], kinds: [], rows: [] };
-        const namespaces = [...new Set(data.map((w) => w.namespace))].sort();
+        const namespaces = [...new Set([...knownNamespaces, ...data.map((w) => w.namespace)])].sort();
         const kinds = [...new Set(data.map((w) => w.kind))].sort();
         const rows = data.filter(
             (w) =>
@@ -540,7 +544,7 @@ export default function Workloads() {
                     w.image.toLowerCase().includes(q.toLowerCase()))
         );
         return { namespaces, kinds, rows };
-    }, [data, q, ns, kind]);
+    }, [data, q, ns, kind, knownNamespaces]);
 
     const key = (w) => `${w.namespace}/${w.kind}/${w.name}`;
     const toggle = (w, checked) => {
@@ -623,27 +627,8 @@ export default function Workloads() {
                 }
                 tools={
                     <>
-                        <div className="input relative">
-                            <Search size={15} className="text-ink-3" />
-                            <input
-                                placeholder="Search name or image"
-                                value={q}
-                                onChange={(e) => setQ(e.target.value)} className="bare-input"
-                            />
-                        </div>
-                        <Select value={ns} onValueChange={setNs}>
-                            <SelectTrigger aria-label="Filter by namespace" className="w-[180px] bg-muted/30">
-                                <SelectValue placeholder="Namespace" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All namespaces</SelectItem>
-                                {namespaces.map((n) => (
-                                    <SelectItem key={n} value={n}>
-                                        {n}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SearchBox placeholder="Search name or image" value={q} onChange={setQ} className="relative" />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <Select value={kind} onValueChange={setKind}>
                             <SelectTrigger aria-label="Filter by kind" className="w-[160px] bg-muted/30">
                                 <SelectValue placeholder="Kind" />
@@ -657,6 +642,15 @@ export default function Workloads() {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <SavedViews
+                            pageKey="workloads"
+                            filters={{ q, ns, kind }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                                setKind(f.kind ?? "all");
+                            }}
+                        />
                     </>
                 }
             />

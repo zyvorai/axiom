@@ -115,6 +115,23 @@
   background: var(--active);
   color: var(--ink);
 }
+.ns-switch {
+  height: 30px;
+  max-width: 168px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: var(--hover);
+  cursor: pointer;
+  text-overflow: ellipsis;
+  transition: background 0.2s var(--ease-apple), color 0.2s var(--ease-apple);
+}
+.ns-switch:hover {
+  background: var(--active);
+  color: var(--ink);
+}
 .crumbs {
   display: flex;
   align-items: center;
@@ -1569,6 +1586,9 @@
   .bar-r .btn,
   .search kbd {
     display: none;
+  }
+  .ns-switch {
+    max-width: 96px;
   }
   .cluster {
     max-width: 112px;

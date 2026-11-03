@@ -63,6 +63,13 @@ async function isDemo(page) {
   return demoCache;
 }
 
+// Applying a manifest is a two-step flow: "Review changes" (POST /apply/diff, a dry-run preview)
+// must succeed for the current text before "Apply" enables. Returns once the review finished.
+async function reviewChanges(dlg) {
+  await dlg.getByRole("button", { name: /^Review/ }).click();
+  await expect(dlg.getByRole("button", { name: "Apply", exact: true })).toBeEnabled();
+}
+
 const NETPOL_YAML = (name, ns = "default") => `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -675,6 +682,7 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
     const editor = dlg.locator("textarea");
     await expect(editor).toHaveValue(/kind: NetworkPolicy/); // template is pre-filled
     await editor.fill(NETPOL_YAML(name));
+    await reviewChanges(dlg);
     const applied = waitMutation(page, "POST", /\/apply$/);
     await dlg.getByRole("button", { name: "Apply", exact: true }).click();
     const res = await applied;
@@ -709,6 +717,7 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
 
     const dlg = await openNetpolDialog(page);
     await dlg.locator("textarea").fill(NETPOL_YAML(name));
+    await reviewChanges(dlg);
     const applied = waitMutation(page, "POST", /\/apply$/);
     await dlg.getByRole("button", { name: "Apply", exact: true }).click();
     expect((await applied).status()).toBe(200);
@@ -728,7 +737,9 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
     t.allow(/POST \/api\/v1\/apply$/); // a real cluster may answer 400 here
     const dlg = await openNetpolDialog(page);
     await dlg.locator("textarea").fill("::: this is [not valid: yaml\n\t- {");
-    await dlg.getByRole("button", { name: "Apply", exact: true }).click();
+    // Apply is gated behind a successful review, so invalid text is rejected at the review step
+    await expect(dlg.getByRole("button", { name: "Apply", exact: true })).toBeDisabled();
+    await dlg.getByRole("button", { name: /^Review/ }).click();
 
     // A visible, non-empty, red error box and no success toast.
     const box = dlg.locator("div.rounded-lg.border");
@@ -736,7 +747,8 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
     await expect(box).toHaveClass(/tone-red/);
     expect(((await box.textContent()) || "").trim().length).toBeGreaterThan(0);
     await expect(page.locator("[data-sonner-toast]").filter({ hasText: /Applied/ })).toHaveCount(0);
-    await expect(dlg.getByRole("button", { name: "Apply", exact: true })).toBeEnabled(); // not stuck on "Applying…"
+    await expect(dlg.getByRole("button", { name: /^Review/ })).toBeEnabled(); // not stuck on "Reviewing…"
+    await expect(dlg.getByRole("button", { name: "Apply", exact: true })).toBeDisabled(); // an invalid manifest can never be applied
 
     // Still usable: editing clears nothing, Escape closes, page beneath is alive.
     await dlg.locator("textarea").fill("still typing");
@@ -754,7 +766,8 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
     await dlg.locator("textarea").fill("");
     await expect(apply).toBeDisabled();
     await dlg.locator("textarea").fill("garbage");
-    await apply.click();
+    await expect(apply).toBeDisabled(); // not reviewed yet
+    await dlg.getByRole("button", { name: /^Review/ }).click();
     await expect(dlg.locator("div.rounded-lg.border")).toBeVisible(); // a result box exists now
     await page.keyboard.press("Escape");
     await expect(dlg).toBeHidden();
@@ -780,6 +793,7 @@ test.describe("NetworkPolicy + ApplyManifestDialog", () => {
       return route.fulfill({ json: { valid: true, kind: "NetworkPolicy", name: "recovered", namespace: "default" } });
     });
 
+    await reviewChanges(dlg); // Apply enables once the (real) dry-run preview of the template succeeded
     await apply.click();
     await expect(box).toHaveText("spec.podSelector: required, kind: unknown");
 

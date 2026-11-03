@@ -51,6 +51,19 @@ func TestGuardPolicy(t *testing.T) {
 		{"operator integration test", "oper", "POST", "/api/v1/integrations/slack/test", 403},
 		{"operator integrations read ok", "oper", "GET", "/api/v1/integrations", 204},
 		{"operator apply still allowed", "oper", "POST", "/api/v1/apply", 204},
+		// YAML diff (dry-run, read-only preview of apply): same gate as apply itself.
+		{"viewer apply diff", "viewer", "POST", "/api/v1/apply/diff", 403},
+		{"operator apply diff allowed", "oper", "POST", "/api/v1/apply/diff", 204},
+		{"admin apply diff allowed", "demo", "POST", "/api/v1/apply/diff", 204},
+		{"restricted viewer apply diff", "rviewer", "POST", "/api/v1/apply/diff", 403},
+		{"restricted operator apply diff", "roper", "POST", "/api/v1/apply/diff", 403},
+		// Resource graph: namespaced read, path namespace authorized even with a permitted ?namespace=.
+		{"viewer graph allowed", "viewer", "GET", "/api/v1/graph/ns/Deployment/x", 204},
+		{"operator graph allowed", "oper", "GET", "/api/v1/graph/ns/Deployment/x", 204},
+		{"restricted graph own namespace", "rviewer", "GET", "/api/v1/graph/team-a/Deployment/x", 204},
+		{"restricted graph other namespace", "rviewer", "GET", "/api/v1/graph/team-b/Deployment/x", 403},
+		{"restricted graph path/query mismatch", "rviewer", "GET", "/api/v1/graph/team-b/Deployment/x?namespace=team-a", 403},
+		{"restricted operator graph other namespace", "roper", "GET", "/api/v1/graph/kube-system/Pod/x", 403},
 		{"operator helm rollback allowed", "oper", "POST", "/api/v1/helm/releases/ns/r/rollback", 204},
 		{"admin helm install", "demo", "POST", "/api/v1/helm/install", 204},
 		// Namespace restriction: path namespace must be authorized even when a

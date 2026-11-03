@@ -159,6 +159,7 @@ Creating a NetworkPolicy has no dedicated form endpoint — use `POST /api/v1/ap
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/api/v1/apply` | Server-side apply of any manifest: `{"manifest":"<yaml or json>"}` |
+| POST | `/api/v1/apply/diff` | Preview of `apply`: live vs proposed per object, nothing is changed (operator/admin; denied to namespace-restricted accounts like `apply`) |
 
 **kubernetes build only.** Parses the manifest, resolves its GVK to a GVR via discovery, and applies it with `types.ApplyPatchType` / `FieldManager: "zyvor-axiom"` — a real `kubectl apply`, not a dry run (see [`POST /api/v1/validate`](#helm-gitops-ops) for dry-run-only validation). In the demo build this always returns `{"valid":false,"message":"apply is not available in demo mode — requires a real cluster (build with -tags kubernetes)"}`.
 
@@ -171,6 +172,26 @@ Response shape:
 ```json
 {"valid":false,"errors":["human-readable parse or apply error"]}
 ```
+
+### Change preview (`POST /api/v1/apply/diff`)
+
+Same body as `apply`. On a real cluster it issues the same forced server-side apply with `dryRun=All`, so defaulting, validation and admission run and the response shows the object as it *would* be stored next to the live object (server-managed fields such as `managedFields`, `status`, `resourceVersion` removed; Secret `data`/`stringData` values replaced by `<redacted>`). Read-only, so it is not audited. The UI (Apply dialog, Pod/Workload YAML tabs) enables **Apply** only after a successful preview of the exact text being applied.
+
+```json
+{"valid":true,"objects":[{"kind":"Deployment","apiVersion":"apps/v1","namespace":"apps","name":"hello","exists":true,"changed":true,
+  "live":"...yaml...","proposed":"...yaml...","foreignManagers":["argocd-application-controller"]}],
+ "warnings":["Deployment hello is also managed by argocd-application-controller. Axiom applies with force, so conflicting fields move to Axiom and the next sync by that tool may revert or fight this change."]}
+```
+
+`foreignManagers` lists `managedFields` managers other than Axiom and core cluster components (Argo CD, Flux, Helm, kubectl, ...). Invalid input or an API-server rejection comes back as `{"valid":false,"errors":[...]}`. In the demo build the preview compares against the demo object and `live`/`proposed` are JSON.
+
+## Resource graph
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/graph/{namespace}/{kind}/{name}` | Relationship graph: owner chain (Deployment → ReplicaSet → Pods), Services whose selector matches, Ingresses routing to them, HPAs, and the ConfigMap/Secret/PVC names the pod template references. `kind` ∈ `deployment\|statefulset\|daemonset\|replicaset\|job\|cronjob\|pod` |
+
+Namespaced like other resource reads (namespace-restricted accounts may only query their namespaces). Only names and short statuses are returned — never ConfigMap or Secret contents. Response: `{"root":"deployment/ns/name","nodes":[{"id","kind","namespace","name","status"}],"edges":[{"from","to","relation"}],"truncated":false}` where `relation` ∈ `owns|selects|routes|scales|mounts`; at most 30 pods / 120 nodes are listed (`truncated` is set when more exist).
 
 ## Custom resources (CRDs)
 

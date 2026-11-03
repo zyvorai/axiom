@@ -765,6 +765,57 @@ type ApplyResult struct {
 	Errors     []string `json:"errors,omitempty"`
 }
 
+// DiffObject is one object's live vs proposed state for POST /apply/diff. Live and Proposed
+// are rendered text (YAML on a real cluster, JSON in demo mode) with server-managed noise
+// (managedFields, status, resourceVersion, uid, ...) removed, and Secret data values masked,
+// so a line-based diff of the two is meaningful and never leaks a secret.
+type DiffObject struct {
+	Kind            string   `json:"kind"`
+	APIVersion      string   `json:"apiVersion"`
+	Namespace       string   `json:"namespace,omitempty"`
+	Name            string   `json:"name"`
+	Exists          bool     `json:"exists"`
+	Changed         bool     `json:"changed"`
+	Live            string   `json:"live"`
+	Proposed        string   `json:"proposed"`
+	ForeignManagers []string `json:"foreignManagers,omitempty"`
+}
+
+// DiffResult is the response of a manifest diff (a server-side apply dry-run on a real cluster).
+type DiffResult struct {
+	Valid    bool         `json:"valid"`
+	Objects  []DiffObject `json:"objects,omitempty"`
+	Warnings []string     `json:"warnings,omitempty"`
+	Message  string       `json:"message,omitempty"`
+	Errors   []string     `json:"errors,omitempty"`
+}
+
+// GraphNode is one object in a resource relationship graph. Only identity and a short status
+// are carried — never Secret/ConfigMap contents.
+type GraphNode struct {
+	ID        string `json:"id"`
+	Kind      string `json:"kind"`
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name"`
+	Status    string `json:"status,omitempty"`
+}
+
+// GraphEdge is a directed relationship between two GraphNode IDs (From -> To), e.g. "owns",
+// "selects", "routes", "scales", "mounts".
+type GraphEdge struct {
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Relation string `json:"relation"`
+}
+
+// ResourceGraph is the relationship graph around one resource.
+type ResourceGraph struct {
+	Root      string      `json:"root"`
+	Nodes     []GraphNode `json:"nodes"`
+	Edges     []GraphEdge `json:"edges"`
+	Truncated bool        `json:"truncated,omitempty"`
+}
+
 type PodMetricPoint struct {
 	At     string `json:"at"`
 	CPU    int64  `json:"cpuMillicores"`

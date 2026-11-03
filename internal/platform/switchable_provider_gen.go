@@ -327,6 +327,12 @@ func (sp *SwitchableProvider) DeleteNetworkPolicy(a0 context.Context, a1 string,
 func (sp *SwitchableProvider) ApplyManifest(a0 context.Context, a1 string) (ApplyResult, error) {
 	return sp.current(a0).ApplyManifest(a0, a1)
 }
+func (sp *SwitchableProvider) DiffManifest(a0 context.Context, a1 string) (DiffResult, error) {
+	return sp.current(a0).DiffManifest(a0, a1)
+}
+func (sp *SwitchableProvider) ResourceGraph(a0 context.Context, a1 string, a2 string, a3 string) (ResourceGraph, error) {
+	return sp.current(a0).ResourceGraph(a0, a1, a2, a3)
+}
 func (sp *SwitchableProvider) GetPodMetrics(a0 context.Context, a1 string, a2 string) (PodMetricSeries, error) {
 	return sp.current(a0).GetPodMetrics(a0, a1, a2)
 }

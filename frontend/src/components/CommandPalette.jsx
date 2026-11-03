@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     SunMoon,
+    Keyboard,
     LogOut,
     Layers,
     Box,
@@ -23,7 +24,8 @@ import {
     CommandSeparator,
 } from "@/components/ui/command";
 import { useCluster } from "@/lib/cluster";
-import { useTheme } from "@/lib/theme";
+import { SHORTCUTS_EVENT } from "@/lib/shortcuts";
+import { THEME_LABELS, nextPreference, useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { NAV_ITEMS, resolveIcon } from "@/constants/navItems";
@@ -44,7 +46,7 @@ export default function CommandPalette() {
     const [loadedResources, setLoadedResources] = useState(false);
     const navigate = useNavigate();
     const { clusters, activate } = useCluster();
-    const { theme, setTheme } = useTheme();
+    const { preference, setTheme } = useTheme();
     const { signOut } = useAuth();
 
     useEffect(() => {
@@ -296,10 +298,19 @@ export default function CommandPalette() {
                     <CommandItem
                         value="toggle theme"
                         data-testid={PALETTE.item("theme")}
-                        onSelect={() => run(() => setTheme(theme === "dark" ? "light" : "dark"))}
+                        onSelect={() => run(() => setTheme(nextPreference(preference)))}
                     >
                         <SunMoon className="mr-2 h-4 w-4 text-tone-amber" />
-                        Toggle {theme === "dark" ? "light" : "dark"} mode
+                        Switch theme to {THEME_LABELS[nextPreference(preference)].toLowerCase()}
+                    </CommandItem>
+                    <CommandItem
+                        value="keyboard shortcuts help"
+                        data-testid={PALETTE.item("shortcuts")}
+                        onSelect={() => run(() => window.dispatchEvent(new Event(SHORTCUTS_EVENT)))}
+                    >
+                        <Keyboard className="mr-2 h-4 w-4 text-tone-link" />
+                        Keyboard shortcuts
+                        <span className="ml-auto text-xs text-muted-foreground">?</span>
                     </CommandItem>
                     <CommandItem
                         value="sign out"

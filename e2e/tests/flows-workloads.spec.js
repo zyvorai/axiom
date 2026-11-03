@@ -235,6 +235,7 @@ test("wizard/yaml: Validate (POST /validate) gates Apply; Apply (POST /apply) ou
   await apply.click();
   const applyDlg = page.getByRole("dialog", { name: "Apply workload manifest" });
   await expect(applyDlg.getByPlaceholder(/apiVersion: apps\/v1/)).toHaveValue(deploymentYaml(name));
+  await applyDlg.getByRole("button", { name: /^Review/ }).click(); // Apply enables after the change preview
   const applied = waitMutation(page, "POST", /\/apply$/);
   await applyDlg.getByRole("button", { name: "Apply", exact: true }).click();
   const res = await applied;
@@ -585,8 +586,12 @@ test("workload detail: saving the manifest posts it to /apply and reports the re
   manifest.metadata.labels = { edited: "yes" };
   await editor.fill(JSON.stringify(manifest, null, 2));
 
-  const applied = waitMutation(page, "POST", /\/apply$/);
+  // Save opens a "Review changes" dialog (POST /apply/diff); Apply there posts to /apply
   await page.getByRole("button", { name: "Save" }).click();
+  const review = page.getByTestId("diff-review-dialog");
+  await expect(review.locator('[data-diff="add"]').filter({ hasText: '"edited": "yes"' })).toBeVisible();
+  const applied = waitMutation(page, "POST", /\/apply$/);
+  await review.getByRole("button", { name: "Apply", exact: true }).click();
   const res = await applied;
   expect(res.status()).toBe(200);
   expect(t.find("POST", /\/apply$/)[0].body.manifest).toContain('"edited": "yes"');
@@ -608,10 +613,12 @@ test("workload detail negative: a malformed manifest is not reported as applied"
   await page.goto(`/workloads/default/Deployment/${name}`);
   await page.getByRole("tab", { name: /YAML/ }).click();
   await page.getByRole("textbox").first().fill("{ this is not a manifest");
-  const applied = waitMutation(page, "POST", /\/apply$/);
+  // the change review rejects it, so Apply never enables and nothing is posted to /apply
   await page.getByRole("button", { name: "Save" }).click();
-  await applied;
-  await toastText(page, /Apply failed/);
+  const review = page.getByTestId("diff-review-dialog");
+  await expect(review.getByRole("alert")).toBeVisible();
+  await expect(review.getByRole("button", { name: "Apply", exact: true })).toBeDisabled();
+  expect(t.find("POST", /\/apply$/)).toHaveLength(0);
   await expect(page.locator("[data-sonner-toast]").filter({ hasText: /Applied/ })).toHaveCount(0);
   await dropWorkload(page, name);
   expect(t.errors).toEqual([]);
@@ -751,8 +758,9 @@ test("pod detail: Terminal tab one-shot exec posts to /exec; YAML Save posts to 
   expect(manifest.metadata.name).toBe(pod);
   manifest.metadata.labels = { edited: "yes" };
   await editor.fill(JSON.stringify(manifest, null, 2));
-  const applied = waitMutation(page, "POST", /\/apply$/);
   await page.getByRole("button", { name: "Save" }).click();
+  const applied = waitMutation(page, "POST", /\/apply$/);
+  await page.getByTestId("diff-review-dialog").getByRole("button", { name: "Apply", exact: true }).click();
   const res = await applied;
   expect(res.status()).toBe(200);
   const body = await res.json();

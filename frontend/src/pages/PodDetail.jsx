@@ -43,6 +43,7 @@ import FeatureTile from "@/components/FeatureTile";
 import SpecTable from "@/components/SpecTable";
 import CodeEditor from "@/components/CodeEditor";
 import MacTerm from "@/components/MacTerm";
+import DiffReviewDialog from "@/components/DiffReviewDialog";
 import KvChip, { toneForKey } from "@/components/KvChip";
 import { maskEnvDisplay } from "@/lib/sensitive";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -305,7 +306,7 @@ export default function PodDetail() {
     const [capabilities, setCapabilities] = useState(null);
     const [detail, setDetail] = useState(null);
     const [manifestText, setManifestText] = useState("");
-    const [saving, setSaving] = useState(false);
+    const [reviewOpen, setReviewOpen] = useState(false);
     const [diagnosis, setDiagnosis] = useState(null);
 
     useEffect(() => {
@@ -339,22 +340,6 @@ export default function PodDetail() {
             alive = false;
         };
     }, [namespace, name]);
-
-    const saveManifest = async () => {
-        setSaving(true);
-        try {
-            const { data } = await api.post("/apply", { manifest: manifestText });
-            if (!data.valid) {
-                toast.error("Apply failed", { description: (data.errors || [data.message]).filter(Boolean).join(", ") });
-                return;
-            }
-            toast.success(`Applied ${data.kind || "Pod"}`);
-        } catch (e) {
-            toast.error("Apply failed", { description: e?.response?.data?.error || e.message });
-        } finally {
-            setSaving(false);
-        }
-    };
 
     const pod = useMemo(() => (pods || []).find((p) => p.name === name), [pods, name]);
     const podEvents = useMemo(() => (events || []).filter((e) => e.object === `Pod/${name}`), [events, name]);
@@ -648,9 +633,12 @@ export default function PodDetail() {
                         </GlassCard>
                     )}
                     {detail && detail.manifest && (
+                        <DiffReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} manifest={manifestText} fallbackKind="Pod" />
+                    )}
+                    {detail && detail.manifest && (
                         <div className="flex justify-end">
-                            <Button variant="brand" onClick={saveManifest} disabled={saving} className="rounded-xl">
-                                <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+                            <Button variant="brand" onClick={() => setReviewOpen(true)} disabled={!manifestText.trim()} className="rounded-xl">
+                                <Save className="mr-1.5 h-3.5 w-3.5" /> Save
                             </Button>
                         </div>
                     )}

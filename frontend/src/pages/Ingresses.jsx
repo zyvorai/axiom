@@ -5,12 +5,18 @@ import PageHeader from "@/components/PageHeader";
 import AutoTable from "@/components/AutoTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, Lock, LockOpen, Waypoints, Router } from "lucide-react";
+import { Lock, LockOpen, Waypoints, Router } from "lucide-react";
+import SearchBox from "@/components/SearchBox";
+import NamespaceFilter from "@/components/NamespaceFilter";
+import SavedViews from "@/components/SavedViews";
+import { useUrlState } from "@/lib/urlState";
+import { useNamespaceFilter } from "@/lib/namespace";
 
 export default function Ingresses() {
     const [data, setData] = useState(null);
     const [gateways, setGateways] = useState(null);
-    const [q, setQ] = useState("");
+    const [q, setQ] = useUrlState("q", "");
+    const [ns, setNs, knownNamespaces, globalNs] = useNamespaceFilter();
 
     useEffect(() => {
         let alive = true;
@@ -25,8 +31,12 @@ export default function Ingresses() {
     }, []);
 
     const rows = useMemo(
-        () => (data || []).filter((i) => q === "" || i.name.toLowerCase().includes(q.toLowerCase()) || (i.hosts || []).some((h) => h.toLowerCase().includes(q.toLowerCase()))),
-        [data, q]
+        () => (data || []).filter((i) => (ns === "all" || i.namespace === ns) && (q === "" || i.name.toLowerCase().includes(q.toLowerCase()) || (i.hosts || []).some((h) => h.toLowerCase().includes(q.toLowerCase())))),
+        [data, q, ns]
+    );
+    const namespaces = useMemo(
+        () => [...new Set([...knownNamespaces, ...(data || []).map((i) => i.namespace)])].sort(),
+        [knownNamespaces, data]
     );
 
     if (!data) {
@@ -44,14 +54,18 @@ export default function Ingresses() {
                 title="Ingresses"
                 description="External routes into cluster services, equivalent to OpenShift Routes."
                 tools={
-                    <div className="input">
-                        <Search size={15} className="text-ink-3" />
-                        <input
-                            placeholder="Search by name or host"
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)} className="bare-input"
+                    <>
+                        <SearchBox placeholder="Search by name or host" value={q} onChange={setQ} />
+                        <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
+                        <SavedViews
+                            pageKey="ingresses"
+                            filters={{ q, ns }}
+                            onApply={(f) => {
+                                setQ(f.q ?? "");
+                                setNs(f.ns ?? globalNs);
+                            }}
                         />
-                    </div>
+                    </>
                 }
             />
 
