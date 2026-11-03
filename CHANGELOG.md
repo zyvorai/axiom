@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — GitOps & Helm
+- Helm chart catalog: administrators add chart repositories (`POST /api/v1/helm/repos`, kept in ConfigMap `zyvor-axiom-helm-repos`), and every role except namespace-restricted accounts can search their charts (`GET /api/v1/helm/charts`), list a chart's versions and read its default `values.yaml` and README (`GET /api/v1/helm/charts/{repo}/{chart}[/values]`). Indexes are cached for 10 minutes and a failing repository keeps serving its last good copy. Fetches are SSRF-hardened: https only, public addresses only (checked at connect time, on every redirect and for chart archive URLs), with `AXIOM_HELM_ALLOW_PRIVATE_REPOS` / `AXIOM_HELM_ALLOW_INSECURE_REPOS` for in-cluster repositories. Adding and removing repositories is audited (`helm.repo_add`, `helm.repo_remove`)
+
 ## [0.6.0] - 2026-11-03
 
 ### Added — Fleet

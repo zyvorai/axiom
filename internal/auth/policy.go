@@ -59,7 +59,7 @@ func isOperatorForbidden(r *http.Request) bool {
 	case strings.HasPrefix(p, "/api/v1/integrations/"):
 		return true
 	}
-	return false
+	return isHelmCatalogOperatorForbidden(r)
 }
 
 // restrictedSensitivePrefixes are cluster-wide or administrative surfaces a
@@ -78,6 +78,8 @@ var restrictedSensitivePrefixes = []string{
 	"/api/v1/helm/upgrade",
 	"/api/v1/helm/rollback",
 	"/api/v1/helm/uninstall",
+	"/api/v1/helm/repos", // chart catalog: cluster-wide, not namespace-scoped
+	"/api/v1/helm/charts",
 }
 
 // restrictedDenied decides whether a namespace-restricted identity may make

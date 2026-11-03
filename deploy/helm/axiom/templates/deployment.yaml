@@ -74,6 +74,14 @@ spec:
             - name: AXIOM_FLEET_PROBE_INTERVAL
               value: {{ .Values.auth.fleetProbeInterval | quote }}
             {{- end }}
+            {{- if (.Values.helmCatalog | default dict).allowPrivateRepos }}
+            - name: AXIOM_HELM_ALLOW_PRIVATE_REPOS
+              value: "true"
+            {{- end }}
+            {{- if (.Values.helmCatalog | default dict).allowInsecureRepos }}
+            - name: AXIOM_HELM_ALLOW_INSECURE_REPOS
+              value: "true"
+            {{- end }}
             {{- if .Values.auth.samlAllowIdPInitiated }}
             - name: AXIOM_SAML_ALLOW_IDP_INITIATED
               value: "true"
