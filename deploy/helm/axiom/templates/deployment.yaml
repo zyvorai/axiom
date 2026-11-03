@@ -66,6 +66,17 @@ spec:
                   name: zyvor-axiom-auth
                   key: totpSecret
             {{- end }}
+            {{- if (.Values.cost | default dict).prometheusUrl }}
+            - name: AXIOM_PROMETHEUS_URL
+              value: {{ .Values.cost.prometheusUrl | quote }}
+            {{- end }}
+            {{- if (.Values.cost | default dict).prometheusToken }}
+            - name: AXIOM_PROMETHEUS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: prometheusToken
+            {{- end }}
             {{- if .Values.auth.sessionTTL }}
             - name: AXIOM_SESSION_TTL
               value: {{ .Values.auth.sessionTTL | quote }}

@@ -213,6 +213,9 @@ func (sp *SwitchableProvider) ListRBAC(a0 context.Context, a1 string) (RBACSumma
 func (sp *SwitchableProvider) EstimateCost(a0 context.Context) (CostEstimate, error) {
 	return sp.current(a0).EstimateCost(a0)
 }
+func (sp *SwitchableProvider) ListRightsizing(a0 context.Context, a1 string, a2 string) (RightsizingReport, error) {
+	return sp.current(a0).ListRightsizing(a0, a1, a2)
+}
 func (sp *SwitchableProvider) ValidateManifest(a0 context.Context, a1 string) (ValidateResult, error) {
 	return sp.current(a0).ValidateManifest(a0, a1)
 }

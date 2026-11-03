@@ -186,4 +186,7 @@ type Provider interface {
 	AnalyzeNetworkPolicies(context.Context, string) (NetworkPolicyAnalysis, error)
 	ListSecurityReports(context.Context, string) (SecurityReportSummary, error)
 	GetWorkloadSecurity(ctx context.Context, namespace, kind, name string) (WorkloadSecurityDetail, error)
+	// ListRightsizing recommends container requests from observed usage
+	// (Prometheus history or a metrics.k8s.io snapshot); see cost_rightsizing.go.
+	ListRightsizing(ctx context.Context, namespace, window string) (RightsizingReport, error)
 }

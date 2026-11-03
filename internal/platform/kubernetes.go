@@ -53,6 +53,9 @@ type KubernetesProvider struct {
 	// the single-cluster in-cluster/default construction paths, where only
 	// one KubernetesProvider ever exists so there's nothing to collide with.
 	clusterKey string
+	// prometheus, when set (ConfigurePrometheus), backs rightsizing with
+	// p95/p99 usage history. Only the cluster Axiom starts on gets it.
+	prometheus *PrometheusClient
 }
 
 func NewKubernetesProvider(kubeconfig string) (*KubernetesProvider, error) {

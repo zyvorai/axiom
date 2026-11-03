@@ -60,6 +60,8 @@ func isOperatorForbidden(r *http.Request) bool {
 		return true
 	case isGitOpsCreate(r):
 		return true
+	case isCostBudgetOperatorForbidden(r):
+		return true
 	}
 	return isHelmCatalogOperatorForbidden(r)
 }
@@ -82,6 +84,9 @@ var restrictedSensitivePrefixes = []string{
 	"/api/v1/helm/uninstall",
 	"/api/v1/helm/repos", // chart catalog: cluster-wide, not namespace-scoped
 	"/api/v1/helm/charts",
+	// Cluster-wide cost data. GET /api/v1/cost itself stays readable, as before.
+	"/api/v1/cost/budgets",
+	"/api/v1/cost/rightsizing",
 }
 
 // restrictedDenied decides whether a namespace-restricted identity may make
