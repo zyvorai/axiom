@@ -16,3 +16,4 @@ export * from './home';
 export * from './dashboard';
 export * from './ux';
 export * from './troubleshoot';
+export * from './security';

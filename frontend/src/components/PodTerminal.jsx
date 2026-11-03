@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Plug, PlugZap } from "lucide-react";
 import MacTerm from "@/components/MacTerm";
 import { buildTerminalTheme } from "@/lib/terminalTheme";
+import { getStreamTicket } from "@/lib/api";
 
 const SHELLS = ["/bin/sh", "/bin/bash", "/bin/ash"];
 
@@ -61,7 +62,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const connect = () => {
+    const connect = async () => {
         const term = termRef.current;
         if (!term) return;
         dataDispRef.current?.dispose();
@@ -74,12 +75,20 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
         let sawPayload = false;
         let explained = false;
 
-        const token = sessionStorage.getItem("axiom.basicAuth");
-        const proto = window.location.protocol === "https:" ? "wss" : "ws";
-        const params = new URLSearchParams({ shell });
-        if (container) params.set("container", container);
-        if (token) params.set("access_token", token);
+        // Credentials never go in the URL: trade the session for a single-use,
+        // 30-second ticket bound to this exact terminal path.
         const path = wsPath || `/api/v1/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/terminal`;
+        let ticket;
+        try {
+            ticket = await getStreamTicket(path.replace(/^\/api\/v1/, ""));
+        } catch (e) {
+            setStatus("error");
+            term.writeln(`\r\n\x1b[31mCould not start a terminal session: ${e?.response?.data?.error || e.message}\x1b[0m`);
+            return;
+        }
+        const proto = window.location.protocol === "https:" ? "wss" : "ws";
+        const params = new URLSearchParams({ shell, ticket });
+        if (container) params.set("container", container);
         const ws = new WebSocket(`${proto}://${window.location.host}${path}?${params.toString()}`);
         ws.binaryType = "arraybuffer";
         wsRef.current = ws;

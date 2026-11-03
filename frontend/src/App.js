@@ -44,6 +44,7 @@ const Backups = lazy(() => import("@/pages/Backups"));
 const Alerts = lazy(() => import("@/pages/Alerts"));
 const Ops = lazy(() => import("@/pages/Ops"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Security = lazy(() => import("@/pages/Security"));
 const Users = lazy(() => import("@/pages/Users"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 import "@/styles/accessibility.css"; // keep last: forced-colours / reduced-motion overrides must win the cascade
@@ -116,6 +117,7 @@ export default function App() {
                                 <Route path="/alerts" element={<Alerts />} />
                                 <Route path="/ops" element={<Ops />} />
                                 <Route path="/ops/:tab" element={<Ops />} />
+                                <Route path="/security" element={<Security />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/users" element={<Users />} />
                                 <Route path="*" element={<NotFound />} />

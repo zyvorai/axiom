@@ -62,6 +62,20 @@ export function restoreBasicAuth() {
     return token;
 }
 
+// Browser WebSocket / EventSource constructors cannot set headers, and putting
+// credentials in the URL leaks them into proxy access logs. Instead, ask the
+// (already authenticated) API for a single-use, 30-second ticket bound to the
+// exact stream path, and pass that as ?ticket= (internal/auth/tickets.go).
+// `path` is the API path below /api/v1, e.g. "/pods/ns/name/terminal".
+export async function getStreamTicket(path) {
+    const res = await api.post("/ws-ticket", { path: `${API}${path}` });
+    return res.data.ticket;
+}
+
+// DEPRECATED for streams (use getStreamTicket). Still used for plain <a
+// target="_blank"> navigations such as the pod HTTP proxy, which load many
+// sub-resources and so cannot use a single-use ticket.
+//
 // A plain <a target="_blank"> navigation to an API route won't carry the
 // Authorization header a local Basic-auth session relies on (only cookies —
 // i.e. OIDC/SAML sessions — survive that). The backend accepts a base64

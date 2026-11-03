@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { NET } from "@/constants/testIds";
 import { useConfirm } from "@/components/ConfirmDialog";
 import CodeEditor from "@/components/CodeEditor";
+import NetworkPolicyAnalysis from "@/components/NetworkPolicyAnalysis";
 import { breakable } from "@/lib/text";
 
 
@@ -338,6 +339,9 @@ export default function Networking() {
             </div>
             <div className="mt-3.5">
                 <NetworkPolicyPanel />
+            </div>
+            <div className="mt-3.5">
+                <NetworkPolicyAnalysis />
             </div>
         </div>
     );

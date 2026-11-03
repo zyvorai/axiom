@@ -73,6 +73,7 @@ type Server struct {
 	auth        AuthOptions
 	hub         *platform.IntegrationHub
 	users       *platform.UserHub
+	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -117,7 +118,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 			opts.OIDCClient = cur.OIDCClientID
 		}
 	}
-	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users}
+	s := &Server{provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
 	mux.HandleFunc("GET /api/v1/metrics", s.metrics)
@@ -293,6 +294,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 
 	// Troubleshooting & timeline (Workstream B): routes live in troubleshoot.go.
 	s.registerTroubleshooting(mux)
+	// Security views + auth hardening (Workstream C): RBAC viewer, NetworkPolicy
+	// analysis, Trivy/Kyverno report aggregation, stream tickets.
+	s.registerSecurityRoutes(mux)
 
 	RegisterSSE(mux)
 	RegisterRealtime(mux, provider)
@@ -303,7 +307,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	guard := auth.Guard{
 		Username: username, Password: password, APIKey: opts.APIKey,
-		SessionSecret: opts.SessionSecret, Users: authenticator,
+		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
 			Enabled: opts.LDAPEnabled, URL: opts.LDAPURL, Domain: opts.LDAPDomain,

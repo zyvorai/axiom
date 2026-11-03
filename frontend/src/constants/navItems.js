@@ -28,6 +28,7 @@ import {
     Puzzle,
     History,
     Stethoscope,
+    ShieldAlert,
 } from "lucide-react";
 
 // Fixed name -> lucide-react component lookup for plugin-declared icons.
@@ -77,6 +78,7 @@ export const NAV_ITEMS = [
     { to: "/health-check", label: "Health check", icon: Stethoscope, key: "health-check", group: "Observe" },
     { to: "/alerts", label: "Alerts", icon: AlertTriangle, key: "alerts", group: "Observe" },
     { to: "/ops", label: "Ops", icon: Layers, key: "ops", group: "Observe" },
+    { to: "/security", label: "Security", icon: ShieldAlert, key: "security", group: "Observe" },
     { to: "/users", label: "Users", icon: UsersIcon, key: "users", group: "Admin" },
     { to: "/settings", label: "Settings", icon: SlidersHorizontal, key: "settings", group: "Admin" },
 ];

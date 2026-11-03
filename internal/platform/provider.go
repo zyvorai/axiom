@@ -169,4 +169,14 @@ type Provider interface {
 	ClusterHealth(context.Context, string) (HealthReport, error)
 	WorkloadLogs(context.Context, string, string, string, WorkloadLogOptions) (io.ReadCloser, error)
 	CreateDebugContainer(context.Context, string, string, DebugRequest) (DebugContainer, error)
+	// --- Workstream C: security views (read-only) ---
+	// Implemented in rbac_view*.go, netpol_analysis*.go, security_reports*.go;
+	// SwitchableProvider delegates in switchable_provider_security.go.
+	ListRBACSubjects(context.Context) ([]RBACSubjectSummary, error)
+	GetRBACSubject(ctx context.Context, kind, name, namespace string) (RBACSubjectDetail, error)
+	RBACWhoCan(context.Context, RBACWhoCanQuery) (RBACWhoCanResult, error)
+	ListServiceAccounts(context.Context, string) ([]ServiceAccountSummary, error)
+	AnalyzeNetworkPolicies(context.Context, string) (NetworkPolicyAnalysis, error)
+	ListSecurityReports(context.Context, string) (SecurityReportSummary, error)
+	GetWorkloadSecurity(ctx context.Context, namespace, kind, name string) (WorkloadSecurityDetail, error)
 }

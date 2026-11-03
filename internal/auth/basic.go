@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // UserAuthenticator checks local multi-user credentials beyond the single
@@ -27,6 +28,10 @@ type Identity struct {
 	// non-empty. Only ever set for local viewer accounts — the env admin
 	// account, API keys, and OIDC/SAML sessions are always unrestricted.
 	Namespaces []string
+	// viaCredentials is set only when the identity was established by
+	// verifying a username/password supplied with this request (not by a
+	// session, API key or ticket).
+	viaCredentials bool
 }
 
 func (id Identity) namespaceRestricted() bool {
@@ -67,6 +72,14 @@ type Guard struct {
 	// Limiter throttles repeated failed logins per client IP. Optional — a
 	// fresh one is created automatically in Middleware when left nil.
 	Limiter *RateLimiter
+	// AccountLimiter throttles failed logins per attempted account name, on top
+	// of the per-IP Limiter, so rotating source IPs or interleaving successes
+	// from another account does not defeat throttling. Optional — created
+	// automatically in Middleware when left nil.
+	AccountLimiter *RateLimiter
+	// Tickets redeems single-use ?ticket= credentials for WebSocket/SSE/log
+	// streams (POST /api/v1/ws-ticket). Optional — nil disables tickets.
+	Tickets *TicketStore
 	// Audit records failed logins and rate-limit lockouts to the platform
 	// audit trail. Optional — nil means these events aren't audited (they
 	// still fully function, just without a security-review trail).
@@ -86,6 +99,19 @@ type AuditLogger interface {
 	Record(action, target, detail, user string)
 }
 
+// writeRateLimited sends the 429 for a locked-out key, rounding Retry-After up
+// so a client never retries before the lockout has actually cleared.
+func writeRateLimited(w http.ResponseWriter, wait time.Duration) {
+	w.Header().Set("Content-Type", "application/json")
+	retryAfter := int(math.Ceil(wait.Seconds()))
+	if retryAfter < 1 {
+		retryAfter = 1
+	}
+	w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
+	w.WriteHeader(http.StatusTooManyRequests)
+	_, _ = w.Write([]byte(`{"error":"too many failed login attempts — try again shortly"}`))
+}
+
 func (g Guard) sessionSecret() string {
 	if g.SessionSecret != "" {
 		return g.SessionSecret
@@ -98,6 +124,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 	if limiter == nil {
 		limiter = NewRateLimiter()
 	}
+	acctLimiter := g.AccountLimiter
+	if acctLimiter == nil {
+		acctLimiter = NewAccountRateLimiter(time.Now)
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isPublicPath(r) {
 			next.ServeHTTP(w, r)
@@ -108,23 +138,48 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			if g.Audit != nil {
 				g.Audit.Record("auth.rate_limited", key, r.URL.Path, attemptedUsername(r))
 			}
-			w.Header().Set("Content-Type", "application/json")
-			// Round up so Retry-After never tells a client to retry before
-			// the lockout has actually cleared.
-			retryAfter := int(math.Ceil(limiter.RetryAfter(key).Seconds()))
-			if retryAfter < 1 {
-				retryAfter = 1
-			}
-			w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
-			w.WriteHeader(http.StatusTooManyRequests)
-			_, _ = w.Write([]byte(`{"error":"too many failed login attempts — try again shortly"}`))
+			writeRateLimited(w, limiter.RetryAfter(key))
 			return
 		}
-		id, ok := g.authorizeDetail(r)
+		acct := ""
+		if u := attemptedUsername(r); u != "" {
+			acct = accountKey(u)
+		}
+		var id Identity
+		var ok, viaTicket bool
+		if t := r.URL.Query().Get(TicketParam); t != "" {
+			// A presented ticket is the only credential considered: it is
+			// redeemed (and destroyed) exactly once, for exactly its path, and
+			// any miss fails closed rather than falling back to other creds.
+			viaTicket = true
+			if r.Method == http.MethodGet && g.Tickets != nil {
+				id, ok = g.Tickets.Consume(t, r.URL.Path)
+			}
+		} else {
+			// Per-account throttle. Skipped for a request that already carries
+			// a valid session cookie/token (no password is being tested).
+			if acct != "" {
+				if _, hasSession := SessionFromRequest(g.sessionSecret(), r); !hasSession && !acctLimiter.Allowed(acct) {
+					if g.Audit != nil {
+						g.Audit.Record("auth.account_rate_limited", acct, r.URL.Path, attemptedUsername(r))
+					}
+					writeRateLimited(w, acctLimiter.RetryAfter(acct))
+					return
+				}
+			}
+			id, ok = g.authorizeDetail(r)
+		}
 		if !ok {
 			limiter.RecordFailure(key)
+			if acct != "" && !viaTicket {
+				acctLimiter.RecordFailure(acct)
+			}
 			if g.Audit != nil {
-				g.Audit.Record("auth.login_failed", key, r.URL.Path, attemptedUsername(r))
+				action := "auth.login_failed"
+				if viaTicket {
+					action = "auth.ticket_rejected"
+				}
+				g.Audit.Record(action, key, r.URL.Path, attemptedUsername(r))
 			}
 			// Do not set WWW-Authenticate — that triggers the browser's native
 			// Basic-auth popup on top of Axiom's custom login form.
@@ -132,12 +187,21 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		limiter.RecordSuccess(key)
+		// Only clear the account counter when this account's own credentials
+		// were verified. A success via a cookie, API key or ticket says
+		// nothing about the (possibly someone else's) name in the Basic header.
+		if id.viaCredentials && acct != "" {
+			acctLimiter.RecordSuccess(acct)
+		}
+		if !viaTicket && usesURLCredentials(r) {
+			noteDeprecatedURLCredentials(w)
+		}
 		deny := func(code int, msg string) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(code)
 			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
 		}
-		if id.Role == "viewer" && isMutatingMethod(r.Method) {
+		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) {
 			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
 			return
 		}
@@ -147,6 +211,10 @@ func (g Guard) Middleware(next http.Handler) http.Handler {
 		}
 		if isNodeShellPath(r.URL.Path) && id.Role != "admin" {
 			deny(http.StatusForbidden, "the node shell requires the admin role")
+			return
+		}
+		if id.Role == "viewer" && isRBACViewRead(r) {
+			deny(http.StatusForbidden, "read-only user: the RBAC viewer lists every subject's permissions and requires the operator role")
 			return
 		}
 		if sns, isVals := secretValuesTarget(r); isVals {
@@ -225,6 +293,9 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/graph",
 	"/api/v1/timeline",
 	"/api/v1/diagnose",
+	"/api/v1/networking/policies",
+	"/api/v1/security/reports",
+	"/api/v1/serviceaccounts",
 	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
 	// of installed CRD definitions, which is cluster-scoped metadata with
 	// no namespace of its own) when no ?namespace= is given — an
@@ -314,19 +385,19 @@ func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
 		return Identity{}, false
 	}
 	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
-		return Identity{User: g.Username, Role: "admin"}, true
+		return Identity{User: g.Username, Role: "admin", viaCredentials: true}, true
 	}
 	// Local accounts first: it is a cheap in-memory bcrypt check, and trying
 	// LDAP first would send every local user's password to the directory on
 	// every API call (and count each miss toward AD lockout policy).
 	if g.Users != nil {
 		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
-			return Identity{User: u, Role: role, Namespaces: namespaces}, true
+			return Identity{User: u, Role: role, Namespaces: namespaces, viaCredentials: true}, true
 		}
 	}
 	if g.LDAP.Enabled || g.LDAP.URL != "" {
 		if role, ok, err := LDAPAuthenticate(g.LDAP, u, p); ok && err == nil {
-			return Identity{User: u, Role: role}, true
+			return Identity{User: u, Role: role, viaCredentials: true}, true
 		}
 	}
 	return Identity{}, false
