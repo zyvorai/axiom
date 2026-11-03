@@ -4,6 +4,12 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — VPA & KEDA create
+- Create and delete VerticalPodAutoscalers and KEDA ScaledObjects from typed, validated requests, with a pure preview of the rendered YAML: `POST /api/v1/vpas/preview`, `POST /api/v1/vpas`, `DELETE /api/v1/vpas/{namespace}/{name}`, and the same three under `/api/v1/scaledobjects`. Raw YAML is never accepted. VPAs default to `updateMode: Off` (recommend only) with per-container cpu/memory bounds; ScaledObject triggers come from a closed allow-list (cpu, memory, cron, prometheus, kafka, redis, rabbitmq, aws-sqs-queue) with per-type setting keys, credentials refused in settings and accepted only as `authenticationRef` to an existing TriggerAuthentication, and KEDA's scale-to-zero rule enforced. Warnings for restarting update modes and, on create, for an HPA already scaling the same workload. `422` without the CRD, `409` on exists. `GET /api/v1/triggerauthentications` lists TriggerAuthentication names for the form. Operator and admin; namespace-restricted operators only in their own namespaces. Audited as `autoscale.vpa_create|vpa_delete|keda_create|keda_delete`. The ClusterRole gains `create`/`delete` on VPAs and ScaledObjects and `get`/`list` on TriggerAuthentications
+
+### Fixed
+- `POST /api/v1/hpas` now checks the body's namespace against a namespace-restricted account (previously only a `?namespace=` query parameter was checked by the guard)
+
 ## [0.9.1] - 2026-11-04
 
 ### Fixed

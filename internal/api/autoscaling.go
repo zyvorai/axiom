@@ -7,6 +7,7 @@ import "net/http"
 func (s *Server) registerAutoscaling(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/vpas", s.listVPAs)
 	mux.HandleFunc("GET /api/v1/scaledobjects", s.listScaledObjects)
+	s.registerAutoscalingCreate(mux) // autoscaling_create.go
 }
 
 // listVPAs returns VerticalPodAutoscalers with their recommendations;

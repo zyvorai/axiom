@@ -198,7 +198,54 @@ Exec accepts a shell string or argv array:
 | GET | `/api/v1/vpas?namespace=...` | VerticalPodAutoscalers (`autoscaling.k8s.io` `v1`, falling back to `v1beta2`): `{"installed","items":[{"namespace","name","targetKind","targetName","updateMode","containers":[{"name","lowerBound","target","upperBound","uncappedTarget"}],"conditions","age"}]}`. Each bound is `{"cpu","memory"}` as Kubernetes quantity strings (`250m`, `512Mi`); `updateMode` is `Off`\|`Initial`\|`Recreate`\|`Auto` (`Auto` when unset, as in the VPA API) |
 | GET | `/api/v1/scaledobjects?namespace=...` | KEDA ScaledObjects (`keda.sh/v1alpha1`): `{"installed","items":[{"namespace","name","targetKind","targetName","minReplicas","maxReplicas","currentReplicas","triggers":[{"type","name"}],"ready","active","fallback","conditions","age"}]}`. `currentReplicas` comes from the HPA KEDA manages (`status.hpaName`); `minReplicas`/`maxReplicas` default to 0/100 like KEDA |
 
-Both are read-only. When the CRD is not installed the answer is `200` with `{"installed":false,"items":[]}`, not an error; any other failure (for example Axiom's ServiceAccount lacking `list`) is an error. A trigger's `name` is its own `name`, else its `metricName`/`queueName`/`topic`/`listName`/`streamName`/`subscriptionName` metadata value, else `""`; **no other trigger metadata and no `authenticationRef` is ever returned** (they can carry endpoints and credentials). Both routes are namespaced reads like `/api/v1/hpas`: a namespace-restricted account must pass `?namespace=` with one of its namespaces (`all` or no namespace is `403`).
+When the CRD is not installed the list answer is `200` with `{"installed":false,"items":[]}`, not an error; any other failure (for example Axiom's ServiceAccount lacking `list`) is an error. A trigger's `name` is its own `name`, else its `metricName`/`queueName`/`topic`/`listName`/`streamName`/`subscriptionName` metadata value, else `""`; **no other trigger metadata and no `authenticationRef` is ever returned** (they can carry endpoints and credentials). Both routes are namespaced reads like `/api/v1/hpas`: a namespace-restricted account must pass `?namespace=` with one of its namespaces (`all` or no namespace is `403`).
+
+#### Creating and deleting VPAs and ScaledObjects
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/vpas/preview` | Validate and render a VPA without touching the cluster: `{"objects":[{"apiVersion","kind","namespace","name"}],"yaml","warnings":[]}` |
+| POST | `/api/v1/vpas` | Create it: `201` `{"ok":true,"created":[...],"warnings":[]}` |
+| DELETE | `/api/v1/vpas/{namespace}/{name}` | Delete one: `{"ok":true}` (the target workload is not touched) |
+| POST | `/api/v1/scaledobjects/preview` | Validate and render a KEDA ScaledObject (no cluster access) |
+| POST | `/api/v1/scaledobjects` | Create it: `201` `{"ok":true,"created":[...],"warnings":[]}` |
+| DELETE | `/api/v1/scaledobjects/{namespace}/{name}` | Delete one: `{"ok":true}` |
+| GET | `/api/v1/triggerauthentications?namespace=...` | KEDA TriggerAuthentication **names** for the form's dropdown: `{"installed","items":[{"namespace","name","kind":"TriggerAuthentication","age"}]}` (never the spec or its secret references; ClusterTriggerAuthentications are not listed) |
+
+The bodies are typed; raw YAML is never accepted (unknown JSON fields are `400`). Preview works without the CRD; create and delete answer `422` when the CRD is absent, create `409` when the object exists, delete `404` when it does not. Editing in place is not supported: delete and recreate. Created objects carry `app.kubernetes.io/managed-by: zyvor-axiom`. Audited as `autoscale.vpa_create` / `vpa_delete` / `keda_create` / `keda_delete` with target `<namespace>/<name>` (trigger settings are never logged).
+
+VPA body (`autoscaling.k8s.io` `v1`, else `v1beta2`):
+
+```json
+{"namespace":"commerce","name":"checkout-vpa","targetKind":"Deployment","targetName":"checkout","updateMode":"Off",
+ "controlledResources":["cpu","memory"],"containers":[{"name":"app","minCpu":"50m","maxCpu":"2","minMemory":"64Mi","maxMemory":"2Gi"}]}
+```
+
+`targetKind` is `Deployment`\|`StatefulSet`\|`DaemonSet`\|`ReplicaSet`; names and namespaces are DNS-1123. `updateMode` defaults to `Off` (recommend only); `Initial`/`Recreate`/`Auto` add the warning "pods may be restarted to apply new requests". `controlledResources` defaults to both; restricting it without `containers` renders a `containerName: "*"` policy. `containers` is optional (`name` a container name or `*`); each quantity is optional, parsed as a Kubernetes quantity, positive, cpu at most 256 cores and memory at most `4Ti`, min not above max, and only for a controlled resource. Create also warns "VPA and HPA on the same resource conflict" when an HPA in the namespace scales the same workload on a controlled resource (preview cannot know).
+
+ScaledObject body (`keda.sh/v1alpha1`):
+
+```json
+{"namespace":"payments","name":"payments-api-scaler","targetKind":"Deployment","targetName":"payments-api","minReplicas":0,"maxReplicas":20,"pollingInterval":30,"cooldownPeriod":300,
+ "triggers":[{"type":"cron","name":"business-hours","settings":{"timezone":"Europe/Berlin","start":"0 8 * * 1-5","end":"0 18 * * 1-5","desiredReplicas":"5"}},
+             {"type":"prometheus","settings":{"serverAddress":"http://prometheus.monitoring:9090","query":"sum(rate(http_requests_total[2m]))","threshold":"100"},"authenticationRef":"prom-auth"}]}
+```
+
+`targetKind` is `Deployment`\|`StatefulSet`. `maxReplicas` is required, 1–1000; `minReplicas` 0–max (default 0 when an event trigger is present, else 1), and **0 is only allowed when at least one trigger is not `cpu`/`memory`** (they are measured on running pods, so KEDA cannot wake a workload from zero on them). `pollingInterval` (1–3600, default 30) and `cooldownPeriod` (1–86400, default 300) are seconds. 1–10 triggers; a trigger `name` is optional, DNS-1123 and unique. It renders `spec.scaleTargetRef{kind,name}`, `minReplicaCount`, `maxReplicaCount`, `pollingInterval`, `cooldownPeriod` and `triggers[{type,name?,metadata,authenticationRef{name}?,metricType?}]`.
+
+| `type` | Required settings | Optional | `authenticationRef` |
+|---|---|---|---|
+| `cpu`, `memory` | `type` (`Utilization`\|`AverageValue`, rendered as `metricType`), `value` (1–1000 % or a quantity) | | not allowed |
+| `cron` | `timezone` (IANA), `start`, `end` (5-field cron), `desiredReplicas` | | not allowed |
+| `prometheus` | `serverAddress` (http/https URL, no userinfo), `query`, `threshold` | `activationThreshold`, `namespace` | optional |
+| `kafka` | `bootstrapServers` (`host:port,...`), `consumerGroup`, `topic`, `lagThreshold` | `activationLagThreshold` | optional |
+| `redis` (lists) | `address` (`host:port`), `listName`, `listLength` | `activationListLength` | optional |
+| `rabbitmq` | `queueName`, `mode` (`QueueLength`\|`MessageRate`), `value` | `protocol` (`auto`\|`amqp`\|`http`) | **required**: the host (it carries the password) is supplied only through it, never as `host` |
+| `aws-sqs-queue` | `queueURL` (https), `queueLength`, `awsRegion` | | optional |
+
+Every setting value is a string of at most 512 characters with no control characters. Any other type or key is `400` naming the allowed ones. **Credentials are never accepted in settings**: a key that looks like one (`password`, `token`, `secret`, `key`, `auth`, ...) and any value with a URL carrying userinfo (`scheme://user:pass@host`, `user@host:port`) are `400`, and error messages never echo setting values. Credentials go through `authenticationRef`, the name of an existing TriggerAuthentication in the same namespace; create checks it exists (`400` "TriggerAuthentication X not found in namespace Y"), preview does not. Create warns "KEDA creates its own HPA; two autoscalers on one workload fight each other" when a plain HPA (not a KEDA-owned `keda-hpa-*`) already targets the workload.
+
+Operators and admins may create and delete (viewers get `403`). For a namespace-restricted operator the `POST` bodies' `namespace` must be one of its namespaces (checked by the handler, `403` otherwise; this applies to `POST /api/v1/hpas` as well) and the `DELETE` path namespace is checked by the guard. `/api/v1/triggerauthentications` is a namespaced read like the lists above.
 
 ### NetworkPolicy analysis
 

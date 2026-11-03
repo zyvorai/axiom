@@ -22,6 +22,11 @@ func (s *Server) createHPA(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
+	// The guard authorized ?namespace=, not the body; the body is what is used.
+	if !auth.NamespaceAllowed(r.Context(), req.Namespace) {
+		fail(w, http.StatusForbidden, errNamespaceRestricted)
+		return
+	}
 	v, err := s.provider.CreateHPA(r.Context(), req)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)

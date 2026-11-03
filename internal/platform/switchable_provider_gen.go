@@ -327,6 +327,21 @@ func (sp *SwitchableProvider) ListVPAs(a0 context.Context, a1 string) (VPAList, 
 func (sp *SwitchableProvider) ListScaledObjects(a0 context.Context, a1 string) (ScaledObjectList, error) {
 	return sp.current(a0).ListScaledObjects(a0, a1)
 }
+func (sp *SwitchableProvider) CreateVPA(a0 context.Context, a1 VPACreateRequest) (AutoscalerCreateResult, error) {
+	return sp.current(a0).CreateVPA(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteVPA(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteVPA(a0, a1, a2)
+}
+func (sp *SwitchableProvider) CreateScaledObject(a0 context.Context, a1 ScaledObjectCreateRequest) (AutoscalerCreateResult, error) {
+	return sp.current(a0).CreateScaledObject(a0, a1)
+}
+func (sp *SwitchableProvider) DeleteScaledObject(a0 context.Context, a1 string, a2 string) error {
+	return sp.current(a0).DeleteScaledObject(a0, a1, a2)
+}
+func (sp *SwitchableProvider) ListTriggerAuthentications(a0 context.Context, a1 string) (TriggerAuthenticationList, error) {
+	return sp.current(a0).ListTriggerAuthentications(a0, a1)
+}
 func (sp *SwitchableProvider) ListPodDisruptionBudgets(a0 context.Context, a1 string) ([]PDBSummary, error) {
 	return sp.current(a0).ListPodDisruptionBudgets(a0, a1)
 }
