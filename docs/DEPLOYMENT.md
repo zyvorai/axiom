@@ -103,6 +103,17 @@ SAML is configured with these variables (register `https://<axiom-host>/api/v1/a
 | `AXIOM_SAML_ALLOW_UNSIGNED` | `false` | Lab only: accept responses without signature verification. |
 | `AXIOM_SAML_ALLOW_IDP_INITIATED` | `false` | Accept unsolicited (IdP-initiated) responses, i.e. ones with no `InResponseTo`, such as an IdP dashboard tile. Leave off unless you need it: such responses are not bound to a browser sign-in and can be replayed within their validity window. Helm: `auth.samlAllowIdPInitiated`. |
 
+Pod proxy origin (optional; see `docs/API.md` → Pod proxy origin):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_POD_PROXY_ADDR` | unset (off) | Listen address of a second listener that serves pod web content ("Open" on a pod port), e.g. `:5091`. Uses `AXIOM_TLS_CERT`/`AXIOM_TLS_KEY` when those are set. Helm: `podProxy.addr` (adds a `pod-proxy` port to the Service). |
+| `AXIOM_POD_PROXY_ORIGIN` | unset (off) | The public origin browsers use to reach that listener, e.g. `https://pods.example.com` (scheme, host and optional port, nothing else). Must differ from the console's origin by host or port. Helm: `podProxy.origin`. |
+
+Both must be set. If only one is, or the origin equals the console's (`AXIOM_ALLOW_ORIGIN`, or the console's own listen address on the same host), Axiom logs why and keeps serving pod windows from the console's origin as before. When on, the old in-origin route answers `410`.
+
+**How to expose it.** Give the pod proxy its **own hostname** (e.g. `pods.example.com` next to `axiom.example.com`) with its own TLS certificate, routed to the Service's `pod-proxy` port. The chart does not create that Ingress: add a host rule pointing at `zyvor-axiom:5091`, or set `podProxy.service.nodePort` with `expose.type=NodePort` for a lab. Avoid a subdomain *of* the console's hostname where you can, and never use the same host and port. A different port on the same host (e.g. `https://axiom.example.com:5091`) is a different origin for the same-origin policy and works, but cookies are not isolated by port: browsers send the console's host-scoped `axiom_session` cookie to every port of that host. That is why the proxy listener never reads it and accepts no Basic/Bearer/API-key credentials, only its own single-use tickets and the session cookie it sets itself, and why a separate hostname is the recommended setup. Tickets and proxy sessions live in memory on one replica, so with `replicaCount>1` the console and proxy hosts need session affinity to the same pod.
+
 Outstanding AuthnRequests live in memory on the replica that issued them (5 minutes, single use). With more than one replica, enable session affinity on the Service/Ingress so the login redirect and the IdP's POST back reach the same pod. Behind a reverse proxy, forward `X-Forwarded-Proto` and `X-Forwarded-Host` so the ACS URL Axiom advertises and checks against the assertion's `Recipient` is the public one.
 
 ## 5. Expose the UI
@@ -275,6 +286,7 @@ Controls and guarantees:
 ## Production hardening checklist
 
 - Real TLS certificate (replace self-signed lab cert)
+- If operators open pod web UIs from the console, enable the separate pod proxy origin (`AXIOM_POD_PROXY_ADDR` / `AXIOM_POD_PROXY_ORIGIN`, Helm `podProxy.*`) on its own hostname
 - OIDC or an identity-aware proxy instead of reference Basic Auth
 - If using OIDC, set `AXIOM_SESSION_SECRET` (Helm: `auth.sessionSecret`) to a stable random value — left unset, Axiom generates a safe random one per process automatically, but sessions won't survive a restart
 - If Axiom sits behind a reverse proxy or identity-aware proxy, set `AXIOM_TRUSTED_PROXY_HEADER` (Helm: `auth.trustedProxyHeader`, e.g. `X-Forwarded-For`) so the login rate limiter keys on the real client IP — otherwise every client behind that proxy shares one rate-limit bucket

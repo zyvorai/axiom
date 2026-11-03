@@ -29,6 +29,10 @@ spec:
           ports:
             - name: https
               containerPort: 5090
+            {{- if .Values.podProxy.addr }}
+            - name: pod-proxy
+              containerPort: {{ splitList ":" .Values.podProxy.addr | last | int }}
+            {{- end }}
           env:
             - name: AXIOM_MODE
               value: kubernetes
@@ -183,6 +187,12 @@ spec:
             - name: AXIOM_OIDC_VIEWER_GROUP
               value: {{ .Values.oidc.viewerGroup | quote }}
             {{- end }}
+            {{- if .Values.podProxy.addr }}
+            - name: AXIOM_POD_PROXY_ADDR
+              value: {{ .Values.podProxy.addr | quote }}
+            - name: AXIOM_POD_PROXY_ORIGIN
+              value: {{ required "podProxy.origin is required when podProxy.addr is set" .Values.podProxy.origin | quote }}
+            {{- end }}
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -228,3 +238,8 @@ spec:
     - name: https
       port: 443
       targetPort: https
+    {{- if .Values.podProxy.addr }}
+    - name: pod-proxy
+      port: {{ .Values.podProxy.service.port }}
+      targetPort: pod-proxy
+    {{- end }}

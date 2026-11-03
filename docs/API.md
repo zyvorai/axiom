@@ -165,7 +165,8 @@ The URL-credential forms still work but are **deprecated**: a request that authe
 | GET | `/api/v1/pods/{namespace}/{name}/terminal?container=&shell=` | **kubernetes build only.** Upgrades to a WebSocket carrying a real interactive PTY (`TTY:true`). Client sends raw keystrokes (text or binary frames) plus a `__resize__:WIDTHxHEIGHT` control message; server streams raw output as binary frames. Gate on `GET /api/v1/realtime/capabilities`'s `interactiveExec` before use. |
 | DELETE | `/api/v1/pods/{namespace}/{name}` | Terminate Pod |
 | POST | `/api/v1/pods/{namespace}/{name}/evict` | Policy-aware eviction |
-| GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod (reverse-proxies into the pod's container port) |
+| GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod (reverse-proxies into the pod's container port). **`410 Gone` when the separate pod proxy origin is configured**; use `window-link` |
+| POST | `/api/v1/pods/{namespace}/{name}/window-link` | Only with the [pod proxy origin](#pod-proxy-origin) on (`404` otherwise). Body `{"port":8080,"path":"/"}` (`path` optional, an absolute path, may carry a query) → `{"url":"<origin>/p/<ticket>/","expiresIn":60}`, `Cache-Control: no-store`. Same policy as the window route: operator or admin, namespace-checked (viewers and accounts restricted to other namespaces get `403`). `404` unknown pod, `403` undeclared port or hostNetwork pod, `429` too many outstanding links. Audited as `pod.window` |
 | GET | `/api/v1/pods/{namespace}/{name}/metrics` | Live CPU/memory for the pod and each container, plus a short in-memory rolling time series (not historical Prometheus data) |
 
 Exec accepts a shell string or argv array:
@@ -178,7 +179,20 @@ Exec accepts a shell string or argv array:
 {"container":"app","command":["/bin/sh","-lc","env | sort"]}
 ```
 
-`/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header. For `/terminal` and other streams use a single-use [stream ticket](#stream-tickets) (`?ticket=`); for the `/window/{port}/` HTTP proxy, which loads many sub-resources, local Basic-auth sessions still append the deprecated `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra.
+`/logs`, `/exec`, `/terminal` and `/window/{port}/` are all reached through a plain browser navigation or WebSocket, neither of which can carry a custom `Authorization` header. For `/terminal` and other streams use a single-use [stream ticket](#stream-tickets) (`?ticket=`); for the `/window/{port}/` HTTP proxy, which loads many sub-resources, local Basic-auth sessions still append the deprecated `?access_token=<base64 user:pass>` (see [Authentication](#authentication) below). OIDC/SAML cookie sessions need nothing extra. With the pod proxy origin on, the in-origin route is gone and no URL token is involved.
+
+### Pod proxy origin
+
+Opt-in (`AXIOM_POD_PROXY_ADDR` + `AXIOM_POD_PROXY_ORIGIN`, see `docs/DEPLOYMENT.md`): pod web content is served by a second listener on its own origin instead of the console's, so a malicious pod UI cannot script the console (its session token, cookies or API). `GET /api/v1/realtime/capabilities` reports `"podProxy": true` when it is on; the UI's "Open" button then calls `window-link` and opens the returned URL.
+
+The proxy listener serves only:
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/p/<ticket>/` | Redeems the single-use ticket from `window-link` (256-bit, 60 s, bound to user, namespace, pod, port and base path), sets an HttpOnly, `SameSite=Lax` session cookie scoped to `Path=/s/<sid>/` (`__Secure-axiom_pod_proxy` on https, `axiom_pod_proxy` on http) and answers `302` to `/s/<sid>/<path>`. An unknown, expired or reused ticket is `403` |
+| GET, HEAD, POST, PUT, PATCH, DELETE | `/s/<sid>/…` | Proxied to the pod (the path below `/s/<sid>` is forwarded as is; WebSocket upgrades pass through). Needs the session cookie of *that* session id: missing, mismatched or expired is `403`. The session lasts 10 minutes from its last use and 1 hour at most, and dies as soon as the user who created it is revoked (sign out everywhere, password/role/namespace change, deletion) |
+
+Everything else is `404`. The listener has no CORS and never reads the console's `axiom_session` cookie or `Authorization`/API-key credentials; `Authorization`, `Cookie`, `X-Api-Key`, `X-Axiom-Session` and URL tokens are removed before the request reaches the pod. Every response carries `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and `Cross-Origin-Opener-Policy: same-origin`, and proxied content gets `Content-Security-Policy: sandbox allow-scripts allow-forms allow-same-origin allow-popups; frame-ancestors 'none'`. The pod's `Set-Cookie`, `Access-Control-*`, `Service-Worker-Allowed`, `Clear-Site-Data`, HSTS and its own copies of those policy headers are dropped, and service-worker script requests are refused. Request headers are capped at 32 KiB and bodies at 32 MiB.
 
 ## Autoscaling, disruption budgets, network policies
 
