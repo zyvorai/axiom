@@ -425,7 +425,15 @@ func buildGitOps(req GitOpsCreateRequest) (gitOpsPlan, error) {
 		interval = req.Interval
 	}
 
-	meta := func() map[string]any { return map[string]any{"name": req.Name, "namespace": ns} }
+	// Every created object carries the managed-by label: the delete preview
+	// reports it ("created by Axiom") and removeSource only ever deletes a
+	// Flux source that has it (gitops_delete.go).
+	meta := func() map[string]any {
+		return map[string]any{
+			"name": req.Name, "namespace": ns,
+			"labels": map[string]any{GitOpsManagedByLabel: GitOpsManagedByValue},
+		}
+	}
 	automated := sp.Automated || flux
 	revision := src.Revision
 

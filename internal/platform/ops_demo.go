@@ -241,6 +241,9 @@ var (
 		"argocd/platform-apps":  {Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d"},
 		"flux-system/apps":      {Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
 		"monitoring/prometheus": {Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d"},
+		// Non-cascading delete rows (gitops_delete_demo.go): no Argo finalizer / prune off.
+		"argocd/docs-site":  {Kind: "Application", Namespace: "argocd", Name: "docs-site", Status: "Synced", Source: "https://github.com/zyvorai/docs.git", Age: "5d"},
+		"flux-system/infra": {Kind: "Kustomization", Namespace: "flux-system", Name: "infra", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
 	}
 )
 
@@ -306,6 +309,7 @@ func (d *DemoProvider) CreateGitOpsApp(ctx context.Context, req GitOpsCreateRequ
 			fmt.Errorf("%s %s already exists", existing.Kind, key))
 	}
 	demoGitOps[key] = item
+	demoRecordGitOpsObjects(plan.Objects)
 	return GitOpsCreateResult{OK: true, Created: plan.refs(), Warnings: plan.Warnings}, nil
 }
 

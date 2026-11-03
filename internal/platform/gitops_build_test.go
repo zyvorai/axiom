@@ -48,6 +48,8 @@ func fluxHelmReq() GitOpsCreateRequest {
 const goldenArgo = `apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: web
   namespace: argocd
 spec:
@@ -70,6 +72,8 @@ spec:
 const goldenArgoHelm = `apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: nginx
   namespace: argocd
 spec:
@@ -89,6 +93,8 @@ spec:
 const goldenFluxKs = `apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: apps
   namespace: flux-system
 spec:
@@ -102,6 +108,8 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: apps
   namespace: flux-system
 spec:
@@ -119,6 +127,8 @@ spec:
 const goldenFluxHelm = `apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: podinfo
   namespace: flux-system
 spec:
@@ -129,6 +139,8 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
+  labels:
+    app.kubernetes.io/managed-by: zyvor-axiom
   name: podinfo
   namespace: flux-system
 spec:

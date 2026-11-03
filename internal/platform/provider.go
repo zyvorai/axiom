@@ -167,6 +167,12 @@ type Provider interface {
 	// CreateGitOpsApp creates an Argo CD Application or a Flux source plus
 	// Kustomization/HelmRelease from a typed request (see gitops_build.go).
 	CreateGitOpsApp(context.Context, GitOpsCreateRequest) (GitOpsCreateResult, error)
+	// PreviewGitOpsDelete reports whether deleting an Application /
+	// Kustomization / HelmRelease cascades to its resources (gitops_delete.go);
+	// DeleteGitOpsApp recomputes that, enforces the typed confirmation and
+	// optionally removes an unshared, Axiom-created Flux source.
+	PreviewGitOpsDelete(ctx context.Context, kind, namespace, name string) (GitOpsDeletePreview, error)
+	DeleteGitOpsApp(context.Context, GitOpsDeleteRequest) (GitOpsDeleteResult, error)
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)

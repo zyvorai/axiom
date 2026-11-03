@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — GitOps delete
+- Delete GitOps applications safely: `GET /api/v1/gitops/{kind}/{namespace}/{name}/delete-preview` reports whether deleting an Argo CD `Application` (cascades iff it carries `resources-finalizer.argocd.argoproj.io` or a `/…` variant), a Flux `Kustomization` (iff `spec.prune`) or a Flux `HelmRelease` (uninstalls unless `spec.suspend`) also removes what it deployed, with a plain-English consequence, the Flux source and which other objects share it, and whether Axiom created it. `DELETE /api/v1/gitops/{kind}/{namespace}/{name}` recomputes that at delete time and requires `confirm=<name>` (exact) when it cascades; `removeSource=true` also deletes the Flux source, only when unshared and created by Axiom (`409` otherwise). Admin-only (operators keep sync; viewers and operators can read the preview), audited as `gitops.delete`. Objects created by Axiom now carry `app.kubernetes.io/managed-by: zyvor-axiom`. The ClusterRole gains `delete` on Argo CD applications and Flux kustomizations/helmreleases
+
 ## [0.8.0] - 2026-11-04
 
 ### Added — Autoscaling & cost
