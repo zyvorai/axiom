@@ -10,21 +10,34 @@ import (
 // in this side map, keyed "Kind/namespace/name" and guarded by demoGitOpsMu.
 // Created applications record their rendered objects here (sources included).
 var demoGitOpsObjects = map[string]map[string]any{
+	// Seed specs carry the fields GET .../edit reads back (gitops_edit_demo.go).
 	"Application/argocd/platform-apps": demoGitOpsObj("argocd", "platform-apps", nil,
-		[]any{argoResourcesFinalizer}, map[string]any{"project": "default"}),
-	"Application/argocd/docs-site": demoGitOpsObj("argocd", "docs-site", nil, nil, map[string]any{"project": "default"}),
+		[]any{argoResourcesFinalizer}, map[string]any{"project": "default",
+			"source":      map[string]any{"repoURL": "https://github.com/zyvorai/platform.git", "path": "apps", "targetRevision": "main"},
+			"destination": map[string]any{"server": gitOpsArgoServer, "namespace": "platform"},
+			"syncPolicy":  map[string]any{"automated": map[string]any{"prune": true, "selfHeal": true}}}),
+	"Application/argocd/docs-site": demoGitOpsObj("argocd", "docs-site", nil, nil, map[string]any{"project": "default",
+		"source":      map[string]any{"repoURL": "https://github.com/zyvorai/docs.git", "path": ".", "targetRevision": "HEAD"},
+		"destination": map[string]any{"server": gitOpsArgoServer, "namespace": "docs"}}),
 	"Kustomization/flux-system/apps": demoGitOpsObj("flux-system", "apps", nil, nil, map[string]any{
 		"prune": true, "sourceRef": map[string]any{"kind": "GitRepository", "name": "flux-system"},
+		"path": "./apps", "interval": "10m",
 	}),
 	"Kustomization/flux-system/infra": demoGitOpsObj("flux-system", "infra", nil, nil, map[string]any{
 		"prune": false, "sourceRef": map[string]any{"kind": "GitRepository", "name": "flux-system"},
+		"path": "./infrastructure", "interval": "10m",
 	}),
-	"GitRepository/flux-system/flux-system": demoGitOpsObj("flux-system", "flux-system", nil, nil, map[string]any{}),
+	"GitRepository/flux-system/flux-system": demoGitOpsObj("flux-system", "flux-system", nil, nil, map[string]any{
+		"url": "https://github.com/zyvorai/fleet.git", "interval": "1m", "ref": map[string]any{"branch": "main"},
+	}),
 	"HelmRelease/monitoring/prometheus": demoGitOpsObj("monitoring", "prometheus", nil, nil, map[string]any{
-		"chart": map[string]any{"spec": map[string]any{"chart": "kube-prometheus-stack",
+		"interval": "30m",
+		"chart": map[string]any{"spec": map[string]any{"chart": "kube-prometheus-stack", "version": "65.x",
 			"sourceRef": map[string]any{"kind": "HelmRepository", "name": "prometheus-community", "namespace": "flux-system"}}},
 	}),
-	"HelmRepository/flux-system/prometheus-community": demoGitOpsObj("flux-system", "prometheus-community", nil, nil, map[string]any{}),
+	"HelmRepository/flux-system/prometheus-community": demoGitOpsObj("flux-system", "prometheus-community", nil, nil, map[string]any{
+		"url": "https://prometheus-community.github.io/helm-charts", "interval": "1h",
+	}),
 }
 
 func demoGitOpsObj(ns, name string, labels map[string]any, finalizers []any, spec map[string]any) map[string]any {

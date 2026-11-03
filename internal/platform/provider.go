@@ -180,6 +180,15 @@ type Provider interface {
 	// optionally removes an unshared, Axiom-created Flux source.
 	PreviewGitOpsDelete(ctx context.Context, kind, namespace, name string) (GitOpsDeletePreview, error)
 	DeleteGitOpsApp(context.Context, GitOpsDeleteRequest) (GitOpsDeleteResult, error)
+	// GitOps edit in place (gitops_edit.go): the current typed fields, a
+	// managed-field diff, and a resourceVersion-guarded patch of only those fields.
+	GetGitOpsEditable(context.Context, GitOpsRef) (GitOpsEditable, error)
+	PreviewGitOpsEdit(context.Context, GitOpsRef, GitOpsEditRequest) (GitOpsEditPreview, error)
+	UpdateGitOpsApp(context.Context, GitOpsRef, GitOpsEditRequest) (GitOpsEditResult, error)
+	// Write-only GitOps repository credentials (gitops_repocreds.go).
+	ListGitOpsCredentials(ctx context.Context, engine, namespace string) ([]GitOpsCredential, error)
+	CreateGitOpsCredential(context.Context, GitOpsCredentialRequest) (GitOpsCredentialResult, error)
+	DeleteGitOpsCredential(ctx context.Context, engine, namespace, name string) error
 
 	InstallHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
 	UpgradeHelmChart(context.Context, InstallHelmRequest) (HelmActionResult, error)
