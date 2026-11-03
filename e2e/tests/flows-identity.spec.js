@@ -39,13 +39,27 @@ async function passwordStep(page, user, pass) {
   await page.getByRole("button", { name: "Sign in to Axiom" }).click();
 }
 
+// Earlier specs on the shared server may have left this IP in a short login
+// lockout (failed sign-ins back off exponentially). A valid request clears it,
+// so wait until the server stops answering 429 before the first sign-in.
+async function waitForThrottleToClear(page) {
+  for (let i = 0; i < 70; i++) {
+    const r = await page.request.get("/api/v1/session", { headers: { Authorization: `Basic ${Buffer.from("demo:demo").toString("base64")}` } });
+    if (r.status() !== 429) return;
+    await new Promise((res) => setTimeout(res, Math.max(1000, Number(r.headers()["retry-after"] || 1) * 1000)));
+  }
+}
+
 async function createUser(page, name, pass) {
   const r = await apiSend(page, "POST", "/users", { username: name, password: pass, role: "operator" });
   expect(r.status).toBe(201);
 }
 
 test.describe("two-factor sign-in", () => {
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
+  test.beforeEach(async ({ page }) => {
+    await waitForThrottleToClear(page);
+  });
 
   test("enrol from the user menu, sign in with a code, then with a recovery code", async ({ page, browser }) => {
     const name = `mfa-${uid()}`;

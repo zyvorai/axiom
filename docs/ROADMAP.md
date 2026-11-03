@@ -1,9 +1,17 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.7.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.8.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.8.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Autoscaling beyond CPU | HPAs show every metric (CPU, memory, Pods, Object, External) with current and target plus what the autoscaler reports, and can be created on CPU and memory with a scale-down window; read-only VPA recommendations and KEDA ScaledObjects | Lens/Headlamp HPA views, Rancher workload autoscaling |
+| Cost budgets | Per-namespace monthly budgets against the estimated cost with on-track / near / over state | OpenCost budgets, Kubecost alerts |
+| Rightsizing | Request-vs-usage recommendations with headroom, from Prometheus history (`AXIOM_PROMETHEUS_URL`) or, without it, a clearly labelled low-confidence snapshot; never applied automatically | Kubecost/Goldilocks recommendations |
 
 ## Shipped in 0.7.0
 
@@ -42,7 +50,7 @@ are theirs, not ours.
 ## Next
 
 - **Fleet:** health history and alerting on a cluster going down (today state changes are audited and shown, not notified), and cross-cluster workload search.
-- **Autoscaling & cost:** VPA/KEDA views, HPA beyond CPU, cost budgets and rightsizing, historical Prometheus data.
+- **Autoscaling & cost:** create and edit VPA/KEDA objects, applying a rightsizing recommendation in one click, budget alerts that notify, and real billing data instead of request-based estimates.
 - **Identity:** MFA for LDAP accounts, QR-code enrolment and a require-MFA policy, shared revocation across replicas.
 - **GitOps & Helm:** delete and edit applications, Argo repository credentials, an OCI chart catalog.
 - **Reach:** internationalisation, a separate origin for the pod proxy.

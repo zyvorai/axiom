@@ -36,10 +36,10 @@ Pages:
 - **ConfigMaps** — full CRUD alongside Secrets
 - **Quotas & Limits** — ResourceQuotas (hard/used), LimitRanges, PodDisruptionBudgets per namespace, and cluster-wide PriorityClasses, read-only
 - **Ingresses** — hosts, class, TLS, address — OpenShift-Route-equivalent view, plus a Gateway API section (GatewayClass/Gateway/HTTPRoute) when that CRD group is installed
-- **Autoscaling** — HorizontalPodAutoscaler list/create/delete, targeting any existing workload with min/max replicas and a target CPU percent
+- **Autoscaling** — HorizontalPodAutoscalers (every metric with current/target and the autoscaler's own state; create on CPU and memory), plus read-only VPA recommendations and KEDA ScaledObjects
 - **Custom Resources** — a generic browser for any installed CustomResourceDefinition: pick a CRD by group/version/kind, browse its instances, open one to view its raw manifest — works for CRDs Axiom has no dedicated integration for
 - **Events**, **Secrets** (+ External Secrets, create/delete), **Backups** (VolumeSnapshots + Velero, create/restore), **Alerts**
-- **Ops hub** — tabbed Helm (install a chart from a repo URL + rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit (client-side search + CSV export) / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost (by namespace and by workload)
+- **Ops hub** — tabbed Helm (browse a chart catalog or install from a repo URL, rollback/uninstall existing releases) / GitOps (per-row sync trigger for Argo/Flux) / Agents / Identity / Audit (client-side search + CSV export) / Access (RBAC — create/delete namespaced Roles and RoleBindings) / Webhooks (admission webhook visibility) / Cost (by namespace and by workload, per-namespace budgets, and rightsizing recommendations)
 - **Helm catalog and GitOps creation** (Ops → Helm / GitOps) — browse approved chart repositories and install with default values pre-filled; create Argo CD or Flux applications from a form after previewing the exact YAML
 - **Users** — local accounts (admin/operator/viewer roles) layered on top of the env-configured operator account and any SSO login; two-factor (TOTP) status, admin reset and sign-out-everywhere per account
 - **Account security** (user menu) — enrol two-factor sign-in with any authenticator app, keep one-time recovery codes, sign out of every device
@@ -87,7 +87,7 @@ See [`docs/API.md`](docs/API.md) for the full reference (100+ routes). Core grou
 - **Config:** ConfigMaps (CRUD), ResourceQuotas, LimitRanges, Ingresses, PodDisruptionBudgets
 - **Pods:** list, logs, one-shot exec, interactive terminal (WebSocket), evict, window proxy, per-pod metrics
 - **Nodes:** list, detail, cordon, uncordon, drain, per-node metrics, taint add/remove
-- **Autoscaling:** HorizontalPodAutoscaler list/create/delete
+- **Autoscaling:** HorizontalPodAutoscaler list/create/delete (CPU and memory targets), read-only VPA and KEDA views
 - **Network:** namespaces, services, topology, PacketWolf status/proxy, NetworkPolicy list/delete, Gateway API (GatewayClass/Gateway/HTTPRoute)
 - **Apply:** generic server-side apply for any manifest (kubernetes build only)
 - **Custom resources:** list installed CRDs, list/get instances of any CRD by group/version/plural
