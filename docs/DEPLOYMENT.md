@@ -76,6 +76,13 @@ Fleet health probing (clusters registered under Settings → Clusters):
 | --- | --- | --- |
 | `AXIOM_FLEET_PROBE_INTERVAL` | `30s` | How often every registered cluster is asked for its overview to decide healthy / degraded / unreachable (minimum `5s`). `off` or `0` disables background probing; clusters are then probed only when the Fleet page or `GET /api/v1/fleet` is read. Each probe is one overview request per cluster, so keep it generous for large fleets. Helm: `fleetProbeInterval`. |
 
+Helm chart catalog (Ops → Helm repository browsing; see `docs/API.md` → Helm chart catalog):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_HELM_ALLOW_PRIVATE_REPOS` | `false` | `true` lets chart repositories (and the chart archives their indexes name) live on loopback, private, link-local or CGNAT addresses — needed for an in-cluster ChartMuseum or Harbor. Off, Axiom refuses to connect to any non-public address, so the catalog cannot be used to reach internal services or the cloud metadata endpoint. Helm: `helmCatalog.allowPrivateRepos`. |
+| `AXIOM_HELM_ALLOW_INSECURE_REPOS` | `false` | `true` allows `http://` chart repositories and archive URLs. Off, only `https://` is fetched (redirects included). Helm: `helmCatalog.allowInsecureRepos`. |
+
 SAML is configured with these variables (register `https://<axiom-host>/api/v1/auth/saml/acs` as the ACS URL at the IdP):
 
 | Variable | Default | Effect |

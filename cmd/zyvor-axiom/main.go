@@ -68,6 +68,7 @@ func main() {
 		APIKey:             cfg.APIKey,
 		SessionSecret:      cfg.SessionSecret,
 		RevocationStore:    platform.OpenRevocationStore(cfg.Mode, provider),
+		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
 		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),

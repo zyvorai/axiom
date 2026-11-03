@@ -17,6 +17,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - OIDC ID tokens are verified against the provider's JWKS (algorithm allow-list, `kid`, signature, `iss`/`aud`/`azp`/`exp`/`sub`) and bound to the sign-in by a `nonce` cookie (`internal/api/oidc_jwks.go`)
 - Browser WebSocket/EventSource auth uses single-use, 30-second tickets (`POST /api/v1/ws-ticket`) instead of credentials in the URL; the legacy `?access_token=`/`?axiom_session=`/`?api_key=` forms still work but are deprecated
 - Audit log export as JSON as well as CSV
+- Helm chart catalog: administrator-approved repositories, search, versions and default values, installing through the existing Helm Job; repository fetches are SSRF-guarded (no private, loopback or metadata addresses unless explicitly allowed)
 - Fleet health: registered clusters are probed in the background and reported healthy / degraded / unreachable with latency and the last error (`GET /api/v1/fleet`, the Fleet page, the switcher dot); state changes are audited
 - TOTP two-factor sign-in for local accounts and the built-in admin (`POST /api/v1/auth/login`, `AXIOM_TOTP_SECRET`, enrolment and recovery codes from the user menu), with replay protection and throttling shared with passwords
 - Server-side session revocation: logout ends that session, "sign out everywhere", automatic revocation on role/namespace/password changes and deletion, admin "sign out everywhere", and a configurable `AXIOM_SESSION_TTL`
@@ -59,7 +60,6 @@ Still thinner than a full private-cloud suite (intentionally or next):
 
 - MFA for LDAP accounts, QR-code enrolment and a require-MFA policy
 - Embedded noVNC UI (proxy path is ready; virtctl remains supported)
-- Helm chart catalog browse
 - Historical Prometheus TSDB / alert silence
 - ClusterRole write UI (deliberate security boundary)
 - SOC2 / pen-test packaging
