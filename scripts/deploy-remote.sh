@@ -31,8 +31,8 @@
 #   AXIOM_NODE_PORT            default: 30590
 #   ATLAS_REPO                 path to the atlas checkout (default: ../atlas next to this repo)
 #   ATLAS_NODE_PORT            default: 30510 (must match ../atlas/deploy/k8s/atlas-gateway.yaml)
-#   AXIOM_USERNAME             default: demo
-#   AXIOM_PASSWORD             default: demo
+#   AXIOM_USERNAME             default: existing Secret if present, else demo
+#   AXIOM_PASSWORD             default: existing Secret if present, else demo
 #
 # Remote deploy is HTTPS-only (self-signed). Plain HTTP is not supported.
 # ============================================================================
@@ -83,6 +83,12 @@ DEPLOYMENTS_SUBDIR="${DEPLOYMENTS_SUBDIR:-.deployment}"
 AXIOM_CHECKOUT="${AXIOM_CHECKOUT:-axiom}"
 AXIOM_IMAGE_TAG="${AXIOM_IMAGE_TAG:-dev}"
 NODE_PORT="${AXIOM_NODE_PORT:-30590}"
+# Explicit credentials always win; otherwise an existing zyvor-axiom-auth Secret
+# on the target is reused (so a redeploy never resets a rotated password);
+# only a fresh install falls back to demo/demo.
+AUTH_EXPLICIT=false
+if [ -n "${AXIOM_USERNAME:-}" ] || [ -n "${AXIOM_PASSWORD:-}" ]; then AUTH_EXPLICIT=true; fi
+AUTH_REUSED=false
 AXIOM_USERNAME="${AXIOM_USERNAME:-demo}"
 AXIOM_PASSWORD="${AXIOM_PASSWORD:-demo}"
 
@@ -206,6 +212,19 @@ info "TLS secret zyvor-axiom-tls applied"
 
 # ── Auth secret ──
 step 4 7 "Configure auth secret"
+if ! $AUTH_EXPLICIT; then
+  _EXISTING=$(_ssh "kubectl -n axiom-system get secret zyvor-axiom-auth -o go-template='{{index .data \"username\"}}:{{index .data \"password\"}}' 2>/dev/null" 2>/dev/null || true)
+  if [[ "$_EXISTING" == *:* ]]; then
+    _U=$(printf '%s' "${_EXISTING%%:*}" | base64 -d 2>/dev/null || true)
+    _P=$(printf '%s' "${_EXISTING#*:}" | base64 -d 2>/dev/null || true)
+    if [ -n "$_U" ] && [ -n "$_P" ]; then
+      AXIOM_USERNAME="$_U"; AXIOM_PASSWORD="$_P"; AUTH_REUSED=true
+    fi
+  fi
+fi
+$AUTH_REUSED && info "Secret zyvor-axiom-auth already exists — reusing it (user=${AXIOM_USERNAME}); set AXIOM_USERNAME/AXIOM_PASSWORD to change"
+# secret.yaml is rewritten every run: the apply in step 6 re-applies it, so it
+# must always carry the resolved (possibly reused) credentials.
 _ssh "${REMOTE_SH_PREFIX}; cat > deploy/k8s/secret.yaml <<EOF
 apiVersion: v1
 kind: Secret
@@ -400,7 +419,7 @@ axiom_ui_success "$HOST" "$USER"
 PANEL_LINES=(
   "UI:      ${BASE_URL}"
   "Health:  ${BASE_URL}/api/v1/health"
-  "Login:   ${AXIOM_USERNAME} / ${AXIOM_PASSWORD}"
+  "Login:   ${AXIOM_USERNAME} / $($AUTH_REUSED && echo '(existing secret)' || echo "${AXIOM_PASSWORD}")"
   "curl:    curl -k ${BASE_URL}/api/v1/health"
 )
 if [ "${ATLAS_WIRED:-0}" = "1" ]; then
