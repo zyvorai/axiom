@@ -46,6 +46,9 @@ type AuthOptions struct {
 	// CostBudgetStore persists per-namespace cost budgets. Optional — nil
 	// keeps them in memory.
 	CostBudgetStore platform.CostBudgetStore
+	// ExternalMFAStore holds second factors for directory (LDAP) accounts.
+	// Optional — nil keeps them in memory.
+	ExternalMFAStore *platform.ExternalMFAStore
 	// TOTPSecret, when set (AXIOM_TOTP_SECRET), adds a TOTP second factor to the
 	// built-in admin account. Base32, at least 80 bits.
 	TOTPSecret string
@@ -104,6 +107,9 @@ type Server struct {
 	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
 
 	samlReqs samlRequestStore // outstanding SAML AuthnRequest IDs (saml.go; zero value ready)
+
+	// externalMFA holds second factors of directory (LDAP) accounts.
+	externalMFA *platform.ExternalMFAStore
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -358,6 +364,11 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		// namespaces, MFA changes, deletion) revokes them.
 		users.SetInvalidateHook(s.revocations.RevokeUser)
 	}
+	s.externalMFA = opts.ExternalMFAStore
+	if s.externalMFA == nil {
+		s.externalMFA = platform.NewMemoryExternalMFAStore()
+	}
+	s.externalMFA.SetInvalidateHook(s.revocations.RevokeUser)
 	if et, ok := auth.NewEnvTOTP(opts.TOTPSecret); !ok {
 		log.Printf("auth: AXIOM_TOTP_SECRET is not a valid base32 secret (at least 16 characters); ignoring it")
 	} else {
@@ -365,7 +376,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	guard := auth.Guard{
 		Username: username, Password: password, APIKey: opts.APIKey,
-		MFA: mfa, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
+		MFA: mfa, ExternalMFA: s.externalMFA, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
 		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
@@ -464,12 +475,17 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		authMethod = "oidc"
 		if sess.Issuer == auth.LocalSessionIssuer {
 			authMethod = "local"
+		} else if sess.Issuer == auth.LDAPSessionIssuer {
+			authMethod = "ldap"
 		}
 		if sess.Role != "" {
 			role = sess.Role
 		}
 	} else if id, ok := auth.IdentityFromContext(r.Context()); ok {
 		user = id.User
+		if id.ViaLDAP() {
+			authMethod = "ldap"
+		}
 		if id.Role != "" {
 			role = id.Role
 		}
@@ -482,8 +498,8 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	}
 	regions := platform.DefaultRegions(cluster)
 	// mfa.required: the require-MFA policy covers this identity (the UI forces
-	// enrolment when it is true and enrolled is false). Always false for SSO,
-	// LDAP and API-key identities.
+	// enrolment when it is true and enrolled is false). Always false for SSO
+	// and API-key identities.
 	var mfaRequired, mfaEnrolled bool
 	if id, ok := auth.IdentityFromContext(r.Context()); ok {
 		mfaRequired, mfaEnrolled = s.guard.MFAState(id)

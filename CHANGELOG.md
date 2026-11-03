@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — LDAP MFA
+- Two-factor sign-in for LDAP directory accounts. A person signed in with an LDAP bind can enrol a TOTP authenticator from Account security (`POST /api/v1/auth/mfa/setup` re-checks the directory password with a bind); afterwards the directory password alone is refused over Basic (`401` + `X-Axiom-MFA: required`) and `POST /api/v1/auth/login` collects the code, with the same replay protection, single-use recovery codes and per-IP/per-account throttling as local accounts. The password is verified before anything about the second factor is revealed. Sessions for directory accounts carry `Issuer: "ldap"` and the directory-mapped role (a group change applies at the next sign-in) and `GET /api/v1/session` reports `auth: "ldap"`. A local account with the same username takes precedence. Records live in the new `zyvor-axiom-external-mfa` Secret (key `records.json`, conflict-safe updates; memory in demo)
+- `AXIOM_REQUIRE_MFA` now also covers directory accounts by their mapped role: an unenrolled covered LDAP user gets the `mfaEnrollmentRequired` hold, and `GET /session` reports `mfa: {required, enrolled}` for them. SSO sessions and API keys remain unaffected
+- `DELETE /api/v1/users/{username}/mfa` also resets a directory account's second factor (and revokes its sessions) when no local account has that name; `404` only when neither exists. New `GET /api/v1/users/external-mfa` (admin only) lists directory accounts with a second factor: `[{username, enabled, updatedAt}]`, never secret material. MFA audit entries for directory accounts carry `detail: "ldap"`
+
 ## [0.9.1] - 2026-11-04
 
 ### Fixed

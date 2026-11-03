@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"crypto/subtle"
 	"fmt"
 	"strings"
 	"time"
@@ -40,6 +39,16 @@ func (h *UserHub) put(ctx context.Context, u User) error {
 	return nil
 }
 
+// factor and setFactor move a User's second-factor fields to and from the
+// shared mfaFactor state machine (mfa_factor.go).
+func (u User) factor() mfaFactor {
+	return mfaFactor{Enabled: u.MFAEnabled, Secret: u.MFASecret, Pending: u.MFAPending, Recovery: u.MFARecovery, LastStep: u.MFALastStep}
+}
+
+func (u *User) setFactor(f mfaFactor) {
+	u.MFAEnabled, u.MFASecret, u.MFAPending, u.MFARecovery, u.MFALastStep = f.Enabled, f.Secret, f.Pending, f.Recovery, f.LastStep
+}
+
 // MFAEnrolled reports whether the account has two-factor sign-in enabled.
 func (h *UserHub) MFAEnrolled(username string) bool {
 	u, ok := h.user(username)
@@ -65,14 +74,16 @@ func (h *UserHub) BeginMFA(ctx context.Context, username string) (string, error)
 	if !ok {
 		return "", fmt.Errorf("user %q not found", username)
 	}
-	if u.MFAEnabled {
-		return "", fmt.Errorf("two-factor sign-in is already enabled; disable it first to re-enrol")
+	f := u.factor()
+	secret, err := f.begin()
+	if err != nil {
+		return "", err
 	}
-	u.MFAPending = auth.GenerateTOTPSecret()
+	u.setFactor(f)
 	if err := h.put(ctx, u); err != nil {
 		return "", err
 	}
-	return u.MFAPending, nil
+	return secret, nil
 }
 
 // EnableMFA confirms the pending secret with a code from the authenticator,
@@ -87,27 +98,14 @@ func (h *UserHub) EnableMFA(ctx context.Context, username, code string, now time
 		h.mfaMu.Unlock()
 		return nil, fmt.Errorf("user %q not found", username)
 	}
-	if u.MFAEnabled {
+	f := u.factor()
+	codes, err := f.enable(code, now)
+	if err != nil {
 		h.mfaMu.Unlock()
-		return nil, fmt.Errorf("two-factor sign-in is already enabled")
+		return nil, err
 	}
-	if u.MFAPending == "" {
-		h.mfaMu.Unlock()
-		return nil, fmt.Errorf("start enrolment first")
-	}
-	step, ok := auth.VerifyTOTP(u.MFAPending, code, now, 0)
-	if !ok {
-		h.mfaMu.Unlock()
-		return nil, fmt.Errorf("that code is not valid; check the time on your device and try again")
-	}
-	codes := auth.GenerateRecoveryCodes()
-	hashes := make([]string, len(codes))
-	for i, c := range codes {
-		hashes[i] = auth.HashRecoveryCode(c)
-	}
-	u.MFAEnabled, u.MFASecret, u.MFAPending = true, u.MFAPending, ""
-	u.MFARecovery, u.MFALastStep = hashes, step
-	err := h.put(ctx, u)
+	u.setFactor(f)
+	err = h.put(ctx, u)
 	h.mfaMu.Unlock()
 	if err != nil {
 		return nil, err
@@ -126,7 +124,9 @@ func (h *UserHub) DisableMFA(ctx context.Context, username string) error {
 		h.mfaMu.Unlock()
 		return fmt.Errorf("user %q not found", username)
 	}
-	u.MFAEnabled, u.MFASecret, u.MFAPending, u.MFARecovery, u.MFALastStep = false, "", "", nil, 0
+	f := u.factor()
+	f.reset()
+	u.setFactor(f)
 	err := h.put(ctx, u)
 	h.mfaMu.Unlock()
 	if err != nil {
@@ -144,33 +144,16 @@ func (h *UserHub) VerifySecondFactor(username, code string, now time.Time) bool 
 	h.mfaMu.Lock()
 	defer h.mfaMu.Unlock()
 	u, ok := h.user(username)
-	if !ok || !u.MFAEnabled {
-		return false
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if auth.LooksLikeRecoveryCode(code) {
-		want := auth.HashRecoveryCode(code)
-		idx := -1
-		for i, hash := range u.MFARecovery {
-			if subtle.ConstantTimeCompare([]byte(hash), []byte(want)) == 1 {
-				idx = i
-			}
-		}
-		if idx < 0 {
-			return false
-		}
-		rest := make([]string, 0, len(u.MFARecovery)-1)
-		rest = append(rest, u.MFARecovery[:idx]...)
-		rest = append(rest, u.MFARecovery[idx+1:]...)
-		u.MFARecovery = rest
-		return h.put(ctx, u) == nil
-	}
-	step, ok := auth.VerifyTOTP(u.MFASecret, code, now, u.MFALastStep)
 	if !ok {
 		return false
 	}
-	u.MFALastStep = step
+	f := u.factor()
+	if !f.verify(code, now) {
+		return false
+	}
+	u.setFactor(f)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	return h.put(ctx, u) == nil
 }
 

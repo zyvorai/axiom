@@ -5,11 +5,12 @@ import (
 	"strings"
 )
 
-// MFAPolicy says which local accounts must have a second factor before they
-// may use the console (AXIOM_REQUIRE_MFA). It applies only to accounts whose
-// credentials Axiom itself manages: local user-store accounts and the built-in
-// env admin. SSO and LDAP accounts (their second factor belongs to the
-// identity provider or directory) and API keys are never affected.
+// MFAPolicy says which accounts must have a second factor before they may use
+// the console (AXIOM_REQUIRE_MFA). It applies to accounts whose second factor
+// Axiom manages: local user-store accounts, the built-in env admin, and
+// directory (LDAP) accounts, by the role mapped from the directory. SSO
+// accounts (their second factor belongs to the identity provider) and API keys
+// are never affected.
 type MFAPolicy int
 
 const (
@@ -72,7 +73,25 @@ const (
 	sourceExternal identitySource = iota // SSO, LDAP, API key: managed elsewhere
 	sourceLocal                          // a local account in the user store
 	sourceEnv                            // the built-in env admin (AXIOM_USERNAME)
+	sourceLDAP                           // a directory account (LDAP bind, or the session it led to)
 )
+
+// ViaLDAP reports whether this identity was established by an LDAP directory
+// bind (with this request, or through the session the login endpoint issued
+// after one). It is false for SSO sessions, local and env accounts and API keys.
+func (id Identity) ViaLDAP() bool { return id.source == sourceLDAP }
+
+// ldapMFAProvider is where the second factor of the directory account named
+// user lives: a local account of the same name takes precedence (local first,
+// as for passwords), otherwise the external (directory) MFA store.
+func (g Guard) ldapMFAProvider(user string) MFAProvider {
+	if lk, ok := g.Users.(UserLookup); ok && g.MFA != nil {
+		if _, _, exists := lk.Lookup(user); exists {
+			return g.MFA
+		}
+	}
+	return g.ExternalMFA
+}
 
 // MFAState reports, for an authenticated identity, whether the require-MFA
 // policy applies to it and whether it has a second factor. The built-in env
@@ -86,6 +105,14 @@ func (g Guard) MFAState(id Identity) (required, enrolled bool) {
 	case sourceLocal:
 		enrolled = g.MFA != nil && g.MFA.MFAEnrolled(id.User)
 		return g.RequireMFA.Covers(id.Role), enrolled
+	case sourceLDAP:
+		// Only when this deployment can hold a directory user's second factor;
+		// requiring one it cannot store would lock directory users out.
+		mfa := g.ldapMFAProvider(id.User)
+		if mfa == nil {
+			return false, false
+		}
+		return g.RequireMFA.Covers(id.Role), mfa.MFAEnrolled(id.User)
 	}
 	return false, false
 }

@@ -88,6 +88,7 @@ func main() {
 		RequireMFA:         cfg.RequireMFA,
 		HelmRepoStore:      platform.OpenHelmRepoStore(cfg.Mode, provider),
 		CostBudgetStore:    costBudgets,
+		ExternalMFAStore:   platform.OpenExternalMFAStore(cfg.Mode, provider),
 		TOTPSecret:         cfg.TOTPSecret,
 		TrustedProxyHeader: cfg.TrustedProxyHeader,
 		OIDCLogin:          firstNonEmpty(cur.OIDCLoginURL, cfg.OIDCLogin),
