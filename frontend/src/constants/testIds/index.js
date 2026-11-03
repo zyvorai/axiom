@@ -20,3 +20,4 @@ export * from './security';
 export * from './ai';
 export * from './identity';
 export * from './fleet';
+export * from './gitops';

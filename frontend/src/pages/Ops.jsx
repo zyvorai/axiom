@@ -7,7 +7,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Anchor, GitBranch, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,9 @@ import {
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
-import { RBAC } from "@/constants/testIds";
+import { RBAC, HELM_CATALOG, GITOPS_CREATE } from "@/constants/testIds";
+import HelmCatalog from "@/components/HelmCatalog";
+import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 
 const TABS = [
     { key: "helm", label: "Helm", icon: Anchor },
@@ -217,13 +219,32 @@ function HelmTab() {
     const [reload, setReload] = useState(0);
     const releases = useEndpoint("/helm/releases", [reload]);
     const [installOpen, setInstallOpen] = useState(false);
+    const [view, setView] = useState("releases");
     return (
         <div className="stack">
-            <div className="flex justify-end">
-                <button type="button" className="btn btn-fill btn-sm" onClick={() => setInstallOpen(true)}>
-                    <Plus size={14} /> Install chart
-                </button>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="seg" role="group" aria-label="Helm view">
+                    <button type="button" aria-pressed={view === "releases"} data-testid={HELM_CATALOG.viewReleases} onClick={() => setView("releases")}>
+                        Releases
+                    </button>
+                    <button type="button" aria-pressed={view === "catalog"} data-testid={HELM_CATALOG.viewCatalog} onClick={() => setView("catalog")}>
+                        <Boxes size={13} className="mr-1 inline" aria-hidden="true" /> Catalog
+                    </button>
+                </div>
+                {view === "releases" && (
+                    <button type="button" className="btn btn-fill btn-sm" onClick={() => setInstallOpen(true)}>
+                        <Plus size={14} /> Install chart
+                    </button>
+                )}
             </div>
+            {view === "catalog" ? (
+                <HelmCatalog
+                    onInstalled={() => {
+                        setReload((n) => n + 1);
+                        setView("releases");
+                    }}
+                />
+            ) : (
             <div className="card p-0">
                 <TablePanel
                     items={releases}
@@ -249,6 +270,7 @@ function HelmTab() {
                     )}
                 />
             </div>
+            )}
             <InstallChartDialog open={installOpen} onOpenChange={setInstallOpen} onInstalled={() => setReload((n) => n + 1)} />
         </div>
     );
@@ -258,6 +280,7 @@ function GitOpsTab() {
     const [refresh, setRefresh] = useState(0);
     const apps = useEndpoint("/gitops", [refresh]);
     const [syncing, setSyncing] = useState("");
+    const [createOpen, setCreateOpen] = useState(false);
 
     const sync = async (a) => {
         const busyKey = `${a.namespace}/${a.name}`;
@@ -274,6 +297,12 @@ function GitOpsTab() {
     };
 
     return (
+        <div className="stack">
+        <div className="flex justify-end">
+            <button type="button" className="btn btn-fill btn-sm" data-testid={GITOPS_CREATE.open} onClick={() => setCreateOpen(true)}>
+                <Plus size={14} /> New application
+            </button>
+        </div>
         <div className="card p-0">
             <TablePanel
                 items={apps}
@@ -318,6 +347,8 @@ function GitOpsTab() {
                     </table>
                 )}
             />
+        </div>
+        <GitOpsCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => setRefresh((n) => n + 1)} />
         </div>
     );
 }
