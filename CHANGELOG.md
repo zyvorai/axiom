@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — GitOps & Helm
+- Create GitOps applications from the console: `POST /api/v1/gitops` creates an Argo CD `Application`, a Flux `GitRepository` + `Kustomization`, or a Flux `HelmRepository` + `HelmRelease` from a typed request, and `POST /api/v1/gitops/preview` renders the exact YAML (with warnings such as "tracks a moving branch" or "automated prune on the whole repository") without touching the cluster. Objects are built field by field, never from client YAML; credentials in a repository URL are refused (use a Flux `secretRef` or Argo CD repository credentials). The Flux API version is picked from what the cluster serves (v1 or v1beta2 sources, v2/v2beta2/v2beta1 HelmReleases), a missing engine answers `422`, an existing object `409`, and a source created before a failure is rolled back. Admin-only (operators get `403`, like Helm install) and audited as `gitops.create`. The ClusterRole gains `create` on Argo/Flux applications and `create`/`delete` on Flux `gitrepositories`/`helmrepositories` (`delete` is used only for the rollback)
+
 ## [0.6.0] - 2026-11-03
 
 ### Added — Fleet

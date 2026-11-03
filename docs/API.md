@@ -357,6 +357,8 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | POST | `/api/v1/helm/install` | Install a chart: `{"namespace","releaseName","repoUrl","chartName","chartVersion","values"}` (`chartVersion`/`values` optional, `values` is raw YAML). Runs `helm install --repo <repoUrl>` as a background Job under Axiom's own ServiceAccount — the chart can only create resources that ServiceAccount is itself allowed to create. No chart-repo browsing in this pass; supply the repo URL and chart name directly, the same as `helm install --repo` on the CLI |
 | POST | `/api/v1/helm/upgrade` | Upgrade an existing release: same body shape as install (`{"namespace","releaseName","repoUrl","chartName","chartVersion","values"}`) — runs `helm upgrade --repo <repoUrl>` under the same ServiceAccount constraints |
 | GET | `/api/v1/gitops` | GitOps applications (Flux/Argo when present) |
+| POST | `/api/v1/gitops/preview` | Render the objects a create would make, without touching the cluster — see [GitOps application creation](#gitops-application-creation) |
+| POST | `/api/v1/gitops` | Create an Argo CD / Flux application (admin only) — see [GitOps application creation](#gitops-application-creation) |
 | POST | `/api/v1/gitops/{kind}/{namespace}/{name}/sync` | Force a re-sync. `kind` is one of `Application` (Argo — patches the top-level `operation.sync` field, the same mechanism `argocd app sync` uses) or `Kustomization`\|`HelmRelease` (Flux — bumps the `reconcile.fluxcd.io/requestedAt` annotation, the same convention `flux reconcile` uses) |
 | GET | `/api/v1/alerts?namespace=...` | Alertmanager / Prometheus alerts |
 | GET | `/api/v1/audit` | Axiom audit log (JSON array; the Ops → Audit tab exports the filtered view as CSV or JSON) |
@@ -367,6 +369,64 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | DELETE | `/api/v1/rbac/rolebindings/{namespace}/{name}` | Delete a RoleBinding |
 | GET | `/api/v1/cost` | Cost / utilization estimates — `namespaces` (by namespace) and `workloads` (by owning Deployment/StatefulSet/etc., derived from the same per-pod CPU/memory-request pass) |
 | POST | `/api/v1/validate` | Dry-run manifest validation |
+
+### GitOps application creation
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/gitops/preview` | Validate and render: `200 {"objects":[{"apiVersion","kind","namespace","name"}],"yaml":"<documents separated by ---, in creation order>","warnings":[...]}`. Pure — works even when the engine is not installed |
+| POST | `/api/v1/gitops` | Create the objects in order (source first): `201 {"ok":true,"created":[{"apiVersion","kind","namespace","name"}],"warnings":[...]}` |
+
+Both take the same body (unknown fields are rejected; there is no way to send raw YAML):
+
+```json
+{
+  "engine": "argocd | flux-kustomize | flux-helm",
+  "name": "my-app",
+  "namespace": "argocd",
+  "source": {
+    "repoUrl": "https://github.com/org/repo.git",
+    "path": "deploy/overlays/prod",
+    "revision": "main",
+    "chart": "nginx",
+    "chartVersion": "15.1.0",
+    "secretRef": "repo-creds"
+  },
+  "destination": { "namespace": "prod", "server": "" },
+  "project": "default",
+  "interval": "5m",
+  "values": "replicaCount: 2\n",
+  "syncPolicy": { "automated": true, "prune": true, "selfHeal": true, "createNamespace": true }
+}
+```
+
+| Field | Rules |
+|---|---|
+| `name` | DNS-1123 label, at most 53 characters. The Flux source object gets the same name |
+| `namespace` | Where the objects live; default `argocd` / `flux-system`. A different namespace adds a warning |
+| `source.repoUrl` | Required, at most 512 characters, no whitespace, no query or fragment. Git sources: `https`, `http`, `ssh`, `git` or scp-like `git@host:org/repo.git` (Argo CD); Flux git takes `https`, `http`, `ssh`. Helm sources: `https`, `http`, `oci`. **Credentials in the URL are refused** (`https://user:pass@…`, `https://token@…`) — use `secretRef` (Flux) or Argo CD repository credentials |
+| `source.path` | Git sources; relative, no `..`, no leading `/`, no backslash, at most 256 characters; default `.`; cleaned |
+| `source.revision` | Git sources; default `HEAD` (Argo CD) / `main` (Flux). Flux: `refs/tags/X` → `ref.tag`, a 40-hex SHA → `ref.commit`, anything else → `ref.branch` |
+| `source.chart`, `source.chartVersion` | Helm sources: Argo CD with `chart` (then `chartVersion` is required and `path`/`revision` must be empty) and `flux-helm` (`chart` required, `chartVersion` optional) |
+| `source.secretRef` | Flux only: the name of an existing Secret in `namespace`. On `argocd` it is a `400` |
+| `destination.namespace` | DNS-1123 label; required for `createNamespace` |
+| `destination.server` | Argo CD only: empty (`https://kubernetes.default.svc`) or an `https` URL without credentials |
+| `project` | Argo CD only; default `default` |
+| `interval` | Flux only: `<n>s`, `<n>m` or `<n>h`, at least `30s`; default `5m` |
+| `values` | Helm sources only: a YAML mapping, at most 64 KiB (alias expansion and nesting are capped) |
+| `syncPolicy` | Argo CD: `prune`/`selfHeal` need `automated`. Flux always reconciles and corrects drift, so `automated`/`selfHeal` are implied; `prune` applies to `flux-kustomize` only, `createNamespace` to `flux-helm` only |
+
+Rendering:
+
+| Engine | Objects | Notable fields |
+|---|---|---|
+| `argocd` | `argoproj.io` `Application` | `spec.project`, `spec.source{repoURL, path \| chart, targetRevision, helm.values}`, `spec.destination{server, namespace}`, `spec.syncPolicy{automated{prune, selfHeal}, syncOptions: [CreateNamespace=true]}`. No `resources-finalizer` is added |
+| `flux-kustomize` | `source.toolkit.fluxcd.io` `GitRepository`, then `kustomize.toolkit.fluxcd.io` `Kustomization` | `GitRepository.spec{url, interval, ref, secretRef}`; `Kustomization.spec{interval, path: ./<path>, prune, sourceRef, targetNamespace, wait: false, timeout: 5m}` |
+| `flux-helm` | `source.toolkit.fluxcd.io` `HelmRepository`, then `helm.toolkit.fluxcd.io` `HelmRelease` | `HelmRepository.spec{url, interval, type: oci (for oci://), secretRef}`; `HelmRelease.spec{interval, chart.spec{chart, version, sourceRef}, targetNamespace, install.createNamespace, values}` |
+
+The preview uses the newest API version of each kind (`v1alpha1`, `source v1`, `kustomize v1`, `helm v2`); create uses the first version the cluster serves (falling back to `v1beta2` sources/Kustomizations and `v2beta2`/`v2beta1` HelmReleases). Warnings: automated prune over the whole repository (`path` `.`), a moving revision (`HEAD`/`main`) with automated sync (always for Flux), a plain `http://` repository, a non-default namespace.
+
+Errors: `400` invalid input (the message never echoes the repository URL), `403` for anyone but an admin (operators, viewers and namespace-restricted accounts; creating an application deploys arbitrary workloads, like Helm install), `409` when an object already exists (if the second object fails, the first one this request created is deleted again and the message says so), `422` when the engine is not installed (`Argo CD is not installed: no applications.argoproj.io CRD`). A successful create is audited as `gitops.create` with target `<kind>/<namespace>/<name>` and the engine as detail. Applications cannot be deleted from here (deliberately: Argo CD finalizers can cascade-delete workloads).
 
 ### RBAC viewer (read-only)
 

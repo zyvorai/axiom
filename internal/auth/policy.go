@@ -58,6 +58,8 @@ func isOperatorForbidden(r *http.Request) bool {
 		return true
 	case strings.HasPrefix(p, "/api/v1/integrations/"):
 		return true
+	case isGitOpsCreate(r):
+		return true
 	}
 	return false
 }

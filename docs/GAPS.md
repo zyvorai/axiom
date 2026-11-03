@@ -20,6 +20,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - Fleet health: registered clusters are probed in the background and reported healthy / degraded / unreachable with latency and the last error (`GET /api/v1/fleet`, the Fleet page, the switcher dot); state changes are audited
 - TOTP two-factor sign-in for local accounts and the built-in admin (`POST /api/v1/auth/login`, `AXIOM_TOTP_SECRET`, enrolment and recovery codes from the user menu), with replay protection and throttling shared with passwords
 - Server-side session revocation: logout ends that session, "sign out everywhere", automatic revocation on role/namespace/password changes and deletion, admin "sign out everywhere", and a configurable `AXIOM_SESSION_TTL`
+- GitOps application create from the console (Ops → GitOps): Argo CD `Application`, Flux `GitRepository` + `Kustomization`, Flux `HelmRepository` + `HelmRelease`, built from typed fields with a pure YAML preview (`POST /api/v1/gitops/preview`, `POST /api/v1/gitops`), admin-only and audited
 - Read-only RBAC viewer, NetworkPolicy analysis and security-report (Trivy/PolicyReport) views
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 
@@ -36,6 +37,7 @@ Known security limitations (reviewed, not yet fixed):
 
 Known platform limitations (reviewed, not yet fixed):
 
+- **GitOps creation is create-only.** Applications are not deleted from the console (an Argo CD `resources-finalizer` cascade-deletes the workloads, so this is deliberate), and repository credentials are not managed here: Argo CD repository credentials are configured in Argo CD, and a Flux `secretRef` must name a Secret that already exists. Only the typed fields are supported (no multi-source Applications, ApplicationSets, Helm `valuesFrom`, or Kustomize patches)
 - **Fleet probing is a point-in-time overview request per cluster** (default every 30 s) with no history: the Fleet page shows now and "since when", not a trend, and a cluster that answers slowly but successfully is still `healthy`. Probes use the same credentials the console uses for that cluster. Each replica probes on its own
 
 - **Audit persistence with several replicas**: each replica keeps its own ring and `Save` is an unconditional update, so the last writer wins. (A single replica is fine; the persisted ring is now trimmed to stay under the ConfigMap size limit.)
@@ -57,7 +59,7 @@ Still thinner than a full private-cloud suite (intentionally or next):
 
 - MFA for LDAP accounts, QR-code enrolment and a require-MFA policy
 - Embedded noVNC UI (proxy path is ready; virtctl remains supported)
-- GitOps Application create / Helm chart catalog browse
+- Helm chart catalog browse
 - Historical Prometheus TSDB / alert silence
 - ClusterRole write UI (deliberate security boundary)
 - SOC2 / pen-test packaging
