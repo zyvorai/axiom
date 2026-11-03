@@ -24,6 +24,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
 import { RBAC, HELM_CATALOG, GITOPS_CREATE } from "@/constants/testIds";
 import HelmCatalog from "@/components/HelmCatalog";
+import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 
 const TABS = [
@@ -917,6 +918,8 @@ function CostTab() {
                     <span>Memory rate</span>
                 </div>
             </div>
+            <CostBudgets />
+            <CostRightsizing />
             <div className="card p-0">
                 <div className="panel-h">By namespace</div>
                 <TablePanel

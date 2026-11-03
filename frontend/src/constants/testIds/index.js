@@ -21,3 +21,4 @@ export * from './ai';
 export * from './identity';
 export * from './fleet';
 export * from './gitops';
+export * from './autoscaling';
