@@ -88,6 +88,7 @@ spec:
             {{- if .Values.auth.budgetCheckInterval }}
             - name: AXIOM_BUDGET_CHECK_INTERVAL
               value: {{ .Values.auth.budgetCheckInterval | quote }}
+            {{- end }}
             {{- if .Values.auth.requireMFA }}
             - name: AXIOM_REQUIRE_MFA
               value: {{ .Values.auth.requireMFA | quote }}

@@ -160,6 +160,10 @@ func budgetCheckInterval() time.Duration {
 	d := envDuration("AXIOM_BUDGET_CHECK_INTERVAL", 5*time.Minute)
 	if d < time.Minute {
 		d = time.Minute // each check estimates cost for the whole cluster
+	}
+	return d
+}
+
 func requireMFA() auth.MFAPolicy {
 	v := os.Getenv("AXIOM_REQUIRE_MFA")
 	p, ok := auth.ParseMFAPolicy(v)
