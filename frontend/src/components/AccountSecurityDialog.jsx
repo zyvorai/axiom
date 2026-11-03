@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Download, KeyRound, LogOut, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { MFA } from "@/constants/testIds";
@@ -30,9 +31,25 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
     const [setup, setSetup] = useState(null); // {secret, uri}
     const [code, setCode] = useState("");
     const [recovery, setRecovery] = useState([]);
+    const [qr, setQr] = useState("");
     const [disCode, setDisCode] = useState("");
     const [disPassword, setDisPassword] = useState("");
     const [busy, setBusy] = useState(false);
+
+    // Render the otpauth:// URI as a QR code in the browser; the secret never
+    // leaves the page (no image service involved).
+    useEffect(() => {
+        let alive = true;
+        setQr("");
+        if (setup?.uri) {
+            QRCode.toDataURL(setup.uri, { margin: 1, width: 176, errorCorrectionLevel: "M" })
+                .then((url) => alive && setQr(url))
+                .catch(() => alive && setQr(""));
+        }
+        return () => {
+            alive = false;
+        };
+    }, [setup]);
 
     const reset = useCallback(() => {
         setPhase("idle");
@@ -184,8 +201,14 @@ export default function AccountSecurityDialog({ open, onOpenChange }) {
                             if (code) confirmEnable();
                         }}
                     >
+                        {qr ? (
+                            <div className="flex flex-col items-center gap-1.5">
+                                <img src={qr} width={176} height={176} alt="QR code to scan with your authenticator app" data-testid={MFA.qr} className="rounded-lg" />
+                                <p className="text-xs text-muted-foreground">Scan with your authenticator app</p>
+                            </div>
+                        ) : null}
                         <p className="text-sm text-muted-foreground">
-                            In your authenticator app choose <b>Add account</b> → <b>Enter a setup key</b>, and type this key (time-based, 6 digits):
+                            {qr ? "Can't scan? " : ""}In your authenticator app choose <b>Add account</b> → <b>Enter a setup key</b>, and type this key (time-based, 6 digits):
                         </p>
                         <div className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2">
                             <code className="mono flex-1 break-all text-sm" data-testid={MFA.secret}>{setup.secret}</code>

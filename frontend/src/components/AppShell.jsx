@@ -12,6 +12,8 @@ import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { AiAssistantProvider } from "@/components/AiAssistantDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import MfaEnrollmentGate from "@/components/MfaEnrollmentGate";
+import { useAuth } from "@/lib/auth";
 import LoadErrorBanner from "@/components/LoadErrorBanner";
 import { clearApiFailures } from "@/lib/apiHealth";
 import { defaultTitle } from "@/lib/pageTitle";
@@ -29,6 +31,10 @@ export default function AppShell() {
 }
 
 function Shell() {
+    const { user } = useAuth();
+    // AXIOM_REQUIRE_MFA covers this account but it has not enrolled: the API
+    // refuses everything except enrolment, so show only the enrolment screen.
+    const mfaGated = !!(user?.mfa?.required && !user.mfa.enrolled);
     useShortcuts();
     const [collapsed, setCollapsed] = useState(loadSidebarCollapsed);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -113,7 +119,7 @@ function Shell() {
                                 </div>
                             }
                         >
-                            <Outlet />
+                            {mfaGated ? <MfaEnrollmentGate /> : <Outlet />}
                         </Suspense>
                         </ErrorBoundary>
                     </main>

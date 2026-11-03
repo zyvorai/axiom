@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -185,6 +185,125 @@ export function CostBudgets() {
     );
 }
 
+
+/** Review, then apply, one rightsizing recommendation. The server recomputes it; nothing here supplies target numbers. */
+function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
+    const [cpu, setCpu] = useState(true);
+    const [mem, setMem] = useState(true);
+    const [preview, setPreview] = useState(null);
+    const [error, setError] = useState("");
+    const [busy, setBusy] = useState("");
+
+    const body = useMemo(
+        () =>
+            item && {
+                namespace: item.namespace,
+                kind: item.kind,
+                workload: item.workload,
+                container: item.container,
+                resources: [cpu && "cpu", mem && "memory"].filter(Boolean),
+                window: windowSel,
+                observed: { cpuRequestMilli: item.cpu.requestMilli, memoryRequestMiB: item.memory.requestMiB },
+            },
+        [item, cpu, mem, windowSel]
+    );
+
+    // Always dry-run first: the person sees exactly what would change.
+    useEffect(() => {
+        if (!item) return undefined;
+        if (body.resources.length === 0) {
+            setPreview(null);
+            setError("");
+            return undefined;
+        }
+        let alive = true;
+        setBusy("preview");
+        setError("");
+        api
+            .post("/cost/rightsizing/apply", { ...body, dryRun: true })
+            .then((r) => alive && setPreview(r.data))
+            .catch((e) => {
+                if (alive) {
+                    setPreview(null);
+                    setError(errText(e));
+                }
+            })
+            .finally(() => alive && setBusy(""));
+        return () => {
+            alive = false;
+        };
+    }, [item, body]);
+
+    useEffect(() => {
+        if (item) {
+            setCpu(true);
+            setMem(true);
+        }
+    }, [item]);
+
+    const apply = async () => {
+        setBusy("apply");
+        setError("");
+        try {
+            await api.post("/cost/rightsizing/apply", { ...body, dryRun: false });
+            toast.success(`Updated requests for ${item.workload}/${item.container}`, { description: "The workload is rolling out with the new values." });
+            onApplied();
+            onClose();
+        } catch (e) {
+            setError(errText(e));
+        } finally {
+            setBusy("");
+        }
+    };
+
+    if (!item) return null;
+    return (
+        <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="max-w-lg" data-testid={T.applyDialog}>
+                <DialogHeader>
+                    <DialogTitle>Apply recommendation</DialogTitle>
+                    <DialogDescription>
+                        {item.workload} · container {item.container} · {item.namespace}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center gap-5">
+                    <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" data-testid={T.applyCpu} checked={cpu} onChange={(e) => setCpu(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
+                        CPU request
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" data-testid={T.applyMemory} checked={mem} onChange={(e) => setMem(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
+                        Memory request
+                    </label>
+                </div>
+                {error ? <div className="notice danger" role="alert" data-testid={T.applyError}>{error}</div> : null}
+                {busy === "preview" && !preview ? <Skeleton className="h-20 rounded-xl bg-muted" /> : null}
+                {preview && (
+                    <div className="space-y-2" data-testid={T.applyChanges}>
+                        <ul className="divide-y divide-border rounded-xl border border-border">
+                            {preview.changes.map((c) => (
+                                <li key={`${c.resource}/${c.field}`} className="px-3 py-2 text-sm">
+                                    <span className="font-medium">{c.resource} {c.field}</span>{" "}
+                                    <span className="mono">{c.from || "(none)"} → {c.to}</span>
+                                    {c.note ? <div className="text-[11.5px] text-tone-amber">{c.note}</div> : null}
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="text-xs text-ink-3">
+                            Based on {preview.source} data ({preview.confidence} confidence). {preview.rollout}
+                        </p>
+                    </div>
+                )}
+                <DialogFooter>
+                    <button type="button" className="btn btn-fill" data-testid={T.applyConfirm} onClick={apply} disabled={!!busy || !preview || body.resources.length === 0}>
+                        <Wand2 size={14} /> {busy === "apply" ? "Applying…" : "Apply and roll out"}
+                    </button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 const VERDICT = {
     over: { tone: "var(--orange)", label: "Over-provisioned" },
     under: { tone: "var(--red)", label: "Under-provisioned" },
@@ -194,6 +313,9 @@ const CONFIDENCE_NOTE = { high: "High confidence", medium: "Medium confidence", 
 
 /** Request-vs-usage recommendations. A recommendation only; Axiom never changes requests itself. */
 export function CostRightsizing() {
+    const { isViewer } = useAuth();
+    const [applying, setApplying] = useState(null);
+    const [reload, setReload] = useState(0);
     const [windowSel, setWindowSel] = useState("7d");
     const [filter, setFilter] = useState("actionable");
     const [data, setData] = useState(null);
@@ -209,7 +331,7 @@ export function CostRightsizing() {
         return () => {
             alive = false;
         };
-    }, [windowSel]);
+    }, [windowSel, reload]);
 
     const items = useMemo(() => {
         const all = data?.items || [];
@@ -269,6 +391,7 @@ export function CostRightsizing() {
                                 <th>Memory (request → recommended)</th>
                                 <th>Verdict</th>
                                 <th className="text-right">Monthly change</th>
+                                {!isViewer && <th><span className="sr-only">Apply</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -293,6 +416,15 @@ export function CostRightsizing() {
                                         <td className={`mono num text-right ${i.monthlyDeltaUsd < 0 ? "text-tone-green" : i.monthlyDeltaUsd > 0 ? "text-tone-amber" : ""}`}>
                                             {i.monthlyDeltaUsd === 0 ? "—" : `${i.monthlyDeltaUsd < 0 ? "−" : "+"}${usd(Math.abs(i.monthlyDeltaUsd))}`}
                                         </td>
+                                        {!isViewer && (
+                                            <td>
+                                                {i.verdict !== "ok" && (
+                                                    <button type="button" className="btn btn-line btn-sm" data-testid={T.rsApply(i.namespace, i.workload, i.container)} onClick={() => setApplying(i)}>
+                                                        Apply…
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })}
@@ -301,8 +433,9 @@ export function CostRightsizing() {
                 </div>
             )}
             <p className="border-t border-border px-4 py-2 text-xs text-ink-3">
-                Recommendations add headroom over observed usage. They are suggestions: Axiom never changes requests on its own.
+                Recommendations add headroom over observed usage. Axiom never changes requests on its own: Apply shows the exact change first and only acts when you confirm.
             </p>
+            <ApplyRightsizingDialog item={applying} windowSel={windowSel} onClose={() => setApplying(null)} onApplied={() => setReload((n) => n + 1)} />
         </div>
     );
 }

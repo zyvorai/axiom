@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, Server } from "lucide-react";
+import { RefreshCw, Search, Server } from "lucide-react";
+import { resourceHref } from "@/lib/resourceHref";
+import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { useCluster } from "@/lib/cluster";
 import { relTime } from "@/lib/troubleshoot";
@@ -105,6 +107,143 @@ function ClusterCard({ c, onSwitch }) {
     );
 }
 
+const KIND_PILL = { Workload: "var(--blue)", Service: "var(--green)", Namespace: "var(--amber)" };
+
+function hitHref(h) {
+    if (h.kind === "Workload") return resourceHref(h.namespace, `${h.workloadKind}/${h.name}`);
+    if (h.kind === "Service") return resourceHref(h.namespace, `Service/${h.name}`);
+    return resourceHref("", `Namespace/${h.name}`);
+}
+
+/** Search workloads, services and namespaces across every registered cluster. */
+function FleetSearch({ currentName }) {
+    const [q, setQ] = useState("");
+    const [kind, setKind] = useState("");
+    const [res, setRes] = useState(null);
+    const [error, setError] = useState("");
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        const text = q.trim();
+        if (text.length < 2) {
+            setRes(null);
+            setError("");
+            return undefined;
+        }
+        let alive = true;
+        const t = setTimeout(async () => {
+            setBusy(true);
+            try {
+                const { data } = await api.get("/fleet/search", { params: { q: text, kind: kind || undefined, limit: 50 } });
+                if (alive) {
+                    setRes(data);
+                    setError("");
+                }
+            } catch (e) {
+                if (alive) setError(e?.response?.data?.error || e?.message || "Search failed");
+            } finally {
+                if (alive) setBusy(false);
+            }
+        }, 300);
+        return () => {
+            alive = false;
+            clearTimeout(t);
+        };
+    }, [q, kind]);
+
+    // Open a hit: make its cluster the active one for this tab, then go to the resource.
+    const open = async (h) => {
+        const href = hitHref(h);
+        if (!href) return;
+        try {
+            if (h.cluster !== currentName) await api.post(`/clusters/${encodeURIComponent(h.cluster)}/activate`);
+        } catch (e) {
+            setError(e?.response?.data?.error || e?.message || "Could not switch cluster");
+            return;
+        }
+        window.location.assign(href);
+    };
+
+    const skipped = res?.clusters?.skipped || [];
+    const errors = res?.clusters?.errors || [];
+    return (
+        <GlassCard className="space-y-3 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="relative min-w-[14rem] flex-1">
+                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" aria-hidden="true" />
+                    <Input
+                        aria-label="Search every cluster"
+                        data-testid={FLEET.search}
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                        placeholder="Where is… search workloads, services and namespaces in every cluster"
+                        className="bg-muted/30 pl-9"
+                    />
+                </div>
+                <select aria-label="Kind" data-testid={FLEET.searchKind} className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
+                    <option value="">Everything</option>
+                    <option value="Workload">Workloads</option>
+                    <option value="Service">Services</option>
+                    <option value="Namespace">Namespaces</option>
+                </select>
+            </div>
+            {error ? <div className="notice danger" role="alert">{error}</div> : null}
+            {res && (
+                <>
+                    {(skipped.length > 0 || errors.length > 0) && (
+                        <div className="notice" role="status" data-testid={FLEET.searchSkipped}>
+                            Not searched: {[...skipped.map((s) => `${s.cluster} (${s.reason})`), ...errors.map((e) => `${e.cluster} (${e.error})`)].join("; ")}
+                        </div>
+                    )}
+                    {res.results.length === 0 ? (
+                        <div className="empty" data-testid={FLEET.searchNone}>No matches in {res.clusters.searched} cluster{res.clusters.searched === 1 ? "" : "s"}.</div>
+                    ) : (
+                        <div className="max-h-[50vh] overflow-auto" tabIndex={0} role="region" aria-label="Search results" data-testid={FLEET.searchResults}>
+                            <table className="tbl">
+                                <thead>
+                                    <tr>
+                                        <th>Cluster</th>
+                                        <th>Match</th>
+                                        <th>Status</th>
+                                        <th><span className="sr-only">Open</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {res.results.map((h) => (
+                                        <tr key={`${h.cluster}/${h.kind}/${h.namespace}/${h.name}`} data-testid={FLEET.searchRow(h.cluster, h.namespace, h.name)}>
+                                            <td className="name">
+                                                {h.clusterLabel || h.cluster}
+                                                <small>{h.clusterState}</small>
+                                            </td>
+                                            <td>
+                                                <span className="pill" style={{ "--c": KIND_PILL[h.kind] || "var(--blue)" }}>
+                                                    <i aria-hidden="true" />
+                                                    {h.kind === "Workload" ? h.workloadKind : h.kind}
+                                                </span>{" "}
+                                                <b>{h.name}</b>
+                                                {h.namespace ? <small className="ml-1 text-ink-3">{h.namespace}</small> : null}
+                                                {h.detail ? <div className="text-[11.5px] text-ink-3">{h.detail}</div> : null}
+                                            </td>
+                                            <td className="text-[12.5px]">{h.status}</td>
+                                            <td>
+                                                <button type="button" className="btn btn-line btn-sm" data-testid={FLEET.searchOpen(h.cluster, h.namespace, h.name)} onClick={() => open(h)}>
+                                                    Open
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    {res.truncated ? <p className="text-xs text-ink-3">Showing the first {res.results.length} of {res.total} matches — narrow the search.</p> : null}
+                </>
+            )}
+            {busy && !res ? <Skeleton className="h-10 rounded-xl bg-muted" /> : null}
+        </GlassCard>
+    );
+}
+
 /** Every registered cluster at a glance: reachability, capacity and warnings, probed in the background. */
 export default function Fleet() {
     const { activate } = useCluster();
@@ -173,6 +312,8 @@ export default function Fleet() {
                         {stat("pods", "Pods running", s.runningPods, `/ ${s.pods}`)}
                         {stat("warnings", "Warnings", s.warnings)}
                     </div>
+
+                    <FleetSearch currentName={fleet.clusters.find((c) => c.current)?.name} />
 
                     {fleet.clusters.length === 0 ? (
                         <GlassCard className="p-6">

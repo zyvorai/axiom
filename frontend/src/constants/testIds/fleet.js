@@ -10,4 +10,11 @@ export const FLEET = {
     switch: (name) => `fleet-switch-${name}`,
     checked: 'fleet-checked',
     empty: 'fleet-empty',
+    search: 'fleet-search',
+    searchKind: 'fleet-search-kind',
+    searchResults: 'fleet-search-results',
+    searchRow: (cluster, ns, name) => `fleet-hit-${cluster}-${ns || '_'}-${name}`,
+    searchOpen: (cluster, ns, name) => `fleet-hit-open-${cluster}-${ns || '_'}-${name}`,
+    searchSkipped: 'fleet-search-skipped',
+    searchNone: 'fleet-search-none',
 };

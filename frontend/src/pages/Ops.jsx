@@ -26,6 +26,8 @@ import { RBAC, HELM_CATALOG, GITOPS_CREATE } from "@/constants/testIds";
 import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
+import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
+import { useAuth } from "@/lib/auth";
 
 const TABS = [
     { key: "helm", label: "Helm", icon: Anchor },
@@ -282,6 +284,8 @@ function GitOpsTab() {
     const apps = useEndpoint("/gitops", [refresh]);
     const [syncing, setSyncing] = useState("");
     const [createOpen, setCreateOpen] = useState(false);
+    const [deleting, setDeleting] = useState(null);
+    const { isViewer } = useAuth();
 
     const sync = async (a) => {
         const busyKey = `${a.namespace}/${a.name}`;
@@ -330,16 +334,29 @@ function GitOpsTab() {
                                     <td><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></td>
                                     <td className="num">{a.age}</td>
                                     <td>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-end gap-1.5">
                                             <button
                                                 type="button"
                                                 className="btn btn-line btn-sm"
                                                 disabled={syncing === `${a.namespace}/${a.name}`}
                                                 onClick={() => sync(a)}
                                                 title="Sync"
+                                                aria-label={`Sync ${a.name}`}
                                             >
                                                 <RotateCcw size={13} />
                                             </button>
+                                            {!isViewer && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-danger btn-sm"
+                                                    data-testid={GITOPS_CREATE.deleteRow(a.kind, a.namespace, a.name)}
+                                                    title={`Delete ${a.name}`}
+                                                    aria-label={`Delete ${a.name}`}
+                                                    onClick={() => setDeleting(a)}
+                                                >
+                                                    <Trash2 size={13} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -350,6 +367,7 @@ function GitOpsTab() {
             />
         </div>
         <GitOpsCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => setRefresh((n) => n + 1)} />
+        <GitOpsDeleteDialog app={deleting} onClose={() => setDeleting(null)} onDeleted={() => setRefresh((n) => n + 1)} />
         </div>
     );
 }

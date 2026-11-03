@@ -34,6 +34,8 @@ export function AuthProvider({ children }) {
                 role: data.role,
                 authMethod: data.auth,
                 mode: data.mode,
+                // {required, enrolled}: set when AXIOM_REQUIRE_MFA covers this account.
+                mfa: data.mfa || null,
             });
             return true;
         } catch {

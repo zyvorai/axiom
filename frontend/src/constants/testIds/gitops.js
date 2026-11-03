@@ -51,4 +51,13 @@ export const GITOPS_CREATE = {
     warnings: 'gitops-warnings',
     create: 'gitops-create',
     error: 'gitops-error',
+    deleteRow: (kind, ns, name) => `gitops-delete-${kind}-${ns}-${name}`,
+    deleteDialog: 'gitops-delete-dialog',
+    deleteConsequence: 'gitops-delete-consequence',
+    deleteCascade: 'gitops-delete-cascade',
+    deleteConfirmInput: 'gitops-delete-confirm-input',
+    deleteRemoveSource: 'gitops-delete-remove-source',
+    deleteSharedNote: 'gitops-delete-shared',
+    deleteError: 'gitops-delete-error',
+    deleteConfirm: 'gitops-delete-confirm',
 };

@@ -40,4 +40,11 @@ export const COST = {
     rsRow: (ns, w, c) => `cost-rs-${ns}-${w}-${c}`,
     rsVerdict: (ns, w, c) => `cost-rs-verdict-${ns}-${w}-${c}`,
     rsEmpty: 'cost-rightsizing-empty',
+    rsApply: (ns, w, c) => `cost-rs-apply-${ns}-${w}-${c}`,
+    applyDialog: 'cost-apply-dialog',
+    applyCpu: 'cost-apply-cpu',
+    applyMemory: 'cost-apply-memory',
+    applyChanges: 'cost-apply-changes',
+    applyError: 'cost-apply-error',
+    applyConfirm: 'cost-apply-confirm',
 };
