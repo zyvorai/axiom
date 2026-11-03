@@ -75,6 +75,7 @@ Fleet health probing (clusters registered under Settings → Clusters):
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `AXIOM_FLEET_PROBE_INTERVAL` | `30s` | How often every registered cluster is asked for its overview to decide healthy / degraded / unreachable (minimum `5s`). `off` or `0` disables background probing; clusters are then probed only when the Fleet page or `GET /api/v1/fleet` is read. Each probe is one overview request per cluster, so keep it generous for large fleets. Helm: `fleetProbeInterval`. |
+| `AXIOM_BUDGET_CHECK_INTERVAL` | `5m` | How often the budget watcher evaluates every cost budget (minimum `1m`) and notifies through the configured Slack / alert webhook when a namespace crosses into `warning` or `over` or returns to `ok` (needs `notifyOnWarnings` and a webhook in Settings → Integrations; the audit entries are written either way). `off` or `0` disables the watcher. Evaluates the default active cluster. Helm: `budgetCheckInterval`. |
 
 Helm chart catalog (Ops → Helm repository browsing; see `docs/API.md` → Helm chart catalog):
 

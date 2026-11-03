@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Notifications
+- Cluster-down and budget notifications through the existing Slack / generic alert webhook (same channels and the same `notifyOnWarnings` switch as warning events, no new settings). The fleet prober announces a cluster becoming `unreachable` (with the probe error) or `degraded` (with the reason) and its recovery (with how long it was down); a new budget watcher (`AXIOM_BUDGET_CHECK_INTERVAL`, default `5m`, minimum `1m`, `off` disables; Helm `auth.budgetCheckInterval`) evaluates every cost budget with the same code as `GET /api/v1/cost/budgets` and, on ok→warning, →over and back to ok, records `cost.budget_warning` / `cost.budget_over` / `cost.budget_ok` audit entries (user `budget-watcher`, detail `$X of $Y (Z%)`) and notifies. The same state is not re-announced for a cluster/namespace within 10 minutes; a recovery or back-to-ok message always follows an announced problem; nothing is announced for conditions found at startup. In the Timeline, `fleet.cluster_unreachable` / `fleet.cluster_degraded` / `cost.budget_warning` / `cost.budget_over` are warnings and `cost.budget_*` entries carry their namespace. Delivery is best effort (one attempt, failures logged with the webhook URL redacted) and per replica
+
 ## [0.8.0] - 2026-11-04
 
 ### Added — Autoscaling & cost

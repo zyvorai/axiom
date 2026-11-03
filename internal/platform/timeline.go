@@ -91,9 +91,15 @@ func TimelineFromAudit(a AuditEntry) TimelineEntry {
 			ns = parts[0]
 		}
 	}
+	if strings.HasPrefix(a.Action, "cost.budget_") && len(parts) == 1 && a.Target != "" {
+		ns = a.Target // budget targets are namespaces
+	}
 	sev := SeverityInfo
 	switch {
 	case strings.HasPrefix(a.Action, "auth."):
+		sev = SeverityWarning
+	case a.Action == "fleet.cluster_unreachable", a.Action == "fleet.cluster_degraded",
+		a.Action == "cost.budget_over", a.Action == "cost.budget_warning":
 		sev = SeverityWarning
 	case strings.HasSuffix(a.Action, ".delete"), strings.HasSuffix(a.Action, ".drain"), strings.HasSuffix(a.Action, ".evict"),
 		strings.HasSuffix(a.Action, ".stop"), strings.HasSuffix(a.Action, ".rollback"), strings.HasSuffix(a.Action, ".uninstall"),
