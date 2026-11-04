@@ -23,14 +23,15 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<nav class="top"><div><b><a href="./">Axiom</a></b><span><a href="#apps">Platform</a><a href="#ops">Operate</a><a href="#security">Security</a><a href="#languages">Languages</a><a href="docs/">Docs</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span><a class="navcta" href="https://github.com/zyvorai/axiom/releases/latest">Download</a></div></nav>
+<nav class="top"><div><b><a href="./">Axiom</a></b><span><a href="#apps">Platform</a><a href="#ops">Operate</a><a href="#security">Security</a><a href="#compare">Compare</a><a href="#languages">Languages</a><a href="docs/">Docs</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span><a class="navcta" href="https://github.com/zyvorai/axiom/releases/latest">Download</a></div></nav>
 
 <main id="main">
 <header class="hero">
   <a class="vpill" href="https://github.com/zyvorai/axiom/releases/latest">New in 0.13 · Fleet history, GitOps editing, VPA &amp; KEDA, 8 languages <span aria-hidden="true">›</span></a>
   <h1>Your cluster.<br><em>Finally legible.</em></h1>
   <p class="sub">The private-cloud console for k3s and Kubernetes. Applications first, Pods one click away — in a single Go binary.</p>
-  <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a class="l" href="docs/quickstart.html">Get started ›</a></div>
+  <div class="cta"><a class="btn" href="docs/quickstart.html">Get started</a><a class="l" href="https://github.com/zyvorai/axiom/releases/latest">Download ›</a></div>
+  <button class="chip" type="button" data-copy="helm install axiom deploy/helm/axiom --set auth.username=admin --set auth.password='…'" aria-label="Copy the Helm install command"><code>$ helm install axiom deploy/helm/axiom</code><span>Copy</span></button>
   <div class="shot frame hero-shot"><picture><source srcset="shot-overview.webp" type="image/webp"><img src="shot-overview.png" alt="Axiom Overview: cluster health, metric rings and activity" width="1600" height="1000"></picture></div>
 </header>
 
@@ -57,7 +58,7 @@
     <p class="eyebrow">Logs &amp; terminal</p>
     <h3>Inside any container,<br>instantly.</h3>
     <p class="fl">Live log tails that stay open as long as you do, an interactive terminal per Pod, and a one-click link to any declared port.</p>
-    <div class="shot"><picture><source srcset="shot-logs.webp" type="image/webp"><img src="shot-logs.png" alt="Axiom Pod Logs: a live streaming log view with INFO and WARN lines" width="1352" height="520" loading="lazy"></picture></div>
+    <div class="shot"><picture><source srcset="shot-logs.webp" type="image/webp"><img src="shot-logs.png" alt="Axiom Pod Logs: a live streaming log view with INFO and WARN lines" width="1352" height="400" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Streaming logs.</b> Follow a Pod without an artificial cutoff.</li><li><b>Terminal tab.</b> Interactive PTY on a live cluster; one-shot commands in demo mode.</li><li><b>Port links.</b> Open a container’s declared ports without a port-forward.</li></ul>
   </div>
   <div class="feature reveal">
@@ -173,6 +174,22 @@
   <p class="lead reveal">The whole console — sign-in, every page, errors and notifications — in eight languages, picked from your browser or the user menu.</p>
   <div class="langs reveal" role="list"><span role="listitem">English</span><span role="listitem">Deutsch</span><span role="listitem">Español</span><span role="listitem">Français</span><span role="listitem">Português</span><span role="listitem">Italiano</span><span role="listitem" lang="ja">日本語</span><span role="listitem" lang="zh">简体中文</span></div>
   <p class="fine reveal">Translations are machine-assisted and not yet reviewed by native speakers — corrections are welcome.</p>
+</div></section>
+
+<section class="band" id="compare"><div class="wrap">
+  <p class="eyebrow center reveal">How it compares</p>
+  <h2 class="reveal">Lighter than a platform.<br>Shared, unlike a desktop app.</h2>
+  <p class="lead reveal">Axiom sits between a per-laptop Kubernetes client and a full multi-cluster management platform. A category comparison, not a product teardown.</p>
+  <div class="cmp reveal" role="table" aria-label="Axiom compared with desktop Kubernetes clients and full management platforms">
+    <div class="r h" role="row"><span role="columnheader"></span><span role="columnheader" class="us">Axiom</span><span role="columnheader">Desktop client</span><span role="columnheader">Full platform</span></div>
+    <div class="r" role="row"><span role="rowheader">Where it runs</span><span class="us" role="cell">One pod, one Go binary</span><span role="cell">On each laptop</span><span role="cell">A dedicated management cluster</span></div>
+    <div class="r" role="row"><span role="rowheader">Shared by a team</span><span class="us" role="cell">Yes, in the browser</span><span role="cell">Per user, via kubeconfig</span><span role="cell">Yes</span></div>
+    <div class="r" role="row"><span role="rowheader">Roles, SSO and audit</span><span class="us" role="cell">Built in: OIDC, SAML, LDAP, audit log</span><span role="cell">Depends on each kubeconfig</span><span role="cell">Built in</span></div>
+    <div class="r" role="row"><span role="rowheader">Agents on your nodes</span><span class="us" role="cell">None</span><span role="cell">None</span><span role="cell">Usually</span></div>
+    <div class="r" role="row"><span role="rowheader">Needs a database</span><span class="us" role="cell">No</span><span role="cell">No</span><span role="cell">Usually</span></div>
+    <div class="r" role="row"><span role="rowheader">Starts from</span><span class="us" role="cell">Applications, Pods one click away</span><span role="cell">Raw resources</span><span role="cell">Clusters and fleets</span></div>
+  </div>
+  <p class="fine reveal">Describes typical tools in each category. Specific products vary, so check any tool you are weighing.</p>
 </div></section>
 
 <section id="install"><div class="wrap">
