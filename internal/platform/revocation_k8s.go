@@ -17,17 +17,40 @@ import (
 	"github.com/zyvorai/axiom/internal/auth"
 )
 
-const revocationsConfigMapName = "zyvor-axiom-revocations"
+const (
+	revocationsConfigMapName = "zyvor-axiom-revocations"
+	revocationsConfigMapKey  = "revocations.json"
+
+	// podProxyRedeemedConfigMapName holds the ids of shared pod-proxy tickets
+	// already redeemed (auth.PodProxyRedeemed), so a ticket redeemed on one
+	// replica is refused on the others. Entries live for a ticket's 60 s.
+	podProxyRedeemedConfigMapName = "zyvor-axiom-pod-proxy-redeemed"
+	podProxyRedeemedConfigMapKey  = "redeemed.json"
+)
 
 // K8sRevocationStore keeps the session-revocation snapshot in a ConfigMap so a
 // logout or "sign out everywhere" survives a restart. The snapshot is bounded
 // (see auth.Revocations) and holds only random session IDs and usernames.
+// The same ConfigMap-backed blob store, under another name, holds the shared
+// set of redeemed pod-proxy tickets (NewK8sPodProxyRedeemedStore).
 type K8sRevocationStore struct {
 	client kubernetes.Interface
 	ns     string
+	name   string // ConfigMap name
+	key    string // data key
 }
 
 func NewK8sRevocationStore(client kubernetes.Interface, ns string) *K8sRevocationStore {
+	return newK8sBlobStore(client, ns, revocationsConfigMapName, revocationsConfigMapKey)
+}
+
+// NewK8sPodProxyRedeemedStore is the ConfigMap store of redeemed pod-proxy
+// ticket ids.
+func NewK8sPodProxyRedeemedStore(client kubernetes.Interface, ns string) *K8sRevocationStore {
+	return newK8sBlobStore(client, ns, podProxyRedeemedConfigMapName, podProxyRedeemedConfigMapKey)
+}
+
+func newK8sBlobStore(client kubernetes.Interface, ns, name, key string) *K8sRevocationStore {
 	ns = strings.TrimSpace(ns)
 	if ns == "" {
 		ns = strings.TrimSpace(os.Getenv("POD_NAMESPACE"))
@@ -35,7 +58,20 @@ func NewK8sRevocationStore(client kubernetes.Interface, ns string) *K8sRevocatio
 	if ns == "" {
 		ns = "axiom-system"
 	}
-	return &K8sRevocationStore{client: client, ns: ns}
+	return &K8sRevocationStore{client: client, ns: ns, name: name, key: key}
+}
+
+// OpenPodProxyRedeemedStore returns the shared redeemed-ticket store in
+// kubernetes mode and nil (this replica only) otherwise.
+func OpenPodProxyRedeemedStore(mode string, provider Provider) auth.RevocationStore {
+	if strings.ToLower(mode) != "kubernetes" {
+		return nil
+	}
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
+	if !ok || k == nil || k.client == nil {
+		return nil
+	}
+	return NewK8sPodProxyRedeemedStore(k.client, "")
 }
 
 // OpenRevocationStore returns the persistent store in kubernetes mode and nil
@@ -54,22 +90,22 @@ func OpenRevocationStore(mode string, provider Provider) auth.RevocationStore {
 func (s *K8sRevocationStore) Load() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cm, err := s.client.CoreV1().ConfigMaps(s.ns).Get(ctx, revocationsConfigMapName, metav1.GetOptions{})
+	cm, err := s.client.CoreV1().ConfigMaps(s.ns).Get(ctx, s.name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return []byte(cm.Data["revocations.json"]), nil
+	return []byte(cm.Data[s.key]), nil
 }
 
 func (s *K8sRevocationStore) Save(raw []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: revocationsConfigMapName, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
-		Data:       map[string]string{"revocations.json": string(raw)},
+		ObjectMeta: metav1.ObjectMeta{Name: s.name, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
+		Data:       map[string]string{s.key: string(raw)},
 	}
 	if _, err := s.client.CoreV1().ConfigMaps(s.ns).Update(ctx, cm, metav1.UpdateOptions{}); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -107,7 +143,7 @@ func (s *K8sRevocationStore) mergeOnce(fn func(current []byte) ([]byte, error)) 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cms := s.client.CoreV1().ConfigMaps(s.ns)
-	cm, err := cms.Get(ctx, revocationsConfigMapName, metav1.GetOptions{})
+	cm, err := cms.Get(ctx, s.name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		raw, err := fn(nil)
 		if err != nil {
@@ -116,15 +152,15 @@ func (s *K8sRevocationStore) mergeOnce(fn func(current []byte) ([]byte, error)) 
 		// Create fails with AlreadyExists if another replica created it first;
 		// Merge then retries against that copy.
 		_, err = cms.Create(ctx, &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: revocationsConfigMapName, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
-			Data:       map[string]string{"revocations.json": string(raw)},
+			ObjectMeta: metav1.ObjectMeta{Name: s.name, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
+			Data:       map[string]string{s.key: string(raw)},
 		}, metav1.CreateOptions{})
 		return err
 	}
 	if err != nil {
 		return err
 	}
-	raw, err := fn([]byte(cm.Data["revocations.json"]))
+	raw, err := fn([]byte(cm.Data[s.key]))
 	if err != nil {
 		return err
 	}
@@ -132,7 +168,7 @@ func (s *K8sRevocationStore) mergeOnce(fn func(current []byte) ([]byte, error)) 
 	if cm.Data == nil {
 		cm.Data = map[string]string{}
 	}
-	cm.Data["revocations.json"] = string(raw)
+	cm.Data[s.key] = string(raw)
 	// cm carries the resourceVersion that was read, so the API server rejects
 	// this update with a Conflict if the ConfigMap changed since.
 	_, err = cms.Update(ctx, cm, metav1.UpdateOptions{})

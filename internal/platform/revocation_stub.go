@@ -9,3 +9,9 @@ import "github.com/zyvorai/axiom/internal/auth"
 func OpenRevocationStore(mode string, provider Provider) auth.RevocationStore {
 	return nil
 }
+
+// OpenPodProxyRedeemedStore returns nil in the demo build: redeemed pod-proxy
+// tickets are remembered by this process only.
+func OpenPodProxyRedeemedStore(mode string, provider Provider) auth.RevocationStore {
+	return nil
+}

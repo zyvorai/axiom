@@ -84,6 +84,24 @@ type PodProxyOriginConfig struct {
 	// the console, so a proxy origin equal to it is refused.
 	ConsoleAddr   string
 	ConsoleOrigin string
+	// SessionSecret (AXIOM_SESSION_SECRET), when set, makes tickets and
+	// session cookies signed tokens every replica with the same secret
+	// accepts, so no session affinity is needed. Empty: tickets and sessions
+	// stay in this process's memory, as with a random per-process secret.
+	SessionSecret string
+	// RedeemedStore shares the ids of redeemed tickets between replicas
+	// (platform.OpenPodProxyRedeemedStore), so a ticket is single use across
+	// them, best effort. Only used with SessionSecret; nil: per replica only.
+	RedeemedStore auth.RevocationStore
+}
+
+// newPodProxyStores builds the ticket and session stores for cfg: shared
+// (signed) with a session secret, in memory otherwise.
+func newPodProxyStores(cfg PodProxyOriginConfig) (*auth.PodProxyTicketStore, *auth.PodProxySessionStore) {
+	if secret := strings.TrimSpace(cfg.SessionSecret); secret != "" {
+		return auth.NewSharedPodProxyTicketStore(secret, auth.NewPodProxyRedeemed(cfg.RedeemedStore)), auth.NewSharedPodProxySessionStore(secret)
+	}
+	return auth.NewPodProxyTicketStore(), auth.NewPodProxySessionStore()
 }
 
 // ErrPodProxyDisabled is returned by NewPodProxyOrigin when neither setting
@@ -147,12 +165,13 @@ func NewPodProxyOrigin(cfg PodProxyOriginConfig) (*PodProxyOrigin, error) {
 			return nil, fmt.Errorf("AXIOM_POD_PROXY_ORIGIN %q points at the console's listen address %q; it must differ by host or port", origin, cfg.ConsoleAddr)
 		}
 	}
+	tickets, sess := newPodProxyStores(cfg)
 	return &PodProxyOrigin{
 		addr:    addr,
 		origin:  u.Scheme + "://" + u.Host,
 		secure:  u.Scheme == "https",
-		tickets: auth.NewPodProxyTicketStore(),
-		sess:    auth.NewPodProxySessionStore(),
+		tickets: tickets,
+		sess:    sess,
 	}, nil
 }
 
@@ -214,6 +233,10 @@ func (p *PodProxyOrigin) Mode() string {
 	}
 	return "path"
 }
+
+// Shared reports whether tickets and sessions are signed tokens any replica
+// with the same session secret accepts (false: in this process's memory).
+func (p *PodProxyOrigin) Shared() bool { return p.tickets.Shared() && p.sess.Shared() }
 
 // attach wires the console's provider and revocation set; NewWithUsers calls
 // it. Until then the proxy listener answers 503.
@@ -308,7 +331,7 @@ func (p *PodProxyOrigin) redeem(w http.ResponseWriter, r *http.Request) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link has expired or was already used; open the port again from the console")
 		return
 	}
-	if g.SessionID != "" || revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
+	if g.SessionID != "" || !podProxyGrantAllowed(revoked, g) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link is no longer valid")
 		return
 	}
@@ -331,6 +354,34 @@ func (p *PodProxyOrigin) redeem(w http.ResponseWriter, r *http.Request) {
 }
 
 func podProxyRoleAllowed(role string) bool { return role == "operator" || role == "admin" }
+
+// podProxyGrantAllowed is the check every redeem and every proxied request
+// makes: the creating user has not been revoked since the ticket was minted,
+// the role snapshot may use the proxy and the namespace restriction snapshot
+// covers the pod's namespace.
+func podProxyGrantAllowed(revoked PodProxyRevocationChecker, g auth.PodProxyGrant) bool {
+	return !revoked.UserRevokedSince(g.User, g.IssuedMs) && podProxyRoleAllowed(g.Role) && g.NamespaceAllowed()
+}
+
+// sessionCookiePath is where session sid's cookie is scoped.
+func (p *PodProxyOrigin) sessionCookiePath(sid string) string {
+	if p.host != nil {
+		return "/"
+	}
+	return "/s/" + sid + "/"
+}
+
+// hasValidSessionCookie reports whether r carries a live cookie for session
+// sid (without sliding it). In shared mode that is how a replica that did not
+// create the session knows it exists.
+func (p *PodProxyOrigin) hasValidSessionCookie(r *http.Request, sid string) bool {
+	for _, c := range r.Cookies() {
+		if c.Name == p.cookieName() && p.sess.Valid(sid, c.Value) {
+			return true
+		}
+	}
+	return false
+}
 
 // proxy handles /s/<sid>/…: the session cookie must belong to the session
 // named in the path, the creating user must not have been revoked since, and
@@ -368,13 +419,17 @@ func (p *PodProxyOrigin) authorize(w http.ResponseWriter, r *http.Request, sid s
 		podProxyDeny(w, http.StatusServiceUnavailable, "pod proxy is not ready")
 		return auth.PodProxyGrant{}, nil, false
 	}
-	var g auth.PodProxyGrant
-	ok := false
+	var (
+		g       auth.PodProxyGrant
+		renewed string
+		maxAge  time.Duration
+		ok      bool
+	)
 	for _, c := range r.Cookies() {
 		if c.Name != p.cookieName() {
 			continue
 		}
-		if g, ok = p.sess.Lookup(sid, c.Value); ok {
+		if g, renewed, maxAge, ok = p.sess.Authorize(sid, c.Value); ok {
 			break
 		}
 	}
@@ -382,10 +437,24 @@ func (p *PodProxyOrigin) authorize(w http.ResponseWriter, r *http.Request, sid s
 		podProxyDeny(w, http.StatusForbidden, "no valid pod proxy session; open the port again from the console")
 		return auth.PodProxyGrant{}, nil, false
 	}
-	if revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
+	if !podProxyGrantAllowed(revoked, g) {
 		p.sess.Delete(sid)
 		podProxyDeny(w, http.StatusForbidden, "this pod proxy session was revoked")
 		return auth.PodProxyGrant{}, nil, false
+	}
+	if renewed != "" {
+		// Shared mode: slide the idle expiry by re-issuing the signed cookie
+		// (same name, path and attributes; never past the absolute maximum).
+		// The pod's own Set-Cookie headers are still stripped.
+		http.SetCookie(w, &http.Cookie{
+			Name:     p.cookieName(),
+			Value:    renewed,
+			Path:     p.sessionCookiePath(sid),
+			MaxAge:   max(1, int(maxAge/time.Second)),
+			HttpOnly: true,
+			Secure:   p.secure,
+			SameSite: http.SameSiteLaxMode,
+		})
 	}
 	return g, provider, true
 }
@@ -506,7 +575,7 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 		sessionID = auth.NewPodProxySessionID()
 	}
 	tok, _, err := s.podProxy.tickets.Issue(auth.PodProxyGrant{
-		User: id.User, Role: id.Role, Namespace: ns, Pod: name, Port: int32(req.Port),
+		User: id.User, Role: id.Role, Namespaces: id.Namespaces, Namespace: ns, Pod: name, Port: int32(req.Port),
 		Path: req.Path, ClusterKey: clusterKey, SessionID: sessionID,
 	})
 	if err != nil {

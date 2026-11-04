@@ -136,12 +136,13 @@ func newPodProxyHostOrigin(cfg PodProxyOriginConfig, addr, origin string) (*PodP
 			return nil, bad("points at the console's listen address %q; it must differ by port", cfg.ConsoleAddr)
 		}
 	}
+	tickets, sess := newPodProxyStores(cfg)
 	return &PodProxyOrigin{
 		addr:    addr,
 		origin:  u.Scheme + "://" + podProxyIDPlaceholder + "." + strings.ToLower(u.Host)[len(podProxyIDSentinel)+1:],
 		secure:  u.Scheme == "https",
-		tickets: auth.NewPodProxyTicketStore(),
-		sess:    auth.NewPodProxySessionStore(),
+		tickets: tickets,
+		sess:    sess,
 		host: &podProxyHostMode{
 			scheme:      u.Scheme,
 			base:        base,
@@ -185,7 +186,10 @@ func (p *PodProxyOrigin) serveHost(w http.ResponseWriter, r *http.Request) {
 		podProxyNotFound(w)
 		return
 	}
-	if p.sess.Live(sid) {
+	// A session is live if this replica holds it or (shared mode) the request
+	// carries a valid signed cookie for it, which another replica may have
+	// issued.
+	if p.sess.Live(sid) || (p.sess.Shared() && p.hasValidSessionCookie(r, sid)) {
 		// After the first use /p/ is an ordinary pod path.
 		g, provider, ok := p.authorize(w, r, sid)
 		if !ok {
@@ -221,7 +225,7 @@ func (p *PodProxyOrigin) redeemHost(w http.ResponseWriter, r *http.Request, sid 
 		podProxyDeny(w, http.StatusForbidden, "this pod link has expired or was already used; open the port again from the console")
 		return
 	}
-	if g.SessionID != sid || revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
+	if g.SessionID != sid || !podProxyGrantAllowed(revoked, g) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link is no longer valid")
 		return
 	}

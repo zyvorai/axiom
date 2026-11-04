@@ -210,6 +210,8 @@ Everything else is `404`. The listener has no CORS and never reads the console's
 
 Session lifetimes, revocation, header stripping, response policy headers (including `allow-same-origin` in the sandbox: the origin belongs to this one session), the service-worker refusal and the limits are the same as in path mode.
 
+**Several replicas.** With `AXIOM_SESSION_SECRET` set, the ticket and the session cookie are opaque HMAC-signed tokens (base64url, no separators) that any replica sharing the secret accepts, so a link minted by one replica can be opened on another and the session continues on any of them. Treat both as opaque: their content (user, role, namespace restriction, pod, port, base path, session id, issue and expiry times) is integrity-protected, not encrypted. A ticket is still single use across replicas (best effort, see `docs/GAPS.md`) and the response codes above are unchanged, except that in host mode a replica that did not create the session answers a request without a valid cookie with the empty `404` instead of `403`. While the session is in use, a response may carry a re-issued session cookie (same name and attributes, a later signed idle deadline, at most once a minute, `Max-Age` up to the session's 1-hour limit); browsers store it automatically. Without a session secret tickets and sessions stay in the issuing process's memory.
+
 ## Autoscaling, disruption budgets, network policies
 
 | Method | Path | Purpose |

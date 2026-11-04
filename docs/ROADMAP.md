@@ -86,7 +86,6 @@ are theirs, not ours.
 Deliberately left for later, with the reason:
 
 - **Billing:** per-cloud invoice integrations (OpenCost covers allocation, not your actual bill).
-- **Pod proxy:** proxy tickets and sessions shared across replicas (today session affinity is needed).
 - **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
 
 ## Not planned

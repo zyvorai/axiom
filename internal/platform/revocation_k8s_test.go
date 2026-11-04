@@ -3,6 +3,7 @@
 package platform
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
@@ -231,5 +233,35 @@ func TestK8sRevocationStoreMergeRetriesStaleUpdate(t *testing.T) {
 	}
 	if *conflicts != 1 || len(seen) != 2 || seen[1] != `{"ids":{"theirs":9999999999}}` {
 		t.Fatalf("conflicts=%d seen=%q: the stale update was not retried against the new copy", *conflicts, seen)
+	}
+}
+
+func TestK8sPodProxyRedeemedStoreSharedAcrossReplicas(t *testing.T) {
+	cs := k8sfake.NewSimpleClientset()
+	store := NewK8sPodProxyRedeemedStore(cs, "axiom-system")
+	a, b := auth.NewPodProxyRedeemed(store), auth.NewPodProxyRedeemed(store)
+	exp := time.Now().Add(time.Minute)
+	if !a.Mark("ticket-1", exp) {
+		t.Fatal("first redemption refused")
+	}
+	if b.Mark("ticket-1", exp) || a.Mark("ticket-1", exp) {
+		t.Fatal("a ticket redeemed on A must be refused on B and A")
+	}
+	if !b.Mark("ticket-2", exp) {
+		t.Fatal("another ticket refused")
+	}
+	cm, err := cs.CoreV1().ConfigMaps("axiom-system").Get(context.Background(), podProxyRedeemedConfigMapName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snap struct {
+		IDs map[string]int64 `json:"ids"`
+	}
+	if err := json.Unmarshal([]byte(cm.Data[podProxyRedeemedConfigMapKey]), &snap); err != nil || len(snap.IDs) != 2 {
+		t.Fatalf("stored set: %v %v", cm.Data, err)
+	}
+	// It is a separate ConfigMap from the session revocations.
+	if _, err := cs.CoreV1().ConfigMaps("axiom-system").Get(context.Background(), revocationsConfigMapName, metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+		t.Fatalf("revocations ConfigMap touched: %v", err)
 	}
 }

@@ -90,10 +90,18 @@ func main() {
 	revocations.StartRefresh(dispatchCtx, cfg.RevocationRefresh)
 
 	// Optional separate origin for pod windows (see internal/api/podproxy_origin.go).
-	podProxy := api.NewPodProxyOriginFromEnv(api.PodProxyOriginConfig{
+	// With a stable session secret its tickets and sessions are signed tokens
+	// every replica accepts, and redeemed tickets are shared through a
+	// ConfigMap; without one they stay in this process's memory.
+	ppCfg := api.PodProxyOriginConfig{
 		Addr: cfg.PodProxyAddr, Origin: cfg.PodProxyOrigin,
 		ConsoleAddr: cfg.Addr, ConsoleOrigin: cfg.AllowOrigin,
-	})
+		SessionSecret: cfg.SessionSecret,
+	}
+	if cfg.SessionSecret != "" && cfg.PodProxyAddr != "" {
+		ppCfg.RedeemedStore = platform.OpenPodProxyRedeemedStore(cfg.Mode, provider)
+	}
+	podProxy := api.NewPodProxyOriginFromEnv(ppCfg)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/", api.NewWithUsers(provider, cfg.Mode, cfg.Username, cfg.Password, cfg.AllowOrigin, hub, users, api.AuthOptions{
@@ -168,7 +176,7 @@ func main() {
 		if _, err := api.StartPodProxyOrigin(dispatchCtx, podProxy, ppCert, ppKey); err != nil {
 			log.Fatalf("pod proxy origin: %v", err)
 		}
-		log.Printf("pod proxy origin listening on %s origin=%s mode=%s tls=%v", podProxy.Addr(), podProxy.Origin(), podProxy.Mode(), ppCert != "" && ppKey != "")
+		log.Printf("pod proxy origin listening on %s origin=%s mode=%s tls=%v shared=%v", podProxy.Addr(), podProxy.Origin(), podProxy.Mode(), ppCert != "" && ppKey != "", podProxy.Shared())
 	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
