@@ -460,6 +460,71 @@ test.describe("create VPAs and KEDA ScaledObjects", () => {
 test.describe("pod proxy on a separate origin", () => {
   test.setTimeout(90_000);
 
+  test("registry logins are write-only and a repository can use one", async ({ browser }) => {
+    await withApp(browser, {}, async ({ page }) => {
+      const mk = await page.request.post("/api/v1/helm/registry-credentials", { headers: ADMIN, data: { name: "ci-reg", registry: "registry.example.com", username: "bot", password: "s3cret-pass-value" } });
+      expect(mk.status()).toBe(201);
+      const list = await page.request.get("/api/v1/helm/registry-credentials", { headers: ADMIN });
+      const text = await list.text();
+      expect(text).toContain("ci-reg");
+      expect(text).not.toContain("s3cret-pass-value");
+      const viewer = await page.request.post("/api/v1/users", { headers: ADMIN, data: { username: "rc-viewer", password: "pw-pw-pw-pw", role: "viewer" } });
+      expect(viewer.status()).toBe(201);
+      expect((await page.request.get("/api/v1/helm/registry-credentials", { headers: basic("rc-viewer", "pw-pw-pw-pw") })).status()).toBe(403);
+      await signInAs(page, USERNAME, PASSWORD);
+      await page.goto("/ops/helm");
+      await page.getByTestId("helm-view-catalog").click();
+      await page.getByTestId("helm-repo-kind-oci").check();
+      await page.getByTestId("helm-regcred-manage").click();
+      await expect(page.getByTestId("helm-regcred-ci-reg")).toBeVisible();
+      await expect(page.getByTestId("helm-regcred-dialog")).not.toContainText("s3cret-pass-value");
+      await page.getByTestId("helm-regcred-remove-ci-reg").click();
+      await confirmDialog(page, "Delete");
+      await expect(page.getByTestId("helm-regcred-ci-reg")).toHaveCount(0);
+    });
+  });
+
+  test("edit a VPA in place after previewing the change", async ({ browser }) => {
+    await withApp(browser, {}, async ({ page }) => {
+      await signInAs(page, USERNAME, PASSWORD);
+      await page.goto("/autoscaling");
+      await page.getByTestId("autoscale-tab-vpa").click();
+      const list = await (await page.request.get("/api/v1/vpas", { headers: ADMIN })).json();
+      const v = list.items[0];
+      await page.getByTestId(`vpa-edit-${v.namespace}-${v.name}`).click();
+      const dlg = page.getByTestId("autoscale-edit-dialog");
+      await expect(dlg.getByTestId("vpa-edit-mode")).toBeVisible();
+      await dlg.getByTestId("vpa-edit-mode").selectOption("Initial");
+      await dlg.getByTestId("autoscale-edit-preview").click();
+      await expect(dlg.getByTestId("autoscale-edit-changes")).toBeVisible();
+      const saved = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().includes(`/vpas/${v.namespace}/${v.name}`));
+      await dlg.getByTestId("autoscale-edit-save").click();
+      expect((await saved).status()).toBe(200);
+    });
+  });
+
+  test("fleet history reports whether it is durable", async ({ browser }) => {
+    await withApp(browser, {}, async ({ page }) => {
+      const h = await (await page.request.get("/api/v1/fleet/history", { headers: ADMIN })).json();
+      expect(h.durable).toBe(false);
+    });
+  });
+
+  test("per-pod host mode hands out a distinct hostname per link", async ({ browser }) => {
+    const proxyPort = await freePort();
+    await withApp(browser, { AXIOM_POD_PROXY_ADDR: `127.0.0.1:${proxyPort}`, AXIOM_POD_PROXY_ORIGIN: `http://{id}.localhost:${proxyPort}`, AXIOM_ALLOW_ORIGIN: "http://127.0.0.1" }, async ({ page }) => {
+      const caps = await (await page.request.get("/api/v1/realtime/capabilities", { headers: ADMIN })).json();
+      expect(caps.podProxyMode).toBe("host");
+      const pods = await (await page.request.get("/api/v1/pods?namespace=payments", { headers: ADMIN })).json();
+      const link = async () => (await (await page.request.post(`/api/v1/pods/payments/${pods[0].name}/window-link`, { headers: ADMIN, data: { port: 8080, path: "/" } })).json()).url;
+      const [a, b] = [await link(), await link()];
+      const re = new RegExp(`^http://[0-9a-f]{32}\\.localhost:${proxyPort}/p/`);
+      expect(a).toMatch(re);
+      expect(b).toMatch(re);
+      expect(a.split(".")[0]).not.toBe(b.split(".")[0]);
+    });
+  });
+
   test("window links point at the isolated origin and the in-origin route is retired", async ({ browser }) => {
     const proxyPort = await freePort();
     await withApp(browser, { AXIOM_POD_PROXY_ADDR: `127.0.0.1:${proxyPort}`, AXIOM_POD_PROXY_ORIGIN: `http://localhost:${proxyPort}` }, async ({ page }) => {
