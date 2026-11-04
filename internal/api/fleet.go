@@ -14,7 +14,7 @@ func (s *Server) registerFleet(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/fleet/history", s.fleetHistory)
 }
 
-// fleetHistory returns the in-memory probe history (uptime, incidents and a
+// fleetHistory returns the probe history (uptime, incidents and a
 // downsampled series) of every cluster, or of ?cluster=, over ?window=.
 // Access is that of /fleet (it is under the same restricted prefix).
 func (s *Server) fleetHistory(w http.ResponseWriter, r *http.Request) {

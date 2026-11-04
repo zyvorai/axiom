@@ -15,8 +15,9 @@ import (
 
 // Fleet health history. Every probe (background, refresh or the lazy probe
 // in Fleet) appends one sample per cluster AFTER the hysteresis decision, so
-// the history shows the state the console showed. Samples live in memory
-// only: they are lost on restart and every replica keeps its own.
+// the history shows the state the console showed. Samples live in memory; a
+// downsampled copy is persisted periodically and restored at startup (see
+// fleet_history_store.go). Restored samples carry the restored flag.
 
 const (
 	// fleetHistoryRetention is how far back samples are kept.
@@ -42,6 +43,9 @@ type FleetSample struct {
 	Warnings      int     `json:"warnings"`
 	CPUPercent    float64 `json:"cpuPercent"`
 	MemoryPercent float64 `json:"memoryPercent"`
+	// Restored marks a sample (a 5-minute bucket) restored from the persisted
+	// history at startup, i.e. one recorded before this process started.
+	Restored bool `json:"restored,omitempty"`
 }
 
 // fleetRecord is a stored sample plus what incidents and failed-check counts
@@ -50,6 +54,35 @@ type fleetRecord struct {
 	FleetSample
 	failed bool   // the probe itself failed (also when hysteresis held the state)
 	reason string // why it was degraded / unreachable
+	// n and nFailed are the probe counts a restored bucket stands for (the
+	// Restored flag is set); a live record is one probe.
+	n, nFailed int
+}
+
+// checks is how many probes the record stands for.
+func (r fleetRecord) checks() int {
+	if r.Restored && r.n > 0 {
+		return r.n
+	}
+	return 1
+}
+
+// failedChecks is how many of those probes failed.
+func (r fleetRecord) failedChecks() int {
+	if r.Restored {
+		return r.nFailed
+	}
+	if r.failed {
+		return 1
+	}
+	return 0
+}
+
+// FleetGap is a stretch without samples across a restart: from the last
+// restored sample to the first live one.
+type FleetGap struct {
+	From string `json:"from"`
+	To   string `json:"to"`
 }
 
 // FleetIncident is a contiguous run of non-healthy samples.
@@ -74,6 +107,8 @@ type FleetClusterHistory struct {
 	CurrentState  string          `json:"currentState"`
 	Since         string          `json:"since,omitempty"`
 	Incidents     []FleetIncident `json:"incidents"`
+	// Gaps are restart gaps (no samples, not counted as downtime).
+	Gaps []FleetGap `json:"gaps"`
 }
 
 // FleetHistory is the response of GET /api/v1/fleet/history.
@@ -81,6 +116,12 @@ type FleetHistory struct {
 	Window          string                `json:"window"`
 	IntervalSeconds int                   `json:"intervalSeconds"`
 	Clusters        []FleetClusterHistory `json:"clusters"`
+	// Durable is true when a persistent store is configured and the last save
+	// succeeded within 3 persistence intervals.
+	Durable bool `json:"durable"`
+	// RestoredFrom is when the newest snapshot restored at startup was saved
+	// (RFC3339), null when nothing was restored.
+	RestoredFrom *string `json:"restoredFrom"`
 }
 
 // NormalizeFleetHistoryWindow validates ?window= ("" = 24h).
@@ -200,23 +241,29 @@ func (sp *SwitchableProvider) FleetHistory(ctx context.Context, cluster, window 
 			heads[i] = h
 		}
 	}
+	durable := st.durableLocked(now)
+	var restoredFrom *string
+	if !st.restoredFrom.IsZero() {
+		s := st.restoredFrom.UTC().Format(time.RFC3339)
+		restoredFrom = &s
+	}
 	st.mu.Unlock()
 
-	out := FleetHistory{Window: window, IntervalSeconds: int(interval / time.Second), Clusters: make([]FleetClusterHistory, 0, len(ids))}
+	out := FleetHistory{Window: window, IntervalSeconds: int(interval / time.Second), Clusters: make([]FleetClusterHistory, 0, len(ids)),
+		Durable: durable, RestoredFrom: restoredFrom}
 	for i, id := range ids {
 		r := recs[i]
 		ch := FleetClusterHistory{
 			Cluster: id.name, Label: id.label,
 			Samples:       downsampleFleet(r, from, now.Unix(), fleetHistoryMaxPoints),
 			UptimePercent: fleetUptime(r, interval),
-			Checks:        len(r),
 			CurrentState:  heads[i].State, Since: heads[i].Since,
 			Incidents: fleetIncidents(r, interval, now),
+			Gaps:      fleetGaps(r, interval),
 		}
 		for _, s := range r {
-			if s.failed {
-				ch.FailedChecks++
-			}
+			ch.Checks += s.checks()
+			ch.FailedChecks += s.failedChecks()
 		}
 		out.Clusters = append(out.Clusters, ch)
 	}
@@ -250,6 +297,19 @@ func downsampleFleet(recs []fleetRecord, from, to int64, max int) []FleetSample 
 		}
 		return out
 	}
+	for _, g := range fleetBucketGroups(recs, from, to, max) {
+		out = append(out, summarizeFleetGroup(g))
+	}
+	return out
+}
+
+// fleetBucketGroups splits recs (sorted by time) into the non-empty buckets
+// of [from, to] cut into max equal buckets.
+func fleetBucketGroups(recs []fleetRecord, from, to int64, max int) [][]fleetRecord {
+	var out [][]fleetRecord
+	if len(recs) == 0 || max < 1 {
+		return out
+	}
 	span := to - from + 1
 	if span < 1 {
 		span = 1
@@ -264,40 +324,43 @@ func downsampleFleet(recs []fleetRecord, from, to int64, max int) []FleetSample 
 		}
 		return b
 	}
-	flush := func(group []fleetRecord) {
-		if len(group) == 0 {
-			return
-		}
-		p := group[len(group)-1].FleetSample
-		var lat, cpu, mem float64
-		for _, g := range group {
-			if fleetStateRank(g.State) > fleetStateRank(p.State) {
-				p.State = g.State
-			}
-			lat += float64(g.LatencyMs)
-			cpu += g.CPUPercent
-			mem += g.MemoryPercent
-		}
-		n := float64(len(group))
-		p.LatencyMs = int64(math.Round(lat / n))
-		p.CPUPercent = round1(cpu / n)
-		p.MemoryPercent = round1(mem / n)
-		out = append(out, p)
-	}
 	start, cur := 0, bucketOf(recs[0].T)
 	for i := 1; i < len(recs); i++ {
 		if b := bucketOf(recs[i].T); b != cur {
-			flush(recs[start:i])
+			out = append(out, recs[start:i])
 			start, cur = i, b
 		}
 	}
-	flush(recs[start:])
-	return out
+	return append(out, recs[start:])
+}
+
+// summarizeFleetGroup folds one bucket into a point: the worst state, average
+// latency / CPU / memory, the last counts and the last sample's time.
+func summarizeFleetGroup(group []fleetRecord) FleetSample {
+	p := group[len(group)-1].FleetSample
+	var lat, cpu, mem float64
+	for _, g := range group {
+		if fleetStateRank(g.State) > fleetStateRank(p.State) {
+			p.State = g.State
+		}
+		lat += float64(g.LatencyMs)
+		cpu += g.CPUPercent
+		mem += g.MemoryPercent
+	}
+	n := float64(len(group))
+	p.LatencyMs = int64(math.Round(lat / n))
+	p.CPUPercent = round1(cpu / n)
+	p.MemoryPercent = round1(mem / n)
+	return p
 }
 
 // fleetUptime is the reachable share of the samples, each weighted by the
 // gap to the next sample capped at 2x the probe interval (the last sample
 // counts one interval). Equal timestamps fall back to a plain count.
+// Restored buckets are weighted by the gap to the next restored bucket capped
+// at the bucket width, and the restart gap (last restored sample to first
+// live one) counts at most one probe interval, so downtime of the console is
+// never counted as downtime of the cluster.
 func fleetUptime(recs []fleetRecord, interval time.Duration) *float64 {
 	if len(recs) == 0 {
 		return nil
@@ -308,7 +371,15 @@ func fleetUptime(recs []fleetRecord, interval time.Duration) *float64 {
 	for i, r := range recs {
 		w := interval.Seconds()
 		if i+1 < len(recs) {
-			w = math.Min(float64(recs[i+1].T-r.T), limit)
+			gap := float64(recs[i+1].T - r.T)
+			switch {
+			case r.Restored && recs[i+1].Restored:
+				w = math.Min(gap, fleetHistoryBucket.Seconds())
+			case r.Restored:
+				w = math.Min(gap, interval.Seconds())
+			default:
+				w = math.Min(gap, limit)
+			}
 		}
 		if w < 0 {
 			w = 0
@@ -332,7 +403,9 @@ func fleetUptime(recs []fleetRecord, interval time.Duration) *float64 {
 // fleetIncidents extracts contiguous non-healthy runs. A run ends at the
 // first healthy sample after it (that sample's time is "to"); runs separated
 // by a healthy stretch shorter than 2 probe intervals are merged. A run that
-// reaches the newest sample is ongoing (to = null, duration up to now).
+// reaches the newest sample is ongoing (to = null, duration up to now). A run
+// still open at the last restored sample ends there: the restart gap is not
+// an outage, and the first live probe starts afresh.
 func fleetIncidents(recs []fleetRecord, interval time.Duration, now time.Time) []FleetIncident {
 	type run struct {
 		from, to    int64 // to = -1 while ongoing
@@ -341,7 +414,12 @@ func fleetIncidents(recs []fleetRecord, interval time.Duration, now time.Time) [
 	}
 	var runs []run
 	var cur *run
-	for _, r := range recs {
+	for i, r := range recs {
+		if cur != nil && i > 0 && recs[i-1].Restored && !r.Restored {
+			cur.to = recs[i-1].T
+			runs = append(runs, *cur)
+			cur = nil
+		}
 		if r.State == ClusterHealthy || r.State == ClusterUnknown || r.State == "" {
 			if cur != nil {
 				cur.to = r.T
@@ -392,6 +470,22 @@ func fleetIncidents(recs []fleetRecord, interval time.Duration, now time.Time) [
 			inc.DurationSeconds = d
 		}
 		out = append(out, inc)
+	}
+	return out
+}
+
+// fleetGaps lists the restart gaps: a restored sample followed by a live one
+// more than 2 probe intervals later.
+func fleetGaps(recs []fleetRecord, interval time.Duration) []FleetGap {
+	out := []FleetGap{}
+	limit := int64((2 * interval) / time.Second)
+	for i := 1; i < len(recs); i++ {
+		if recs[i-1].Restored && !recs[i].Restored && recs[i].T-recs[i-1].T > limit {
+			out = append(out, FleetGap{
+				From: time.Unix(recs[i-1].T, 0).UTC().Format(time.RFC3339),
+				To:   time.Unix(recs[i].T, 0).UTC().Format(time.RFC3339),
+			})
+		}
 	}
 	return out
 }

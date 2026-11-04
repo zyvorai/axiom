@@ -65,6 +65,10 @@ type Config struct {
 	// (AXIOM_FLEET_PROBE_INTERVAL, default 30s; "off" or 0 disables the
 	// background probing so clusters are only probed when /fleet is read).
 	FleetProbeInterval time.Duration
+	// FleetHistoryPersistInterval is how often the fleet health history is
+	// saved for restarts (AXIOM_FLEET_HISTORY_PERSIST_INTERVAL, default 5m,
+	// minimum 1m; "off" or 0 disables persistence and restore).
+	FleetHistoryPersistInterval time.Duration
 	// BudgetCheckInterval is how often cost budgets are evaluated for
 	// warning/over notifications (AXIOM_BUDGET_CHECK_INTERVAL, default 5m,
 	// minimum 1m; "off" or 0 disables the watcher).
@@ -140,6 +144,7 @@ func FromEnv() Config {
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
 
 		FleetProbeInterval: fleetProbeInterval(),
+		FleetHistoryPersistInterval: fleetHistoryPersistInterval(),
 		BudgetCheckInterval: budgetCheckInterval(),
 		RequireMFA:         requireMFA(),
 		RevocationRefresh:  revocationRefresh(),
@@ -163,6 +168,18 @@ func fleetProbeInterval() time.Duration {
 	d := envDuration("AXIOM_FLEET_PROBE_INTERVAL", 30*time.Second)
 	if d < 5*time.Second {
 		d = 5 * time.Second // a probe may take several seconds; never run them back to back
+	}
+	return d
+}
+
+func fleetHistoryPersistInterval() time.Duration {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_FLEET_HISTORY_PERSIST_INTERVAL")))
+	if v == "off" || v == "0" || v == "false" {
+		return 0
+	}
+	d := envDuration("AXIOM_FLEET_HISTORY_PERSIST_INTERVAL", 5*time.Minute)
+	if d < time.Minute {
+		d = time.Minute // each save rewrites a ConfigMap of up to 900 KiB
 	}
 	return d
 }

@@ -44,6 +44,10 @@ auth:
   # How often registered clusters are health-probed (Go duration, default 30s; "off" disables
   # background probing). Maps to AXIOM_FLEET_PROBE_INTERVAL. Shown on the Fleet page.
   fleetProbeInterval: ""
+  # How often the fleet health history is saved to the zyvor-axiom-fleet-history ConfigMap so it
+  # survives restarts (Go duration, default 5m, minimum 1m; "off" disables).
+  # Maps to AXIOM_FLEET_HISTORY_PERSIST_INTERVAL.
+  fleetHistoryPersistInterval: ""
   # How often cost budgets are checked for warning/over notifications (Go duration, default 5m,
   # minimum 1m; "off" disables). Maps to AXIOM_BUDGET_CHECK_INTERVAL.
   budgetCheckInterval: ""

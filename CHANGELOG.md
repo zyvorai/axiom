@@ -13,6 +13,11 @@ All notable changes to Zyvor Axiom are documented here.
 - OCI installs and upgrades use the credentials of the stored repository their `ociRef` belongs to (registry host + longest path prefix): the Helm Job mounts a short-lived Secret with a Docker-style `config.json`, owned by the Job, and sets `HELM_REGISTRY_CONFIG`; the password is never in the Job's args or env or in the audit entry (detail `<ociRef> registry-credential=<name>`). A repository added over plain http (with `AXIOM_HELM_ALLOW_INSECURE_REPOS`) is recorded as `plainHttp` and installed with `--plain-http`, so plain-http registries can now be installed from. Index installs and anonymous OCI installs are unchanged
 - `helm.upgrade` audit entries for OCI charts now carry the `ociRef` (they recorded an empty chart before)
 
+### Added — Durable fleet history
+- Fleet health history now survives restarts. Every `AXIOM_FLEET_HISTORY_PERSIST_INTERVAL` (default `5m`, minimum `1m`, `off` disables; Helm `auth.fleetHistoryPersistInterval`) and on graceful shutdown, each replica saves the last 24 h of its history at 5-minute resolution (at most 288 points per cluster, with probe and failed-probe counts and incident reasons) to its own key `history-<POD_NAME or hostname>` of the `zyvor-axiom-fleet-history` ConfigMap (gzip'd JSON, whole object capped at 900 KiB by dropping the oldest buckets of the largest cluster). At startup every replica's key is merged into memory before the first probe; clusters no longer registered are dropped and keys of replicas silent for 24 h are deleted. Save errors are logged at most every 10 minutes and never stop the console
+- `GET /api/v1/fleet/history` gains top-level `durable` (a persistent store is configured and the last save succeeded within 3 intervals) and `restoredFrom` (when the restored snapshot was saved, or `null`); restored samples carry `restored: true`, and each cluster lists restart `gaps`. A restart gap is never counted as downtime and never creates or extends an incident
+- The Helm chart and `deploy/k8s` manifest set `POD_NAME` from the downward API (used as the replica id)
+
 ## [0.10.0] - 2026-11-04
 
 ### Added — Languages
