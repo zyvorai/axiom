@@ -8,8 +8,7 @@ formatting helpers live in `src/lib/i18n.js`.
 src/locales/
   en/  common.json nav.json auth.json pages.json dialogs.json toasts.json errors.json  index.js
   de/  …same files…
-  es/  …
-  fr/  …
+  es/  fr/  pt/  it/  ja/  zh/  …
   GLOSSARY.md   terminology per language (read this before translating)
 ```
 
@@ -47,8 +46,11 @@ src/locales/
    ```
    Outside components (helpers, class components) use `import i18n from "@/lib/i18n"`
    and call `i18n.t(...)` at render time — never at module top level.
-3. Add the same key to `de`, `es` and `fr`. Keep the same `{{placeholders}}` and
-   `<tags>`; plurals need both `_one` and `_other`.
+3. Add the same key to every other language (`de`, `es`, `fr`, `pt`, `it`, `ja`,
+   `zh`). Keep the same `{{placeholders}}` and `<tags>`. Plurals follow the
+   language's CLDR categories: `_one` and `_other` everywhere except Japanese and
+   Chinese, which have only `_other` (no `_one` key). `_many` (es/fr/pt/it) is
+   optional: `_other` is used for it.
 4. Run `npm run lint:i18n`.
 
 Rules: never concatenate translated fragments into a sentence (use
@@ -76,7 +78,8 @@ Create `<ns>.json` in **every** language folder, import it in each
 ## `npm run lint:i18n`
 
 Part of `npm run lint`. It **fails** on a key missing from or extra in a
-language, differing placeholders/tags, an incomplete `_one`/`_other` pair, bad
+language, differing placeholders/tags, a plural set that does not
+match the language's CLDR categories (via `Intl.PluralRules`), bad
 JSON, or a `t("ns:key")` in `src/` whose key English lacks. It prints each
 language's completion, and **warns** (never fails) about JSX text and
 `placeholder`/`aria-label`/`title`/`label` attributes or toast/confirm strings

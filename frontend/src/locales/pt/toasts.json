@@ -1,0 +1,267 @@
+{
+  "users": {
+    "created": "Usuário {{name}} criado",
+    "createFailed": "Falha ao criar",
+    "updated": "{{name}} atualizado",
+    "updateFailed": "Falha ao atualizar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir",
+    "mfaReset": "Dois fatores redefinidos para {{name}}",
+    "resetFailed": "Falha ao redefinir",
+    "revoked": "As sessões de {{name}} foram encerradas em todos os dispositivos",
+    "failed": "Falhou"
+  },
+  "settings": {
+    "saveFailed": "Falha ao salvar",
+    "testFailed": "Falha no teste",
+    "oidcSaved": "Configurações de OIDC salvas",
+    "oidcReachable": "OIDC acessível",
+    "oidcTestFailed": "Falha no teste de OIDC",
+    "atlasSaved": "Configurações do Atlas salvas",
+    "atlasReachable": "Atlas acessível",
+    "atlasTestFailed": "Falha no teste do Atlas",
+    "postgresSaved": "Configurações do Postgres salvas",
+    "postgresReachable": "Postgres acessível",
+    "postgresTestFailed": "Falha no teste do Postgres",
+    "probeSaved": "Configurações da sonda salvas",
+    "probeReachable": "Sonda acessível",
+    "probeTestFailed": "Falha no teste da sonda",
+    "notifySaved": "Configurações de notificação salvas",
+    "slackSent": "Mensagem do Slack enviada",
+    "slackTestFailed": "Falha no teste do Slack",
+    "webhookDelivered": "Webhook entregue",
+    "webhookTestFailed": "Falha no teste do webhook",
+    "clusterRegistered": "Cluster {{name}} registrado",
+    "registerFailed": "Falha ao registrar"
+  },
+  "aiSettings": {
+    "saved": "Configurações do assistente de IA salvas",
+    "saveFailed": "Falha ao salvar",
+    "reachable": "Endpoint de IA acessível",
+    "aiTestFailed": "Falha no teste de IA",
+    "testFailed": "Falha no teste"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} criado",
+    "createFailed": "Falha ao criar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap atualizado",
+    "updateFailed": "Falha ao atualizar"
+  },
+  "secrets": {
+    "created": "Secret {{name}} criado",
+    "createFailed": "Falha ao criar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "secretDetail": {
+    "revealFailed": "Falha ao revelar",
+    "updated": "Secret atualizado",
+    "updateFailed": "Falha ao atualizar"
+  },
+  "pluginView": {
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} criado",
+    "createFailed": "Falha ao criar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "networking": {
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: isolamento solicitado",
+    "uncordonRequested": "{{name}}: reintegração solicitada",
+    "drainRequested": "{{name}}: drenagem solicitada",
+    "cordonFailed": "falha ao isolar",
+    "uncordonFailed": "falha ao reintegrar",
+    "drainFailed": "falha ao drenar",
+    "taintAdded": "Taint adicionado a {{name}}",
+    "addTaintFailed": "Falha ao adicionar taint",
+    "taintRemoved": "Taint removido de {{name}}",
+    "removeTaintFailed": "Falha ao remover taint"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} desinstalado",
+      "uninstallFailed": "Falha ao desinstalar",
+      "rolledBack": "{{name}} revertido",
+      "rollbackFailed": "Falha ao reverter",
+      "installStarted": "Instalação iniciada para {{name}}",
+      "installFailed": "Falha na instalação"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: sincronização solicitada",
+      "syncFailed": "Falha na sincronização"
+    },
+    "agents": {
+      "approved": "{{name}}: aprovado",
+      "denied": "{{name}}: negado",
+      "approveFailed": "falha ao aprovar",
+      "denyFailed": "falha ao negar"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} criada",
+      "createRoleFailed": "Falha ao criar a Role",
+      "bindingCreated": "RoleBinding {{name}} criado",
+      "createBindingFailed": "Falha ao criar o RoleBinding",
+      "deleted": "{{name}} excluído",
+      "deleteFailed": "Falha ao excluir"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} aplicado",
+    "appliedNamed": "{{kind}} {{name}} aplicado"
+  },
+  "atlas": {
+    "volumeRequested": "Volume {{name}} solicitado",
+    "volumeRequestedDescription": "O provisionamento é executado como um job assíncrono no Atlas.",
+    "createFailed": "Falha ao criar o volume"
+  },
+  "autoscaling": {
+    "created": "HPA criado para {{name}}",
+    "createFailed": "Falha ao criar o HPA",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "backups": {
+    "backupRequested": "Backup {{name}} solicitado",
+    "createBackupFailed": "Falha ao criar o backup",
+    "restoreRequested": "Restauração {{name}} solicitada",
+    "restoreFailed": "Falha na restauração",
+    "scheduleCreated": "Agendamento {{name}} criado",
+    "createScheduleFailed": "Falha ao criar o agendamento",
+    "veleroRequested": "Backup do Velero {{name}} solicitado",
+    "veleroFailed": "Falha no backup do Velero"
+  },
+  "costPanels": {
+    "budgetSaved": "Orçamento salvo para {{namespace}}",
+    "budgetSaveFailed": "Não foi possível salvar o orçamento",
+    "budgetRemoved": "Orçamento de {{namespace}} removido",
+    "removeFailed": "Falha ao remover",
+    "requestsUpdated": "Requests de {{target}} atualizados",
+    "requestsUpdatedDescription": "A carga de trabalho está sendo implantada com os novos valores."
+  },
+  "gitops": {
+    "deleted": "{{name}} excluído",
+    "created": "{{name}} criado"
+  },
+  "helmCatalog": {
+    "repoAdded": "Repositório {{name}} adicionado",
+    "repoAddFailed": "Não foi possível adicionar o repositório",
+    "repoRemoved": "{{name}} removido",
+    "removeFailed": "Falha ao remover",
+    "installStarted": "Instalação iniciada para {{name}}",
+    "installStartedDescription": "É executada como um Job em segundo plano; a release aparece em Releases quando o Helm terminar.",
+    "installFailed": "Falha na instalação"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: parada solicitada",
+    "stopFailed": "falha ao parar",
+    "startRequested": "{{name}}: início solicitado",
+    "startFailed": "falha ao iniciar",
+    "migrateRequested": "{{name}}: migração solicitada",
+    "migrateFailed": "falha ao migrar"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: parada solicitada",
+    "stopFailed": "falha ao parar",
+    "startRequested": "{{name}}: início solicitado",
+    "startFailed": "falha ao iniciar",
+    "migrateRequested": "{{name}}: migração solicitada",
+    "migrateFailed": "falha ao migrar",
+    "requested": "Solicitado",
+    "createFailed": "Falha ao criar",
+    "created": "VM {{name}} criada"
+  },
+  "debugContainer": {
+    "added": "Contêiner de depuração {{container}} adicionado",
+    "addFailed": "Não foi possível adicionar um contêiner de depuração"
+  },
+  "diffReview": {
+    "applyFailed": "Falha ao aplicar",
+    "applied": "{{kind}} aplicado"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} acionado",
+    "triggerFailed": "Falha ao acionar"
+  },
+  "jobs": {
+    "triggered": "{{name}} acionado",
+    "triggerFailed": "Falha ao acionar",
+    "suspended": "{{name}} suspenso",
+    "resumed": "{{name}} retomado",
+    "updateFailed": "Falha ao atualizar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "podDetail": {
+    "copyFailed": "Não foi possível copiar para a área de transferência",
+    "evicted": "{{name}} despejado",
+    "evictFailed": "Falha ao despejar",
+    "openPortFailed": "Não foi possível abrir a porta"
+  },
+  "pods": {
+    "evicted": "{{name}} despejado",
+    "evictFailed": "Falha ao despejar",
+    "skippedNote_one": " ({{count}} pod selecionado não está mais listado, ignorado)",
+    "skippedNote_other": " ({{count}} pods selecionados não estão mais listados, ignorados)",
+    "bulkEvictFailed": "{{failed}} de {{total}} despejos falharam{{note}}",
+    "bulkEvicted_one": "{{count}} pod despejado{{note}}",
+    "bulkEvicted_other": "{{count}} pods despejados{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} solicitado",
+    "actionFailed": "Falha em {{action}}",
+    "workloadActionRequested": "{{name}}: {{action}} solicitado",
+    "scaled": "{{name}} escalado para {{replicas}}",
+    "scaleFailed": "Falha ao escalar",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir",
+    "launched": "{{name}} iniciado",
+    "launchFailed": "Falha ao iniciar",
+    "parseFailed": "Falha na análise",
+    "placed": "Carga de trabalho posicionada a partir da intenção",
+    "placeFailed": "Falha ao posicionar",
+    "skippedNote_one": " ({{count}} item selecionado não está mais listado, ignorado)",
+    "skippedNote_other": " ({{count}} itens selecionados não estão mais listados, ignorados)",
+    "bulkDeleteFailed": "{{failed}} de {{total}} exclusões falharam{{note}}",
+    "bulkRestartFailed": "{{failed}} de {{total}} reinicializações falharam{{note}}",
+    "bulkDeleted_one": "{{count}} carga de trabalho excluída{{note}}",
+    "bulkDeleted_other": "{{count}} cargas de trabalho excluídas{{note}}",
+    "bulkRestarted_one": "{{count}} carga de trabalho reiniciada{{note}}",
+    "bulkRestarted_other": "{{count}} cargas de trabalho reiniciadas{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} criado"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} atualizado"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "gitopsCredentials": {
+    "saved": "Credenciais {{name}} salvas",
+    "savedDescription": "O segredo é somente gravação e não pode ser exibido novamente.",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "registryLogins": {
+    "saved": "Login {{name}} salvo",
+    "savedHint": "A senha é somente gravação e não pode ser exibida novamente.",
+    "deleted": "{{name}} excluído",
+    "deleteFailed": "Falha ao excluir"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} atualizado"
+  }
+}

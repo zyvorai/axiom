@@ -41,7 +41,7 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 - Two-factor sign-in for LDAP directory accounts: same enrolment, login, replay protection, throttling and `AXIOM_REQUIRE_MFA` policy as local accounts, records in the `zyvor-axiom-external-mfa` Secret, admin list (`GET /api/v1/users/external-mfa`) and reset
 
-- UI languages: English, Deutsch, Español and Français (`frontend/src/locales`, `npm run lint:i18n`) — every page (43 of 43 page components) and every shared component that shows text (90 of the 102 page/component files; the other 12 have no text of their own), about 1,950 strings per language
+- UI languages: English, Deutsch, Español, Français, Português, Italiano, 日本語 and 简体中文 (`frontend/src/locales`, `npm run lint:i18n`) — every page (43 of 43 page components) and every shared component that shows text (90 of the 102 page/component files; the other 12 have no text of their own), about 1,950 strings per language
 
 Known UI limitations (reviewed, not yet fixed):
 

@@ -1,0 +1,262 @@
+{
+  "users": {
+    "created": "ユーザー {{name}} を作成しました",
+    "createFailed": "作成に失敗しました",
+    "updated": "{{name}} を更新しました",
+    "updateFailed": "更新に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "mfaReset": "{{name}} の 2 要素認証をリセットしました",
+    "resetFailed": "リセットに失敗しました",
+    "revoked": "{{name}} をすべての場所からサインアウトしました",
+    "failed": "失敗しました"
+  },
+  "settings": {
+    "saveFailed": "保存に失敗しました",
+    "testFailed": "テストに失敗しました",
+    "oidcSaved": "OIDC 設定を保存しました",
+    "oidcReachable": "OIDC に接続できます",
+    "oidcTestFailed": "OIDC のテストに失敗しました",
+    "atlasSaved": "Atlas 設定を保存しました",
+    "atlasReachable": "Atlas に接続できます",
+    "atlasTestFailed": "Atlas のテストに失敗しました",
+    "postgresSaved": "Postgres 設定を保存しました",
+    "postgresReachable": "Postgres に接続できます",
+    "postgresTestFailed": "Postgres のテストに失敗しました",
+    "probeSaved": "プローブ設定を保存しました",
+    "probeReachable": "プローブに接続できます",
+    "probeTestFailed": "プローブのテストに失敗しました",
+    "notifySaved": "通知設定を保存しました",
+    "slackSent": "Slack メッセージを送信しました",
+    "slackTestFailed": "Slack のテストに失敗しました",
+    "webhookDelivered": "Webhook を配信しました",
+    "webhookTestFailed": "Webhook のテストに失敗しました",
+    "clusterRegistered": "クラスター {{name}} を登録しました",
+    "registerFailed": "登録に失敗しました"
+  },
+  "aiSettings": {
+    "saved": "AI アシスタント設定を保存しました",
+    "saveFailed": "保存に失敗しました",
+    "reachable": "AI エンドポイントに接続できます",
+    "aiTestFailed": "AI のテストに失敗しました",
+    "testFailed": "テストに失敗しました"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} を作成しました",
+    "createFailed": "作成に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap を更新しました",
+    "updateFailed": "更新に失敗しました"
+  },
+  "secrets": {
+    "created": "Secret {{name}} を作成しました",
+    "createFailed": "作成に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "secretDetail": {
+    "revealFailed": "表示に失敗しました",
+    "updated": "Secret を更新しました",
+    "updateFailed": "更新に失敗しました"
+  },
+  "pluginView": {
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} を作成しました",
+    "createFailed": "作成に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "networking": {
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: Cordon をリクエストしました",
+    "uncordonRequested": "{{name}}: Uncordon をリクエストしました",
+    "drainRequested": "{{name}}: ドレインをリクエストしました",
+    "cordonFailed": "Cordon に失敗しました",
+    "uncordonFailed": "Uncordon に失敗しました",
+    "drainFailed": "ドレインに失敗しました",
+    "taintAdded": "{{name}} に taint を追加しました",
+    "addTaintFailed": "taint の追加に失敗しました",
+    "taintRemoved": "{{name}} から taint を除去しました",
+    "removeTaintFailed": "taint の除去に失敗しました"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} をアンインストールしました",
+      "uninstallFailed": "アンインストールに失敗しました",
+      "rolledBack": "{{name}} をロールバックしました",
+      "rollbackFailed": "ロールバックに失敗しました",
+      "installStarted": "{{name}} のインストールを開始しました",
+      "installFailed": "インストールに失敗しました"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: 同期をリクエストしました",
+      "syncFailed": "同期に失敗しました"
+    },
+    "agents": {
+      "approved": "{{name}}: 承認しました",
+      "denied": "{{name}}: 拒否しました",
+      "approveFailed": "承認に失敗しました",
+      "denyFailed": "拒否に失敗しました"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} を作成しました",
+      "createRoleFailed": "Role の作成に失敗しました",
+      "bindingCreated": "RoleBinding {{name}} を作成しました",
+      "createBindingFailed": "RoleBinding の作成に失敗しました",
+      "deleted": "{{name}} を削除しました",
+      "deleteFailed": "削除に失敗しました"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} を適用しました",
+    "appliedNamed": "{{kind}} {{name}} を適用しました"
+  },
+  "atlas": {
+    "volumeRequested": "ボリューム {{name}} をリクエストしました",
+    "volumeRequestedDescription": "プロビジョニングは Atlas の非同期ジョブとして実行されます。",
+    "createFailed": "ボリュームの作成に失敗しました"
+  },
+  "autoscaling": {
+    "created": "{{name}} の HPA を作成しました",
+    "createFailed": "HPA の作成に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "backups": {
+    "backupRequested": "バックアップ {{name}} をリクエストしました",
+    "createBackupFailed": "バックアップの作成に失敗しました",
+    "restoreRequested": "リストア {{name}} をリクエストしました",
+    "restoreFailed": "リストアに失敗しました",
+    "scheduleCreated": "スケジュール {{name}} を作成しました",
+    "createScheduleFailed": "スケジュールの作成に失敗しました",
+    "veleroRequested": "Velero バックアップ {{name}} をリクエストしました",
+    "veleroFailed": "Velero バックアップに失敗しました"
+  },
+  "costPanels": {
+    "budgetSaved": "{{namespace}} の予算を保存しました",
+    "budgetSaveFailed": "予算を保存できませんでした",
+    "budgetRemoved": "{{namespace}} の予算を除去しました",
+    "removeFailed": "除去に失敗しました",
+    "requestsUpdated": "{{target}} の Request を更新しました",
+    "requestsUpdatedDescription": "ワークロードは新しい値でロールアウト中です。"
+  },
+  "gitops": {
+    "deleted": "{{name}} を削除しました",
+    "created": "{{name}} を作成しました"
+  },
+  "helmCatalog": {
+    "repoAdded": "リポジトリ {{name}} を追加しました",
+    "repoAddFailed": "リポジトリを追加できませんでした",
+    "repoRemoved": "{{name}} を除去しました",
+    "removeFailed": "除去に失敗しました",
+    "installStarted": "{{name}} のインストールを開始しました",
+    "installStartedDescription": "バックグラウンドの Job として実行されます。Helm が完了すると、リリースが「リリース」に表示されます。",
+    "installFailed": "インストールに失敗しました"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: 停止をリクエストしました",
+    "stopFailed": "停止に失敗しました",
+    "startRequested": "{{name}}: 起動をリクエストしました",
+    "startFailed": "起動に失敗しました",
+    "migrateRequested": "{{name}}: 移行をリクエストしました",
+    "migrateFailed": "移行に失敗しました"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: 停止をリクエストしました",
+    "stopFailed": "停止に失敗しました",
+    "startRequested": "{{name}}: 起動をリクエストしました",
+    "startFailed": "起動に失敗しました",
+    "migrateRequested": "{{name}}: 移行をリクエストしました",
+    "migrateFailed": "移行に失敗しました",
+    "requested": "リクエストしました",
+    "createFailed": "作成に失敗しました",
+    "created": "VM {{name}} を作成しました"
+  },
+  "debugContainer": {
+    "added": "デバッグコンテナー {{container}} を追加しました",
+    "addFailed": "デバッグコンテナーを追加できませんでした"
+  },
+  "diffReview": {
+    "applyFailed": "適用に失敗しました",
+    "applied": "{{kind}} を適用しました"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} をトリガーしました",
+    "triggerFailed": "トリガーに失敗しました"
+  },
+  "jobs": {
+    "triggered": "{{name}} をトリガーしました",
+    "triggerFailed": "トリガーに失敗しました",
+    "suspended": "{{name}} を一時停止しました",
+    "resumed": "{{name}} を再開しました",
+    "updateFailed": "更新に失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "podDetail": {
+    "copyFailed": "クリップボードにコピーできませんでした",
+    "evicted": "{{name}} を退避しました",
+    "evictFailed": "退避に失敗しました",
+    "openPortFailed": "ポートを開けませんでした"
+  },
+  "pods": {
+    "evicted": "{{name}} を退避しました",
+    "evictFailed": "退避に失敗しました",
+    "skippedNote_other": "（選択した Pod のうち {{count}} 件は一覧にないためスキップしました）",
+    "bulkEvictFailed": "{{total}} 件中 {{failed}} 件の退避に失敗しました{{note}}",
+    "bulkEvicted_other": "{{count}} 件の Pod を退避しました{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} をリクエストしました",
+    "actionFailed": "{{action}} に失敗しました",
+    "workloadActionRequested": "{{name}}: {{action}} をリクエストしました",
+    "scaled": "{{name}} を {{replicas}} にスケールしました",
+    "scaleFailed": "スケールに失敗しました",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "launched": "{{name}} を起動しました",
+    "launchFailed": "起動に失敗しました",
+    "parseFailed": "解析に失敗しました",
+    "placed": "インテントからワークロードを配置しました",
+    "placeFailed": "配置に失敗しました",
+    "skippedNote_other": "（選択した項目のうち {{count}} 件は一覧にないためスキップしました）",
+    "bulkDeleteFailed": "{{total}} 件中 {{failed}} 件の削除に失敗しました{{note}}",
+    "bulkRestartFailed": "{{total}} 件中 {{failed}} 件の再起動に失敗しました{{note}}",
+    "bulkDeleted_other": "{{count}} 件のワークロードを削除しました{{note}}",
+    "bulkRestarted_other": "{{count}} 件のワークロードを再起動しました{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} を作成しました"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} を更新しました"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "gitopsCredentials": {
+    "saved": "認証情報 {{name}} を保存しました",
+    "savedDescription": "シークレットは書き込み専用のため、再表示できません。",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "registryLogins": {
+    "saved": "ログイン {{name}} を保存しました",
+    "savedHint": "パスワードは書き込み専用のため、再表示できません。",
+    "deleted": "{{name}} を削除しました",
+    "deleteFailed": "削除に失敗しました"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} を更新しました"
+  }
+}

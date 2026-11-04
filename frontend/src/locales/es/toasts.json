@@ -254,5 +254,14 @@
     "savedDescription": "El secreto es de solo escritura y no se puede volver a mostrar.",
     "deleted": "{{name}} eliminado",
     "deleteFailed": "Error al eliminar"
+  },
+  "registryLogins": {
+    "saved": "Credencial {{name}} guardada",
+    "savedHint": "La contraseña es de solo escritura y no se puede volver a mostrar.",
+    "deleted": "{{name}} eliminada",
+    "deleteFailed": "Error al eliminar"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} actualizado"
   }
 }

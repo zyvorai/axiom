@@ -1,0 +1,46 @@
+{
+  "generic": "問題が発生しました",
+  "loadBanner": {
+    "offlineTitle": "サーバーに接続できません。",
+    "failedTitle": "一部のデータを読み込めませんでした。",
+    "offlineHint": "接続を確認してください。このページは最新でない可能性があります。",
+    "failedHint_other": "サーバーがエラーを返しました（{{count}} 件のリクエスト）。表示内容が不完全な可能性があります。"
+  },
+  "boundary": {
+    "updatedTitle": "Axiom が更新されました",
+    "crashTitle": "このページで問題が発生しました",
+    "updatedHint": "新しいバージョンがあるため、このページを読み込めませんでした。再読み込みして取得してください。",
+    "crashHint": "このページの表示中に問題が発生しました。アプリの他の部分は正常です。",
+    "goOverview": "概要へ移動"
+  },
+  "fleet": {
+    "searchFailed": "検索に失敗しました",
+    "switchFailed": "クラスターを切り替えられませんでした",
+    "loadFailed": "フリートを読み込めませんでした"
+  },
+  "ops": {
+    "rulesJson": "ルールは有効な JSON である必要があります",
+    "subjectsJson": "サブジェクトは有効な JSON である必要があります"
+  },
+  "rbac": {
+    "requestFailed": "リクエストに失敗しました"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "読み込めませんでした"
+  },
+  "costPanels": {
+    "generic": "問題が発生しました"
+  },
+  "gitops": {
+    "generic": "問題が発生しました"
+  },
+  "helmCatalog": {
+    "generic": "問題が発生しました"
+  },
+  "workloads": {
+    "dnsLabel": "英小文字、数字、「-」を使用してください（先頭と末尾は英字か数字、最大 63 文字）。"
+  },
+  "autoscalingCreate": {
+    "generic": "問題が発生しました"
+  }
+}

@@ -4,7 +4,9 @@
 // FAILS when, compared with English (src/locales/en, the source of truth):
 //   - a language is missing a key, or has a key English does not have
 //   - a translation's {{placeholders}} or <tags> (react-i18next <Trans>) differ
-//   - a plural pair is incomplete (`x_one` without `x_other` or vice versa)
+//   - a plural set does not match the language's CLDR categories: `x_other` is
+//     always required, `x_one` only where CLDR has "one" (not ja/zh), and only
+//     the language's own categories may appear (`x_few` is fine for pl, not de)
 //   - a JSON file does not parse, or a value is not a string
 //   - a static t("ns:key") / i18nKey="ns:key" in src/ names a key English lacks
 // WARNS (never fails) about likely-unconverted UI text: JSX text and
@@ -61,14 +63,19 @@ const all = Object.fromEntries(langs.map((l) => [l, load(l)]));
 const en = all[BASE];
 const enCount = Object.values(en).reduce((n, ns) => n + Object.keys(ns).length, 0);
 
-// plural pairs
+// plural sets, per the language's CLDR categories (Intl.PluralRules)
+const PLURAL_RE = /^(.*)_(zero|one|two|few|many|other)$/;
+const categories = (lang) => new Set(new Intl.PluralRules(lang).resolvedOptions().pluralCategories);
+// "many" is optional everywhere: i18n.js fills it from `_other` at load time.
+const requiredPlural = (cat, cats) => cat === "other" || (cat === "one" && cats.has("one"));
 for (const lang of langs) {
+    const cats = categories(lang);
     for (const [ns, keys] of Object.entries(all[lang])) {
         for (const k of Object.keys(keys)) {
-            const m = k.match(/^(.*)_(one|other)$/);
+            const m = k.match(PLURAL_RE);
             if (!m) continue;
-            const twin = `${m[1]}_${m[2] === "one" ? "other" : "one"}`;
-            if (!(twin in keys)) fail(`${lang}/${ns}.json: ${k} has no ${twin}`);
+            if (!cats.has(m[2])) fail(`${lang}/${ns}.json: ${k}: "${m[2]}" is not a CLDR plural category for ${lang} (${[...cats].join(", ")})`);
+            for (const c of cats) if (requiredPlural(c, cats) && !(`${m[1]}_${c}` in keys)) fail(`${lang}/${ns}.json: ${k} has no ${m[1]}_${c}`);
         }
     }
 }
@@ -78,7 +85,9 @@ const summary = [];
 for (const lang of langs) {
     if (lang === BASE) continue;
     const cur = all[lang];
+    const cats = categories(lang);
     let have = 0;
+    let expected = 0;
     for (const ns of new Set([...Object.keys(en), ...Object.keys(cur)])) {
         const e = en[ns] || {};
         const o = cur[ns];
@@ -88,6 +97,9 @@ for (const lang of langs) {
         }
         if (!en[ns]) fail(`${lang}: namespace ${ns}.json does not exist in ${BASE}`);
         for (const k of Object.keys(e)) {
+            const pm = k.match(PLURAL_RE);
+            if (pm && !cats.has(pm[2])) continue; // e.g. English `_one` in ja/zh: that form does not exist there
+            expected++;
             if (!(k in o)) {
                 fail(`${lang}/${ns}.json: missing ${k}`);
                 continue;
@@ -95,13 +107,22 @@ for (const lang of langs) {
             have++;
             if (tokens(e[k]) !== tokens(o[k])) fail(`${lang}/${ns}.json: ${k} placeholders/tags [${tokens(o[k])}] differ from ${BASE} [${tokens(e[k])}]`);
         }
-        for (const k of Object.keys(o)) if (!(k in e)) fail(`${lang}/${ns}.json: extra key ${k} (not in ${BASE})`);
+        for (const k of Object.keys(o)) {
+            if (k in e) continue;
+            const pm = k.match(PLURAL_RE);
+            if (pm && `${pm[1]}_other` in e && cats.has(pm[2])) {
+                // a plural form English lacks (`_few`, `_many`, …): same tokens as English `_other`
+                if (tokens(e[`${pm[1]}_other`]) !== tokens(o[k])) fail(`${lang}/${ns}.json: ${k} placeholders/tags [${tokens(o[k])}] differ from ${BASE} ${pm[1]}_other [${tokens(e[`${pm[1]}_other`])}]`);
+                continue;
+            }
+            fail(`${lang}/${ns}.json: extra key ${k} (not in ${BASE})`);
+        }
     }
     // "translated" = present and not just a copy of the English text (copies are fine
     // for Kubernetes terms, but they are reported so the percentage stays honest)
     let same = 0;
     for (const [ns, e] of Object.entries(en)) for (const [k, v] of Object.entries(e)) if (cur[ns] && cur[ns][k] === v) same++;
-    summary.push({ lang, pct: enCount ? (100 * have) / enCount : 100, same });
+    summary.push({ lang, pct: expected ? (100 * have) / expected : 100, same });
 }
 
 // static keys used in source must exist in English

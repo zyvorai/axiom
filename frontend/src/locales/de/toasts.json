@@ -254,5 +254,14 @@
     "savedDescription": "Das Geheimnis ist nur schreibbar und kann nicht erneut angezeigt werden.",
     "deleted": "{{name}} gelöscht",
     "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "registryLogins": {
+    "saved": "Anmeldung {{name}} gespeichert",
+    "savedHint": "Das Passwort ist nur schreibbar und kann nicht erneut angezeigt werden.",
+    "deleted": "{{name}} gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} aktualisiert"
   }
 }

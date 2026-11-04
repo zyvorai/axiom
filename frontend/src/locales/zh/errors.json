@@ -1,0 +1,46 @@
+{
+  "generic": "出现问题",
+  "loadBanner": {
+    "offlineTitle": "无法连接服务器。",
+    "failedTitle": "部分数据无法加载。",
+    "offlineHint": "请检查网络连接 — 此页面可能已过时。",
+    "failedHint_other": "服务器返回错误（{{count}} 个请求）。显示的内容可能不完整。"
+  },
+  "boundary": {
+    "updatedTitle": "Axiom 已更新",
+    "crashTitle": "此页面遇到问题",
+    "updatedHint": "有新版本可用，因此此页面无法加载。请重新加载以获取新版本。",
+    "crashHint": "显示此页面时出现问题。应用的其他部分正常。",
+    "goOverview": "转到概览"
+  },
+  "fleet": {
+    "searchFailed": "搜索失败",
+    "switchFailed": "无法切换集群",
+    "loadFailed": "无法加载集群舰队"
+  },
+  "ops": {
+    "rulesJson": "Rules 必须是有效的 JSON",
+    "subjectsJson": "Subjects 必须是有效的 JSON"
+  },
+  "rbac": {
+    "requestFailed": "请求失败"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "无法加载"
+  },
+  "costPanels": {
+    "generic": "出现问题"
+  },
+  "gitops": {
+    "generic": "出现问题"
+  },
+  "helmCatalog": {
+    "generic": "出现问题"
+  },
+  "workloads": {
+    "dnsLabel": "请使用小写字母、数字和“-”（以字母或数字开头和结尾，最多 63 个字符）。"
+  },
+  "autoscalingCreate": {
+    "generic": "出现问题"
+  }
+}

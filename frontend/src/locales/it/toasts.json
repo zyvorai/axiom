@@ -1,0 +1,267 @@
+{
+  "users": {
+    "created": "Utente {{name}} creato",
+    "createFailed": "Creazione non riuscita",
+    "updated": "{{name}} aggiornato",
+    "updateFailed": "Aggiornamento non riuscito",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita",
+    "mfaReset": "Due fattori reimpostato per {{name}}",
+    "resetFailed": "Reimpostazione non riuscita",
+    "revoked": "{{name}} è stato disconnesso ovunque",
+    "failed": "Non riuscito"
+  },
+  "settings": {
+    "saveFailed": "Salvataggio non riuscito",
+    "testFailed": "Test non riuscito",
+    "oidcSaved": "Impostazioni OIDC salvate",
+    "oidcReachable": "OIDC raggiungibile",
+    "oidcTestFailed": "Test OIDC non riuscito",
+    "atlasSaved": "Impostazioni Atlas salvate",
+    "atlasReachable": "Atlas raggiungibile",
+    "atlasTestFailed": "Test Atlas non riuscito",
+    "postgresSaved": "Impostazioni Postgres salvate",
+    "postgresReachable": "Postgres raggiungibile",
+    "postgresTestFailed": "Test Postgres non riuscito",
+    "probeSaved": "Impostazioni della sonda salvate",
+    "probeReachable": "Sonda raggiungibile",
+    "probeTestFailed": "Test della sonda non riuscito",
+    "notifySaved": "Impostazioni di notifica salvate",
+    "slackSent": "Messaggio Slack inviato",
+    "slackTestFailed": "Test Slack non riuscito",
+    "webhookDelivered": "Webhook consegnato",
+    "webhookTestFailed": "Test webhook non riuscito",
+    "clusterRegistered": "Cluster {{name}} registrato",
+    "registerFailed": "Registrazione non riuscita"
+  },
+  "aiSettings": {
+    "saved": "Impostazioni dell'assistente IA salvate",
+    "saveFailed": "Salvataggio non riuscito",
+    "reachable": "Endpoint IA raggiungibile",
+    "aiTestFailed": "Test IA non riuscito",
+    "testFailed": "Test non riuscito"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} creata",
+    "createFailed": "Creazione non riuscita",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap aggiornata",
+    "updateFailed": "Aggiornamento non riuscito"
+  },
+  "secrets": {
+    "created": "Secret {{name}} creato",
+    "createFailed": "Creazione non riuscita",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "secretDetail": {
+    "revealFailed": "Impossibile mostrare il valore",
+    "updated": "Secret aggiornato",
+    "updateFailed": "Aggiornamento non riuscito"
+  },
+  "pluginView": {
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} creato",
+    "createFailed": "Creazione non riuscita",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "networking": {
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: cordon richiesto",
+    "uncordonRequested": "{{name}}: uncordon richiesto",
+    "drainRequested": "{{name}}: drain richiesto",
+    "cordonFailed": "cordon non riuscito",
+    "uncordonFailed": "uncordon non riuscito",
+    "drainFailed": "drain non riuscito",
+    "taintAdded": "Taint aggiunto a {{name}}",
+    "addTaintFailed": "Aggiunta del taint non riuscita",
+    "taintRemoved": "Taint rimosso da {{name}}",
+    "removeTaintFailed": "Rimozione del taint non riuscita"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} disinstallato",
+      "uninstallFailed": "Disinstallazione non riuscita",
+      "rolledBack": "Rollback di {{name}} eseguito",
+      "rollbackFailed": "Rollback non riuscito",
+      "installStarted": "Installazione di {{name}} avviata",
+      "installFailed": "Installazione non riuscita"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: sincronizzazione richiesta",
+      "syncFailed": "Sincronizzazione non riuscita"
+    },
+    "agents": {
+      "approved": "{{name}}: approvato",
+      "denied": "{{name}}: rifiutato",
+      "approveFailed": "approvazione non riuscita",
+      "denyFailed": "rifiuto non riuscito"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} creato",
+      "createRoleFailed": "Creazione del Role non riuscita",
+      "bindingCreated": "RoleBinding {{name}} creato",
+      "createBindingFailed": "Creazione del RoleBinding non riuscita",
+      "deleted": "{{name}} eliminato",
+      "deleteFailed": "Eliminazione non riuscita"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} applicato",
+    "appliedNamed": "{{kind}} {{name}} applicato"
+  },
+  "atlas": {
+    "volumeRequested": "Volume {{name}} richiesto",
+    "volumeRequestedDescription": "Il provisioning viene eseguito come job asincrono in Atlas.",
+    "createFailed": "Creazione del volume non riuscita"
+  },
+  "autoscaling": {
+    "created": "HPA creato per {{name}}",
+    "createFailed": "Creazione dell'HPA non riuscita",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "backups": {
+    "backupRequested": "Backup {{name}} richiesto",
+    "createBackupFailed": "Creazione del backup non riuscita",
+    "restoreRequested": "Ripristino {{name}} richiesto",
+    "restoreFailed": "Ripristino non riuscito",
+    "scheduleCreated": "Pianificazione {{name}} creata",
+    "createScheduleFailed": "Creazione della pianificazione non riuscita",
+    "veleroRequested": "Backup Velero {{name}} richiesto",
+    "veleroFailed": "Backup Velero non riuscito"
+  },
+  "costPanels": {
+    "budgetSaved": "Budget salvato per {{namespace}}",
+    "budgetSaveFailed": "Impossibile salvare il budget",
+    "budgetRemoved": "Budget rimosso per {{namespace}}",
+    "removeFailed": "Rimozione non riuscita",
+    "requestsUpdated": "Requests aggiornate per {{target}}",
+    "requestsUpdatedDescription": "Il rollout del carico di lavoro è in corso con i nuovi valori."
+  },
+  "gitops": {
+    "deleted": "{{name}} eliminato",
+    "created": "{{name}} creato"
+  },
+  "helmCatalog": {
+    "repoAdded": "Repository {{name}} aggiunto",
+    "repoAddFailed": "Impossibile aggiungere il repository",
+    "repoRemoved": "{{name}} rimosso",
+    "removeFailed": "Rimozione non riuscita",
+    "installStarted": "Installazione di {{name}} avviata",
+    "installStartedDescription": "Viene eseguita come Job in background; la release compare in Release al termine di Helm.",
+    "installFailed": "Installazione non riuscita"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: arresto richiesto",
+    "stopFailed": "arresto non riuscito",
+    "startRequested": "{{name}}: avvio richiesto",
+    "startFailed": "avvio non riuscito",
+    "migrateRequested": "{{name}}: migrazione richiesta",
+    "migrateFailed": "migrazione non riuscita"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: arresto richiesto",
+    "stopFailed": "arresto non riuscito",
+    "startRequested": "{{name}}: avvio richiesto",
+    "startFailed": "avvio non riuscito",
+    "migrateRequested": "{{name}}: migrazione richiesta",
+    "migrateFailed": "migrazione non riuscita",
+    "requested": "Richiesto",
+    "createFailed": "Creazione non riuscita",
+    "created": "VM {{name}} creata"
+  },
+  "debugContainer": {
+    "added": "Container di debug {{container}} aggiunto",
+    "addFailed": "Impossibile aggiungere un container di debug"
+  },
+  "diffReview": {
+    "applyFailed": "Applicazione non riuscita",
+    "applied": "{{kind}} applicato"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} avviato",
+    "triggerFailed": "Avvio non riuscito"
+  },
+  "jobs": {
+    "triggered": "{{name}} avviato",
+    "triggerFailed": "Avvio non riuscito",
+    "suspended": "{{name}} sospeso",
+    "resumed": "{{name}} ripreso",
+    "updateFailed": "Aggiornamento non riuscito",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "podDetail": {
+    "copyFailed": "Impossibile copiare negli appunti",
+    "evicted": "{{name}} espulso",
+    "evictFailed": "Espulsione non riuscita",
+    "openPortFailed": "Impossibile aprire la porta"
+  },
+  "pods": {
+    "evicted": "{{name}} espulso",
+    "evictFailed": "Espulsione non riuscita",
+    "skippedNote_one": " ({{count}} pod selezionato non più presente, ignorato)",
+    "skippedNote_other": " ({{count}} pod selezionati non più presenti, ignorati)",
+    "bulkEvictFailed": "{{failed}} espulsioni su {{total}} non riuscite{{note}}",
+    "bulkEvicted_one": "{{count}} pod espulso{{note}}",
+    "bulkEvicted_other": "{{count}} pod espulsi{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} richiesto",
+    "actionFailed": "{{action}} non riuscito",
+    "workloadActionRequested": "{{name}}: {{action}} richiesto",
+    "scaled": "{{name}} scalato a {{replicas}}",
+    "scaleFailed": "Scalatura non riuscita",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita",
+    "launched": "{{name}} avviato",
+    "launchFailed": "Avvio non riuscito",
+    "parseFailed": "Analisi non riuscita",
+    "placed": "Carico di lavoro posizionato dall'intent",
+    "placeFailed": "Posizionamento non riuscito",
+    "skippedNote_one": " ({{count}} elemento selezionato non più presente, ignorato)",
+    "skippedNote_other": " ({{count}} elementi selezionati non più presenti, ignorati)",
+    "bulkDeleteFailed": "{{failed}} eliminazioni su {{total}} non riuscite{{note}}",
+    "bulkRestartFailed": "{{failed}} riavvii su {{total}} non riusciti{{note}}",
+    "bulkDeleted_one": "{{count}} carico di lavoro eliminato{{note}}",
+    "bulkDeleted_other": "{{count}} carichi di lavoro eliminati{{note}}",
+    "bulkRestarted_one": "{{count}} carico di lavoro riavviato{{note}}",
+    "bulkRestarted_other": "{{count}} carichi di lavoro riavviati{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} creato"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} aggiornato"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "gitopsCredentials": {
+    "saved": "Credenziali {{name}} salvate",
+    "savedDescription": "Il secret è di sola scrittura e non può essere mostrato di nuovo.",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "registryLogins": {
+    "saved": "Login {{name}} salvato",
+    "savedHint": "La password è di sola scrittura e non può essere mostrata di nuovo.",
+    "deleted": "{{name}} eliminato",
+    "deleteFailed": "Eliminazione non riuscita"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} aggiornato"
+  }
+}

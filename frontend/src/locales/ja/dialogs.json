@@ -1,0 +1,509 @@
+{
+  "confirm": {
+    "title": "よろしいですか？",
+    "description": "この操作は元に戻せません。"
+  },
+  "users": {
+    "deleteTitle": "ユーザー {{name}} を削除しますか？",
+    "deleteDescription": "この操作は元に戻せません。",
+    "resetMfaTitle": "{{name}} の 2 要素認証をリセットしますか？",
+    "resetMfaDescription": "パスワードのみでサインインできるようになり、2 要素認証を再設定できます。デバイスとリカバリーコードを紛失した場合に使用してください。",
+    "revokeTitle": "{{name}} をすべての場所からサインアウトしますか？",
+    "revokeDescription": "このアカウントで開いているすべてのセッションが終了し、再度サインインが必要になります。",
+    "resetExternalMfaDescription": "このディレクトリアカウントは、2 要素認証を再設定するまでディレクトリのパスワードのみでサインインします。"
+  },
+  "settings": {
+    "registerCluster": {
+      "title": "リモートクラスターを登録",
+      "label": "ラベル",
+      "kubeconfig": "Kubeconfig YAML",
+      "register": "登録",
+      "registering": "登録中…"
+    }
+  },
+  "configMaps": {
+    "create": {
+      "title": "ConfigMap を作成",
+      "data": "データ",
+      "keyAria": "キー {{n}}",
+      "valueAria": "値 {{n}}",
+      "removeRow": "行を削除",
+      "addKey": "キーを追加",
+      "creating": "作成中…"
+    },
+    "delete": {
+      "title": "ConfigMap {{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    }
+  },
+  "secrets": {
+    "create": {
+      "title": "Secret を作成",
+      "data": "データ",
+      "keyAria": "キー {{n}}",
+      "valueAria": "値 {{n}}",
+      "removeRow": "行を削除",
+      "addKey": "キーを追加",
+      "creating": "作成中…"
+    },
+    "delete": {
+      "title": "Secret {{name}} を削除しますか？",
+      "description": "すべてのキーも削除されます。この操作は元に戻せません。"
+    }
+  },
+  "pluginView": {
+    "delete": {
+      "title": "{{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    }
+  },
+  "namespaces": {
+    "delete": {
+      "title": "Namespace {{name}} を削除しますか？",
+      "description": "この Namespace 内のすべてのリソースが削除されます。この操作は元に戻せません。"
+    },
+    "create": {
+      "title": "Namespace を作成",
+      "creating": "作成中…"
+    }
+  },
+  "networking": {
+    "deletePolicy": {
+      "title": "NetworkPolicy {{name}} を削除しますか？",
+      "description": "このポリシーで現在適用されているトラフィック制限が解除される可能性があります。この操作は元に戻せません。"
+    },
+    "createPolicy": {
+      "title": "NetworkPolicy を作成"
+    }
+  },
+  "nodeDetail": {
+    "removeTaint": {
+      "title": "Taint {{key}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    }
+  },
+  "ops": {
+    "cannotUndo": "この操作は元に戻せません。",
+    "creating": "作成中…",
+    "uninstall": {
+      "title": "{{name}} をアンインストールしますか？",
+      "confirm": "アンインストール"
+    },
+    "installChart": {
+      "title": "チャートをインストール",
+      "releaseName": "リリース名",
+      "repoUrl": "チャートリポジトリ URL",
+      "chartName": "チャート名",
+      "version": "バージョン（任意）",
+      "values": "Values YAML（任意）",
+      "note": "Axiom 自身の権限でバックグラウンド Job として実行されます。チャートが作成できるのは、Axiom 自身に許可されているリソースのみです。",
+      "starting": "開始中…",
+      "install": "インストール"
+    },
+    "createRole": {
+      "title": "新しい Role",
+      "rules": "ルール（PolicyRule の JSON 配列）"
+    },
+    "createBinding": {
+      "title": "新しい RoleBinding",
+      "roleName": "Role 名",
+      "subjects": "サブジェクト（JSON 配列）"
+    },
+    "deleteRole": {
+      "title": "Role {{name}} を削除しますか？"
+    },
+    "deleteBinding": {
+      "title": "RoleBinding {{name}} を削除しますか？"
+    }
+  },
+  "applyManifest": {
+    "title": "マニフェストを適用",
+    "manifestWord": "マニフェスト",
+    "applied": "{{kind}} を適用しました",
+    "appliedNamed": "{{kind}} {{name}} を適用しました",
+    "reviewing": "確認中…",
+    "reviewAgain": "再確認",
+    "reviewChanges": "変更を確認",
+    "applying": "適用中…"
+  },
+  "atlas": {
+    "createVolume": {
+      "title": "ボリュームを作成",
+      "policy": "ポリシー",
+      "size": "サイズ（GiB）",
+      "requesting": "リクエスト中…"
+    }
+  },
+  "autoscaling": {
+    "create": {
+      "title": "オートスケーラーを作成",
+      "targetWorkload": "対象ワークロード",
+      "selectWorkload": "ワークロードを選択",
+      "minReplicas": "最小レプリカ数",
+      "maxReplicas": "最大レプリカ数",
+      "targetCpu": "目標 CPU %（空欄 = 無視）",
+      "targetMemory": "目標メモリ %（任意）",
+      "targetMemoryPlaceholder": "例: 75",
+      "stabilization": "スケールダウン安定化期間、秒（任意）",
+      "stabilizationPlaceholder": "Kubernetes のデフォルトは 300",
+      "bothNote": "CPU とメモリの両方を設定すると、より多くのレプリカを必要とする方に合わせてスケールします。",
+      "creating": "作成中…"
+    },
+    "delete": {
+      "title": "オートスケーラー {{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    }
+  },
+  "backups": {
+    "requesting": "リクエスト中…",
+    "creating": "作成中…",
+    "ttl": "TTL（任意）",
+    "createSnapshot": {
+      "title": "ボリュームスナップショットを作成",
+      "pvc": "PVC",
+      "snapshotClass": "VolumeSnapshotClass（任意）"
+    },
+    "restore": {
+      "title": "スナップショットから復元",
+      "snapshotName": "スナップショット名",
+      "pvcName": "新しい PVC 名",
+      "size": "サイズ",
+      "accessMode": "アクセスモード",
+      "storageClass": "StorageClass（任意）",
+      "submit": "復元"
+    },
+    "schedule": {
+      "title": "新しい Velero スケジュール",
+      "cron": "Cron スケジュール"
+    },
+    "velero": {
+      "title": "Velero バックアップを作成",
+      "included": "対象 Namespace（カンマ区切りまたは *）"
+    }
+  },
+  "costPanels": {
+    "budget": {
+      "editTitle": "{{namespace}} の予算",
+      "addTitle": "予算を追加",
+      "description": "Namespace のリソースリクエストから見積もった月額コストと比較されます。",
+      "amount": "月額予算（USD）",
+      "warnAt": "警告しきい値（%）",
+      "save": "予算を保存"
+    },
+    "removeBudget": {
+      "title": "{{namespace}} の予算を削除しますか？",
+      "description": "Namespace のコストは引き続き追跡されますが、上限はなくなります。"
+    },
+    "apply": {
+      "title": "推奨値を適用",
+      "description": "{{workload}} · コンテナー {{container}} · {{namespace}}",
+      "cpuRequest": "CPU リクエスト",
+      "memoryRequest": "メモリリクエスト",
+      "none": "（なし）",
+      "basedOn": "{{source}} のデータに基づきます（信頼度: {{confidence}}）。",
+      "applying": "適用中…",
+      "confirm": "適用してロールアウト"
+    }
+  },
+  "gitops": {
+    "delete": {
+      "title": "{{name}} を削除しますか？",
+      "createdByAxiom": " · Axiom で作成",
+      "cascadeConfirm": "アプリケーションのリソースも削除されます。確認のため <code>{{name}}</code> と入力してください。",
+      "sourceShared": "ソース {{source}} は {{users}} でまだ使用されているため、残ります。",
+      "removeSource": "{{kind}} {{name}} も削除する（他では使用されていません）",
+      "sourceNotOurs": "{{kind}} {{name}} は Axiom で作成されたものではないため、そのまま残ります。",
+      "deleting": "削除中…"
+    },
+    "create": {
+      "title": "新しい GitOps アプリケーション",
+      "description": "Axiom はこれらのフィールドからオブジェクトを構築します。作成前に正確な YAML を確認できます。",
+      "detailsRegion": "アプリケーションの詳細",
+      "engine": "エンジン",
+      "engines": {
+        "argocd": {
+          "label": "Argo CD アプリケーション",
+          "hint": "Git パスまたは Helm チャートを同期する Application。"
+        },
+        "fluxKustomize": {
+          "label": "Flux · Git + Kustomize",
+          "hint": "GitRepository と、そこからパスを適用する Kustomization。"
+        },
+        "fluxHelm": {
+          "label": "Flux · Helm リリース",
+          "hint": "HelmRepository と、チャートをインストールする HelmRelease。"
+        }
+      },
+      "namespaceOf": "{{engine}} オブジェクトの Namespace",
+      "helmRepoUrl": "Helm リポジトリ URL",
+      "gitRepoUrl": "Git リポジトリ URL",
+      "repoUrlHint": "認証情報は URL に含めず、Secret を参照してください。",
+      "sourceType": "ソースの種類",
+      "gitPath": "Git パス",
+      "helmChart": "Helm チャート",
+      "chart": "チャート",
+      "chartVersion": "チャートバージョン",
+      "path": "リポジトリ内のパス",
+      "revision": "ブランチ、タグ、またはコミット",
+      "destNamespace": "デプロイ先 Namespace",
+      "secretRef": "認証情報 Secret（任意）",
+      "secretRefHint": "Flux Namespace 内の既存の Secret の名前。",
+      "interval": "リコンサイル間隔",
+      "values": "Values YAML（任意）",
+      "sync": "同期",
+      "automated": "リポジトリの変更時に自動で同期",
+      "prune": "Git から削除されたリソースを削除（prune）",
+      "selfHeal": "手動の変更を元に戻す（self-heal）",
+      "createNamespace": "対象 Namespace が存在しない場合は作成",
+      "previewTitle": "作成されるもの",
+      "previewStale": "古くなっています — 再度プレビューしてください",
+      "generatedYaml": "生成された YAML",
+      "rendering": "レンダリング中…",
+      "previewAgain": "再プレビュー",
+      "previewYaml": "YAML をプレビュー",
+      "creating": "作成中…"
+    }
+  },
+  "helmCatalog": {
+    "removeRepo": {
+      "title": "リポジトリ {{name}} を削除しますか？",
+      "description": "このリポジトリからインストール済みのチャートは引き続き実行されますが、カタログには表示されなくなります。"
+    },
+    "chart": {
+      "from": "<code>{{repo}}</code> から",
+      "optionsRegion": "チャートのインストールオプション",
+      "appSuffix": " （アプリ {{version}}）",
+      "deprecatedSuffix": " — 非推奨",
+      "releaseName": "リリース名",
+      "values": "Values（任意）",
+      "reloadDefaults": "デフォルトを再読み込み",
+      "loadDefaults": "デフォルト値を読み込む",
+      "valuesYaml": "Values YAML",
+      "valuesPlaceholder": "# 空欄の場合はチャートのデフォルトを使用",
+      "hideReadme": "README を隠す",
+      "showReadme": "README を表示",
+      "readme": "チャートの README",
+      "permissionsNote": "Axiom 自身の権限でバックグラウンド Job として実行されます。チャートが作成できるのは、Axiom 自身に許可されているリソースのみです。",
+      "starting": "開始中…",
+      "install": "{{version}} をインストール"
+    }
+  },
+  "vms": {
+    "creating": "作成中…",
+    "create": {
+      "title": "仮想マシンを作成",
+      "cpuCores": "CPU コア数",
+      "image": "コンテナーディスクイメージ"
+    }
+  },
+  "diffReview": {
+    "title": "変更を確認",
+    "description": "編集を適用するとクラスター上でこのように変更されます。適用を押すまで何も適用されません。",
+    "applying": "適用中…"
+  },
+  "jobs": {
+    "deleteCronJob": {
+      "title": "CronJob {{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    },
+    "deleteJob": {
+      "title": "Job {{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。"
+    }
+  },
+  "podDetail": {
+    "evict": {
+      "title": "Pod {{name}} を退避しますか？",
+      "description": "この操作は元に戻せません。",
+      "confirm": "退避"
+    }
+  },
+  "pods": {
+    "exec": {
+      "title": "Exec · {{name}}",
+      "container": "コンテナー",
+      "running": "実行中…",
+      "run": "実行",
+      "outputPlaceholder": "ここに出力が表示されます。"
+    },
+    "evict": {
+      "title": "Pod {{name}} を退避しますか？",
+      "description": "この操作は元に戻せません。",
+      "confirm": "退避"
+    },
+    "bulkEvict": {
+      "title_other": "{{count}} 個の Pod を退避しますか？"
+    }
+  },
+  "workloads": {
+    "rollout": {
+      "title": "ロールアウト · {{name}}",
+      "notSupported": "{{kind}} はロールアウトに対応していません。",
+      "available": "利用可能",
+      "updating": "更新中",
+      "pending": "保留中",
+      "revision": "rev {{revision}}",
+      "actions": {
+        "restart": "再起動",
+        "pause": "一時停止",
+        "resume": "再開",
+        "undo": "元に戻す"
+      }
+    },
+    "scale": {
+      "title": "スケール · {{name}}",
+      "scaling": "スケール中…",
+      "submit": "スケール"
+    },
+    "delete": {
+      "title": "{{kind}} {{name}} を削除しますか？",
+      "description": "この操作は元に戻せません。Pod も削除されます。"
+    },
+    "bulkDelete": {
+      "title_other": "{{count}} 個のワークロードを削除しますか？",
+      "description": "この操作は元に戻せません。"
+    },
+    "launch": {
+      "title": "ワークロードを実行",
+      "steps": {
+        "form": "フォーム",
+        "intent": "インテント",
+        "yaml": "YAML を検証"
+      },
+      "port": "ポート",
+      "exposeService": "Service を公開",
+      "launching": "起動中…",
+      "launch": "起動",
+      "preview": "プレビュー",
+      "placing": "配置中…",
+      "place": "配置",
+      "validKind": "有効な {{kind}}",
+      "validManifest": "有効なマニフェスト",
+      "validate": "検証",
+      "applyTitle": "ワークロードマニフェストを適用"
+    }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "新しい VerticalPodAutoscaler",
+      "description": "ワークロードの CPU とメモリのリクエストを推奨します。Off モードでは推奨のみを行い、Pod を再起動することはありません。",
+      "region": "VPA 設定",
+      "updateMode": "更新モード",
+      "modes": {
+        "off": "Off — 推奨のみ",
+        "initial": "Initial — 新しい Pod に適用",
+        "recreate": "Recreate — Pod を再起動して適用"
+      }
+    },
+    "keda": {
+      "title": "新しい KEDA ScaledObject",
+      "description": "イベントに基づいてワークロードをスケールします。認証情報はここでは入力しません。既存の TriggerAuthentication を選択してください。",
+      "region": "ScaledObject 設定",
+      "trigger": "トリガー {{n}}",
+      "removeTrigger": "トリガー {{n}} を削除",
+      "credentials": "認証情報（TriggerAuthentication）",
+      "addTrigger": "トリガーを追加",
+      "triggers": {
+        "cron": "Cron スケジュール",
+        "prometheus": "Prometheus クエリ",
+        "kafka": "Kafka ラグ",
+        "redis": "Redis リスト長",
+        "rabbitmq": "RabbitMQ キュー",
+        "awsSqs": "AWS SQS キュー"
+      },
+      "fields": {
+        "metricType": "メトリクスの種類",
+        "targetValue": "目標値",
+        "timezone": "タイムゾーン",
+        "start": "開始",
+        "end": "終了",
+        "replicasInWindow": "期間中のレプリカ数",
+        "serverAddress": "サーバーアドレス",
+        "query": "クエリ",
+        "threshold": "しきい値",
+        "bootstrapServers": "ブートストラップサーバー",
+        "consumerGroup": "コンシューマーグループ",
+        "topic": "トピック",
+        "lagThreshold": "ラグのしきい値",
+        "address": "アドレス",
+        "list": "リスト",
+        "lengthThreshold": "長さのしきい値",
+        "queue": "キュー",
+        "mode": "モード",
+        "queueUrl": "キュー URL",
+        "queueLength": "キューの長さ",
+        "region": "リージョン"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "{{name}} を編集",
+    "description": "{{kind}} · {{namespace}}。以下のフィールドのみが変更され、オブジェクトのその他の部分はそのまま残ります。",
+    "staleHint": " このダイアログを閉じて再度開くと、現在のバージョンから始められます。",
+    "notEditable": "このアプリケーションはフォームで表現できない設定を使用しているため、読み取り専用で表示されます:",
+    "region": "アプリケーション設定",
+    "valuesYaml": "Values YAML",
+    "automated": "自動で同期",
+    "prune": "Git から削除されたリソースを削除（prune）",
+    "selfHeal": "手動の変更を自動修復（self-heal）",
+    "noop": "変更はありません。",
+    "none": "（なし）",
+    "staleChange": "プレビュー後にフィールドが変更されました — 再度プレビューしてください。",
+    "comparing": "比較中…",
+    "previewChanges": "変更をプレビュー"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "{{kind}} {{name}} を削除しますか？",
+    "deleteDescription": "ワークロード自体には影響しません。"
+  },
+  "gitopsCredentials": {
+    "title": "リポジトリの認証情報",
+    "description": "プライベートな Git および Helm リポジトリ用です。Axiom は Argo CD または Flux が使用する Secret として保存し、再表示することはありません。",
+    "region": "認証情報",
+    "empty": "Axiom で作成された認証情報はまだありません。",
+    "deleteTitle": "認証情報 {{name}} を削除しますか？",
+    "deleteDescription": "これを参照しているアプリケーションは、リポジトリからプルできなくなります。",
+    "deleteAria": "認証情報 {{name}} を削除",
+    "add": "認証情報を追加",
+    "writeOnly": "書き込み専用: 保存後はシークレットを読み戻せません。ローテーションするには削除して再作成してください。",
+    "for": "対象",
+    "url": "リポジトリ URL",
+    "auth": "認証",
+    "authToken": "アクセストークン",
+    "authBasic": "ユーザー名とパスワード",
+    "authSsh": "SSH キー",
+    "token": "トークン",
+    "privateKey": "秘密鍵",
+    "knownHosts": "known_hosts（任意）",
+    "save": "認証情報を保存",
+    "button": "認証情報"
+  },
+  "registryLogins": {
+    "title": "レジストリログイン",
+    "description": "プライベートな OCI チャートレジストリ用です。ログイン情報は対象のレジストリにのみ送信され、保存後は再表示されません。",
+    "region": "レジストリログイン",
+    "empty": "レジストリログインはまだありません。",
+    "usedBy": " · {{list}} で使用中",
+    "deleteAria": "ログイン {{name}} を削除",
+    "addTitle": "ログインを追加",
+    "writeOnly": "書き込み専用: パスワードを変更するには、ログインを削除して再度追加してください。",
+    "registry": "レジストリホスト",
+    "username": "ユーザー名",
+    "password": "パスワードまたはトークン",
+    "save": "ログインを保存",
+    "manage": "レジストリログイン",
+    "confirmDelete": {
+      "title": "ログイン {{name}} を削除しますか？",
+      "description": "これを使用しているリポジトリを先に削除または変更する必要があります。"
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}。以下のフィールドのみが変更され、オブジェクトのその他の部分はそのまま残ります。",
+    "notEditable": "このオブジェクトはフォームで表現できない設定を使用しているため、ここでは読み取り専用です:",
+    "region": "設定",
+    "pollingInterval": "ポーリング（s）",
+    "cooldownPeriod": "クールダウン（s）",
+    "triggerLegend": "トリガー {{n}} · {{type}}",
+    "noCredentials": "認証情報なし"
+  }
+}

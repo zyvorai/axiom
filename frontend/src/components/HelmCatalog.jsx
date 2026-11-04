@@ -104,7 +104,7 @@ function RepoManager({ repos, onChanged, canWrite }) {
                                 <div className="text-sm font-medium">
                                     {r.name}
                                     {r.kind === "oci" ? <span className="pill soft ml-2 text-[10px]">OCI</span> : null}
-                                    {r.authenticated ? <span className="pill soft ml-1 text-[10px]" data-testid={REGCRED.locked(r.name)} title={`Uses the login ${r.credentialsSecret}`}>private</span> : null}
+                                    {r.authenticated ? <span className="pill soft ml-1 text-[10px]" data-testid={REGCRED.locked(r.name)} title={t("pages:helmCatalog.privateTitle", { name: r.credentialsSecret })}>{t("pages:helmCatalog.private")}</span> : null}
                                 </div>
                                 <div className="mono truncate text-[11.5px] text-ink-3" title={r.url}>{r.url}</div>
                                 {r.error ? <div className="text-xs text-tone-red">{r.error}</div> : null}
@@ -150,11 +150,11 @@ function RepoManager({ repos, onChanged, canWrite }) {
                         </div>
                         {kind === "oci" && (
                             <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
-                                <Label htmlFor="helm-repo-login" className="text-xs text-muted-foreground">Registry login</Label>
+                                <Label htmlFor="helm-repo-login" className="text-xs text-muted-foreground">{t("pages:helmCatalog.oci.login")}</Label>
                                 <select id="helm-repo-login" data-testid={REGCRED.select} className="select" value={login} onChange={(e) => setLogin(e.target.value)}>
-                                    <option value="">None (public registry)</option>
+                                    <option value="">{t("pages:helmCatalog.oci.noLogin")}</option>
                                     {logins.map((l) => (
-                                        <option key={l.name} value={l.name}>{l.name} — {l.registry}</option>
+                                        <option key={l.name} value={l.name}>{t("pages:helmCatalog.oci.loginOption", { name: l.name, registry: l.registry })}</option>
                                     ))}
                                 </select>
                                 <RegistryLoginsButton onClick={() => setLoginsOpen(true)} />

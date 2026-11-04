@@ -265,7 +265,7 @@ Default is dark. ⌘K → "Toggle light/dark mode" also switches.
 
 ## Languages
 
-The UI is translated into **English, Deutsch, Español and Français** with i18next + react-i18next (`src/lib/i18n.js`, strings in `src/locales/<lang>/<namespace>.json`, how-to in `src/locales/README.md`, terminology in `src/locales/GLOSSARY.md`). English is the source of truth, ships in the main bundle and is the fallback for any missing key; each other language is a lazily loaded chunk (with its date-fns locale) fetched before first paint when it is the saved choice.
+The UI is translated into **English, Deutsch, Español, Français, Português, Italiano, 日本語 and 简体中文** with i18next + react-i18next (`src/lib/i18n.js`, strings in `src/locales/<lang>/<namespace>.json`, how-to in `src/locales/README.md`, terminology in `src/locales/GLOSSARY.md`). English is the source of truth, ships in the main bundle and is the fallback for any missing key; each other language is a lazily loaded chunk (with its date-fns locale) fetched before first paint when it is the saved choice.
 
 - **Choice:** `localStorage["axiom.lang"]`, else the browser language (`de-AT` → `de`), else English. Picked from the user menu, the login page footer and Settings → Appearance (a native `<select>`, `data-testid="language-select"`); switching sets `<html lang>` and re-renders in place.
 - **What stays English:** Kubernetes kinds and terms (Pod, Namespace, Deployment, Ingress…), YAML, field paths, metric names, `kubectl` commands, product names, and any text the API returns (errors, event messages, findings).

@@ -651,7 +651,9 @@
       "last1h": "Letzte Stunde",
       "last6h": "Letzte 6 Stunden",
       "last24h": "Letzte 24 Stunden"
-    }
+    },
+    "historyDurable": " · Verlauf bleibt über Neustarts hinweg erhalten",
+    "historyMemory": " · Verlauf wird nur im Arbeitsspeicher gehalten"
   },
   "healthFindings": {
     "whatChanged": "Was hat sich geändert",
@@ -1027,7 +1029,8 @@
         "memory": "Arbeitsspeicher (unten · Ziel · oben)"
       },
       "new": "Neuer VPA",
-      "deleteAria": "VPA {{name}} löschen"
+      "deleteAria": "VPA {{name}} löschen",
+      "editAria": "VPA {{name}} bearbeiten"
     },
     "keda": {
       "notInstalled": "KEDA ist in diesem Cluster nicht installiert.",
@@ -1045,7 +1048,8 @@
         "notReady": "Nicht bereit"
       },
       "new": "Neues ScaledObject",
-      "deleteAria": "ScaledObject {{name}} löschen"
+      "deleteAria": "ScaledObject {{name}} löschen",
+      "editAria": "ScaledObject {{name}} bearbeiten"
     }
   },
   "backups": {
@@ -1154,8 +1158,13 @@
       "chartNamesPlaceholder": "Chart-Namen in dieser Registry, kommagetrennt (z. B. nginx, redis)",
       "kindLabel": "Repository-Typ",
       "index": "Chart-Repository",
-      "registry": "OCI-Registry"
-    }
+      "registry": "OCI-Registry",
+      "login": "Registry-Anmeldung",
+      "noLogin": "Keine (öffentliche Registry)",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "privat",
+    "privateTitle": "Verwendet die Anmeldung {{name}}"
   },
   "storage": {
     "title": "Speicher",

@@ -651,7 +651,9 @@
       "last1h": "Last hour",
       "last6h": "Last 6 hours",
       "last24h": "Last 24 hours"
-    }
+    },
+    "historyDurable": " · history is kept across restarts",
+    "historyMemory": " · history is kept in memory only"
   },
   "healthFindings": {
     "whatChanged": "What changed",
@@ -1027,7 +1029,8 @@
         "memory": "Memory (lower · target · upper)"
       },
       "new": "New VPA",
-      "deleteAria": "Delete VPA {{name}}"
+      "deleteAria": "Delete VPA {{name}}",
+      "editAria": "Edit VPA {{name}}"
     },
     "keda": {
       "notInstalled": "KEDA is not installed in this cluster.",
@@ -1045,7 +1048,8 @@
         "notReady": "Not ready"
       },
       "new": "New ScaledObject",
-      "deleteAria": "Delete ScaledObject {{name}}"
+      "deleteAria": "Delete ScaledObject {{name}}",
+      "editAria": "Edit ScaledObject {{name}}"
     }
   },
   "backups": {
@@ -1154,8 +1158,13 @@
       "chartNamesPlaceholder": "Chart names in this registry, separated by commas (e.g. nginx, redis)",
       "kindLabel": "Repository type",
       "index": "Chart repository",
-      "registry": "OCI registry"
-    }
+      "registry": "OCI registry",
+      "login": "Registry login",
+      "noLogin": "None (public registry)",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "private",
+    "privateTitle": "Uses the login {{name}}"
   },
   "storage": {
     "title": "Storage",

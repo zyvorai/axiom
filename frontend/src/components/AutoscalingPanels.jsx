@@ -155,7 +155,7 @@ export function VpaPanel() {
                                             <td>
                                                 {i === 0 && (
                                                     <>
-                                                    <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.vpaOpen(v.namespace, v.name)} aria-label={`Edit VPA ${v.name}`} onClick={() => setEditing({ namespace: v.namespace, name: v.name })}>
+                                                    <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.vpaOpen(v.namespace, v.name)} aria-label={t("pages:autoscalingPanels.vpa.editAria", { name: v.name })} onClick={() => setEditing({ namespace: v.namespace, name: v.name })}>
                                                         <Pencil size={13} />
                                                     </button>
                                                     <button type="button" className="btn btn-danger btn-sm" data-testid={V.remove(v.namespace, v.name)} aria-label={t("pages:autoscalingPanels.vpa.deleteAria", { name: v.name })} onClick={() => remove(v.namespace, v.name, "VPA")}>
@@ -257,7 +257,7 @@ export function KedaPanel() {
                                     </td>
                                     {!isViewer && (
                                         <td>
-                                            <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.kedaOpen(s.namespace, s.name)} aria-label={`Edit ScaledObject ${s.name}`} onClick={() => setEditing({ namespace: s.namespace, name: s.name })}>
+                                            <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.kedaOpen(s.namespace, s.name)} aria-label={t("pages:autoscalingPanels.keda.editAria", { name: s.name })} onClick={() => setEditing({ namespace: s.namespace, name: s.name })}>
                                                 <Pencil size={13} />
                                             </button>
                                             <button type="button" className="btn btn-danger btn-sm" data-testid={K.remove(s.namespace, s.name)} aria-label={t("pages:autoscalingPanels.keda.deleteAria", { name: s.name })} onClick={() => remove(s.namespace, s.name, "ScaledObject")}>

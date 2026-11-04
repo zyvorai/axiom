@@ -1,0 +1,509 @@
+{
+  "confirm": {
+    "title": "确定吗？",
+    "description": "此操作无法撤销。"
+  },
+  "users": {
+    "deleteTitle": "删除用户 {{name}}？",
+    "deleteDescription": "此操作无法撤销。",
+    "resetMfaTitle": "重置 {{name}} 的双因素认证？",
+    "resetMfaDescription": "该用户将只需密码即可登录，并可重新设置双因素认证。适用于设备和恢复码均已丢失的情况。",
+    "revokeTitle": "将 {{name}} 从所有位置注销？",
+    "revokeDescription": "此账户所有已打开的会话都将结束，用户必须重新登录。",
+    "resetExternalMfaDescription": "此目录账户在重新设置双因素认证之前，将只使用目录密码登录。"
+  },
+  "settings": {
+    "registerCluster": {
+      "title": "注册远程集群",
+      "label": "标签",
+      "kubeconfig": "Kubeconfig YAML",
+      "register": "注册",
+      "registering": "正在注册…"
+    }
+  },
+  "configMaps": {
+    "create": {
+      "title": "创建 ConfigMap",
+      "data": "数据",
+      "keyAria": "键 {{n}}",
+      "valueAria": "值 {{n}}",
+      "removeRow": "删除行",
+      "addKey": "添加键",
+      "creating": "正在创建…"
+    },
+    "delete": {
+      "title": "删除 ConfigMap {{name}}？",
+      "description": "此操作无法撤销。"
+    }
+  },
+  "secrets": {
+    "create": {
+      "title": "创建 Secret",
+      "data": "数据",
+      "keyAria": "键 {{n}}",
+      "valueAria": "值 {{n}}",
+      "removeRow": "删除行",
+      "addKey": "添加键",
+      "creating": "正在创建…"
+    },
+    "delete": {
+      "title": "删除 Secret {{name}}？",
+      "description": "这也会删除其所有键。此操作无法撤销。"
+    }
+  },
+  "pluginView": {
+    "delete": {
+      "title": "删除 {{name}}？",
+      "description": "此操作无法撤销。"
+    }
+  },
+  "namespaces": {
+    "delete": {
+      "title": "删除 Namespace {{name}}？",
+      "description": "这将删除此 Namespace 中的所有资源。此操作无法撤销。"
+    },
+    "create": {
+      "title": "创建 Namespace",
+      "creating": "正在创建…"
+    }
+  },
+  "networking": {
+    "deletePolicy": {
+      "title": "删除 NetworkPolicy {{name}}？",
+      "description": "这可能会移除此策略当前强制执行的流量限制。此操作无法撤销。"
+    },
+    "createPolicy": {
+      "title": "创建 NetworkPolicy"
+    }
+  },
+  "nodeDetail": {
+    "removeTaint": {
+      "title": "移除污点 {{key}}？",
+      "description": "此操作无法撤销。"
+    }
+  },
+  "ops": {
+    "cannotUndo": "此操作无法撤销。",
+    "creating": "正在创建…",
+    "uninstall": {
+      "title": "卸载 {{name}}？",
+      "confirm": "卸载"
+    },
+    "installChart": {
+      "title": "安装 Chart",
+      "releaseName": "Release 名称",
+      "repoUrl": "Chart 仓库 URL",
+      "chartName": "Chart 名称",
+      "version": "版本（可选）",
+      "values": "Values YAML（可选）",
+      "note": "以后台 Job 运行，使用 Axiom 自身的权限——Chart 只能创建 Axiom 本身有权创建的资源。",
+      "starting": "正在启动…",
+      "install": "安装"
+    },
+    "createRole": {
+      "title": "新建 Role",
+      "rules": "规则（PolicyRule 的 JSON 数组）"
+    },
+    "createBinding": {
+      "title": "新建 RoleBinding",
+      "roleName": "Role 名称",
+      "subjects": "主体（JSON 数组）"
+    },
+    "deleteRole": {
+      "title": "删除 Role {{name}}？"
+    },
+    "deleteBinding": {
+      "title": "删除 RoleBinding {{name}}？"
+    }
+  },
+  "applyManifest": {
+    "title": "应用清单",
+    "manifestWord": "清单",
+    "applied": "已应用 {{kind}}",
+    "appliedNamed": "已应用 {{kind}} {{name}}",
+    "reviewing": "正在检查…",
+    "reviewAgain": "重新检查",
+    "reviewChanges": "检查变更",
+    "applying": "正在应用…"
+  },
+  "atlas": {
+    "createVolume": {
+      "title": "创建卷",
+      "policy": "策略",
+      "size": "大小（GiB）",
+      "requesting": "正在请求…"
+    }
+  },
+  "autoscaling": {
+    "create": {
+      "title": "创建自动扩缩器",
+      "targetWorkload": "目标工作负载",
+      "selectWorkload": "选择工作负载",
+      "minReplicas": "最小副本数",
+      "maxReplicas": "最大副本数",
+      "targetCpu": "目标 CPU %（留空 = 忽略）",
+      "targetMemory": "目标内存 %（可选）",
+      "targetMemoryPlaceholder": "例如 75",
+      "stabilization": "缩容稳定窗口，秒（可选）",
+      "stabilizationPlaceholder": "Kubernetes 默认值为 300",
+      "bothNote": "同时设置 CPU 和内存时，自动扩缩器会按需要更多副本的一项进行扩缩。",
+      "creating": "正在创建…"
+    },
+    "delete": {
+      "title": "删除自动扩缩器 {{name}}？",
+      "description": "此操作无法撤销。"
+    }
+  },
+  "backups": {
+    "requesting": "正在请求…",
+    "creating": "正在创建…",
+    "ttl": "TTL（可选）",
+    "createSnapshot": {
+      "title": "创建卷快照",
+      "pvc": "PVC",
+      "snapshotClass": "VolumeSnapshotClass（可选）"
+    },
+    "restore": {
+      "title": "从快照恢复",
+      "snapshotName": "快照名称",
+      "pvcName": "新 PVC 名称",
+      "size": "大小",
+      "accessMode": "访问模式",
+      "storageClass": "StorageClass（可选）",
+      "submit": "恢复"
+    },
+    "schedule": {
+      "title": "新建 Velero 计划",
+      "cron": "Cron 计划"
+    },
+    "velero": {
+      "title": "创建 Velero 备份",
+      "included": "包含的 Namespace（逗号分隔或 *）"
+    }
+  },
+  "costPanels": {
+    "budget": {
+      "editTitle": "{{namespace}} 的预算",
+      "addTitle": "添加预算",
+      "description": "与该 Namespace 资源请求的预估月度成本进行比较。",
+      "amount": "月度预算（USD）",
+      "warnAt": "警告阈值（%）",
+      "save": "保存预算"
+    },
+    "removeBudget": {
+      "title": "移除 {{namespace}} 的预算？",
+      "description": "该 Namespace 的成本仍会被跟踪，只是不再有上限。"
+    },
+    "apply": {
+      "title": "应用建议",
+      "description": "{{workload}} · 容器 {{container}} · {{namespace}}",
+      "cpuRequest": "CPU 请求",
+      "memoryRequest": "内存请求",
+      "none": "（无）",
+      "basedOn": "基于 {{source}} 数据（置信度：{{confidence}}）。",
+      "applying": "正在应用…",
+      "confirm": "应用并发布"
+    }
+  },
+  "gitops": {
+    "delete": {
+      "title": "删除 {{name}}？",
+      "createdByAxiom": " · 由 Axiom 创建",
+      "cascadeConfirm": "这也会删除该应用的资源。输入 <code>{{name}}</code> 以确认。",
+      "sourceShared": "源 {{source}} 仍被 {{users}} 使用，因此会保留。",
+      "removeSource": "同时删除 {{kind}} {{name}}（没有其他对象使用它）",
+      "sourceNotOurs": "{{kind}} {{name}} 不是由 Axiom 创建的，因此不会改动。",
+      "deleting": "正在删除…"
+    },
+    "create": {
+      "title": "新建 GitOps 应用",
+      "description": "Axiom 会根据这些字段生成对象——在创建任何内容之前，您会先检查确切的 YAML。",
+      "detailsRegion": "应用详情",
+      "engine": "引擎",
+      "engines": {
+        "argocd": {
+          "label": "Argo CD 应用",
+          "hint": "同步 Git 路径或 Helm Chart 的 Application。"
+        },
+        "fluxKustomize": {
+          "label": "Flux · Git + Kustomize",
+          "hint": "一个 GitRepository 以及应用其中某个路径的 Kustomization。"
+        },
+        "fluxHelm": {
+          "label": "Flux · Helm Release",
+          "hint": "一个 HelmRepository 以及安装 Chart 的 HelmRelease。"
+        }
+      },
+      "namespaceOf": "{{engine}} 对象所在的 Namespace",
+      "helmRepoUrl": "Helm 仓库 URL",
+      "gitRepoUrl": "Git 仓库 URL",
+      "repoUrlHint": "凭据切勿放在 URL 中，请改为引用 Secret。",
+      "sourceType": "源类型",
+      "gitPath": "Git 路径",
+      "helmChart": "Helm Chart",
+      "chart": "Chart",
+      "chartVersion": "Chart 版本",
+      "path": "仓库中的路径",
+      "revision": "分支、标签或提交",
+      "destNamespace": "部署到 Namespace",
+      "secretRef": "凭据 Secret（可选）",
+      "secretRefHint": "Flux Namespace 中现有 Secret 的名称。",
+      "interval": "协调间隔",
+      "values": "Values YAML（可选）",
+      "sync": "同步",
+      "automated": "仓库变更时自动同步",
+      "prune": "删除已从 Git 中移除的资源（prune）",
+      "selfHeal": "还原手动更改（self-heal）",
+      "createNamespace": "目标 Namespace 不存在时自动创建",
+      "previewTitle": "将要创建的内容",
+      "previewStale": "已过期——请重新预览",
+      "generatedYaml": "生成的 YAML",
+      "rendering": "正在渲染…",
+      "previewAgain": "重新预览",
+      "previewYaml": "预览 YAML",
+      "creating": "正在创建…"
+    }
+  },
+  "helmCatalog": {
+    "removeRepo": {
+      "title": "移除仓库 {{name}}？",
+      "description": "已从中安装的 Chart 会继续运行，只是不再显示在目录中。"
+    },
+    "chart": {
+      "from": "来自 <code>{{repo}}</code>",
+      "optionsRegion": "Chart 安装选项",
+      "appSuffix": "（应用 {{version}}）",
+      "deprecatedSuffix": " — 已弃用",
+      "releaseName": "Release 名称",
+      "values": "Values（可选）",
+      "reloadDefaults": "重新加载默认值",
+      "loadDefaults": "加载默认值",
+      "valuesYaml": "Values YAML",
+      "valuesPlaceholder": "# 留空则使用 Chart 默认值",
+      "hideReadme": "隐藏 README",
+      "showReadme": "显示 README",
+      "readme": "Chart README",
+      "permissionsNote": "以后台 Job 运行，使用 Axiom 自身的权限——Chart 只能创建 Axiom 本身有权创建的资源。",
+      "starting": "正在启动…",
+      "install": "安装 {{version}}"
+    }
+  },
+  "vms": {
+    "creating": "正在创建…",
+    "create": {
+      "title": "创建虚拟机",
+      "cpuCores": "CPU 核数",
+      "image": "容器磁盘镜像"
+    }
+  },
+  "diffReview": {
+    "title": "检查变更",
+    "description": "这是应用您的编辑后集群上将发生的变更。在您按下“应用”之前不会应用任何内容。",
+    "applying": "正在应用…"
+  },
+  "jobs": {
+    "deleteCronJob": {
+      "title": "删除 CronJob {{name}}？",
+      "description": "此操作无法撤销。"
+    },
+    "deleteJob": {
+      "title": "删除 Job {{name}}？",
+      "description": "此操作无法撤销。"
+    }
+  },
+  "podDetail": {
+    "evict": {
+      "title": "驱逐 Pod {{name}}？",
+      "description": "此操作无法撤销。",
+      "confirm": "驱逐"
+    }
+  },
+  "pods": {
+    "exec": {
+      "title": "Exec · {{name}}",
+      "container": "容器",
+      "running": "正在运行…",
+      "run": "运行",
+      "outputPlaceholder": "输出将显示在此处。"
+    },
+    "evict": {
+      "title": "驱逐 Pod {{name}}？",
+      "description": "此操作无法撤销。",
+      "confirm": "驱逐"
+    },
+    "bulkEvict": {
+      "title_other": "驱逐 {{count}} 个 Pod？"
+    }
+  },
+  "workloads": {
+    "rollout": {
+      "title": "发布 · {{name}}",
+      "notSupported": "{{kind}} 不支持发布。",
+      "available": "可用",
+      "updating": "更新中",
+      "pending": "等待中",
+      "revision": "修订 {{revision}}",
+      "actions": {
+        "restart": "重启",
+        "pause": "暂停",
+        "resume": "恢复",
+        "undo": "回滚"
+      }
+    },
+    "scale": {
+      "title": "扩缩 · {{name}}",
+      "scaling": "正在扩缩…",
+      "submit": "扩缩"
+    },
+    "delete": {
+      "title": "删除 {{kind}} {{name}}？",
+      "description": "此操作无法撤销。其 Pod 也将被删除。"
+    },
+    "bulkDelete": {
+      "title_other": "删除 {{count}} 个工作负载？",
+      "description": "此操作无法撤销。"
+    },
+    "launch": {
+      "title": "运行工作负载",
+      "steps": {
+        "form": "表单",
+        "intent": "意图",
+        "yaml": "验证 YAML"
+      },
+      "port": "端口",
+      "exposeService": "暴露服务",
+      "launching": "正在启动…",
+      "launch": "启动",
+      "preview": "预览",
+      "placing": "正在放置…",
+      "place": "放置",
+      "validKind": "有效的 {{kind}}",
+      "validManifest": "有效的清单",
+      "validate": "验证",
+      "applyTitle": "应用工作负载清单"
+    }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "新建 VerticalPodAutoscaler",
+      "description": "为工作负载推荐 CPU 和内存请求。在 Off 模式下仅提供建议，从不重启 Pod。",
+      "region": "VPA 设置",
+      "updateMode": "更新模式",
+      "modes": {
+        "off": "Off — 仅推荐",
+        "initial": "Initial — 应用于新 Pod",
+        "recreate": "Recreate — 重启 Pod 以应用"
+      }
+    },
+    "keda": {
+      "title": "新建 KEDA ScaledObject",
+      "description": "根据事件扩缩工作负载。凭据不在此处输入：请选择现有的 TriggerAuthentication。",
+      "region": "ScaledObject 设置",
+      "trigger": "触发器 {{n}}",
+      "removeTrigger": "移除触发器 {{n}}",
+      "credentials": "凭据（TriggerAuthentication）",
+      "addTrigger": "添加触发器",
+      "triggers": {
+        "cron": "Cron 计划",
+        "prometheus": "Prometheus 查询",
+        "kafka": "Kafka 延迟",
+        "redis": "Redis 列表长度",
+        "rabbitmq": "RabbitMQ 队列",
+        "awsSqs": "AWS SQS 队列"
+      },
+      "fields": {
+        "metricType": "指标类型",
+        "targetValue": "目标值",
+        "timezone": "时区",
+        "start": "开始",
+        "end": "结束",
+        "replicasInWindow": "时间窗口内副本数",
+        "serverAddress": "服务器地址",
+        "query": "查询",
+        "threshold": "阈值",
+        "bootstrapServers": "Bootstrap 服务器",
+        "consumerGroup": "消费者组",
+        "topic": "主题",
+        "lagThreshold": "延迟阈值",
+        "address": "地址",
+        "list": "列表",
+        "lengthThreshold": "长度阈值",
+        "queue": "队列",
+        "mode": "模式",
+        "queueUrl": "队列 URL",
+        "queueLength": "队列长度",
+        "region": "区域"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "编辑 {{name}}",
+    "description": "{{kind}} · {{namespace}}。仅更改以下字段；对象上的其他内容保持不变。",
+    "staleHint": " 关闭此对话框并重新打开，以从当前版本开始。",
+    "notEditable": "此应用使用了表单无法表示的设置，因此以只读方式显示：",
+    "region": "应用设置",
+    "valuesYaml": "Values YAML",
+    "automated": "自动同步",
+    "prune": "清理已从 Git 中移除的资源",
+    "selfHeal": "自动修复手动更改",
+    "noop": "不会有任何变更。",
+    "none": "（无）",
+    "staleChange": "您在预览后更改了字段——请重新预览。",
+    "comparing": "正在比较…",
+    "previewChanges": "预览变更"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "删除 {{kind}} {{name}}？",
+    "deleteDescription": "工作负载本身不受影响。"
+  },
+  "gitopsCredentials": {
+    "title": "仓库凭据",
+    "description": "用于私有 Git 和 Helm 仓库。Axiom 将其存储为 Secret 供 Argo CD 或 Flux 使用，且不会再次显示。",
+    "region": "凭据",
+    "empty": "尚未通过 Axiom 创建任何凭据。",
+    "deleteTitle": "删除凭据 {{name}}？",
+    "deleteDescription": "引用这些凭据的应用将无法再从该仓库拉取。",
+    "deleteAria": "删除凭据 {{name}}",
+    "add": "添加凭据",
+    "writeOnly": "只写：保存后无法读回密钥——如需轮换，请删除后重新创建。",
+    "for": "用于",
+    "url": "仓库 URL",
+    "auth": "认证",
+    "authToken": "访问令牌",
+    "authBasic": "用户名和密码",
+    "authSsh": "SSH 密钥",
+    "token": "令牌",
+    "privateKey": "私钥",
+    "knownHosts": "known_hosts（可选）",
+    "save": "保存凭据",
+    "button": "凭据"
+  },
+  "registryLogins": {
+    "title": "镜像仓库登录",
+    "description": "用于私有 OCI Chart 镜像仓库。登录信息仅发送给对应的镜像仓库，保存后不会再次显示。",
+    "region": "镜像仓库登录",
+    "empty": "尚无镜像仓库登录。",
+    "usedBy": " · 被 {{list}} 使用",
+    "deleteAria": "删除登录 {{name}}",
+    "addTitle": "添加登录",
+    "writeOnly": "只写：如需更改密码，请删除该登录后重新添加。",
+    "registry": "镜像仓库主机",
+    "username": "用户名",
+    "password": "密码或令牌",
+    "save": "保存登录",
+    "manage": "镜像仓库登录",
+    "confirmDelete": {
+      "title": "删除登录 {{name}}？",
+      "description": "必须先删除或更改使用它的仓库。"
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}。仅更改以下字段；对象上的其他内容保持不变。",
+    "notEditable": "此对象使用了表单无法表示的设置，因此在此处为只读：",
+    "region": "设置",
+    "pollingInterval": "轮询（s）",
+    "cooldownPeriod": "冷却（s）",
+    "triggerLegend": "触发器 {{n}} · {{type}}",
+    "noCredentials": "无凭据"
+  }
+}

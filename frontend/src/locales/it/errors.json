@@ -1,0 +1,47 @@
+{
+  "generic": "Si è verificato un errore",
+  "loadBanner": {
+    "offlineTitle": "Impossibile raggiungere il server.",
+    "failedTitle": "Non è stato possibile caricare alcuni dati.",
+    "offlineHint": "Verificare la connessione: questa pagina potrebbe non essere aggiornata.",
+    "failedHint_one": "Il server ha restituito un errore ({{count}} richiesta). I dati visualizzati potrebbero essere incompleti.",
+    "failedHint_other": "Il server ha restituito un errore ({{count}} richieste). I dati visualizzati potrebbero essere incompleti."
+  },
+  "boundary": {
+    "updatedTitle": "Axiom è stato aggiornato",
+    "crashTitle": "Si è verificato un problema in questa pagina",
+    "updatedHint": "È disponibile una versione più recente, quindi non è stato possibile caricare questa pagina. Ricaricare per ottenerla.",
+    "crashHint": "Si è verificato un errore durante la visualizzazione di questa pagina. Il resto dell'app funziona normalmente.",
+    "goOverview": "Vai a Panoramica"
+  },
+  "fleet": {
+    "searchFailed": "Ricerca non riuscita",
+    "switchFailed": "Impossibile cambiare cluster",
+    "loadFailed": "Impossibile caricare la flotta"
+  },
+  "ops": {
+    "rulesJson": "Le regole devono essere JSON valido",
+    "subjectsJson": "I soggetti devono essere JSON valido"
+  },
+  "rbac": {
+    "requestFailed": "Richiesta non riuscita"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "Impossibile caricare"
+  },
+  "costPanels": {
+    "generic": "Si è verificato un errore"
+  },
+  "gitops": {
+    "generic": "Si è verificato un errore"
+  },
+  "helmCatalog": {
+    "generic": "Si è verificato un errore"
+  },
+  "workloads": {
+    "dnsLabel": "Usare lettere minuscole, numeri e “-” (iniziare e terminare con una lettera o un numero, max 63)."
+  },
+  "autoscalingCreate": {
+    "generic": "Si è verificato un errore"
+  }
+}

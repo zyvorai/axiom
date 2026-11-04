@@ -1,0 +1,1496 @@
+{
+  "notFound": {
+    "title": "未找到页面",
+    "description": "<path>{{path}}</path> 处没有内容。它可能已被移动，或链接已过期。",
+    "goOverview": "前往概览"
+  },
+  "users": {
+    "title": "用户",
+    "description": "与 SSO 并存的本地账户。查看者可以浏览所有页面，但不能创建、更改或删除任何内容。"
+  },
+  "settings": {
+    "title": "设置",
+    "description": "集群、外观、单点登录和平台集成。",
+    "configured": "已配置",
+    "notConfigured": "未配置",
+    "testing": "正在测试…",
+    "testConnection": "测试连接",
+    "clusters": {
+      "title": "集群",
+      "add": "添加集群",
+      "lead": "注册远程 kubeconfig 以便在集群间切换。当前集群：<mono>{{name}}</mono>",
+      "empty": "未配置任何集群。",
+      "columns": {
+        "cluster": "集群"
+      },
+      "active": "当前",
+      "unreachable": "无法访问",
+      "latency": "{{ms}} ms",
+      "activate": "激活"
+    },
+    "appearance": {
+      "title": "外观",
+      "lead": "主题保存在此浏览器中。“跟随系统”会使用设备的外观设置。",
+      "theme": "主题",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    },
+    "oidc": {
+      "title": "OIDC 单点登录",
+      "issuer": "颁发者",
+      "loginUrl": "登录 URL",
+      "clientId": "客户端 ID"
+    },
+    "atlas": {
+      "url": "Atlas URL",
+      "consoleUrl": "控制台 URL"
+    },
+    "postgres": {
+      "host": "主机",
+      "port": "端口",
+      "database": "数据库",
+      "user": "用户",
+      "password": "密码",
+      "passwordSet": "密码（已设置 — 留空则保持不变）",
+      "sslMode": "SSL 模式"
+    },
+    "probe": {
+      "title": "探针",
+      "podNamespace": "Pod 所在 Namespace",
+      "podName": "Pod 名称",
+      "container": "容器",
+      "url": "探针 URL"
+    },
+    "notifications": {
+      "title": "通知",
+      "slackWebhook": "Slack Webhook URL",
+      "slackWebhookSet": "Slack Webhook URL（已设置 — 留空则保持不变）",
+      "alertWebhook": "告警 Webhook URL",
+      "alertWebhookSet": "告警 Webhook URL（已设置 — 留空则保持不变）",
+      "forwardWarnings": "自动转发 Warning 事件",
+      "forwardWarningsHint": "每 60 秒轮询一次，并将新的集群 Warning 事件推送到上述渠道。",
+      "testSlack": "测试 Slack",
+      "testWebhook": "测试 Webhook"
+    },
+    "apiKeyNote": "API 密钥登录通过 Axiom 进程上的 <mono>AXIOM_API_KEY</mono> 环境变量配置。"
+  },
+  "aiSettings": {
+    "title": "AI 助手",
+    "pillEnabled": "已启用",
+    "pillOff": "关闭",
+    "lead": "可选功能：在 Pod 和 Warning 事件上提供“用 AI 解释”，使用您自己的模型端点。默认关闭。每次请求都会将经过脱敏的快照（事件、容器状态、简短的日志尾部；绝不包含 Secret 或 ConfigMap 的值及环境变量值）发送到下方端点，并以 <mono>ai.explain</mono> 记入审计（仅记录目标）。Base URL 是由管理员选择的出站目标。",
+    "enable": "启用 AI 助手",
+    "enableHint": "关闭时，相关按钮将被隐藏，API 会拒绝请求。",
+    "provider": "提供商",
+    "baseUrl": "Base URL",
+    "model": "模型",
+    "modelPlaceholder": "例如 gpt-4o-mini、claude-sonnet-4-5、llama3.1",
+    "apiKey": "API 密钥",
+    "apiKeySet": "API 密钥（已设置 — 留空则保持不变）",
+    "mask": "同时屏蔽 IP 地址和主机名",
+    "maskAria": "屏蔽 IP 地址和主机名",
+    "maskHint": "推荐。密钥、令牌和环境变量值始终会被移除。",
+    "testing": "正在测试…",
+    "testConnection": "测试连接"
+  },
+  "aiAssistant": {
+    "explain": "用 AI 解释",
+    "detailsAria": "AI 助手详情",
+    "sentTo": "这些数据将发送到 <mono>{{where}}</mono>",
+    "demoNotice": "演示模式：回答为预设内容，任何数据都不会离开此服务器。",
+    "redactOn": "会先移除密钥、令牌、环境变量值、IP 和主机名。请检查下方的确切负载。",
+    "redactOff": "会先移除密钥、令牌和环境变量值。IP 和主机名不会被屏蔽（脱敏已关闭）。请检查下方的负载。",
+    "question": "可选问题",
+    "questionPlaceholder": "例如：为什么它一直在重启？",
+    "preview": "负载预览（已脱敏）",
+    "previewTruncated": "负载预览（已脱敏）— 已截断至大小上限",
+    "previewAria": "将要发送的脱敏负载",
+    "asking": "正在询问…",
+    "send": "发送并解释",
+    "answer": "回答（纯文本，由 AI 模型生成，可能有误）"
+  },
+  "configMaps": {
+    "title": "ConfigMap",
+    "description": "所有 Namespace 中的应用配置。",
+    "create": "创建 ConfigMap",
+    "searchPlaceholder": "搜索 ConfigMap 名称",
+    "tableAria": "ConfigMap",
+    "columns": {
+      "keys": "键"
+    },
+    "deleteAria": "删除 ConfigMap {{name}}",
+    "empty": "没有符合当前筛选条件的 ConfigMap。"
+  },
+  "configMapDetail": {
+    "back": "ConfigMap",
+    "notFound": "未找到 ConfigMap <mono>{{ref}}</mono>。",
+    "keys_other": "{{count}} 个键",
+    "editData": "编辑数据",
+    "all": "所有 ConfigMap",
+    "data": "数据",
+    "noData": "没有数据键。"
+  },
+  "secrets": {
+    "title": "Secret",
+    "description": "所有 Namespace 中的 Opaque、TLS 和镜像仓库 Secret。",
+    "create": "创建 Secret",
+    "searchPlaceholder": "搜索 Secret 名称",
+    "tableAria": "Secret",
+    "columns": {
+      "keys": "键"
+    },
+    "deleteAria": "删除 Secret {{name}}",
+    "empty": "没有符合当前筛选条件的 Secret。",
+    "external": {
+      "title": "External Secrets",
+      "aria": "外部 Secret",
+      "columns": {
+        "store": "存储",
+        "refresh": "刷新"
+      },
+      "empty": "未找到 ExternalSecret 资源。"
+    }
+  },
+  "secretDetail": {
+    "back": "Secret",
+    "notFound": "未找到 Secret <mono>{{ref}}</mono>。",
+    "keys_other": "{{count}} 个键",
+    "hideValues": "隐藏值",
+    "revealValues": "显示值",
+    "saveValues": "保存值",
+    "all": "所有 Secret",
+    "keysTitle": "键",
+    "noKeys": "没有键。",
+    "bytes": "{{size}} 字节",
+    "valueAria": "{{key}} 的值"
+  },
+  "quotas": {
+    "title": "配额与限制",
+    "description": "ResourceQuota、LimitRange、PodDisruptionBudget 和 PriorityClass。",
+    "resourceQuotas": {
+      "title": "资源配额",
+      "empty": "未配置 ResourceQuota。"
+    },
+    "limitRanges": {
+      "title": "限制范围",
+      "empty": "未配置 LimitRange。"
+    },
+    "pdbs": {
+      "title": "Pod 中断预算",
+      "empty": "未配置 PodDisruptionBudget。"
+    },
+    "priorityClasses": {
+      "title": "优先级类",
+      "empty": "未配置 PriorityClass。"
+    },
+    "columns": {
+      "hard": "硬限制",
+      "used": "已用",
+      "limits": "限制",
+      "minAvailable": "最少可用",
+      "maxUnavailable": "最多不可用",
+      "healthy": "健康",
+      "expected": "预期"
+    },
+    "expectedPods_other": "{{count}} 个 Pod"
+  },
+  "customResources": {
+    "title": "自定义资源",
+    "description": "浏览集群中安装的任意 CustomResourceDefinition。",
+    "searchPlaceholder": "搜索 CRD",
+    "tableAria": "自定义资源定义",
+    "columns": {
+      "groupVersion": "组 / 版本",
+      "scope": "作用域"
+    },
+    "noMatch": "没有匹配的 CRD。",
+    "instances": "{{kind}} 实例",
+    "permissionDenied": "权限被拒绝：{{error}}",
+    "noInstances": "未找到实例。",
+    "selectHint": "选择一个 CRD 以浏览其实例。"
+  },
+  "pluginView": {
+    "pageTitle": "插件",
+    "pageTitleNotFound": "未找到插件",
+    "notFound": "未找到插件“{{id}}”。它可能已被移除。",
+    "instances": "{{kind}} 实例",
+    "permissionDenied": "权限被拒绝：{{error}}",
+    "noInstances": "未找到实例。",
+    "deleteAria": "删除 {{name}}",
+    "item": "项"
+  },
+  "platformIntents": {
+    "title": "平台意图",
+    "description": "通过自然语言意图请求的工作负载（工作负载 → 运行工作负载 → 意图）。",
+    "tableAria": "平台意图",
+    "columns": {
+      "resources": "资源"
+    },
+    "empty": "暂无平台意图。"
+  },
+  "savedViews": {
+    "title": "已保存视图",
+    "views": "视图",
+    "viewsWithCount": "视图（{{n}}）",
+    "noFilters": "无筛选条件",
+    "empty": "暂无已保存的视图。设置筛选条件，在下方命名并保存。",
+    "listAria": "已保存视图列表",
+    "deleteAria": "删除视图 {{name}}",
+    "deleteTitle": "删除视图",
+    "nameLabel": "视图名称",
+    "namePlaceholder": "为此视图命名"
+  },
+  "events": {
+    "title": "事件",
+    "description": "Kubernetes 事件流，最新的在前。",
+    "search": "搜索原因、消息或对象",
+    "filterType": "按事件类型筛选",
+    "allTypes": "所有类型",
+    "openTimeline": "打开时间线",
+    "whatChangedFor": "{{object}} 的变更",
+    "whatChanged": "变更内容",
+    "noMatches": "没有符合当前筛选条件的事件。",
+    "empty": "没有最近的事件。"
+  },
+  "timeline": {
+    "title": "时间线",
+    "description": "所有变更汇于一处：Kubernetes 事件、Axiom 审计记录、告警和发布修订。",
+    "since": {
+      "all": "全部时间",
+      "hour": "最近 1 小时",
+      "sixHours": "最近 6 小时",
+      "day": "最近 24 小时",
+      "week": "最近 7 天"
+    },
+    "sources": {
+      "event": "事件",
+      "audit": "审计",
+      "alert": "告警",
+      "rollout": "发布"
+    },
+    "searchLabel": "搜索时间线",
+    "searchPlaceholder": "搜索摘要、对象或用户",
+    "allNamespaces": "所有 Namespace",
+    "timeRange": "时间范围",
+    "sourcesLabel": "来源",
+    "clearObject": "清除对象筛选",
+    "entries": "时间线条目",
+    "columns": {
+      "when": "时间",
+      "severity": "严重程度",
+      "what": "发生了什么",
+      "by": "操作者"
+    },
+    "clusterScope": "集群",
+    "empty": "没有符合这些筛选条件的内容。"
+  },
+  "workloadTimeline": {
+    "title": "变更内容",
+    "openInTimeline": "在时间线中打开",
+    "empty": "此工作负载没有记录的变更。",
+    "by": "由 {{actor}}"
+  },
+  "namespaces": {
+    "title": "Namespace",
+    "description": "集群中的每个 Namespace，以及 Pod 和 Service 数量。",
+    "create": "创建 Namespace",
+    "specs": {
+      "pods": "Pod",
+      "services": "Service"
+    },
+    "deleteAria": "删除 Namespace {{name}}"
+  },
+  "namespaceDetail": {
+    "notFound": "未找到 Namespace <mono>{{name}}</mono>。",
+    "podsRunning": "{{running}}/{{total}} 个 Pod 正在运行",
+    "allNamespaces": "所有 Namespace",
+    "workloads": "工作负载",
+    "tabs": {
+      "pods": "Pod（{{n}}）",
+      "workloads": "工作负载（{{n}}）",
+      "services": "Service（{{n}}）"
+    },
+    "noPods": "此 Namespace 中没有 Pod。",
+    "noWorkloads": "此 Namespace 中没有工作负载。",
+    "noServices": "此 Namespace 中没有 Service。",
+    "columns": {
+      "desired": "期望"
+    },
+    "preferClusterWide": "想查看集群范围的列表？",
+    "openServices": "打开 Service"
+  },
+  "networking": {
+    "title": "网络",
+    "description": "跨 Pod、Service 和端点的服务拓扑图。",
+    "graphNodes": "图节点",
+    "connections": "连接",
+    "services": "Service",
+    "live": "实时",
+    "columns": {
+      "from": "源",
+      "to": "目标",
+      "label": "标签"
+    },
+    "policies": {
+      "createViaYaml": "通过 YAML 创建",
+      "empty": "未配置 NetworkPolicy。",
+      "region": "网络策略",
+      "columns": {
+        "types": "类型",
+        "podSelector": "Pod 选择器"
+      },
+      "allPods": "所有 Pod",
+      "deleteAria": "删除策略 {{name}}"
+    },
+    "packetwolf": {
+      "connected": "已连接",
+      "unreachable": "无法访问",
+      "description": "通过 PacketWolf 集成实现 eBPF 流量可视化。",
+      "liveFlows": "实时流量",
+      "columns": {
+        "destination": "目标",
+        "proto": "协议",
+        "verdict": "判定"
+      },
+      "noFlows": "当前时间窗口内没有流量。"
+    }
+  },
+  "networkPolicy": {
+    "isolated": "已隔离",
+    "open": "开放",
+    "notIsolated": "未隔离：允许所有流量。",
+    "denyAll": "已隔离且不允许任何流量（全部拒绝）。",
+    "more": "+{{n}} 个",
+    "toNamespaces": "→ Namespace {{list}}",
+    "policy": "策略 {{name}}",
+    "title": "策略分析",
+    "description": "根据策略的选择器和端口计算出每个 Pod 接受哪些流量、可以访问哪些目标。只有当集群的 CNI 强制执行策略时，策略才会生效。",
+    "noNamespaces": "没有 Namespace。",
+    "policies_other": "<b>{{count}}</b> 条策略",
+    "pods_other": "<b>{{count}}</b> 个 Pod",
+    "uncovered_other": "<b>{{count}} 个 Pod 未被任何策略覆盖</b>，接受来自任意位置的流量：<mono>{{list}}</mono>",
+    "noPods": "此 Namespace 中没有 Pod。",
+    "region": "Pod 网络隔离",
+    "columns": {
+      "policies": "策略"
+    },
+    "showTraffic": "显示 {{pod}} 允许的流量",
+    "allowedIngress": "允许的入站",
+    "allowedEgress": "允许的出站"
+  },
+  "nodes": {
+    "title": "Node",
+    "description": "计算拓扑、可分配容量和 kubelet 状态。",
+    "total_other": "共 {{count}} 个 Node",
+    "specs": {
+      "pods": "Pod"
+    },
+    "facts": {
+      "os": "操作系统",
+      "kernel": "内核",
+      "runtime": "运行时"
+    },
+    "actions": {
+      "cordon": "封锁",
+      "uncordon": "解除封锁",
+      "drain": "排空"
+    }
+  },
+  "nodeDetail": {
+    "metricsUnavailable": "指标不可用 — 需要集群中安装 metrics-server。",
+    "metricsWindow": "从 metrics.k8s.io 采样的实时滚动窗口 — 并非 Prometheus 历史数据。",
+    "currentTaints": "当前污点",
+    "noTaints": "此 Node 上没有污点。",
+    "removeTaint": "移除污点 {{key}}",
+    "addTaint": "添加污点",
+    "effect": "效果",
+    "notFound": "未找到 Node <mono>{{name}}</mono>。",
+    "forbidden": "以您当前的权限无法访问 Node <mono>{{name}}</mono>。",
+    "eyebrow": "Node · {{role}}",
+    "allocatableCpu": "可分配 CPU",
+    "allocatableMemory": "可分配内存",
+    "tabs": {
+      "details": "详情",
+      "metrics": "指标",
+      "taints": "污点（{{n}}）",
+      "shell": "Shell"
+    },
+    "system": "系统",
+    "osImage": "操作系统镜像",
+    "containerRuntime": "容器运行时",
+    "conditions": "状况"
+  },
+  "onboarding": {
+    "title": "快速入门",
+    "configure": "配置",
+    "fixNow": "立即修复",
+    "sso": {
+      "title": "连接单点登录",
+      "done": "已配置 OIDC 或 SAML — 登录页上的 SSO 链接已生效。",
+      "todo": "尚未配置 OIDC/SAML 提供商。本地用户名和密码登录可用，但 SSO 处于关闭状态。"
+    },
+    "demo": {
+      "title": "停用演示凭据",
+      "todo": "此实例正在使用实验室默认值运行。在投入实际使用前，请设置 AXIOM_USERNAME 和 AXIOM_PASSWORD，或连接 SSO。",
+      "done": "未使用实验室默认凭据运行。"
+    },
+    "atlas": {
+      "title": "连接 Atlas 存储",
+      "done": "Atlas 已接入 — Atlas 页面会显示实时的后端、存储池和卷。",
+      "todo": "未连接存储控制平面。配置完成后，Atlas 会显示卷和存储池，并支持预配存储。",
+      "cta": "查看 Atlas"
+    },
+    "packetwolf": {
+      "title": "连接 PacketWolf 网络",
+      "connected": "PacketWolf 已连接。实时 eBPF 流量数据会显示在网络页面上。",
+      "unreachable": "已设置 PacketWolf URL 但无法访问 — 请检查 AXIOM_PACKETWOLF_URL。",
+      "todo": "设置 AXIOM_PACKETWOLF_URL 即可在网络页面上查看实时 Cilium/eBPF 流量数据。",
+      "cta": "查看网络"
+    },
+    "postgres": {
+      "title": "连接 Postgres",
+      "description": "仅在使用基于 Postgres 的功能时需要。请在设置中配置主机和凭据。"
+    },
+    "probe": {
+      "title": "连接外部探针",
+      "description": "用于平台健康状况的综合检查目标。请在设置中配置。"
+    },
+    "intro": "只需六步，即可让此集群从实验室默认配置变为可放心用于生产的环境。其中两步为必需。",
+    "introWelcome": "欢迎，{{name}}。只需六步，即可让此集群从实验室默认配置变为可放心用于生产的环境。其中两步为必需。",
+    "progressLabel": "设置进度",
+    "progress": "已完成 {{done}}/{{total}}",
+    "optional": "可选",
+    "statusSource": "状态实时来自 <code>/api/v1/integrations</code>、<code>/api/v1/packetwolf/status</code> 和 <code>/api/v1/auth/providers</code>。"
+  },
+  "overview": {
+    "setupNotice": "此实例的设置尚未完成。",
+    "finishSetup": "完成设置",
+    "tagline": "您的 Kubernetes 原生私有云。从 k3s 到生产环境，一个控制台全部搞定。",
+    "exploreWorkloads": "浏览工作负载",
+    "viewNodes": "查看 Node",
+    "glance": {
+      "title": "概况",
+      "description": "此集群上当前运行的一切。"
+    },
+    "metrics": {
+      "nodes": "就绪的 Node",
+      "pods": "运行中的 Pod",
+      "workloads": "工作负载",
+      "vms": "运行中的虚拟机"
+    },
+    "storageProvisioned": "已预配 {{used}} / {{capacity}} TB 存储",
+    "utilization": {
+      "title": "利用率",
+      "description": "集群相对于其可分配资源的负载情况。",
+      "storage": "存储"
+    },
+    "trend": {
+      "title": "趋势",
+      "description": "最近观测窗口内的 CPU 和内存。",
+      "clusterCpu": "集群 CPU",
+      "clusterMemory": "集群内存"
+    },
+    "informed": {
+      "title": "随时掌握动态",
+      "description": "警告、集群事件和 Pod 日志流都有各自的页面。"
+    },
+    "cards": {
+      "alerts": "告警",
+      "alertsText": "需要您关注的警告和规则。",
+      "events": "事件",
+      "eventsText": "集群正在发生的一切，实时呈现。",
+      "logs": "Pod 日志",
+      "logsText": "实时查看任意 Pod 的输出。"
+    }
+  },
+  "overviewHealth": {
+    "title": "健康检查",
+    "description": "自动分析 Pod、Service、卷、Ingress、自动扩缩器和 Node。",
+    "analyzing": "正在分析集群…",
+    "counts": "{{critical}} 个严重 · {{warning}} 个警告 · {{info}} 个信息",
+    "open": "打开健康检查",
+    "noProblems": "未发现问题。"
+  },
+  "services": {
+    "title": "Service",
+    "description": "所有 Namespace 中的 ClusterIP、NodePort 和 LoadBalancer Service。",
+    "search": "搜索 Service 名称",
+    "columns": {
+      "clusterIp": "集群 IP",
+      "ports": "端口",
+      "endpoints": "端点"
+    },
+    "empty": "没有符合当前筛选条件的 Service。"
+  },
+  "serviceDetail": {
+    "notFound": "未找到 Service <mono>{{name}}</mono>。",
+    "allServices": "所有 Service",
+    "selector": "选择器",
+    "endpoints": "端点（{{n}}）",
+    "noEndpoints": "没有端点。",
+    "matchingPods": "匹配的 Pod（{{n}}）",
+    "noMatchingPods": "没有与此选择器匹配的 Pod。"
+  },
+  "ingresses": {
+    "title": "Ingress",
+    "description": "进入集群 Service 的外部路由，相当于 OpenShift Route。",
+    "search": "按名称或主机搜索",
+    "columns": {
+      "class": "类",
+      "hosts": "主机",
+      "address": "地址"
+    },
+    "empty": "没有符合当前筛选条件的 Ingress。",
+    "noGateways": "未找到 Gateway API 对象（GatewayClass/Gateway/HTTPRoute）。"
+  },
+  "autoTable": {
+    "yes": "是",
+    "no": "否",
+    "dataTable": "数据表"
+  },
+  "resourceGraph": {
+    "lanes": {
+      "scale": "自动扩缩器",
+      "workload": "工作负载",
+      "revision": "修订版本",
+      "config": "配置与存储"
+    },
+    "rootLabel": "{{label}}（此资源）",
+    "unavailable": "此资源的关系图不可用：{{error}}",
+    "intro": "此资源与路由、扩缩和配置之间的关联。仅显示名称和状态 — 绝不会加载 ConfigMap 和 Secret 的值。选择一个节点即可打开。",
+    "region": "关系图",
+    "svgLabel": "{{kind}} {{name}} 的关系图",
+    "truncated": "资源较大：仅显示部分关系图。",
+    "showList": "以列表形式显示关系",
+    "noRelated": "未找到相关资源。"
+  },
+  "alerts": {
+    "title": "告警",
+    "description": "活动警告和 Prometheus 告警规则组。",
+    "activeWarnings": "活动警告",
+    "columns": {
+      "warning": "警告",
+      "resource": "资源",
+      "groups": "组"
+    },
+    "noWarnings": "没有活动警告。",
+    "ruleGroups": "告警规则组",
+    "groupsCount": "{{n}} 个组",
+    "noRules": "未配置告警规则。"
+  },
+  "fleet": {
+    "title": "集群群组",
+    "description": "所有已注册的集群均在后台探测：是否响应、有多少 Node 就绪，以及需要关注的问题。可在 设置 → 集群 中注册更多集群。",
+    "checking": "正在检查…",
+    "checkNow": "立即检查",
+    "state": {
+      "healthy": "健康",
+      "degraded": "降级",
+      "unreachable": "无法访问",
+      "unknown": "尚未检查"
+    },
+    "active": "当前",
+    "stateAria": "{{name}}：{{state}}",
+    "metrics": {
+      "nodes": "Node",
+      "pods": "Pod",
+      "apps": "应用",
+      "warnings": "警告"
+    },
+    "checkedLine": "{{ms}} ms · 检查于 {{time}}",
+    "notChecked": "尚未检查",
+    "since": " · 自 {{time}} 起",
+    "switchTo": "切换到",
+    "search": {
+      "aria": "搜索所有集群",
+      "placeholder": "在哪里… 在所有集群中搜索工作负载、Service 和 Namespace",
+      "everything": "全部",
+      "workloads": "工作负载",
+      "services": "Service",
+      "namespaces": "Namespace",
+      "notSearched": "未搜索：{{list}}",
+      "noMatches_other": "在 {{count}} 个集群中均无匹配项。",
+      "results": "搜索结果",
+      "columns": {
+        "cluster": "集群",
+        "match": "匹配项"
+      },
+      "truncated": "显示 {{total}} 个匹配项中的前 {{shown}} 个 — 请缩小搜索范围。"
+    },
+    "summary": {
+      "clusters": "集群",
+      "healthy": "健康",
+      "attention": "需要关注",
+      "nodes": "就绪的 Node",
+      "pods": "运行中的 Pod",
+      "warnings": "警告"
+    },
+    "empty": "没有已注册的集群。",
+    "totals": "总计仅统计有响应的集群",
+    "lastCheck": " · 上次检查 {{time}}",
+    "interval": " · 每 {{n}} 秒检查一次",
+    "backgroundOff": " · 后台检查已关闭",
+    "history": {
+      "ongoing": "进行中",
+      "stripAria": "所选时间窗口内的状态：{{total}} 个区间中有 {{bad}} 个不健康",
+      "reachable": "可访问 <b>{{pct}}%</b>",
+      "failedChecks": "{{total}} 次检查中有 {{failed}} 次失败",
+      "noIncidents": "此时间窗口内没有事故。",
+      "unreachableFor": "无法访问持续 {{duration}}",
+      "degradedFor": "降级持续 {{duration}}",
+      "label": "历史",
+      "last1h": "最近 1 小时",
+      "last6h": "最近 6 小时",
+      "last24h": "最近 24 小时"
+    },
+    "historyDurable": " · 历史记录在重启后保留",
+    "historyMemory": " · 历史记录仅保存在内存中"
+  },
+  "healthFindings": {
+    "whatChanged": "变更内容",
+    "suggestedFix": "建议修复："
+  },
+  "healthCheck": {
+    "title": "健康检查",
+    "description": "基于规则分析 Pod、Service、卷、Ingress、自动扩缩器和 Node，并为每项发现提供修复建议。任何数据都不会离开集群。",
+    "analyzing": "正在分析…",
+    "runAgain": "重新运行",
+    "allNamespaces": "所有 Namespace",
+    "allNamespacesLower": "所有 Namespace",
+    "overall": "总体 · {{scope}}",
+    "countAria": "{{label}}：{{n}} 项发现。切换筛选。",
+    "severities": {
+      "critical": "严重",
+      "warning": "警告",
+      "info": "信息"
+    },
+    "analyzerErrors": "部分分析器无法运行，因此此报告可能不完整：{{errors}}",
+    "noProblems": "未发现问题。",
+    "noFindingsAtSeverity": "此严重程度下没有发现。",
+    "checkedBy": "由 {{n}} 个分析器检查（{{list}}）· {{time}}"
+  },
+  "notifications": {
+    "title": "通知",
+    "bellUnread": "通知，{{n}} 条未读",
+    "unread": "· {{n}} 条未读",
+    "markAllRead": "全部标为已读",
+    "recent": "最近通知",
+    "empty": "您已查看所有通知。",
+    "markRead": "标为已读",
+    "dismissAria": "忽略 {{object}} 上的 {{reason}}",
+    "dismiss": "忽略",
+    "viewAll": "查看所有告警"
+  },
+  "ops": {
+    "title": "运维",
+    "description": "Helm、GitOps、代理、身份、审计、访问控制和成本。",
+    "tabs": {
+      "helm": "Helm",
+      "gitops": "GitOps",
+      "agents": "代理",
+      "identity": "身份",
+      "audit": "审计",
+      "access": "访问控制",
+      "webhooks": "Webhook",
+      "cost": "成本"
+    },
+    "results": "结果",
+    "noneFound": "未找到。",
+    "helm": {
+      "rev": "修订 {{n}}",
+      "revPlaceholder": "修订",
+      "rollback": "回滚",
+      "uninstall": "卸载",
+      "view": "Helm 视图",
+      "releases": "Release",
+      "catalog": "目录",
+      "installChart": "安装 Chart",
+      "empty": "没有 Helm Release。",
+      "columns": {
+        "release": "Release",
+        "chart": "Chart",
+        "revision": "修订版本"
+      }
+    },
+    "gitops": {
+      "newApplication": "新建应用",
+      "empty": "没有 GitOps 应用。",
+      "columns": {
+        "application": "应用"
+      },
+      "sync": "同步",
+      "syncAria": "同步 {{name}}",
+      "deleteAria": "删除 {{name}}",
+      "editAria": "编辑 {{name}}"
+    },
+    "agents": {
+      "approve": "批准提议",
+      "deny": "拒绝提议",
+      "autonomy": "自主级别：{{value}}",
+      "risk": "风险：{{value}}",
+      "approval": "审批：{{value}}",
+      "empty": "没有代理运行记录。"
+    },
+    "identity": {
+      "planes": "身份平面",
+      "empty": "没有身份平面。",
+      "columns": {
+        "plane": "平面",
+        "hostname": "主机名"
+      },
+      "adminCredentials": "管理员凭据",
+      "adminSecret": "{{namespace}} 中的 Secret {{name}}"
+    },
+    "audit": {
+      "searchPlaceholder": "搜索操作、目标、详情或用户",
+      "exportCsv": "导出 CSV",
+      "exportJson": "导出 JSON",
+      "noMatches": "没有匹配的审计记录。",
+      "empty": "尚未记录任何审计条目。",
+      "columns": {
+        "action": "操作",
+        "detail": "详情",
+        "user": "用户"
+      }
+    },
+    "rbac": {
+      "columns": {
+        "rules": "规则",
+        "subjects": "主体"
+      },
+      "rulesCount": "{{n}} 条规则",
+      "subjectsCount": "{{n}} 个主体",
+      "clusterRoles": "集群角色",
+      "clusterRoleBindings": "集群角色绑定",
+      "roles": "角色",
+      "roleBindings": "角色绑定",
+      "newRole": "新建角色",
+      "newBinding": "新建绑定",
+      "views": {
+        "roles": "角色与绑定",
+        "subjects": "按主体",
+        "whoCan": "谁可以…"
+      },
+      "accessView": "访问视图"
+    },
+    "webhooks": {
+      "validating": "验证 Webhook",
+      "mutating": "变更 Webhook",
+      "columns": {
+        "webhook": "Webhook",
+        "rules": "规则",
+        "failurePolicy": "失败策略"
+      }
+    },
+    "cost": {
+      "totalMonthly": "每月总成本",
+      "perCore": "/核",
+      "cpuRate": "CPU 费率",
+      "memoryRate": "内存费率",
+      "byNamespace": "按 Namespace",
+      "noNamespaceData": "没有 Namespace 成本数据。",
+      "byWorkload": "按工作负载",
+      "noWorkloadData": "没有工作负载成本数据。",
+      "columns": {
+        "monthlyCost": "月成本",
+        "workload": "工作负载",
+        "whereItGoes": "成本去向"
+      },
+      "cores": "{{n}} 核",
+      "totalMonthlyActual": "每月总成本（实际）",
+      "sourceActual": "实际成本 · OpenCost",
+      "sourceEstimate": "根据请求量估算",
+      "window": "成本时间窗口",
+      "last7d": "最近 7 天",
+      "last14d": "最近 14 天",
+      "last30d": "最近 30 天",
+      "idle": "闲置（已分配但未使用）"
+    }
+  },
+  "rbac": {
+    "denied": "RBAC 查看器会列出所有主体的权限，因此需要 operator 或 admin 角色，且账户不能仅限于部分 Namespace。",
+    "loadFailed": "无法加载 RBAC 数据。",
+    "noRules": "无规则（引用的角色为空或不存在）。",
+    "rules": "规则",
+    "columns": {
+      "apiGroups": "API 组",
+      "resources": "资源",
+      "verbs": "动词",
+      "subject": "主体",
+      "bindings": "绑定",
+      "reach": "覆盖范围",
+      "scope": "作用域",
+      "via": "来源"
+    },
+    "names": "名称：{{names}}",
+    "grantsIn": "在 <code>{{namespace}}</code> 中授予 <code>{{role}}</code>",
+    "grantsEverywhere": "在所有 Namespace 中授予 <code>{{role}}</code>",
+    "viaGroup": "· 通过隐式组 <code>{{group}}</code>",
+    "roleMissing": "角色缺失",
+    "clusterAdminWarning": "此主体拥有等同于 cluster-admin 的权限（对所有资源的所有动词）。",
+    "clusterWideCount": "集群范围（{{n}}）",
+    "noClusterBindings": "没有 ClusterRoleBinding 关联到此主体。",
+    "namespacedCount": "Namespace 范围（{{n}}）",
+    "noRoleBindings": "没有 RoleBinding 关联到此主体。",
+    "searchSubjects": "搜索主体",
+    "searchPlaceholder": "搜索用户、组和服务账户",
+    "subjectKind": "主体类型",
+    "kinds": {
+      "all": "所有类型",
+      "users": "用户",
+      "groups": "组",
+      "serviceAccounts": "服务账户"
+    },
+    "noSubjects": "没有匹配的主体。",
+    "subjects": "主体",
+    "viewPermissions": "查看 {{kind}} {{name}} 的权限",
+    "clusterWide": "集群范围",
+    "namespaced": "Namespace 范围",
+    "noBindings": "无绑定",
+    "selectSubject": "选择一个主体以查看其有效权限。",
+    "who": {
+      "verb": "动词",
+      "resource": "资源",
+      "resourcePlaceholder": "pods, pods/exec, secrets…",
+      "namespace": "Namespace（可选）",
+      "namespacePlaceholder": "所有 Namespace",
+      "name": "对象名称（可选）",
+      "namePlaceholder": "匹配限定于指定对象的规则",
+      "checking": "正在检查…",
+      "run": "谁可以？",
+      "titleIn": "谁可以在 <code>{{namespace}}</code> 中对 <code>{{resource}}</code> 执行 <code>{{verb}}</code>",
+      "titleAny": "谁可以对 <code>{{resource}}</code> 执行 <code>{{verb}}</code>（任意 Namespace）",
+      "grants": "{{n}} 项授权",
+      "none": "没有绑定授予此权限。",
+      "results": "“谁可以”结果",
+      "inNamespace": "Namespace {{namespace}}",
+      "truncated": "仅显示前 {{n}} 条结果。"
+    }
+  },
+  "security": {
+    "title": "安全",
+    "description": "此集群中运行的扫描器报告的漏洞、配置和策略问题。",
+    "allNamespaces": "所有 Namespace",
+    "noReports": "未找到扫描报告",
+    "unavailable": "不可用",
+    "stats": {
+      "critical": "严重漏洞",
+      "high": "高危漏洞",
+      "misconfig": "高危及以上配置错误",
+      "policyFail": "策略失败"
+    },
+    "reports_other": "{{count}} 份报告",
+    "workloads": "工作负载",
+    "withFindings": "{{n}} 个存在问题，按风险从高到低排列",
+    "noFindings": "此范围内没有发现问题。",
+    "workloadFindings": "工作负载问题",
+    "columns": {
+      "workload": "工作负载",
+      "vulns": "漏洞",
+      "misconfig": "配置错误",
+      "policy": "策略"
+    },
+    "showFindings": "显示 {{kind}} {{name}} 的问题",
+    "truncated": "结果因体积过大已被截断。",
+    "countsNone": "{{label}}：无",
+    "countsList": "{{label}}：{{list}}",
+    "sevCount": {
+      "critical": "{{n}} 个严重",
+      "high": "{{n}} 个高危",
+      "medium": "{{n}} 个中危",
+      "low": "{{n}} 个低危",
+      "unknown": "{{n}} 个未知"
+    },
+    "sevPill": {
+      "critical": "{{n}} 严重",
+      "high": "{{n}} 高",
+      "medium": "{{n}} 中",
+      "low": "{{n}} 低",
+      "unknown": "{{n}} 未知"
+    },
+    "policyCount": {
+      "fail": "{{n}} 失败",
+      "warn": "{{n}} 警告",
+      "error": "{{n}} 错误",
+      "skip": "{{n}} 跳过",
+      "pass": "{{n}} 通过"
+    },
+    "detail": {
+      "reportType": "报告类型",
+      "tabs": {
+        "vulns": "漏洞",
+        "config": "配置错误",
+        "policy": "策略"
+      },
+      "noVulns": "未报告漏洞。",
+      "columns": {
+        "cve": "CVE",
+        "severity": "严重程度",
+        "package": "软件包",
+        "installed": "已安装",
+        "fixedIn": "修复版本",
+        "check": "检查项",
+        "policyRule": "策略 / 规则",
+        "result": "结果"
+      },
+      "noFix": "暂无修复",
+      "noMisconfig": "没有失败的配置检查。",
+      "noPolicyFails": "没有失败的策略结果。",
+      "noPolicyFailsPassing": "没有失败的策略结果（{{n}} 项通过）。",
+      "policyResults": "策略结果",
+      "truncated": "部分列表已被截断；完整报告请使用扫描器自带的工具查看。"
+    }
+  },
+  "severity": {
+    "critical": "严重",
+    "warning": "警告",
+    "info": "信息",
+    "source": {
+      "event": "事件",
+      "audit": "审计",
+      "alert": "告警",
+      "rollout": "发布"
+    },
+    "status": {
+      "critical": "严重",
+      "warning": "警告",
+      "healthy": "健康"
+    }
+  },
+  "atlas": {
+    "title": "Atlas",
+    "description": "存储控制平面 — 通过统一 API 管理 Ceph、NFS 和 ZFS。",
+    "notConnected": "Atlas 未连接",
+    "configureGateway": "请配置 Atlas 网关 URL。",
+    "openSettings": "打开设置",
+    "console": "控制台",
+    "createVolume": "创建卷",
+    "metrics": {
+      "raw": "原始容量",
+      "used": "已用",
+      "available": "可用"
+    },
+    "backends": "后端",
+    "noBackends": "尚未注册存储后端。",
+    "pools": "存储池",
+    "noPools": "尚未发现存储池。",
+    "volumes": "卷",
+    "noVolumes": "尚未通过 Atlas 创建卷。",
+    "buckets": "存储桶",
+    "noBuckets": "尚未创建对象存储桶。",
+    "policies": "策略",
+    "noPolicies": "尚未配置意图策略。"
+  },
+  "autoscaling": {
+    "title": "自动扩缩容",
+    "description": "所有 Namespace 中的水平、垂直和事件驱动自动扩缩器。",
+    "tabs": {
+      "hpa": "水平",
+      "vpa": "垂直（VPA）",
+      "keda": "事件驱动（KEDA）"
+    },
+    "state": {
+      "notScaling": "未扩缩",
+      "atLimit": "已达上限",
+      "scalingTo": "正在扩缩至 {{replicas}}",
+      "stable": "稳定"
+    },
+    "createAutoscaler": "创建自动扩缩器",
+    "empty": "未配置 HorizontalPodAutoscaler。",
+    "region": "自动扩缩器",
+    "columns": {
+      "minMax": "最小 – 最大",
+      "current": "当前",
+      "metrics": "指标（当前 / 目标）",
+      "state": "状态"
+    },
+    "deleteAria": "删除自动扩缩器 {{name}}"
+  },
+  "autoscalingPanels": {
+    "vpa": {
+      "notInstalled": "此集群未安装 Vertical Pod Autoscaler。",
+      "notInstalledHint": "安装 VPA recommender 即可在此查看每个容器的 CPU 和内存建议。Axiom 只读取这些建议，从不修改 requests。",
+      "empty": "没有 VerticalPodAutoscaler。",
+      "region": "垂直 Pod 自动扩缩器",
+      "columns": {
+        "mode": "模式",
+        "container": "容器",
+        "cpu": "CPU（下限 · 目标 · 上限）",
+        "memory": "内存（下限 · 目标 · 上限）"
+      },
+      "new": "新建 VPA",
+      "deleteAria": "删除 VPA {{name}}",
+      "editAria": "编辑 VPA {{name}}"
+    },
+    "keda": {
+      "notInstalled": "此集群未安装 KEDA。",
+      "notInstalledHint": "安装 KEDA 后，可根据队列深度、cron 计划、HTTP 负载等事件源扩缩工作负载。其 ScaledObject 将在此列出。",
+      "empty": "没有 ScaledObject。",
+      "region": "KEDA ScaledObject",
+      "columns": {
+        "triggers": "触发器",
+        "state": "状态"
+      },
+      "state": {
+        "fallback": "回退",
+        "active": "活跃",
+        "idle": "空闲",
+        "notReady": "未就绪"
+      },
+      "new": "新建 ScaledObject",
+      "deleteAria": "删除 ScaledObject {{name}}",
+      "editAria": "编辑 ScaledObject {{name}}"
+    }
+  },
+  "backups": {
+    "title": "备份",
+    "description": "VolumeSnapshot 和 Velero 集群备份。",
+    "restore": "恢复",
+    "veleroBackup": "Velero 备份",
+    "createSnapshot": "创建快照",
+    "snapshots": {
+      "title": "卷快照",
+      "empty": "没有卷快照。"
+    },
+    "veleroBackups": {
+      "title": "Velero 备份",
+      "empty": "没有 Velero 备份。"
+    },
+    "veleroSchedules": {
+      "title": "Velero 计划",
+      "empty": "没有 Velero 计划。"
+    },
+    "newSchedule": "新建计划",
+    "columns": {
+      "namespaces": "Namespace",
+      "phase": "阶段",
+      "schedule": "计划",
+      "lastBackup": "上次备份"
+    }
+  },
+  "costPanels": {
+    "budgetState": {
+      "ok": "正常",
+      "warning": "接近预算",
+      "over": "超出预算"
+    },
+    "budgets": "预算",
+    "addBudget": "添加预算",
+    "noBudgets": "尚无预算。为每个 Namespace 设置预算，当其估算成本接近上限时会收到提醒。",
+    "budgetOf": "{{current}} / {{budget}} · {{percent}}%",
+    "editBudgetAria": "编辑 {{namespace}} 的预算",
+    "removeBudgetAria": "移除 {{namespace}} 的预算",
+    "budgetBarAria": "{{namespace}} 已使用其预算的 {{percent}}%",
+    "totals": "已设预算的 Namespace 估算成本合计 {{current}}，预算总额 {{budget}}。",
+    "withoutBudget": "未设预算",
+    "verdict": {
+      "over": "资源过度配置",
+      "under": "资源配置不足",
+      "ok": "配置合理"
+    },
+    "confidence": {
+      "high": "高置信度",
+      "medium": "中置信度",
+      "low": "低置信度"
+    },
+    "rightsizing": "资源优化",
+    "showFilter": "显示",
+    "needsAttention": "需要关注",
+    "allContainers": "所有容器",
+    "usageWindow": "用量时间窗口",
+    "lastWindow": "最近 {{window}}",
+    "noUsageData": "无用量数据",
+    "source": "来源：{{source}}",
+    "summary": {
+      "savings": "每月可节省",
+      "over": "资源过度配置",
+      "under": "存在风险（资源配置不足）"
+    },
+    "connectPrometheus": "连接 Prometheus（AXIOM_PROMETHEUS_URL）或 metrics-server 以获取建议。",
+    "nothingNeedsAttention": "没有需要关注的项。",
+    "recommendationsRegion": "资源优化建议",
+    "columns": {
+      "workload": "工作负载",
+      "cpu": "CPU（request → 建议值）",
+      "memory": "内存（request → 建议值）",
+      "verdict": "结论",
+      "monthlyChange": "每月变化"
+    },
+    "used": "（已用 {{value}}）",
+    "applyEllipsis": "应用…",
+    "footnote": "建议值在观测用量基础上预留了余量。Axiom 从不自行修改 requests：“应用”会先显示确切的变更，仅在您确认后才执行。",
+    "totalsActual": "已设预算的 Namespace 实际成本合计 {{current}}，预算总额 {{budget}}。",
+    "basedOnOpenCost": "基于 OpenCost",
+    "basedOnRequests": "基于 requests"
+  },
+  "helmCatalog": {
+    "repositories": "仓库",
+    "noRepos": "尚无 Chart 仓库。只有在管理员添加仓库后，Axiom 才会拉取它。",
+    "chartCount": "{{n}} 个 Chart",
+    "removeRepoAria": "移除仓库 {{name}}",
+    "repoName": "仓库名称",
+    "repoNamePlaceholder": "名称",
+    "repoUrl": "仓库 URL",
+    "adding": "正在添加…",
+    "suggested": "推荐：",
+    "noDescription": "无描述。",
+    "searchAria": "搜索 Chart",
+    "searchPlaceholder": "按名称、描述或关键词搜索 Chart",
+    "repository": "仓库",
+    "allRepositories": "所有仓库",
+    "repoErrors": "部分仓库无法读取：{{list}}",
+    "noMatch": "没有匹配的 Chart。",
+    "appVersion": "应用 {{version}}",
+    "deprecated": "已弃用",
+    "showing": "显示 {{shown}} / {{total}} 个 Chart。",
+    "oci": {
+      "chartNames": "Chart 名称",
+      "chartNamesPlaceholder": "此镜像仓库中的 Chart 名称，用逗号分隔（例如 nginx, redis）",
+      "kindLabel": "仓库类型",
+      "index": "Chart 仓库",
+      "registry": "OCI 镜像仓库",
+      "login": "镜像仓库登录",
+      "noLogin": "无（公共镜像仓库）",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "私有",
+    "privateTitle": "使用登录凭据 {{name}}"
+  },
+  "storage": {
+    "title": "存储",
+    "description": "所有 Namespace 中的 StorageClass 和 PersistentVolumeClaim。",
+    "searchPlaceholder": "搜索声明名称",
+    "claimUnit_other": "个声明",
+    "claimsRegion": "持久卷声明",
+    "columns": {
+      "claim": "声明",
+      "class": "类",
+      "size": "大小",
+      "volume": "卷",
+      "access": "访问模式"
+    },
+    "empty": "没有符合当前筛选条件的声明。",
+    "rawResources": "原始资源",
+    "noStorageClasses": "未找到 StorageClass。",
+    "noPersistentVolumes": "未找到 PersistentVolume。"
+  },
+  "vmDetail": {
+    "console": {
+      "unavailable": "控制台信息不可用。",
+      "ready": "VM 已可访问控制台",
+      "notReady": "VM 未就绪",
+      "runLocally": "在本地运行（需要 kubeconfig）",
+      "subresource": "Kubernetes API 子资源"
+    },
+    "backToList": "虚拟机",
+    "notFound": "未找到 VM <code>{{name}}</code>。",
+    "eyebrow": "虚拟机",
+    "actions": {
+      "stop": "停止",
+      "start": "启动",
+      "migrate": "迁移",
+      "console": "控制台"
+    },
+    "allVms": "所有 VM",
+    "placement": "调度位置",
+    "running": "运行中",
+    "consoleSuffix": "· 控制台"
+  },
+  "vms": {
+    "title": "虚拟机",
+    "description": "由 KubeVirt 管理的 VM。可启动、停止、热迁移并打开控制台。",
+    "vmCount": "{{n}} 个 VM",
+    "createVm": "创建 VM",
+    "actions": {
+      "stop": "停止",
+      "start": "启动",
+      "migrate": "迁移",
+      "console": "控制台"
+    },
+    "console": {
+      "unavailable": "控制台信息不可用。",
+      "ready": "VM 已可访问控制台",
+      "notReady": "VM 未就绪",
+      "hint": "在本地使用 virtctl，或将 VNC 客户端连接到下方的代理 WebSocket 路径。",
+      "wsProxy": "浏览器 WebSocket 代理",
+      "runLocally": "在本地运行（需要 kubeconfig）",
+      "subresource": "Kubernetes API 子资源"
+    },
+    "protection": {
+      "new": "新建",
+      "snapshots": {
+        "title": "快照",
+        "new": "新建快照",
+        "empty": "尚无 VM 快照。"
+      },
+      "clones": {
+        "title": "克隆",
+        "new": "新建克隆",
+        "empty": "尚无 VM 克隆。"
+      },
+      "exports": {
+        "title": "导出",
+        "new": "新建导出",
+        "empty": "尚无 VM 导出。"
+      },
+      "restores": {
+        "title": "恢复",
+        "new": "新建恢复",
+        "empty": "尚无 VM 恢复。"
+      },
+      "fields": {
+        "vmName": "VM 名称",
+        "sourceVm": "源 VM",
+        "targetVmName": "目标 VM 名称",
+        "snapshotName": "快照名称"
+      }
+    }
+  },
+  "debugContainer": {
+    "title": "调试容器",
+    "description": "向此运行中的 Pod 添加一个带调试工具的临时容器，共享其网络（如选择了目标，还会共享该容器的进程）。在 Pod 被替换前无法移除。此操作将以 <code>pod.debug</code> 记入审计。",
+    "targetLabel": "目标容器",
+    "noTarget": "无目标进程命名空间",
+    "targetOption": "目标 {{container}}",
+    "adding": "正在添加…",
+    "add": "添加调试容器",
+    "resultTarget": "目标 {{target}}"
+  },
+  "podTerminal": {
+    "status": {
+      "idle": "空闲",
+      "connecting": "连接中",
+      "connected": "已连接",
+      "closed": "已关闭",
+      "error": "错误"
+    },
+    "connectingTo": "正在连接到 {{target}}（{{shell}}）…",
+    "ticketFailed": "无法启动终端会话：{{error}}",
+    "wsFailed": "无法打开终端 WebSocket。",
+    "wsFailedHint": "如果此站点使用自签名证书，请先通过 HTTPS 打开页面并接受证书，然后重试“连接”。",
+    "closedEarly": "会话开始前连接已关闭。",
+    "sessionEnded": "会话已结束。",
+    "distrolessHint": "如果缺少 shell 程序，此镜像可能是 distroless 镜像 — 请尝试 redis/nginx/busybox Pod，或使用存在的程序执行一次性命令。",
+    "container": "容器",
+    "disconnect": "断开连接",
+    "connecting": "正在连接…",
+    "connect": "连接",
+    "axiomDistroless": "Axiom 控制台镜像是 distroless 镜像 — 不包含 <code>/bin/sh</code>。请打开其他 Pod（例如 redis/nginx）以使用交互式 shell。"
+  },
+  "nodeShell": {
+    "title": "节点 shell",
+    "checking": "正在检查…",
+    "disabled": "此服务器已禁用节点 shell。管理员可在 Axiom Deployment 上设置 <code>AXIOM_ENABLE_NODE_SHELL=true</code> 以启用。仅限管理员使用，且每个会话都会被审计。",
+    "warning": "这将通过 <code>{{namespace}}</code> Namespace 中一个短期特权 Pod 打开<b>节点上的 root shell</b>（仅限管理员，以 <code>node.shell</code> 记入审计）。断开连接或 {{minutes}} 分钟后，该 Pod 将被删除。",
+    "needsLive": "交互式 shell 需要实时的 Kubernetes 连接。",
+    "open": "在 {{node}} 上打开 root shell"
+  },
+  "diffReview": {
+    "willBeCreated": "{{id}} — 将被创建",
+    "willBeChanged": "{{id}} — 将被更改",
+    "upToDate": "{{id}} — 无变更，已是最新",
+    "unavailable": "此服务器不支持变更预览。您仍可应用该清单。",
+    "rejected": "清单被拒绝。",
+    "changesTo": "{{kind}} {{name}} 的变更",
+    "changes": "变更",
+    "noChanges": "无变更",
+    "unchangedLines_other": "… {{count}} 行未更改",
+    "srAdded": "新增：",
+    "srRemoved": "删除："
+  },
+  "jobDetail": {
+    "backToJobs": "Job",
+    "notFound": "未找到 Job <code>{{name}}</code>。",
+    "allJobs": "所有 Job",
+    "summary": "摘要",
+    "completions": "完成数",
+    "duration": "耗时",
+    "ownerCronJob": "所属 CronJob",
+    "pods": "Pod（{{n}}）",
+    "noPods": "未找到此 Job 的 Pod。"
+  },
+  "cronJobDetail": {
+    "backToJobs": "Job",
+    "notFound": "未找到 CronJob <code>{{name}}</code>。",
+    "triggering": "正在触发…",
+    "runNow": "立即运行",
+    "allJobs": "所有 Job",
+    "schedule": "计划",
+    "cron": "Cron",
+    "suspended": "已暂停",
+    "activeJobs": "活跃 Job",
+    "lastSchedule": "上次调度",
+    "recentJobs": "最近的 Job（{{n}}）",
+    "noJobs": "此 CronJob 尚未产生 Job。",
+    "completions": "完成数"
+  },
+  "jobs": {
+    "title": "Job 与 CronJob",
+    "description": "所有 Namespace 中的定时和一次性批处理工作负载。",
+    "searchPlaceholder": "搜索 Job 名称",
+    "cronJobs": {
+      "title": "CronJob",
+      "noMatches": "没有符合当前筛选条件的 CronJob。",
+      "empty": "未配置 CronJob。"
+    },
+    "jobs": {
+      "title": "Job",
+      "noMatches": "没有符合当前筛选条件的 Job。",
+      "empty": "未找到 Job。"
+    },
+    "columns": {
+      "schedule": "计划",
+      "lastRun": "上次运行",
+      "completions": "完成数",
+      "duration": "耗时"
+    },
+    "runNow": "立即运行",
+    "scheduleEnabledFor": "已为 {{name}} 启用计划",
+    "namespaceFromCronJob": "{{namespace}} · 来自 {{cronJob}}"
+  },
+  "logs": {
+    "streamFailed": "日志流失败。",
+    "titleWorkload": "工作负载日志",
+    "titlePod": "Pod 日志",
+    "descriptionWorkload": "将工作负载的所有 Pod 和容器合并为一个日志流，并添加 [pod/container] 前缀。",
+    "descriptionPod": "通过分块 HTTP 实时流式传输的终端。",
+    "source": "日志来源",
+    "modePod": "Pod",
+    "modeWorkload": "工作负载",
+    "pod": "Pod",
+    "choosePod": "选择 Pod",
+    "container": "容器",
+    "workload": "工作负载",
+    "noWorkloads": "没有工作负载",
+    "stop": "停止",
+    "load": "加载",
+    "follow": "跟踪",
+    "filterLabel": "筛选行（正则表达式）",
+    "filterPlaceholder": "筛选行（正则，不区分大小写）",
+    "timestamps": "时间戳",
+    "previousContainer": "上一个容器",
+    "invalidRegex": "无效的正则表达式：{{error}}",
+    "lineCount": "{{lines}} 行",
+    "hintFollow": "按 <kbd>跟踪</kbd> 以流式查看 <target>{{target}}</target>。",
+    "hintLoad": "按 <kbd>加载</kbd> 以读取 <target>{{target}}</target> 的上一次运行。",
+    "aTarget": "目标"
+  },
+  "podDetail": {
+    "exec": {
+      "running": "正在运行…",
+      "run": "运行",
+      "outputPlaceholder": "输出将显示在此处。"
+    },
+    "container": {
+      "cpu": "CPU 请求/限制",
+      "memory": "内存 请求/限制",
+      "liveness": "存活探针",
+      "readiness": "就绪探针",
+      "environment": "环境变量",
+      "mounts": "挂载"
+    },
+    "metrics": {
+      "unavailable": "指标不可用 — 需要集群中安装 metrics-server。",
+      "window": "从 metrics.k8s.io 采样的实时滚动窗口 — 并非 Prometheus 历史数据。",
+      "perContainer": "按容器"
+    },
+    "shell": "Shell {{id}}",
+    "newShell": "新建 shell",
+    "notFound": "未找到 Pod {{namespace}}/{{name}}。",
+    "owner": "所有者：",
+    "logs": "日志",
+    "evict": "驱逐",
+    "notScheduled": "未调度",
+    "stats": {
+      "cpuLimit": "CPU 限制",
+      "memoryLimit": "内存限制"
+    },
+    "tabs": {
+      "details": "详情",
+      "terminal": "终端",
+      "metrics": "指标",
+      "events": "事件（{{n}}）"
+    },
+    "spec": {
+      "title": "Pod 规格",
+      "serviceAccount": "服务账户",
+      "restartPolicy": "重启策略"
+    },
+    "containers": "容器",
+    "initContainers": "初始化容器",
+    "volumes": "卷",
+    "conditions": "状况",
+    "nodeSelector": "节点选择器",
+    "tolerations": "容忍度",
+    "ports": "端口",
+    "copyPortForward": "复制 kubectl port-forward",
+    "interactiveUnavailable": "交互式终端需要实时的 Kubernetes 连接。将改为运行一次性命令。",
+    "manifestUnavailable": "此模式下清单不可用。",
+    "noEvents": "此 Pod 没有事件。",
+    "noLabels": "无标签。"
+  },
+  "pods": {
+    "title": "Pod",
+    "description": "所有 Namespace 中正在运行的 Pod。",
+    "evicting": "正在驱逐…",
+    "evict": "驱逐",
+    "exec": "执行",
+    "searchPlaceholder": "搜索 Pod 名称",
+    "selectAll": "选择所有 Pod",
+    "selectOne": "选择 Pod {{name}}",
+    "columns": {
+      "ip": "IP"
+    },
+    "noMatches": "没有符合当前筛选条件的 Pod。"
+  },
+  "workloadDetail": {
+    "stats": {
+      "desired": "期望",
+      "available": "可用",
+      "pods": "Pod"
+    },
+    "tabs": {
+      "overview": "概览",
+      "pods": "Pod（{{n}}）",
+      "events": "事件（{{n}}）",
+      "graph": "关系图",
+      "changes": "变更内容"
+    },
+    "noLabels": "无标签。",
+    "noAnnotations": "无注解。",
+    "containerPorts": "容器端口",
+    "noPods": "未找到此工作负载的 Pod。",
+    "noEvents": "没有相关事件。"
+  },
+  "workloads": {
+    "title": "工作负载",
+    "description": "所有 Namespace 中的 Deployment、StatefulSet、DaemonSet、Pod 和 CronJob。",
+    "actionsFor": "{{name}} 的操作",
+    "menu": {
+      "start": "启动",
+      "stop": "停止",
+      "restart": "重启",
+      "scale": "扩缩…",
+      "rollout": "发布…",
+      "seal": "封存",
+      "unseal": "解除封存"
+    },
+    "runWorkload": "运行工作负载",
+    "searchPlaceholder": "搜索名称或镜像",
+    "filterByKind": "按类型筛选",
+    "allKinds": "所有类型",
+    "selectAll": "选择所有工作负载",
+    "selectOne": "选择工作负载 {{name}}",
+    "columns": {
+      "desired": "期望",
+      "available": "可用"
+    },
+    "empty": {
+      "title": "尚无工作负载",
+      "description": "Deployment、StatefulSet、DaemonSet 和 CronJob 启动后将显示在此处。",
+      "action": "运行您的第一个工作负载"
+    },
+    "noMatches": "没有符合当前筛选条件的工作负载。"
+  }
+}

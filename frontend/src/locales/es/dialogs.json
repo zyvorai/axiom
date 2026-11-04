@@ -479,5 +479,33 @@
     "knownHosts": "known_hosts (opcional)",
     "save": "Guardar credenciales",
     "button": "Credenciales"
+  },
+  "registryLogins": {
+    "title": "Credenciales de registro",
+    "description": "Para registros OCI de charts privados. Una credencial solo se envía al registro al que corresponde y no se vuelve a mostrar una vez guardada.",
+    "region": "Credenciales de registro",
+    "empty": "Todavía no hay credenciales de registro.",
+    "usedBy": " · usada por {{list}}",
+    "deleteAria": "Eliminar la credencial {{name}}",
+    "addTitle": "Añadir una credencial",
+    "writeOnly": "Solo escritura: para cambiar una contraseña, elimine la credencial y vuelva a añadirla.",
+    "registry": "Host del registro",
+    "username": "Usuario",
+    "password": "Contraseña o token",
+    "save": "Guardar credencial",
+    "manage": "Credenciales de registro",
+    "confirmDelete": {
+      "title": "¿Eliminar la credencial {{name}}?",
+      "description": "Antes hay que quitar o cambiar los repositorios que la usan."
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}. Solo cambian los campos siguientes; el resto del objeto no se modifica.",
+    "notEditable": "Este objeto usa ajustes que el formulario no puede representar, por lo que aquí es de solo lectura:",
+    "region": "Ajustes",
+    "pollingInterval": "Sondeo (s)",
+    "cooldownPeriod": "Enfriamiento (s)",
+    "triggerLegend": "Disparador {{n}} · {{type}}",
+    "noCredentials": "Sin credenciales"
   }
 }

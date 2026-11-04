@@ -479,5 +479,33 @@
     "knownHosts": "known_hosts (optional)",
     "save": "Save credentials",
     "button": "Credentials"
+  },
+  "registryLogins": {
+    "title": "Registry logins",
+    "description": "For private OCI chart registries. A login is sent only to the registry it is for, and never shown again once saved.",
+    "region": "Registry logins",
+    "empty": "No registry logins yet.",
+    "usedBy": " · used by {{list}}",
+    "deleteAria": "Delete login {{name}}",
+    "addTitle": "Add a login",
+    "writeOnly": "Write-only: to change a password, delete the login and add it again.",
+    "registry": "Registry host",
+    "username": "Username",
+    "password": "Password or token",
+    "save": "Save login",
+    "manage": "Registry logins",
+    "confirmDelete": {
+      "title": "Delete the login {{name}}?",
+      "description": "Repositories that use it must be removed or changed first."
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}. Only the fields below change; everything else on the object is left alone.",
+    "notEditable": "This object uses settings the form cannot represent, so it is read-only here:",
+    "region": "Settings",
+    "pollingInterval": "Polling (s)",
+    "cooldownPeriod": "Cooldown (s)",
+    "triggerLegend": "Trigger {{n}} · {{type}}",
+    "noCredentials": "No credentials"
   }
 }

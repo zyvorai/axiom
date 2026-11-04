@@ -1,0 +1,137 @@
+{
+  "groups": {
+    "Core": "コア",
+    "Cluster": "クラスター",
+    "Network": "ネットワーク",
+    "Storage": "ストレージ",
+    "Config": "構成",
+    "Observe": "監視",
+    "Admin": "管理",
+    "Extensions": "拡張機能"
+  },
+  "items": {
+    "getting-started": "はじめに",
+    "overview": "概要",
+    "fleet": "フリート",
+    "nodes": "Nodes",
+    "workloads": "ワークロード",
+    "jobs": "Jobs と CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "プラットフォームインテント",
+    "networking": "ネットワーク · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "仮想マシン",
+    "storage": "ストレージ",
+    "atlas": "Atlas",
+    "backups": "バックアップ",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "クォータと制限",
+    "autoscaling": "オートスケーリング",
+    "custom-resources": "カスタムリソース",
+    "logs": "Pod ログ",
+    "events": "イベント",
+    "timeline": "タイムライン",
+    "health-check": "ヘルスチェック",
+    "alerts": "アラート",
+    "ops": "運用",
+    "security": "セキュリティ",
+    "users": "ユーザー",
+    "settings": "設定"
+  },
+  "sidebar": {
+    "expand": "サイドバーを展開",
+    "collapse": "サイドバーを折りたたむ",
+    "collapseShort": "折りたたむ"
+  },
+  "topbar": {
+    "toggleSidebar": "サイドバーの切り替え",
+    "home": "Axiom ホーム",
+    "byZyvor": "by Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "全ページの Namespace スコープ",
+    "allNamespaces": "すべての Namespace",
+    "searchTitle": "検索 (⌘K)",
+    "search": "検索",
+    "connect": "接続",
+    "sampleMode": "サンプルデータモード",
+    "sampleModeHint": "KUBECONFIG をこのダッシュボードに向けると、実際のクラスターに切り替わります。",
+    "toggleTheme": "テーマの切り替え（現在: {{theme}}）",
+    "themeTitle": "テーマ: {{theme}}",
+    "clusterState": "{{name}}: {{state}}",
+    "clusterStateError": "{{name}}: {{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム",
+    "label": "テーマ"
+  },
+  "shell": {
+    "skipToContent": "コンテンツへスキップ"
+  },
+  "palette": {
+    "placeholder": "ページ、Pod、Service、Secret、VM、操作へ移動…",
+    "empty": "見つかりませんでした。",
+    "navigate": "移動",
+    "pods": "Pods",
+    "workloads": "ワークロード",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "仮想マシン",
+    "jobs": "Jobs",
+    "switchCluster": "クラスターを切り替え",
+    "actions": "操作",
+    "current": "現在",
+    "cron": "{{namespace}} · cron",
+    "nsPods_other": "{{count}} Pod",
+    "switchTheme": {
+      "light": "テーマをライトに切り替え",
+      "dark": "テーマをダークに切り替え",
+      "system": "テーマをシステムに切り替え"
+    },
+    "shortcuts": "キーボードショートカット",
+    "signOut": "サインアウト"
+  },
+  "shortcuts": {
+    "title": "キーボードショートカット",
+    "description": "フィールドに入力している間はショートカットが一時停止します。",
+    "then": "続けて",
+    "or": "または",
+    "groups": {
+      "General": "全般",
+      "Go to": "移動"
+    },
+    "items": {
+      "palette": "コマンドパレットを開く",
+      "search": "このページの検索ボックスにフォーカス",
+      "help": "キーボードショートカットを表示",
+      "escape": "ダイアログやメニューを閉じる",
+      "overview": "概要へ移動",
+      "pods": "Pods へ移動",
+      "workloads": "ワークロードへ移動",
+      "namespaces": "Namespaces へ移動",
+      "events": "イベントへ移動",
+      "logs": "ログへ移動"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "ローカル",
+    "accountSecurity": "アカウントのセキュリティ",
+    "signOut": "サインアウト",
+    "signedOut": "サインアウトしました",
+    "signedOutHint": "Axiom のセッションが終了しました。"
+  },
+  "breadcrumbs": {
+    "clusters": "クラスター"
+  },
+  "clusterSwitcher": {
+    "title": "設定でクラスターを開く",
+    "label": "クラスター"
+  }
+}

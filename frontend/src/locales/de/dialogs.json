@@ -479,5 +479,33 @@
     "knownHosts": "known_hosts (optional)",
     "save": "Zugangsdaten speichern",
     "button": "Zugangsdaten"
+  },
+  "registryLogins": {
+    "title": "Registry-Anmeldungen",
+    "description": "Für private OCI-Chart-Registries. Eine Anmeldung wird nur an die Registry gesendet, für die sie gilt, und nach dem Speichern nie wieder angezeigt.",
+    "region": "Registry-Anmeldungen",
+    "empty": "Noch keine Registry-Anmeldungen.",
+    "usedBy": " · verwendet von {{list}}",
+    "deleteAria": "Anmeldung {{name}} löschen",
+    "addTitle": "Anmeldung hinzufügen",
+    "writeOnly": "Nur schreibbar: Um ein Passwort zu ändern, löschen Sie die Anmeldung und fügen Sie sie erneut hinzu.",
+    "registry": "Registry-Host",
+    "username": "Benutzername",
+    "password": "Passwort oder Token",
+    "save": "Anmeldung speichern",
+    "manage": "Registry-Anmeldungen",
+    "confirmDelete": {
+      "title": "Anmeldung {{name}} löschen?",
+      "description": "Repositories, die sie verwenden, müssen zuerst entfernt oder geändert werden."
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}. Nur die folgenden Felder ändern sich; alles andere am Objekt bleibt unverändert.",
+    "notEditable": "Dieses Objekt verwendet Einstellungen, die das Formular nicht darstellen kann, daher ist es hier schreibgeschützt:",
+    "region": "Einstellungen",
+    "pollingInterval": "Abfrageintervall (s)",
+    "cooldownPeriod": "Abkühlzeit (s)",
+    "triggerLegend": "Trigger {{n}} · {{type}}",
+    "noCredentials": "Keine Zugangsdaten"
   }
 }

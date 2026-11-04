@@ -254,5 +254,14 @@
     "savedDescription": "Le secret est en écriture seule et ne peut plus être affiché.",
     "deleted": "{{name}} supprimé",
     "deleteFailed": "Échec de la suppression"
+  },
+  "registryLogins": {
+    "saved": "Identifiant {{name}} enregistré",
+    "savedHint": "Le mot de passe est en écriture seule et ne peut plus être affiché.",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "autoscalingEdit": {
+    "updated": "{{name}} mis à jour"
   }
 }

@@ -1,0 +1,262 @@
+{
+  "users": {
+    "created": "已创建用户 {{name}}",
+    "createFailed": "创建失败",
+    "updated": "已更新 {{name}}",
+    "updateFailed": "更新失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败",
+    "mfaReset": "已重置 {{name}} 的双因素",
+    "resetFailed": "重置失败",
+    "revoked": "{{name}} 已在所有设备上退出登录",
+    "failed": "失败"
+  },
+  "settings": {
+    "saveFailed": "保存失败",
+    "testFailed": "测试失败",
+    "oidcSaved": "OIDC 设置已保存",
+    "oidcReachable": "OIDC 可访问",
+    "oidcTestFailed": "OIDC 测试失败",
+    "atlasSaved": "Atlas 设置已保存",
+    "atlasReachable": "Atlas 可访问",
+    "atlasTestFailed": "Atlas 测试失败",
+    "postgresSaved": "Postgres 设置已保存",
+    "postgresReachable": "Postgres 可访问",
+    "postgresTestFailed": "Postgres 测试失败",
+    "probeSaved": "探针设置已保存",
+    "probeReachable": "探针可访问",
+    "probeTestFailed": "探针测试失败",
+    "notifySaved": "通知设置已保存",
+    "slackSent": "Slack 消息已发送",
+    "slackTestFailed": "Slack 测试失败",
+    "webhookDelivered": "Webhook 已送达",
+    "webhookTestFailed": "Webhook 测试失败",
+    "clusterRegistered": "已注册集群 {{name}}",
+    "registerFailed": "注册失败"
+  },
+  "aiSettings": {
+    "saved": "AI 助手设置已保存",
+    "saveFailed": "保存失败",
+    "reachable": "AI 端点可访问",
+    "aiTestFailed": "AI 测试失败",
+    "testFailed": "测试失败"
+  },
+  "configMaps": {
+    "created": "已创建 ConfigMap {{name}}",
+    "createFailed": "创建失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap 已更新",
+    "updateFailed": "更新失败"
+  },
+  "secrets": {
+    "created": "已创建 Secret {{name}}",
+    "createFailed": "创建失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "secretDetail": {
+    "revealFailed": "显示失败",
+    "updated": "Secret 已更新",
+    "updateFailed": "更新失败"
+  },
+  "pluginView": {
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "namespaces": {
+    "created": "已创建 Namespace {{name}}",
+    "createFailed": "创建失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "networking": {
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}：已请求封锁",
+    "uncordonRequested": "{{name}}：已请求解除封锁",
+    "drainRequested": "{{name}}：已请求排空",
+    "cordonFailed": "封锁失败",
+    "uncordonFailed": "解除封锁失败",
+    "drainFailed": "排空失败",
+    "taintAdded": "已为 {{name}} 添加 taint",
+    "addTaintFailed": "添加 taint 失败",
+    "taintRemoved": "已从 {{name}} 移除 taint",
+    "removeTaintFailed": "移除 taint 失败"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "已卸载 {{name}}",
+      "uninstallFailed": "卸载失败",
+      "rolledBack": "已回滚 {{name}}",
+      "rollbackFailed": "回滚失败",
+      "installStarted": "已开始安装 {{name}}",
+      "installFailed": "安装失败"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}：已请求同步",
+      "syncFailed": "同步失败"
+    },
+    "agents": {
+      "approved": "{{name}}：已批准",
+      "denied": "{{name}}：已拒绝",
+      "approveFailed": "批准失败",
+      "denyFailed": "拒绝失败"
+    },
+    "rbac": {
+      "roleCreated": "已创建 Role {{name}}",
+      "createRoleFailed": "创建 Role 失败",
+      "bindingCreated": "已创建 RoleBinding {{name}}",
+      "createBindingFailed": "创建 RoleBinding 失败",
+      "deleted": "已删除 {{name}}",
+      "deleteFailed": "删除失败"
+    }
+  },
+  "applyManifest": {
+    "applied": "已应用 {{kind}}",
+    "appliedNamed": "已应用 {{kind}} {{name}}"
+  },
+  "atlas": {
+    "volumeRequested": "已请求卷 {{name}}",
+    "volumeRequestedDescription": "配置在 Atlas 中作为异步任务运行。",
+    "createFailed": "创建卷失败"
+  },
+  "autoscaling": {
+    "created": "已为 {{name}} 创建 HPA",
+    "createFailed": "创建 HPA 失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "backups": {
+    "backupRequested": "已请求备份 {{name}}",
+    "createBackupFailed": "创建备份失败",
+    "restoreRequested": "已请求恢复 {{name}}",
+    "restoreFailed": "恢复失败",
+    "scheduleCreated": "已创建计划 {{name}}",
+    "createScheduleFailed": "创建计划失败",
+    "veleroRequested": "已请求 Velero 备份 {{name}}",
+    "veleroFailed": "Velero 备份失败"
+  },
+  "costPanels": {
+    "budgetSaved": "已保存 {{namespace}} 的预算",
+    "budgetSaveFailed": "无法保存预算",
+    "budgetRemoved": "已移除 {{namespace}} 的预算",
+    "removeFailed": "移除失败",
+    "requestsUpdated": "已更新 {{target}} 的 requests",
+    "requestsUpdatedDescription": "工作负载正在使用新值滚动更新。"
+  },
+  "gitops": {
+    "deleted": "已删除 {{name}}",
+    "created": "已创建 {{name}}"
+  },
+  "helmCatalog": {
+    "repoAdded": "已添加仓库 {{name}}",
+    "repoAddFailed": "无法添加仓库",
+    "repoRemoved": "已移除 {{name}}",
+    "removeFailed": "移除失败",
+    "installStarted": "已开始安装 {{name}}",
+    "installStartedDescription": "安装作为后台 Job 运行；Helm 完成后，release 将显示在 Releases 下。",
+    "installFailed": "安装失败"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}：已请求停止",
+    "stopFailed": "停止失败",
+    "startRequested": "{{name}}：已请求启动",
+    "startFailed": "启动失败",
+    "migrateRequested": "{{name}}：已请求迁移",
+    "migrateFailed": "迁移失败"
+  },
+  "vms": {
+    "stopRequested": "{{name}}：已请求停止",
+    "stopFailed": "停止失败",
+    "startRequested": "{{name}}：已请求启动",
+    "startFailed": "启动失败",
+    "migrateRequested": "{{name}}：已请求迁移",
+    "migrateFailed": "迁移失败",
+    "requested": "已请求",
+    "createFailed": "创建失败",
+    "created": "已创建虚拟机 {{name}}"
+  },
+  "debugContainer": {
+    "added": "已添加调试容器 {{container}}",
+    "addFailed": "无法添加调试容器"
+  },
+  "diffReview": {
+    "applyFailed": "应用失败",
+    "applied": "已应用 {{kind}}"
+  },
+  "cronJobDetail": {
+    "triggered": "已触发 {{name}}",
+    "triggerFailed": "触发失败"
+  },
+  "jobs": {
+    "triggered": "已触发 {{name}}",
+    "triggerFailed": "触发失败",
+    "suspended": "已暂停 {{name}}",
+    "resumed": "已恢复 {{name}}",
+    "updateFailed": "更新失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "podDetail": {
+    "copyFailed": "无法复制到剪贴板",
+    "evicted": "已驱逐 {{name}}",
+    "evictFailed": "驱逐失败",
+    "openPortFailed": "无法打开端口"
+  },
+  "pods": {
+    "evicted": "已驱逐 {{name}}",
+    "evictFailed": "驱逐失败",
+    "skippedNote_other": " （{{count}} 个所选 Pod 已不在列表中，已跳过）",
+    "bulkEvictFailed": "{{total}} 次驱逐中有 {{failed}} 次失败{{note}}",
+    "bulkEvicted_other": "已驱逐 {{count}} 个 Pod{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "已请求{{action}}",
+    "actionFailed": "{{action}}失败",
+    "workloadActionRequested": "{{name}}：已请求{{action}}",
+    "scaled": "{{name}} 已扩缩至 {{replicas}}",
+    "scaleFailed": "扩缩失败",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败",
+    "launched": "已启动 {{name}}",
+    "launchFailed": "启动失败",
+    "parseFailed": "解析失败",
+    "placed": "已根据意图放置工作负载",
+    "placeFailed": "放置失败",
+    "skippedNote_other": " （{{count}} 个所选项已不在列表中，已跳过）",
+    "bulkDeleteFailed": "{{total}} 次删除中有 {{failed}} 次失败{{note}}",
+    "bulkRestartFailed": "{{total}} 次重启中有 {{failed}} 次失败{{note}}",
+    "bulkDeleted_other": "已删除 {{count}} 个工作负载{{note}}",
+    "bulkRestarted_other": "已重启 {{count}} 个工作负载{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "已创建 {{name}}"
+  },
+  "gitopsEdit": {
+    "updated": "已更新 {{name}}"
+  },
+  "autoscalingPanels": {
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "gitopsCredentials": {
+    "saved": "已保存凭据 {{name}}",
+    "savedDescription": "该 Secret 为只写，无法再次显示。",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "registryLogins": {
+    "saved": "已保存登录信息 {{name}}",
+    "savedHint": "密码为只写，无法再次显示。",
+    "deleted": "已删除 {{name}}",
+    "deleteFailed": "删除失败"
+  },
+  "autoscalingEdit": {
+    "updated": "已更新 {{name}}"
+  }
+}

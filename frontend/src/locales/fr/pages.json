@@ -651,7 +651,9 @@
       "last1h": "Dernière heure",
       "last6h": "6 dernières heures",
       "last24h": "24 dernières heures"
-    }
+    },
+    "historyDurable": " · l'historique est conservé entre les redémarrages",
+    "historyMemory": " · l'historique est conservé en mémoire uniquement"
   },
   "healthFindings": {
     "whatChanged": "Ce qui a changé",
@@ -1027,7 +1029,8 @@
         "memory": "Mémoire (bas · cible · haut)"
       },
       "new": "Nouveau VPA",
-      "deleteAria": "Supprimer le VPA {{name}}"
+      "deleteAria": "Supprimer le VPA {{name}}",
+      "editAria": "Modifier le VPA {{name}}"
     },
     "keda": {
       "notInstalled": "KEDA n'est pas installé dans ce cluster.",
@@ -1045,7 +1048,8 @@
         "notReady": "Pas prêt"
       },
       "new": "Nouveau ScaledObject",
-      "deleteAria": "Supprimer le ScaledObject {{name}}"
+      "deleteAria": "Supprimer le ScaledObject {{name}}",
+      "editAria": "Modifier le ScaledObject {{name}}"
     }
   },
   "backups": {
@@ -1154,8 +1158,13 @@
       "chartNamesPlaceholder": "Noms des charts de ce registre, séparés par des virgules (ex. nginx, redis)",
       "kindLabel": "Type de dépôt",
       "index": "Dépôt de charts",
-      "registry": "Registre OCI"
-    }
+      "registry": "Registre OCI",
+      "login": "Identifiant de registre",
+      "noLogin": "Aucun (registre public)",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "privé",
+    "privateTitle": "Utilise l'identifiant {{name}}"
   },
   "storage": {
     "title": "Stockage",

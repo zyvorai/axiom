@@ -438,8 +438,7 @@ export default function Fleet() {
                         {t("pages:fleet.totals")}
                         {fleet.checkedAt ? t("pages:fleet.lastCheck", { time: relTime(fleet.checkedAt) }) : ""}
                         {fleet.intervalSeconds > 0 ? t("pages:fleet.interval", { n: fleet.intervalSeconds }) : t("pages:fleet.backgroundOff")}
-                    
-                        <span data-testid="fleet-history-durable">{durable ? " · history is kept across restarts" : " · history is kept in memory only"}</span>
+                        <span data-testid="fleet-history-durable">{durable ? t("pages:fleet.historyDurable") : t("pages:fleet.historyMemory")}</span>
                     </p>
                 </>
             )}

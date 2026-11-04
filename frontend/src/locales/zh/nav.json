@@ -1,0 +1,137 @@
+{
+  "groups": {
+    "Core": "核心",
+    "Cluster": "集群",
+    "Network": "网络",
+    "Storage": "存储",
+    "Config": "配置",
+    "Observe": "观测",
+    "Admin": "管理",
+    "Extensions": "扩展"
+  },
+  "items": {
+    "getting-started": "快速入门",
+    "overview": "概览",
+    "fleet": "集群舰队",
+    "nodes": "Nodes",
+    "workloads": "工作负载",
+    "jobs": "Jobs 和 CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "平台意图",
+    "networking": "网络 · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "虚拟机",
+    "storage": "存储",
+    "atlas": "Atlas",
+    "backups": "备份",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "配额与限制",
+    "autoscaling": "自动扩缩容",
+    "custom-resources": "自定义资源",
+    "logs": "Pod 日志",
+    "events": "事件",
+    "timeline": "时间线",
+    "health-check": "健康检查",
+    "alerts": "告警",
+    "ops": "运维",
+    "security": "安全",
+    "users": "用户",
+    "settings": "设置"
+  },
+  "sidebar": {
+    "expand": "展开侧边栏",
+    "collapse": "收起侧边栏",
+    "collapseShort": "收起"
+  },
+  "topbar": {
+    "toggleSidebar": "切换侧边栏",
+    "home": "Axiom 首页",
+    "byZyvor": "by Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "所有页面的 Namespace 范围",
+    "allNamespaces": "所有 Namespace",
+    "searchTitle": "搜索（⌘K）",
+    "search": "搜索",
+    "connect": "连接",
+    "sampleMode": "示例数据模式",
+    "sampleModeHint": "将 KUBECONFIG 指向此仪表板以切换到真实集群。",
+    "toggleTheme": "切换主题（当前为{{theme}}）",
+    "themeTitle": "主题：{{theme}}",
+    "clusterState": "{{name}}：{{state}}",
+    "clusterStateError": "{{name}}：{{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "label": "主题"
+  },
+  "shell": {
+    "skipToContent": "跳到内容"
+  },
+  "palette": {
+    "placeholder": "跳转到页面、Pod、Service、Secret、虚拟机或操作…",
+    "empty": "未找到任何内容。",
+    "navigate": "导航",
+    "pods": "Pods",
+    "workloads": "工作负载",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "虚拟机",
+    "jobs": "Jobs",
+    "switchCluster": "切换集群",
+    "actions": "操作",
+    "current": "当前",
+    "cron": "{{namespace}} · cron",
+    "nsPods_other": "{{count}} 个 Pod",
+    "switchTheme": {
+      "light": "切换到浅色主题",
+      "dark": "切换到深色主题",
+      "system": "切换到跟随系统主题"
+    },
+    "shortcuts": "键盘快捷键",
+    "signOut": "退出登录"
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "description": "在输入框中输入时，快捷键会暂停。",
+    "then": "然后",
+    "or": "或",
+    "groups": {
+      "General": "常规",
+      "Go to": "转到"
+    },
+    "items": {
+      "palette": "打开命令面板",
+      "search": "聚焦此页面的搜索框",
+      "help": "显示键盘快捷键",
+      "escape": "关闭对话框或菜单",
+      "overview": "转到概览",
+      "pods": "转到 Pods",
+      "workloads": "转到工作负载",
+      "namespaces": "转到 Namespaces",
+      "events": "转到事件",
+      "logs": "转到日志"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "本地",
+    "accountSecurity": "账户安全",
+    "signOut": "退出登录",
+    "signedOut": "已退出登录",
+    "signedOutHint": "您的 Axiom 会话已结束。"
+  },
+  "breadcrumbs": {
+    "clusters": "集群"
+  },
+  "clusterSwitcher": {
+    "title": "在设置中打开集群",
+    "label": "集群"
+  }
+}

@@ -479,5 +479,33 @@
     "knownHosts": "known_hosts (facultatif)",
     "save": "Enregistrer les identifiants",
     "button": "Identifiants"
+  },
+  "registryLogins": {
+    "title": "Identifiants de registre",
+    "description": "Pour les registres OCI de charts privés. Un identifiant n'est envoyé qu'au registre auquel il est destiné et n'est plus jamais affiché une fois enregistré.",
+    "region": "Identifiants de registre",
+    "empty": "Aucun identifiant de registre pour l'instant.",
+    "usedBy": " · utilisé par {{list}}",
+    "deleteAria": "Supprimer l'identifiant {{name}}",
+    "addTitle": "Ajouter un identifiant",
+    "writeOnly": "Écriture seule : pour changer un mot de passe, supprimez l'identifiant et ajoutez-le à nouveau.",
+    "registry": "Hôte du registre",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe ou jeton",
+    "save": "Enregistrer l'identifiant",
+    "manage": "Identifiants de registre",
+    "confirmDelete": {
+      "title": "Supprimer l'identifiant {{name}} ?",
+      "description": "Les dépôts qui l'utilisent doivent d'abord être retirés ou modifiés."
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}. Seuls les champs ci-dessous changent ; le reste de l'objet reste inchangé.",
+    "notEditable": "Cet objet utilise des paramètres que le formulaire ne peut pas représenter ; il est donc en lecture seule ici :",
+    "region": "Paramètres",
+    "pollingInterval": "Interrogation (s)",
+    "cooldownPeriod": "Refroidissement (s)",
+    "triggerLegend": "Déclencheur {{n}} · {{type}}",
+    "noCredentials": "Aucun identifiant"
   }
 }

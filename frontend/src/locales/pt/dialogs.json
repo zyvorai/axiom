@@ -1,0 +1,511 @@
+{
+  "confirm": {
+    "title": "Tem certeza?",
+    "description": "Esta ação não pode ser desfeita."
+  },
+  "users": {
+    "deleteTitle": "Excluir o usuário {{name}}?",
+    "deleteDescription": "Isso não pode ser desfeito.",
+    "resetMfaTitle": "Redefinir a autenticação de dois fatores de {{name}}?",
+    "resetMfaDescription": "A pessoa poderá entrar apenas com a senha e configurar a autenticação de dois fatores novamente. Use isto quando alguém perder o dispositivo e os códigos de recuperação.",
+    "revokeTitle": "Desconectar {{name}} de todos os lugares?",
+    "revokeDescription": "Todas as sessões abertas desta conta são encerradas; será preciso entrar novamente.",
+    "resetExternalMfaDescription": "Esta conta de diretório entrará apenas com a senha do diretório até configurar a autenticação de dois fatores novamente."
+  },
+  "settings": {
+    "registerCluster": {
+      "title": "Registrar cluster remoto",
+      "label": "Rótulo",
+      "kubeconfig": "Kubeconfig YAML",
+      "register": "Registrar",
+      "registering": "Registrando…"
+    }
+  },
+  "configMaps": {
+    "create": {
+      "title": "Criar ConfigMap",
+      "data": "Dados",
+      "keyAria": "Chave {{n}}",
+      "valueAria": "Valor {{n}}",
+      "removeRow": "Remover linha",
+      "addKey": "Adicionar chave",
+      "creating": "Criando…"
+    },
+    "delete": {
+      "title": "Excluir o ConfigMap {{name}}?",
+      "description": "Isso não pode ser desfeito."
+    }
+  },
+  "secrets": {
+    "create": {
+      "title": "Criar Secret",
+      "data": "Dados",
+      "keyAria": "Chave {{n}}",
+      "valueAria": "Valor {{n}}",
+      "removeRow": "Remover linha",
+      "addKey": "Adicionar chave",
+      "creating": "Criando…"
+    },
+    "delete": {
+      "title": "Excluir o Secret {{name}}?",
+      "description": "Isso também remove todas as suas chaves. Isso não pode ser desfeito."
+    }
+  },
+  "pluginView": {
+    "delete": {
+      "title": "Excluir {{name}}?",
+      "description": "Isso não pode ser desfeito."
+    }
+  },
+  "namespaces": {
+    "delete": {
+      "title": "Excluir o Namespace {{name}}?",
+      "description": "Isso exclui todos os recursos deste Namespace. Isso não pode ser desfeito."
+    },
+    "create": {
+      "title": "Criar Namespace",
+      "creating": "Criando…"
+    }
+  },
+  "networking": {
+    "deletePolicy": {
+      "title": "Excluir a NetworkPolicy {{name}}?",
+      "description": "Isso pode remover restrições de tráfego atualmente aplicadas por esta política. Isso não pode ser desfeito."
+    },
+    "createPolicy": {
+      "title": "Criar NetworkPolicy"
+    }
+  },
+  "nodeDetail": {
+    "removeTaint": {
+      "title": "Remover o taint {{key}}?",
+      "description": "Isso não pode ser desfeito."
+    }
+  },
+  "ops": {
+    "cannotUndo": "Isso não pode ser desfeito.",
+    "creating": "Criando…",
+    "uninstall": {
+      "title": "Desinstalar {{name}}?",
+      "confirm": "Desinstalar"
+    },
+    "installChart": {
+      "title": "Instalar chart",
+      "releaseName": "Nome da release",
+      "repoUrl": "URL do repositório de charts",
+      "chartName": "Nome do chart",
+      "version": "Versão (opcional)",
+      "values": "Values YAML (opcional)",
+      "note": "É executado como um Job em segundo plano com as próprias permissões do Axiom — o chart só pode criar recursos que o próprio Axiom tem permissão para criar.",
+      "starting": "Iniciando…",
+      "install": "Instalar"
+    },
+    "createRole": {
+      "title": "Nova Role",
+      "rules": "Regras (array JSON de PolicyRule)"
+    },
+    "createBinding": {
+      "title": "Nova RoleBinding",
+      "roleName": "Nome da Role",
+      "subjects": "Subjects (array JSON)"
+    },
+    "deleteRole": {
+      "title": "Excluir a Role {{name}}?"
+    },
+    "deleteBinding": {
+      "title": "Excluir a RoleBinding {{name}}?"
+    }
+  },
+  "applyManifest": {
+    "title": "Aplicar manifesto",
+    "manifestWord": "manifesto",
+    "applied": "{{kind}} aplicado",
+    "appliedNamed": "{{kind}} {{name}} aplicado",
+    "reviewing": "Revisando…",
+    "reviewAgain": "Revisar novamente",
+    "reviewChanges": "Revisar alterações",
+    "applying": "Aplicando…"
+  },
+  "atlas": {
+    "createVolume": {
+      "title": "Criar volume",
+      "policy": "Política",
+      "size": "Tamanho (GiB)",
+      "requesting": "Solicitando…"
+    }
+  },
+  "autoscaling": {
+    "create": {
+      "title": "Criar autoescalador",
+      "targetWorkload": "Workload de destino",
+      "selectWorkload": "Selecione um workload",
+      "minReplicas": "Mín. de réplicas",
+      "maxReplicas": "Máx. de réplicas",
+      "targetCpu": "CPU alvo % (vazio = ignorar)",
+      "targetMemory": "Memória alvo % (opcional)",
+      "targetMemoryPlaceholder": "ex.: 75",
+      "stabilization": "Estabilização de redução, segundos (opcional)",
+      "stabilizationPlaceholder": "O padrão do Kubernetes é 300",
+      "bothNote": "Com CPU e memória definidas, o autoescalador escala para o que exigir mais réplicas.",
+      "creating": "Criando…"
+    },
+    "delete": {
+      "title": "Excluir o autoescalador {{name}}?",
+      "description": "Isso não pode ser desfeito."
+    }
+  },
+  "backups": {
+    "requesting": "Solicitando…",
+    "creating": "Criando…",
+    "ttl": "TTL (opcional)",
+    "createSnapshot": {
+      "title": "Criar snapshot de volume",
+      "pvc": "PVC",
+      "snapshotClass": "VolumeSnapshotClass (opcional)"
+    },
+    "restore": {
+      "title": "Restaurar do snapshot",
+      "snapshotName": "Nome do snapshot",
+      "pvcName": "Nome do novo PVC",
+      "size": "Tamanho",
+      "accessMode": "Modo de acesso",
+      "storageClass": "StorageClass (opcional)",
+      "submit": "Restaurar"
+    },
+    "schedule": {
+      "title": "Novo agendamento do Velero",
+      "cron": "Agendamento cron"
+    },
+    "velero": {
+      "title": "Criar backup do Velero",
+      "included": "Namespaces incluídos (separados por vírgula ou *)"
+    }
+  },
+  "costPanels": {
+    "budget": {
+      "editTitle": "Orçamento de {{namespace}}",
+      "addTitle": "Adicionar orçamento",
+      "description": "Comparado com o custo mensal estimado das solicitações de recursos do Namespace.",
+      "amount": "Orçamento mensal (USD)",
+      "warnAt": "Avisar em (%)",
+      "save": "Salvar orçamento"
+    },
+    "removeBudget": {
+      "title": "Remover o orçamento de {{namespace}}?",
+      "description": "O custo do Namespace continua sendo acompanhado; apenas deixa de ter limite."
+    },
+    "apply": {
+      "title": "Aplicar recomendação",
+      "description": "{{workload}} · contêiner {{container}} · {{namespace}}",
+      "cpuRequest": "Solicitação de CPU",
+      "memoryRequest": "Solicitação de memória",
+      "none": "(nenhuma)",
+      "basedOn": "Com base em dados de {{source}} (confiança {{confidence}}).",
+      "applying": "Aplicando…",
+      "confirm": "Aplicar e implantar"
+    }
+  },
+  "gitops": {
+    "delete": {
+      "title": "Excluir {{name}}?",
+      "createdByAxiom": " · criado pelo Axiom",
+      "cascadeConfirm": "Isso também remove os recursos da aplicação. Digite <code>{{name}}</code> para confirmar.",
+      "sourceShared": "A origem {{source}} ainda é usada por {{users}}, então ela permanece.",
+      "removeSource": "Remover também {{kind}} {{name}} (nada mais o usa)",
+      "sourceNotOurs": "{{kind}} {{name}} não foi criado pelo Axiom, então não será alterado.",
+      "deleting": "Excluindo…"
+    },
+    "create": {
+      "title": "Nova aplicação GitOps",
+      "description": "O Axiom gera os objetos a partir destes campos — você revisa o YAML exato antes de qualquer criação.",
+      "detailsRegion": "Detalhes da aplicação",
+      "engine": "Mecanismo",
+      "engines": {
+        "argocd": {
+          "label": "Aplicação do Argo CD",
+          "hint": "Uma Application que sincroniza um caminho Git ou um chart do Helm."
+        },
+        "fluxKustomize": {
+          "label": "Flux · Git + Kustomize",
+          "hint": "Um GitRepository e uma Kustomization que aplica um caminho dele."
+        },
+        "fluxHelm": {
+          "label": "Flux · release do Helm",
+          "hint": "Um HelmRepository e uma HelmRelease que instala um chart."
+        }
+      },
+      "namespaceOf": "Namespace dos objetos do {{engine}}",
+      "helmRepoUrl": "URL do repositório Helm",
+      "gitRepoUrl": "URL do repositório Git",
+      "repoUrlHint": "As credenciais nunca vão na URL; referencie um Secret.",
+      "sourceType": "Tipo de origem",
+      "gitPath": "Caminho Git",
+      "helmChart": "Chart do Helm",
+      "chart": "Chart",
+      "chartVersion": "Versão do chart",
+      "path": "Caminho no repositório",
+      "revision": "Branch, tag ou commit",
+      "destNamespace": "Implantar no Namespace",
+      "secretRef": "Secret de credenciais (opcional)",
+      "secretRefHint": "Nome de um Secret existente no Namespace do Flux.",
+      "interval": "Intervalo de reconciliação",
+      "values": "Values YAML (opcional)",
+      "sync": "Sincronização",
+      "automated": "Sincronizar automaticamente quando o repositório mudar",
+      "prune": "Excluir recursos removidos do Git (prune)",
+      "selfHeal": "Reverter alterações manuais (self-heal)",
+      "createNamespace": "Criar o Namespace de destino se não existir",
+      "previewTitle": "O que será criado",
+      "previewStale": "Desatualizado — visualize novamente",
+      "generatedYaml": "YAML gerado",
+      "rendering": "Renderizando…",
+      "previewAgain": "Visualizar novamente",
+      "previewYaml": "Visualizar YAML",
+      "creating": "Criando…"
+    }
+  },
+  "helmCatalog": {
+    "removeRepo": {
+      "title": "Remover o repositório {{name}}?",
+      "description": "Os charts já instalados a partir dele continuam em execução; apenas deixam de aparecer no catálogo."
+    },
+    "chart": {
+      "from": "de <code>{{repo}}</code>",
+      "optionsRegion": "Opções de instalação do chart",
+      "appSuffix": " (app {{version}})",
+      "deprecatedSuffix": " — obsoleto",
+      "releaseName": "Nome da release",
+      "values": "Values (opcional)",
+      "reloadDefaults": "Recarregar padrões",
+      "loadDefaults": "Carregar valores padrão",
+      "valuesYaml": "Values YAML",
+      "valuesPlaceholder": "# deixe vazio para usar os padrões do chart",
+      "hideReadme": "Ocultar README",
+      "showReadme": "Mostrar README",
+      "readme": "README do chart",
+      "permissionsNote": "É executado como um Job em segundo plano com as próprias permissões do Axiom — o chart só pode criar recursos que o próprio Axiom tem permissão para criar.",
+      "starting": "Iniciando…",
+      "install": "Instalar {{version}}"
+    }
+  },
+  "vms": {
+    "creating": "Criando…",
+    "create": {
+      "title": "Criar máquina virtual",
+      "cpuCores": "Núcleos de CPU",
+      "image": "Imagem de disco de contêiner"
+    }
+  },
+  "diffReview": {
+    "title": "Revisar alterações",
+    "description": "Isto é o que aplicar sua edição muda no cluster. Nada é aplicado até você clicar em Aplicar.",
+    "applying": "Aplicando…"
+  },
+  "jobs": {
+    "deleteCronJob": {
+      "title": "Excluir o CronJob {{name}}?",
+      "description": "Isso não pode ser desfeito."
+    },
+    "deleteJob": {
+      "title": "Excluir o Job {{name}}?",
+      "description": "Isso não pode ser desfeito."
+    }
+  },
+  "podDetail": {
+    "evict": {
+      "title": "Despejar o Pod {{name}}?",
+      "description": "Isso não pode ser desfeito.",
+      "confirm": "Despejar"
+    }
+  },
+  "pods": {
+    "exec": {
+      "title": "Exec · {{name}}",
+      "container": "Contêiner",
+      "running": "Executando…",
+      "run": "Executar",
+      "outputPlaceholder": "A saída aparecerá aqui."
+    },
+    "evict": {
+      "title": "Despejar o Pod {{name}}?",
+      "description": "Isso não pode ser desfeito.",
+      "confirm": "Despejar"
+    },
+    "bulkEvict": {
+      "title_one": "Despejar {{count}} Pod?",
+      "title_other": "Despejar {{count}} Pods?"
+    }
+  },
+  "workloads": {
+    "rollout": {
+      "title": "Rollout · {{name}}",
+      "notSupported": "Rollout não suportado para {{kind}}.",
+      "available": "Disponível",
+      "updating": "Atualizando",
+      "pending": "Pendente",
+      "revision": "rev {{revision}}",
+      "actions": {
+        "restart": "reiniciar",
+        "pause": "pausar",
+        "resume": "retomar",
+        "undo": "desfazer"
+      }
+    },
+    "scale": {
+      "title": "Escalar · {{name}}",
+      "scaling": "Escalando…",
+      "submit": "Escalar"
+    },
+    "delete": {
+      "title": "Excluir {{kind}} {{name}}?",
+      "description": "Isso não pode ser desfeito. Seus Pods também serão removidos."
+    },
+    "bulkDelete": {
+      "title_one": "Excluir {{count}} workload?",
+      "title_other": "Excluir {{count}} workloads?",
+      "description": "Isso não pode ser desfeito."
+    },
+    "launch": {
+      "title": "Executar workload",
+      "steps": {
+        "form": "Formulário",
+        "intent": "Intenção",
+        "yaml": "Validar YAML"
+      },
+      "port": "Porta",
+      "exposeService": "Expor Service",
+      "launching": "Iniciando…",
+      "launch": "Iniciar",
+      "preview": "Visualizar",
+      "placing": "Posicionando…",
+      "place": "Posicionar",
+      "validKind": "{{kind}} válido",
+      "validManifest": "Manifesto válido",
+      "validate": "Validar",
+      "applyTitle": "Aplicar manifesto do workload"
+    }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "Novo VerticalPodAutoscaler",
+      "description": "Recomenda solicitações de CPU e memória para um workload. No modo Off, apenas recomenda e nunca reinicia Pods.",
+      "region": "Configurações do VPA",
+      "updateMode": "Modo de atualização",
+      "modes": {
+        "off": "Off — apenas recomendar",
+        "initial": "Initial — aplicar a novos Pods",
+        "recreate": "Recreate — reiniciar Pods para aplicar"
+      }
+    },
+    "keda": {
+      "title": "Novo ScaledObject do KEDA",
+      "description": "Escale um workload com base em eventos. As credenciais nunca são inseridas aqui: escolha uma TriggerAuthentication existente.",
+      "region": "Configurações do ScaledObject",
+      "trigger": "Gatilho {{n}}",
+      "removeTrigger": "Remover gatilho {{n}}",
+      "credentials": "Credenciais (TriggerAuthentication)",
+      "addTrigger": "Adicionar gatilho",
+      "triggers": {
+        "cron": "Agendamento cron",
+        "prometheus": "Consulta do Prometheus",
+        "kafka": "Atraso do Kafka",
+        "redis": "Tamanho da lista do Redis",
+        "rabbitmq": "Fila do RabbitMQ",
+        "awsSqs": "Fila do AWS SQS"
+      },
+      "fields": {
+        "metricType": "Tipo de métrica",
+        "targetValue": "Valor alvo",
+        "timezone": "Fuso horário",
+        "start": "Início",
+        "end": "Fim",
+        "replicasInWindow": "Réplicas na janela",
+        "serverAddress": "Endereço do servidor",
+        "query": "Consulta",
+        "threshold": "Limite",
+        "bootstrapServers": "Servidores de bootstrap",
+        "consumerGroup": "Grupo de consumidores",
+        "topic": "Tópico",
+        "lagThreshold": "Limite de atraso",
+        "address": "Endereço",
+        "list": "Lista",
+        "lengthThreshold": "Limite de tamanho",
+        "queue": "Fila",
+        "mode": "Modo",
+        "queueUrl": "URL da fila",
+        "queueLength": "Tamanho da fila",
+        "region": "Região"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "Editar {{name}}",
+    "description": "{{kind}} · {{namespace}}. Apenas os campos abaixo são alterados; todo o resto do objeto permanece intacto.",
+    "staleHint": " Feche esta caixa de diálogo e abra-a novamente para começar da versão atual.",
+    "notEditable": "Esta aplicação usa configurações que o formulário não consegue representar, por isso é exibida somente leitura:",
+    "region": "Configurações da aplicação",
+    "valuesYaml": "Values YAML",
+    "automated": "Sincronizar automaticamente",
+    "prune": "Remover recursos excluídos do Git (prune)",
+    "selfHeal": "Corrigir alterações manuais (self-heal)",
+    "noop": "Nada mudaria.",
+    "none": "(nenhum)",
+    "staleChange": "Você alterou um campo após visualizar — visualize novamente.",
+    "comparing": "Comparando…",
+    "previewChanges": "Visualizar alterações"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "Excluir {{kind}} {{name}}?",
+    "deleteDescription": "O workload em si não é alterado."
+  },
+  "gitopsCredentials": {
+    "title": "Credenciais do repositório",
+    "description": "Para repositórios Git e Helm privados. O Axiom as armazena como Secrets para uso pelo Argo CD ou Flux e nunca as exibe novamente.",
+    "region": "Credenciais",
+    "empty": "Nenhuma credencial criada pelo Axiom ainda.",
+    "deleteTitle": "Excluir as credenciais {{name}}?",
+    "deleteDescription": "As aplicações que as referenciam deixarão de conseguir obter dados do repositório.",
+    "deleteAria": "Excluir credenciais {{name}}",
+    "add": "Adicionar credenciais",
+    "writeOnly": "Somente gravação: depois de salvo, o segredo não pode ser lido de volta — para trocá-lo, exclua e recrie.",
+    "for": "Para",
+    "url": "URL do repositório",
+    "auth": "Autenticação",
+    "authToken": "Token de acesso",
+    "authBasic": "Nome de usuário e senha",
+    "authSsh": "Chave SSH",
+    "token": "Token",
+    "privateKey": "Chave privada",
+    "knownHosts": "known_hosts (opcional)",
+    "save": "Salvar credenciais",
+    "button": "Credenciais"
+  },
+  "registryLogins": {
+    "title": "Logins de registro",
+    "description": "Para registros privados de charts OCI. Um login é enviado apenas ao registro a que se destina e nunca é exibido novamente após ser salvo.",
+    "region": "Logins de registro",
+    "empty": "Nenhum login de registro ainda.",
+    "usedBy": " · usado por {{list}}",
+    "deleteAria": "Excluir login {{name}}",
+    "addTitle": "Adicionar login",
+    "writeOnly": "Somente gravação: para alterar uma senha, exclua o login e adicione-o novamente.",
+    "registry": "Host do registro",
+    "username": "Nome de usuário",
+    "password": "Senha ou token",
+    "save": "Salvar login",
+    "manage": "Logins de registro",
+    "confirmDelete": {
+      "title": "Excluir o login {{name}}?",
+      "description": "Os repositórios que o usam devem ser removidos ou alterados primeiro."
+    }
+  },
+  "autoscalingEdit": {
+    "description": "{{kind}} · {{namespace}}. Apenas os campos abaixo mudam; todo o resto do objeto permanece intacto.",
+    "notEditable": "Este objeto usa configurações que o formulário não consegue representar, por isso é somente leitura aqui:",
+    "region": "Configurações",
+    "pollingInterval": "Consulta (s)",
+    "cooldownPeriod": "Resfriamento (s)",
+    "triggerLegend": "Gatilho {{n}} · {{type}}",
+    "noCredentials": "Sem credenciais"
+  }
+}

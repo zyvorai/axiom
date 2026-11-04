@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { KeyRound, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import i18n from "@/lib/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { REGCRED as T } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:generic");
 const BLANK = { name: "", registry: "", username: "", password: "" };
 
 /** Logins for private OCI chart registries. Write-only: the password is never shown again. */
 export default function RegistryLogins({ open, onOpenChange, onChanged }) {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [rows, setRows] = useState([]);
     const [form, setForm] = useState(BLANK);
@@ -42,7 +45,7 @@ export default function RegistryLogins({ open, onOpenChange, onChanged }) {
         setError("");
         try {
             await api.post("/helm/registry-credentials", { name: form.name.trim(), registry: form.registry.trim(), username: form.username, password: form.password });
-            toast.success(`Saved login ${form.name}`, { description: "The password is write-only and cannot be shown again." });
+            toast.success(t("toasts:registryLogins.saved", { name: form.name }), { description: t("toasts:registryLogins.savedHint") });
             setForm(BLANK);
             await load();
             onChanged?.();
@@ -54,15 +57,15 @@ export default function RegistryLogins({ open, onOpenChange, onChanged }) {
     };
 
     const remove = async (r) => {
-        const ok = await confirm({ title: `Delete the login ${r.name}?`, description: "Repositories that use it must be removed or changed first.", confirmLabel: "Delete" });
+        const ok = await confirm({ title: t("dialogs:registryLogins.confirmDelete.title", { name: r.name }), description: t("dialogs:registryLogins.confirmDelete.description"), confirmLabel: t("common:actions.delete") });
         if (!ok) return;
         try {
             await api.delete(`/helm/registry-credentials/${encodeURIComponent(r.name)}`);
-            toast.success(`Deleted ${r.name}`);
+            toast.success(t("toasts:registryLogins.deleted", { name: r.name }));
             await load();
             onChanged?.();
         } catch (e) {
-            toast.error("Delete failed", { description: errText(e) });
+            toast.error(t("toasts:registryLogins.deleteFailed"), { description: errText(e) });
         }
     };
 
@@ -71,23 +74,21 @@ export default function RegistryLogins({ open, onOpenChange, onChanged }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-xl" data-testid={T.dialog}>
                 <DialogHeader>
-                    <DialogTitle>Registry logins</DialogTitle>
-                    <DialogDescription>
-                        For private OCI chart registries. A login is sent only to the registry it is for, and never shown again once saved.
-                    </DialogDescription>
+                    <DialogTitle>{t("dialogs:registryLogins.title")}</DialogTitle>
+                    <DialogDescription>{t("dialogs:registryLogins.description")}</DialogDescription>
                 </DialogHeader>
-                <div tabIndex={0} role="region" aria-label="Registry logins" className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+                <div tabIndex={0} role="region" aria-label={t("dialogs:registryLogins.region")} className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
                     {rows.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No registry logins yet.</p>
+                        <p className="text-sm text-muted-foreground">{t("dialogs:registryLogins.empty")}</p>
                     ) : (
                         <ul className="divide-y divide-border rounded-xl border border-border">
                             {rows.map((r) => (
                                 <li key={r.name} className="flex items-center justify-between gap-3 px-3 py-2" data-testid={T.row(r.name)}>
                                     <div className="min-w-0">
                                         <div className="text-sm font-medium">{r.name}</div>
-                                        <div className="mono truncate text-[11.5px] text-ink-3">{r.username}@{r.registry}{(r.inUse || []).length ? ` · used by ${r.inUse.join(", ")}` : ""}</div>
+                                        <div className="mono truncate text-[11.5px] text-ink-3">{r.username}@{r.registry}{(r.inUse || []).length ? t("dialogs:registryLogins.usedBy", { list: r.inUse.join(", ") }) : ""}</div>
                                     </div>
-                                    <button type="button" className="btn btn-danger btn-sm" data-testid={T.remove(r.name)} aria-label={`Delete login ${r.name}`} onClick={() => remove(r)}>
+                                    <button type="button" className="btn btn-danger btn-sm" data-testid={T.remove(r.name)} aria-label={t("dialogs:registryLogins.deleteAria", { name: r.name })} onClick={() => remove(r)}>
                                         <Trash2 size={13} />
                                     </button>
                                 </li>
@@ -101,31 +102,31 @@ export default function RegistryLogins({ open, onOpenChange, onChanged }) {
                             if (filled) save();
                         }}
                     >
-                        <div className="text-sm font-medium">Add a login</div>
+                        <div className="text-sm font-medium">{t("dialogs:registryLogins.addTitle")}</div>
                         <p className="text-[11.5px] text-muted-foreground" data-testid={T.writeOnly}>
-                            Write-only: to change a password, delete the login and add it again.
+                            {t("dialogs:registryLogins.writeOnly")}
                         </p>
                         <div className="grid gap-3 sm:grid-cols-2">
                             <div className="space-y-1.5">
-                                <Label htmlFor="regcred-name" className="text-xs text-muted-foreground">Name</Label>
+                                <Label htmlFor="regcred-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                                 <Input id="regcred-name" data-testid={T.name} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="ghcr-private" className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="regcred-registry" className="text-xs text-muted-foreground">Registry host</Label>
+                                <Label htmlFor="regcred-registry" className="text-xs text-muted-foreground">{t("dialogs:registryLogins.registry")}</Label>
                                 <Input id="regcred-registry" data-testid={T.registry} value={form.registry} onChange={(e) => set({ registry: e.target.value })} placeholder="ghcr.io" className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="regcred-user" className="text-xs text-muted-foreground">Username</Label>
+                                <Label htmlFor="regcred-user" className="text-xs text-muted-foreground">{t("dialogs:registryLogins.username")}</Label>
                                 <Input id="regcred-user" data-testid={T.username} autoComplete="off" value={form.username} onChange={(e) => set({ username: e.target.value })} className="bg-muted/30" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="regcred-pass" className="text-xs text-muted-foreground">Password or token</Label>
+                                <Label htmlFor="regcred-pass" className="text-xs text-muted-foreground">{t("dialogs:registryLogins.password")}</Label>
                                 <Input id="regcred-pass" data-testid={T.password} type="password" autoComplete="new-password" value={form.password} onChange={(e) => set({ password: e.target.value })} className="bg-muted/30" />
                             </div>
                         </div>
                         {error ? <div className="notice danger" role="alert" data-testid={T.error}>{error}</div> : null}
                         <button type="submit" className="btn btn-fill btn-sm" data-testid={T.save} disabled={busy || !filled}>
-                            <Plus size={13} /> {busy ? "Saving…" : "Save login"}
+                            <Plus size={13} /> {busy ? t("common:actions.saving") : t("dialogs:registryLogins.save")}
                         </button>
                     </form>
                 </div>
@@ -136,9 +137,10 @@ export default function RegistryLogins({ open, onOpenChange, onChanged }) {
 }
 
 export function RegistryLoginsButton({ onClick }) {
+    const { t } = useTranslation();
     return (
         <button type="button" className="btn btn-line btn-sm" data-testid={T.manage} onClick={onClick}>
-            <KeyRound size={13} /> Registry logins
+            <KeyRound size={13} /> {t("dialogs:registryLogins.manage")}
         </button>
     );
 }

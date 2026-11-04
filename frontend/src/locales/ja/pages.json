@@ -1,0 +1,1496 @@
+{
+  "notFound": {
+    "title": "ページが見つかりません",
+    "description": "<path>{{path}}</path> には何もありません。移動されたか、リンクが古くなっている可能性があります。",
+    "goOverview": "概要へ移動"
+  },
+  "users": {
+    "title": "ユーザー",
+    "description": "SSO と併用するローカルアカウントです。閲覧者はすべてのページを閲覧できますが、作成・変更・削除はできません。"
+  },
+  "settings": {
+    "title": "設定",
+    "description": "クラスター、外観、シングルサインオン、プラットフォーム連携。",
+    "configured": "設定済み",
+    "notConfigured": "未設定",
+    "testing": "テスト中…",
+    "testConnection": "接続をテスト",
+    "clusters": {
+      "title": "クラスター",
+      "add": "クラスターを追加",
+      "lead": "フリート切り替え用にリモートの kubeconfig を登録します。アクティブなクラスター: <mono>{{name}}</mono>",
+      "empty": "クラスターが設定されていません。",
+      "columns": {
+        "cluster": "クラスター"
+      },
+      "active": "アクティブ",
+      "unreachable": "到達不能",
+      "latency": "{{ms}} ms",
+      "activate": "アクティブ化"
+    },
+    "appearance": {
+      "title": "外観",
+      "lead": "テーマはこのブラウザーに保存されます。「システム」はデバイスの外観設定に従います。",
+      "theme": "テーマ",
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム"
+    },
+    "oidc": {
+      "title": "OIDC シングルサインオン",
+      "issuer": "発行者",
+      "loginUrl": "ログイン URL",
+      "clientId": "クライアント ID"
+    },
+    "atlas": {
+      "url": "Atlas URL",
+      "consoleUrl": "コンソール URL"
+    },
+    "postgres": {
+      "host": "ホスト",
+      "port": "ポート",
+      "database": "データベース",
+      "user": "ユーザー",
+      "password": "パスワード",
+      "passwordSet": "パスワード（設定済み — 変更しない場合は空欄）",
+      "sslMode": "SSL モード"
+    },
+    "probe": {
+      "title": "プローブ",
+      "podNamespace": "Pod の Namespace",
+      "podName": "Pod 名",
+      "container": "コンテナー",
+      "url": "プローブ URL"
+    },
+    "notifications": {
+      "title": "通知",
+      "slackWebhook": "Slack Webhook URL",
+      "slackWebhookSet": "Slack Webhook URL（設定済み — 変更しない場合は空欄）",
+      "alertWebhook": "アラート Webhook URL",
+      "alertWebhookSet": "アラート Webhook URL（設定済み — 変更しない場合は空欄）",
+      "forwardWarnings": "Warning イベントを自動転送",
+      "forwardWarningsHint": "60 秒ごとにポーリングし、新しいクラスターの Warning イベントを上記のチャネルに送信します。",
+      "testSlack": "Slack をテスト",
+      "testWebhook": "Webhook をテスト"
+    },
+    "apiKeyNote": "API キーによるサインインは、Axiom プロセスの <mono>AXIOM_API_KEY</mono> 環境変数で設定します。"
+  },
+  "aiSettings": {
+    "title": "AI アシスタント",
+    "pillEnabled": "有効",
+    "pillOff": "オフ",
+    "lead": "Pod と Warning イベントに対する任意の「AI で説明」機能で、独自のモデルエンドポイントを使用します。デフォルトはオフです。各リクエストは編集済みのスナップショット（イベント、コンテナーの状態、短いログ末尾。Secret や ConfigMap の値、環境変数の値は含みません）を以下のエンドポイントに送信し、<mono>ai.explain</mono>（対象のみ）として監査記録されます。ベース URL は管理者が選択した送信先です。",
+    "enable": "AI アシスタントを有効化",
+    "enableHint": "オフの場合、ボタンは非表示になり、API はリクエストを拒否します。",
+    "provider": "プロバイダー",
+    "baseUrl": "ベース URL",
+    "model": "モデル",
+    "modelPlaceholder": "例: gpt-4o-mini、claude-sonnet-4-5、llama3.1",
+    "apiKey": "API キー",
+    "apiKeySet": "API キー（設定済み — 変更しない場合は空欄）",
+    "mask": "IP アドレスとホスト名もマスクする",
+    "maskAria": "IP アドレスとホスト名をマスク",
+    "maskHint": "推奨。シークレット、トークン、環境変数の値は常に削除されます。",
+    "testing": "テスト中…",
+    "testConnection": "接続をテスト"
+  },
+  "aiAssistant": {
+    "explain": "AI で説明",
+    "detailsAria": "AI アシスタントの詳細",
+    "sentTo": "このデータは <mono>{{where}}</mono> に送信されます",
+    "demoNotice": "デモモード: 回答は定型文で、データはこのサーバーの外に出ません。",
+    "redactOn": "シークレット、トークン、環境変数の値、IP、ホスト名は事前に削除されます。送信される内容を以下で確認してください。",
+    "redactOff": "シークレット、トークン、環境変数の値は事前に削除されます。IP とホスト名はマスクされません（編集はオフ）。以下のペイロードを確認してください。",
+    "question": "質問（任意）",
+    "questionPlaceholder": "例: なぜ再起動を繰り返すのですか？",
+    "preview": "ペイロードのプレビュー（編集済み）",
+    "previewTruncated": "ペイロードのプレビュー（編集済み） — サイズ上限で切り詰め",
+    "previewAria": "送信される編集済みペイロード",
+    "asking": "問い合わせ中…",
+    "send": "送信して説明",
+    "answer": "回答（AI モデルが生成したプレーンテキスト。誤りを含む可能性があります）"
+  },
+  "configMaps": {
+    "title": "ConfigMaps",
+    "description": "すべての Namespace にわたるアプリケーション設定。",
+    "create": "ConfigMap を作成",
+    "searchPlaceholder": "ConfigMap 名を検索",
+    "tableAria": "ConfigMaps",
+    "columns": {
+      "keys": "キー"
+    },
+    "deleteAria": "ConfigMap {{name}} を削除",
+    "empty": "現在のフィルターに一致する ConfigMap はありません。"
+  },
+  "configMapDetail": {
+    "back": "ConfigMaps",
+    "notFound": "ConfigMap <mono>{{ref}}</mono> が見つかりません。",
+    "keys_other": "{{count}} 個のキー",
+    "editData": "データを編集",
+    "all": "すべての ConfigMap",
+    "data": "データ",
+    "noData": "データキーがありません。"
+  },
+  "secrets": {
+    "title": "Secrets",
+    "description": "すべての Namespace にわたる Opaque、TLS、レジストリの Secret。",
+    "create": "Secret を作成",
+    "searchPlaceholder": "Secret 名を検索",
+    "tableAria": "Secrets",
+    "columns": {
+      "keys": "キー"
+    },
+    "deleteAria": "Secret {{name}} を削除",
+    "empty": "現在のフィルターに一致する Secret はありません。",
+    "external": {
+      "title": "External Secrets",
+      "aria": "External Secrets",
+      "columns": {
+        "store": "ストア",
+        "refresh": "更新間隔"
+      },
+      "empty": "ExternalSecret リソースが見つかりません。"
+    }
+  },
+  "secretDetail": {
+    "back": "Secrets",
+    "notFound": "Secret <mono>{{ref}}</mono> が見つかりません。",
+    "keys_other": "{{count}} 個のキー",
+    "hideValues": "値を隠す",
+    "revealValues": "値を表示",
+    "saveValues": "値を保存",
+    "all": "すべての Secret",
+    "keysTitle": "キー",
+    "noKeys": "キーがありません。",
+    "bytes": "{{size}} バイト",
+    "valueAria": "{{key}} の値"
+  },
+  "quotas": {
+    "title": "クォータと制限",
+    "description": "ResourceQuota、LimitRange、PodDisruptionBudget、PriorityClass。",
+    "resourceQuotas": {
+      "title": "リソースクォータ",
+      "empty": "ResourceQuota が設定されていません。"
+    },
+    "limitRanges": {
+      "title": "制限範囲",
+      "empty": "LimitRange が設定されていません。"
+    },
+    "pdbs": {
+      "title": "Pod 停止予算",
+      "empty": "PodDisruptionBudget が設定されていません。"
+    },
+    "priorityClasses": {
+      "title": "優先度クラス",
+      "empty": "PriorityClass が設定されていません。"
+    },
+    "columns": {
+      "hard": "上限",
+      "used": "使用量",
+      "limits": "制限",
+      "minAvailable": "最小可用数",
+      "maxUnavailable": "最大利用不可数",
+      "healthy": "正常",
+      "expected": "期待値"
+    },
+    "expectedPods_other": "{{count}} 個の Pod"
+  },
+  "customResources": {
+    "title": "カスタムリソース",
+    "description": "クラスターにインストールされている任意の CustomResourceDefinition を参照します。",
+    "searchPlaceholder": "CRD を検索",
+    "tableAria": "カスタムリソース定義",
+    "columns": {
+      "groupVersion": "グループ / バージョン",
+      "scope": "スコープ"
+    },
+    "noMatch": "一致する CRD はありません。",
+    "instances": "{{kind}} インスタンス",
+    "permissionDenied": "権限がありません: {{error}}",
+    "noInstances": "インスタンスが見つかりません。",
+    "selectHint": "CRD を選択するとインスタンスを参照できます。"
+  },
+  "pluginView": {
+    "pageTitle": "プラグイン",
+    "pageTitleNotFound": "プラグインが見つかりません",
+    "notFound": "プラグイン「{{id}}」が見つかりません。削除された可能性があります。",
+    "instances": "{{kind}} インスタンス",
+    "permissionDenied": "権限がありません: {{error}}",
+    "noInstances": "インスタンスが見つかりません。",
+    "deleteAria": "{{name}} を削除",
+    "item": "項目"
+  },
+  "platformIntents": {
+    "title": "プラットフォームインテント",
+    "description": "自然言語のインテントで要求されたワークロード（ワークロード → ワークロードを実行 → インテント）。",
+    "tableAria": "プラットフォームインテント",
+    "columns": {
+      "resources": "リソース"
+    },
+    "empty": "プラットフォームインテントはまだありません。"
+  },
+  "savedViews": {
+    "title": "保存済みビュー",
+    "views": "ビュー",
+    "viewsWithCount": "ビュー（{{n}}）",
+    "noFilters": "フィルターなし",
+    "empty": "保存済みビューはまだありません。フィルターを設定し、下で名前を付けて保存してください。",
+    "listAria": "保存済みビューの一覧",
+    "deleteAria": "ビュー {{name}} を削除",
+    "deleteTitle": "ビューを削除",
+    "nameLabel": "ビュー名",
+    "namePlaceholder": "このビューに名前を付ける"
+  },
+  "events": {
+    "title": "イベント",
+    "description": "Kubernetes のイベントストリーム（新しい順）。",
+    "search": "理由、メッセージ、オブジェクトを検索",
+    "filterType": "イベントタイプで絞り込み",
+    "allTypes": "すべてのタイプ",
+    "openTimeline": "タイムラインを開く",
+    "whatChangedFor": "{{object}} の変更内容",
+    "whatChanged": "変更内容",
+    "noMatches": "現在のフィルターに一致するイベントはありません。",
+    "empty": "最近のイベントはありません。"
+  },
+  "timeline": {
+    "title": "タイムライン",
+    "description": "Kubernetes イベント、Axiom の監査エントリ、アラート、ロールアウトのリビジョンなど、すべての変更を 1 つのフィードで表示します。",
+    "since": {
+      "all": "全期間",
+      "hour": "過去 1 時間",
+      "sixHours": "過去 6 時間",
+      "day": "過去 24 時間",
+      "week": "過去 7 日間"
+    },
+    "sources": {
+      "event": "イベント",
+      "audit": "監査",
+      "alert": "アラート",
+      "rollout": "ロールアウト"
+    },
+    "searchLabel": "タイムラインを検索",
+    "searchPlaceholder": "概要、オブジェクト、ユーザーを検索",
+    "allNamespaces": "すべての Namespace",
+    "timeRange": "期間",
+    "sourcesLabel": "ソース",
+    "clearObject": "オブジェクトフィルターをクリア",
+    "entries": "タイムラインのエントリ",
+    "columns": {
+      "when": "日時",
+      "severity": "重大度",
+      "what": "発生内容",
+      "by": "実行者"
+    },
+    "clusterScope": "クラスター",
+    "empty": "これらのフィルターに一致するものはありません。"
+  },
+  "workloadTimeline": {
+    "title": "変更内容",
+    "openInTimeline": "タイムラインで開く",
+    "empty": "このワークロードの変更記録はありません。",
+    "by": "実行者: {{actor}}"
+  },
+  "namespaces": {
+    "title": "Namespaces",
+    "description": "クラスター内のすべての Namespace と、その Pod 数およびサービス数。",
+    "create": "Namespace を作成",
+    "specs": {
+      "pods": "Pods",
+      "services": "サービス"
+    },
+    "deleteAria": "Namespace {{name}} を削除"
+  },
+  "namespaceDetail": {
+    "notFound": "Namespace <mono>{{name}}</mono> が見つかりません。",
+    "podsRunning": "{{running}}/{{total}} 個の Pod が実行中",
+    "allNamespaces": "すべての Namespace",
+    "workloads": "ワークロード",
+    "tabs": {
+      "pods": "Pods（{{n}}）",
+      "workloads": "ワークロード（{{n}}）",
+      "services": "サービス（{{n}}）"
+    },
+    "noPods": "この Namespace に Pod はありません。",
+    "noWorkloads": "この Namespace にワークロードはありません。",
+    "noServices": "この Namespace にサービスはありません。",
+    "columns": {
+      "desired": "希望数"
+    },
+    "preferClusterWide": "クラスター全体の一覧を表示しますか？",
+    "openServices": "サービスを開く"
+  },
+  "networking": {
+    "title": "ネットワーク",
+    "description": "Pod、サービス、エンドポイント間のサービスグラフ。",
+    "graphNodes": "グラフのノード",
+    "connections": "接続",
+    "services": "サービス",
+    "live": "ライブ",
+    "columns": {
+      "from": "送信元",
+      "to": "宛先",
+      "label": "ラベル"
+    },
+    "policies": {
+      "createViaYaml": "YAML で作成",
+      "empty": "NetworkPolicy が設定されていません。",
+      "region": "ネットワークポリシー",
+      "columns": {
+        "types": "タイプ",
+        "podSelector": "Pod セレクター"
+      },
+      "allPods": "すべての Pod",
+      "deleteAria": "ポリシー {{name}} を削除"
+    },
+    "packetwolf": {
+      "connected": "接続済み",
+      "unreachable": "到達不能",
+      "description": "PacketWolf 連携による eBPF フローの可視化。",
+      "liveFlows": "ライブフロー",
+      "columns": {
+        "destination": "宛先",
+        "proto": "プロトコル",
+        "verdict": "判定"
+      },
+      "noFlows": "現在の期間にフローはありません。"
+    }
+  },
+  "networkPolicy": {
+    "isolated": "分離",
+    "open": "オープン",
+    "notIsolated": "分離されていません: すべてのトラフィックが許可されています。",
+    "denyAll": "分離されており、何も許可されていません（すべて拒否）。",
+    "more": "他 {{n}} 件",
+    "toNamespaces": "→ Namespace {{list}}",
+    "policy": "ポリシー {{name}}",
+    "title": "ポリシー分析",
+    "description": "ポリシーのセレクターとポートから算出した、各 Pod が受け入れるトラフィックと到達可能な宛先です。ポリシーはクラスターの CNI が適用する場合にのみ有効になります。",
+    "noNamespaces": "Namespace がありません。",
+    "policies_other": "<b>{{count}}</b> 個のポリシー",
+    "pods_other": "<b>{{count}}</b> 個の Pod",
+    "uncovered_other": "<b>{{count}} 個の Pod がどのポリシーの対象にもなっておらず</b>、任意の送信元からのトラフィックを受け入れます: <mono>{{list}}</mono>",
+    "noPods": "この Namespace に Pod はありません。",
+    "region": "Pod のネットワーク分離",
+    "columns": {
+      "policies": "ポリシー"
+    },
+    "showTraffic": "{{pod}} の許可されたトラフィックを表示",
+    "allowedIngress": "許可されたイングレス",
+    "allowedEgress": "許可されたエグレス"
+  },
+  "nodes": {
+    "title": "Nodes",
+    "description": "コンピュートのトポロジー、割り当て可能な容量、kubelet の状態。",
+    "total_other": "合計 {{count}} 個の Node",
+    "specs": {
+      "pods": "Pods"
+    },
+    "facts": {
+      "os": "OS",
+      "kernel": "カーネル",
+      "runtime": "ランタイム"
+    },
+    "actions": {
+      "cordon": "Cordon",
+      "uncordon": "Uncordon",
+      "drain": "Drain"
+    }
+  },
+  "nodeDetail": {
+    "metricsUnavailable": "メトリクスを利用できません — クラスターに metrics-server が必要です。",
+    "metricsWindow": "metrics.k8s.io からサンプリングしたライブのローリングウィンドウです — Prometheus の履歴データではありません。",
+    "currentTaints": "現在の Taint",
+    "noTaints": "この Node に Taint はありません。",
+    "removeTaint": "Taint {{key}} を削除",
+    "addTaint": "Taint を追加",
+    "effect": "効果",
+    "notFound": "Node <mono>{{name}}</mono> が見つかりません。",
+    "forbidden": "現在の権限では Node <mono>{{name}}</mono> を利用できません。",
+    "eyebrow": "Node · {{role}}",
+    "allocatableCpu": "割り当て可能な CPU",
+    "allocatableMemory": "割り当て可能なメモリ",
+    "tabs": {
+      "details": "詳細",
+      "metrics": "メトリクス",
+      "taints": "Taint（{{n}}）",
+      "shell": "シェル"
+    },
+    "system": "システム",
+    "osImage": "OS イメージ",
+    "containerRuntime": "コンテナーランタイム",
+    "conditions": "状態"
+  },
+  "onboarding": {
+    "title": "はじめに",
+    "configure": "設定",
+    "fixNow": "今すぐ修正",
+    "sso": {
+      "title": "シングルサインオンを接続",
+      "done": "OIDC または SAML が設定されています — ログイン画面の SSO リンクが有効です。",
+      "todo": "OIDC/SAML プロバイダーはまだ設定されていません。ローカルのユーザー名とパスワードでサインインできますが、SSO はオフです。"
+    },
+    "demo": {
+      "title": "デモ用の認証情報から移行",
+      "todo": "このインスタンスはラボ用のデフォルト設定で動作しています。ラボ外で使用する前に、AXIOM_USERNAME と AXIOM_PASSWORD を設定するか、SSO を接続してください。",
+      "done": "ラボ用のデフォルト認証情報では動作していません。"
+    },
+    "atlas": {
+      "title": "Atlas ストレージを接続",
+      "done": "Atlas が接続されています — Atlas ページにライブのバックエンド、プール、ボリュームが表示されます。",
+      "todo": "ストレージのコントロールプレーンが接続されていません。設定すると、Atlas でボリュームとプールを表示し、ストレージをプロビジョニングできます。",
+      "cta": "Atlas を表示"
+    },
+    "packetwolf": {
+      "title": "PacketWolf ネットワークを接続",
+      "connected": "PacketWolf が接続されています。ネットワークページにライブの eBPF フローデータが表示されます。",
+      "unreachable": "PacketWolf の URL は設定されていますが到達できません — AXIOM_PACKETWOLF_URL を確認してください。",
+      "todo": "ネットワークページでライブの Cilium/eBPF フローデータを表示するには、AXIOM_PACKETWOLF_URL を設定してください。",
+      "cta": "ネットワークを表示"
+    },
+    "postgres": {
+      "title": "Postgres を接続",
+      "description": "Postgres を利用する機能でのみ必要です。ホストと認証情報は設定で構成します。"
+    },
+    "probe": {
+      "title": "外部プローブを接続",
+      "description": "プラットフォームの正常性を確認する合成チェックの対象です。設定で構成します。"
+    },
+    "intro": "このクラスターをラボ用のデフォルト設定から本番環境で信頼できる状態にするための 6 つのステップです。うち 2 つは必須です。",
+    "introWelcome": "ようこそ、{{name}} さん。このクラスターをラボ用のデフォルト設定から本番環境で信頼できる状態にするための 6 つのステップです。うち 2 つは必須です。",
+    "progressLabel": "セットアップの進捗",
+    "progress": "{{total}} 件中 {{done}} 件完了",
+    "optional": "任意",
+    "statusSource": "ステータスは <code>/api/v1/integrations</code>、<code>/api/v1/packetwolf/status</code>、<code>/api/v1/auth/providers</code> からリアルタイムに取得しています。"
+  },
+  "overview": {
+    "setupNotice": "このインスタンスのセットアップはまだ完了していません。",
+    "finishSetup": "セットアップを完了",
+    "tagline": "Kubernetes ネイティブのプライベートクラウド。k3s から本番環境まで 1 つのコンソールで。",
+    "exploreWorkloads": "ワークロードを見る",
+    "viewNodes": "Node を表示",
+    "glance": {
+      "title": "概況",
+      "description": "このクラスターで現在実行中のすべて。"
+    },
+    "metrics": {
+      "nodes": "Ready の Node",
+      "pods": "実行中の Pod",
+      "workloads": "ワークロード",
+      "vms": "実行中の VM"
+    },
+    "storageProvisioned": "{{capacity}} TB 中 {{used}} TB のストレージをプロビジョニング済み",
+    "utilization": {
+      "title": "使用率",
+      "description": "割り当て可能な量に対してクラスターがどれだけ稼働しているか。",
+      "storage": "ストレージ"
+    },
+    "trend": {
+      "title": "傾向",
+      "description": "直近の観測期間における CPU とメモリ。",
+      "clusterCpu": "クラスター CPU",
+      "clusterMemory": "クラスターメモリ"
+    },
+    "informed": {
+      "title": "最新情報",
+      "description": "警告、クラスターイベント、Pod のストリームはそれぞれ専用のページにあります。"
+    },
+    "cards": {
+      "alerts": "アラート",
+      "alertsText": "対応が必要な警告とルール。",
+      "events": "イベント",
+      "eventsText": "クラスターで起きていることをリアルタイムで。",
+      "logs": "Pod ログ",
+      "logsText": "任意の Pod の出力をリアルタイムでストリーミング。"
+    }
+  },
+  "overviewHealth": {
+    "title": "ヘルスチェック",
+    "description": "Pod、サービス、ボリューム、Ingress、オートスケーラー、Node の自動分析。",
+    "analyzing": "クラスターを分析中…",
+    "counts": "重大 {{critical}} · 警告 {{warning}} · 情報 {{info}}",
+    "open": "ヘルスチェックを開く",
+    "noProblems": "問題は見つかりませんでした。"
+  },
+  "services": {
+    "title": "サービス",
+    "description": "すべての Namespace にわたる ClusterIP、NodePort、LoadBalancer サービス。",
+    "search": "サービス名を検索",
+    "columns": {
+      "clusterIp": "Cluster IP",
+      "ports": "ポート",
+      "endpoints": "エンドポイント"
+    },
+    "empty": "現在のフィルターに一致するサービスはありません。"
+  },
+  "serviceDetail": {
+    "notFound": "サービス <mono>{{name}}</mono> が見つかりません。",
+    "allServices": "すべてのサービス",
+    "selector": "セレクター",
+    "endpoints": "エンドポイント（{{n}}）",
+    "noEndpoints": "エンドポイントがありません。",
+    "matchingPods": "一致する Pod（{{n}}）",
+    "noMatchingPods": "このセレクターに一致する Pod はありません。"
+  },
+  "ingresses": {
+    "title": "Ingress",
+    "description": "クラスターのサービスへの外部ルート（OpenShift の Route に相当）。",
+    "search": "名前またはホストで検索",
+    "columns": {
+      "class": "クラス",
+      "hosts": "ホスト",
+      "address": "アドレス"
+    },
+    "empty": "現在のフィルターに一致する Ingress はありません。",
+    "noGateways": "Gateway API オブジェクト（GatewayClass/Gateway/HTTPRoute）が見つかりません。"
+  },
+  "autoTable": {
+    "yes": "はい",
+    "no": "いいえ",
+    "dataTable": "データテーブル"
+  },
+  "resourceGraph": {
+    "lanes": {
+      "scale": "オートスケーラー",
+      "workload": "ワークロード",
+      "revision": "リビジョン",
+      "config": "設定とストレージ"
+    },
+    "rootLabel": "{{label}}（このリソース）",
+    "unavailable": "このリソースの関係グラフは利用できません: {{error}}",
+    "intro": "このリソースがルーティング、スケーリング、設定とどのようにつながっているかを示します。名前とステータスのみで、ConfigMap や Secret の値は読み込まれません。ノードを選択すると開きます。",
+    "region": "関係グラフ",
+    "svgLabel": "{{kind}} {{name}} の関係グラフ",
+    "truncated": "大きなリソースのため、グラフの一部のみを表示しています。",
+    "showList": "関係を一覧で表示",
+    "noRelated": "関連リソースが見つかりません。"
+  },
+  "alerts": {
+    "title": "アラート",
+    "description": "アクティブな警告と Prometheus のアラートルールグループ。",
+    "activeWarnings": "アクティブな警告",
+    "columns": {
+      "warning": "警告",
+      "resource": "リソース",
+      "groups": "グループ"
+    },
+    "noWarnings": "アクティブな警告はありません。",
+    "ruleGroups": "アラートルールグループ",
+    "groupsCount": "{{n}} 個のグループ",
+    "noRules": "アラートルールが設定されていません。"
+  },
+  "fleet": {
+    "title": "フリート",
+    "description": "登録済みのすべてのクラスターをバックグラウンドで確認し、応答の有無、Ready の Node 数、対応が必要な項目を表示します。クラスターの追加は 設定 → クラスター から行います。",
+    "checking": "確認中…",
+    "checkNow": "今すぐ確認",
+    "state": {
+      "healthy": "正常",
+      "degraded": "低下",
+      "unreachable": "到達不能",
+      "unknown": "未確認"
+    },
+    "active": "アクティブ",
+    "stateAria": "{{name}}: {{state}}",
+    "metrics": {
+      "nodes": "Nodes",
+      "pods": "Pods",
+      "apps": "アプリ",
+      "warnings": "警告"
+    },
+    "checkedLine": "{{ms}} ms · {{time}} に確認",
+    "notChecked": "未確認",
+    "since": " · {{time}} から",
+    "switchTo": "切り替え",
+    "search": {
+      "aria": "すべてのクラスターを検索",
+      "placeholder": "どこにある？… すべてのクラスターのワークロード、サービス、Namespace を検索",
+      "everything": "すべて",
+      "workloads": "ワークロード",
+      "services": "サービス",
+      "namespaces": "Namespaces",
+      "notSearched": "未検索: {{list}}",
+      "noMatches_other": "{{count}} 個のクラスターで一致するものはありません。",
+      "results": "検索結果",
+      "columns": {
+        "cluster": "クラスター",
+        "match": "一致"
+      },
+      "truncated": "{{total}} 件中最初の {{shown}} 件を表示しています — 検索条件を絞り込んでください。"
+    },
+    "summary": {
+      "clusters": "クラスター",
+      "healthy": "正常",
+      "attention": "要対応",
+      "nodes": "Ready の Node",
+      "pods": "実行中の Pod",
+      "warnings": "警告"
+    },
+    "empty": "登録されているクラスターはありません。",
+    "totals": "合計は応答したクラスターのみを集計しています",
+    "lastCheck": " · 最終確認 {{time}}",
+    "interval": " · {{n}} 秒ごとに確認",
+    "backgroundOff": " · バックグラウンド確認はオフです",
+    "history": {
+      "ongoing": "継続中",
+      "stripAria": "選択した期間の状態: {{total}} 区間中 {{bad}} 区間が正常ではありませんでした",
+      "reachable": "到達可能 <b>{{pct}}%</b>",
+      "failedChecks": "{{total}} 回中 {{failed}} 回の確認が失敗",
+      "noIncidents": "この期間にインシデントはありません。",
+      "unreachableFor": "{{duration}} 到達不能",
+      "degradedFor": "{{duration}} 低下",
+      "label": "履歴",
+      "last1h": "過去 1 時間",
+      "last6h": "過去 6 時間",
+      "last24h": "過去 24 時間"
+    },
+    "historyDurable": " · 履歴は再起動後も保持されます",
+    "historyMemory": " · 履歴はメモリ内にのみ保持されます"
+  },
+  "healthFindings": {
+    "whatChanged": "変更内容",
+    "suggestedFix": "修正案:"
+  },
+  "healthCheck": {
+    "title": "ヘルスチェック",
+    "description": "Pod、サービス、ボリューム、Ingress、オートスケーラー、Node をルールベースで分析し、検出結果ごとに修正案を提示します。データはクラスター外に送信されません。",
+    "analyzing": "分析中…",
+    "runAgain": "再実行",
+    "allNamespaces": "すべての Namespace",
+    "allNamespacesLower": "すべての Namespace",
+    "overall": "全体 · {{scope}}",
+    "countAria": "{{label}}: {{n}} 件の検出結果。フィルターを切り替えます。",
+    "severities": {
+      "critical": "重大",
+      "warning": "警告",
+      "info": "情報"
+    },
+    "analyzerErrors": "一部のアナライザーを実行できなかったため、このレポートは不完全な可能性があります: {{errors}}",
+    "noProblems": "問題は見つかりませんでした。",
+    "noFindingsAtSeverity": "この重大度の検出結果はありません。",
+    "checkedBy": "{{n}} 個のアナライザー（{{list}}）で確認 · {{time}}"
+  },
+  "notifications": {
+    "title": "通知",
+    "bellUnread": "通知、未読 {{n}} 件",
+    "unread": "· 未読 {{n}} 件",
+    "markAllRead": "すべて既読にする",
+    "recent": "最近の通知",
+    "empty": "新しい通知はありません。",
+    "markRead": "既読にする",
+    "dismissAria": "{{object}} の {{reason}} を閉じる",
+    "dismiss": "閉じる",
+    "viewAll": "すべてのアラートを表示"
+  },
+  "ops": {
+    "title": "運用",
+    "description": "Helm、GitOps、エージェント、ID、監査、アクセス、コスト。",
+    "tabs": {
+      "helm": "Helm",
+      "gitops": "GitOps",
+      "agents": "エージェント",
+      "identity": "ID",
+      "audit": "監査",
+      "access": "アクセス",
+      "webhooks": "Webhook",
+      "cost": "コスト"
+    },
+    "results": "結果",
+    "noneFound": "見つかりません。",
+    "helm": {
+      "rev": "rev {{n}}",
+      "revPlaceholder": "rev",
+      "rollback": "ロールバック",
+      "uninstall": "アンインストール",
+      "view": "Helm ビュー",
+      "releases": "リリース",
+      "catalog": "カタログ",
+      "installChart": "チャートをインストール",
+      "empty": "Helm リリースはありません。",
+      "columns": {
+        "release": "リリース",
+        "chart": "チャート",
+        "revision": "リビジョン"
+      }
+    },
+    "gitops": {
+      "newApplication": "新しいアプリケーション",
+      "empty": "GitOps アプリケーションはありません。",
+      "columns": {
+        "application": "アプリケーション"
+      },
+      "sync": "同期",
+      "syncAria": "{{name}} を同期",
+      "deleteAria": "{{name}} を削除",
+      "editAria": "{{name}} を編集"
+    },
+    "agents": {
+      "approve": "提案を承認",
+      "deny": "提案を却下",
+      "autonomy": "自律性: {{value}}",
+      "risk": "リスク: {{value}}",
+      "approval": "承認: {{value}}",
+      "empty": "エージェントの実行はありません。"
+    },
+    "identity": {
+      "planes": "ID プレーン",
+      "empty": "ID プレーンはありません。",
+      "columns": {
+        "plane": "プレーン",
+        "hostname": "ホスト名"
+      },
+      "adminCredentials": "管理者の認証情報",
+      "adminSecret": "{{namespace}} の Secret {{name}}"
+    },
+    "audit": {
+      "searchPlaceholder": "アクション、対象、詳細、ユーザーを検索",
+      "exportCsv": "CSV をエクスポート",
+      "exportJson": "JSON をエクスポート",
+      "noMatches": "一致する監査エントリはありません。",
+      "empty": "記録された監査エントリはまだありません。",
+      "columns": {
+        "action": "アクション",
+        "detail": "詳細",
+        "user": "ユーザー"
+      }
+    },
+    "rbac": {
+      "columns": {
+        "rules": "ルール",
+        "subjects": "サブジェクト"
+      },
+      "rulesCount": "{{n}} 個のルール",
+      "subjectsCount": "{{n}} 個のサブジェクト",
+      "clusterRoles": "クラスターロール",
+      "clusterRoleBindings": "クラスターロールバインディング",
+      "roles": "ロール",
+      "roleBindings": "ロールバインディング",
+      "newRole": "新しいロール",
+      "newBinding": "新しいバインディング",
+      "views": {
+        "roles": "ロールとバインディング",
+        "subjects": "サブジェクト別",
+        "whoCan": "実行可能なユーザー…"
+      },
+      "accessView": "アクセスビュー"
+    },
+    "webhooks": {
+      "validating": "検証 Webhook",
+      "mutating": "変更 Webhook",
+      "columns": {
+        "webhook": "Webhook",
+        "rules": "ルール",
+        "failurePolicy": "失敗ポリシー"
+      }
+    },
+    "cost": {
+      "totalMonthly": "月額コスト合計",
+      "perCore": "/コア",
+      "cpuRate": "CPU 単価",
+      "memoryRate": "メモリ単価",
+      "byNamespace": "Namespace 別",
+      "noNamespaceData": "Namespace のコストデータはありません。",
+      "byWorkload": "ワークロード別",
+      "noWorkloadData": "ワークロードのコストデータはありません。",
+      "columns": {
+        "monthlyCost": "月額コスト",
+        "workload": "ワークロード",
+        "whereItGoes": "内訳"
+      },
+      "cores": "{{n}} コア",
+      "totalMonthlyActual": "月額コスト合計（実績）",
+      "sourceActual": "実績コスト · OpenCost",
+      "sourceEstimate": "リクエストに基づく見積もり",
+      "window": "コスト期間",
+      "last7d": "過去 7 日間",
+      "last14d": "過去 14 日間",
+      "last30d": "過去 30 日間",
+      "idle": "アイドル（割り当て済み・未使用）"
+    }
+  },
+  "rbac": {
+    "denied": "RBAC ビューアーはすべてのサブジェクトの権限を一覧表示するため、operator または admin ロールと、Namespace に制限されていないアカウントが必要です。",
+    "loadFailed": "RBAC データを読み込めませんでした。",
+    "noRules": "ルールがありません（参照先のロールが空か存在しません）。",
+    "rules": "ルール",
+    "columns": {
+      "apiGroups": "API グループ",
+      "resources": "リソース",
+      "verbs": "動詞",
+      "subject": "サブジェクト",
+      "bindings": "バインディング",
+      "reach": "到達範囲",
+      "scope": "スコープ",
+      "via": "経由"
+    },
+    "names": "名前: {{names}}",
+    "grantsIn": "<code>{{namespace}}</code> で <code>{{role}}</code> を付与",
+    "grantsEverywhere": "すべての Namespace で <code>{{role}}</code> を付与",
+    "viaGroup": "· 暗黙のグループ <code>{{group}}</code> 経由",
+    "roleMissing": "ロールが存在しません",
+    "clusterAdminWarning": "このサブジェクトは cluster-admin 相当の権限（すべてのリソースに対するすべての動詞）を持っています。",
+    "clusterWideCount": "クラスター全体（{{n}}）",
+    "noClusterBindings": "このサブジェクトに到達する ClusterRoleBinding はありません。",
+    "namespacedCount": "Namespace スコープ（{{n}}）",
+    "noRoleBindings": "このサブジェクトに到達する RoleBinding はありません。",
+    "searchSubjects": "サブジェクトを検索",
+    "searchPlaceholder": "ユーザー、グループ、サービスアカウントを検索",
+    "subjectKind": "サブジェクトの種類",
+    "kinds": {
+      "all": "すべての種類",
+      "users": "ユーザー",
+      "groups": "グループ",
+      "serviceAccounts": "サービスアカウント"
+    },
+    "noSubjects": "一致するサブジェクトはありません。",
+    "subjects": "サブジェクト",
+    "viewPermissions": "{{kind}} {{name}} の権限を表示",
+    "clusterWide": "クラスター全体",
+    "namespaced": "Namespace スコープ",
+    "noBindings": "バインディングなし",
+    "selectSubject": "サブジェクトを選択すると、実効権限が表示されます。",
+    "who": {
+      "verb": "動詞",
+      "resource": "リソース",
+      "resourcePlaceholder": "pods, pods/exec, secrets…",
+      "namespace": "Namespace（任意）",
+      "namespacePlaceholder": "すべての Namespace",
+      "name": "オブジェクト名（任意）",
+      "namePlaceholder": "名前指定のオブジェクトに限定されたルールに一致",
+      "checking": "確認中…",
+      "run": "誰ができる？",
+      "titleIn": "<code>{{namespace}}</code> で <code>{{verb}}</code> <code>{{resource}}</code> を実行できるのは誰か",
+      "titleAny": "<code>{{verb}}</code> <code>{{resource}}</code> を実行できるのは誰か（任意の Namespace）",
+      "grants": "{{n}} 件の付与",
+      "none": "これを付与するバインディングはありません。",
+      "results": "「誰ができる？」の結果",
+      "inNamespace": "Namespace {{namespace}}",
+      "truncated": "最初の {{n}} 件の結果を表示しています。"
+    }
+  },
+  "security": {
+    "title": "セキュリティ",
+    "description": "このクラスターで稼働するスキャナーが報告した脆弱性、構成、ポリシーの検出結果です。",
+    "allNamespaces": "すべての Namespace",
+    "noReports": "スキャナーのレポートが見つかりません",
+    "unavailable": "利用不可",
+    "stats": {
+      "critical": "重大な脆弱性",
+      "high": "高の脆弱性",
+      "misconfig": "高以上の構成ミス",
+      "policyFail": "ポリシー違反"
+    },
+    "reports_other": "{{count}} 件のレポート",
+    "workloads": "ワークロード",
+    "withFindings": "検出結果あり {{n}} 件（リスクの高い順）",
+    "noFindings": "このスコープには検出結果がありません。",
+    "workloadFindings": "ワークロードの検出結果",
+    "columns": {
+      "workload": "ワークロード",
+      "vulns": "脆弱性",
+      "misconfig": "構成ミス",
+      "policy": "ポリシー"
+    },
+    "showFindings": "{{kind}} {{name}} の検出結果を表示",
+    "truncated": "サイズのため結果が切り詰められました。",
+    "countsNone": "{{label}}: なし",
+    "countsList": "{{label}}: {{list}}",
+    "sevCount": {
+      "critical": "重大 {{n}}",
+      "high": "高 {{n}}",
+      "medium": "中 {{n}}",
+      "low": "低 {{n}}",
+      "unknown": "不明 {{n}}"
+    },
+    "sevPill": {
+      "critical": "{{n}} C",
+      "high": "{{n}} H",
+      "medium": "{{n}} M",
+      "low": "{{n}} L",
+      "unknown": "{{n}} U"
+    },
+    "policyCount": {
+      "fail": "失敗 {{n}}",
+      "warn": "警告 {{n}}",
+      "error": "エラー {{n}}",
+      "skip": "スキップ {{n}}",
+      "pass": "合格 {{n}}"
+    },
+    "detail": {
+      "reportType": "レポートの種類",
+      "tabs": {
+        "vulns": "脆弱性",
+        "config": "構成ミス",
+        "policy": "ポリシー"
+      },
+      "noVulns": "報告された脆弱性はありません。",
+      "columns": {
+        "cve": "CVE",
+        "severity": "重大度",
+        "package": "パッケージ",
+        "installed": "インストール済み",
+        "fixedIn": "修正バージョン",
+        "check": "チェック",
+        "policyRule": "ポリシー / ルール",
+        "result": "結果"
+      },
+      "noFix": "修正なし",
+      "noMisconfig": "失敗した構成チェックはありません。",
+      "noPolicyFails": "失敗したポリシー結果はありません。",
+      "noPolicyFailsPassing": "失敗したポリシー結果はありません（合格 {{n}} 件）。",
+      "policyResults": "ポリシー結果",
+      "truncated": "一部のリストは切り詰められています。完全なレポートはスキャナー側のツールで確認してください。"
+    }
+  },
+  "severity": {
+    "critical": "重大",
+    "warning": "警告",
+    "info": "情報",
+    "source": {
+      "event": "イベント",
+      "audit": "監査",
+      "alert": "アラート",
+      "rollout": "ロールアウト"
+    },
+    "status": {
+      "critical": "重大",
+      "warning": "警告",
+      "healthy": "正常"
+    }
+  },
+  "atlas": {
+    "title": "Atlas",
+    "description": "ストレージコントロールプレーン — Ceph、NFS、ZFS を 1 つの API で。",
+    "notConnected": "Atlas に接続されていません",
+    "configureGateway": "Atlas ゲートウェイの URL を設定してください。",
+    "openSettings": "設定を開く",
+    "console": "コンソール",
+    "createVolume": "ボリュームを作成",
+    "metrics": {
+      "raw": "物理容量",
+      "used": "使用済み",
+      "available": "空き"
+    },
+    "backends": "バックエンド",
+    "noBackends": "登録されたストレージバックエンドはありません。",
+    "pools": "プール",
+    "noPools": "検出されたプールはまだありません。",
+    "volumes": "ボリューム",
+    "noVolumes": "Atlas でプロビジョニングされたボリュームはまだありません。",
+    "buckets": "バケット",
+    "noBuckets": "プロビジョニングされたオブジェクトバケットはありません。",
+    "policies": "ポリシー",
+    "noPolicies": "インテントポリシーは設定されていません。"
+  },
+  "autoscaling": {
+    "title": "オートスケーリング",
+    "description": "すべての Namespace の水平・垂直・イベント駆動オートスケーラー。",
+    "tabs": {
+      "hpa": "水平",
+      "vpa": "垂直（VPA）",
+      "keda": "イベント駆動（KEDA）"
+    },
+    "state": {
+      "notScaling": "スケーリングなし",
+      "atLimit": "上限到達",
+      "scalingTo": "{{replicas}} にスケーリング中",
+      "stable": "安定"
+    },
+    "createAutoscaler": "オートスケーラーを作成",
+    "empty": "HorizontalPodAutoscaler は設定されていません。",
+    "region": "オートスケーラー",
+    "columns": {
+      "minMax": "最小 – 最大",
+      "current": "現在",
+      "metrics": "メトリクス（現在 / 目標）",
+      "state": "状態"
+    },
+    "deleteAria": "オートスケーラー {{name}} を削除"
+  },
+  "autoscalingPanels": {
+    "vpa": {
+      "notInstalled": "このクラスターには Vertical Pod Autoscaler がインストールされていません。",
+      "notInstalledHint": "VPA recommender をインストールすると、コンテナーごとの CPU とメモリの推奨値がここに表示されます。Axiom は読み取るだけで、リクエストを変更することはありません。",
+      "empty": "VerticalPodAutoscaler はありません。",
+      "region": "Vertical Pod Autoscaler",
+      "columns": {
+        "mode": "モード",
+        "container": "コンテナー",
+        "cpu": "CPU（下限 · 目標 · 上限）",
+        "memory": "メモリ（下限 · 目標 · 上限）"
+      },
+      "new": "新しい VPA",
+      "deleteAria": "VPA {{name}} を削除",
+      "editAria": "VPA {{name}} を編集"
+    },
+    "keda": {
+      "notInstalled": "このクラスターには KEDA がインストールされていません。",
+      "notInstalledHint": "KEDA をインストールすると、キューの深さ、cron スケジュール、HTTP 負荷などのイベントソースに基づいてワークロードをスケールできます。その ScaledObject がここに一覧表示されます。",
+      "empty": "ScaledObject はありません。",
+      "region": "KEDA ScaledObject",
+      "columns": {
+        "triggers": "トリガー",
+        "state": "状態"
+      },
+      "state": {
+        "fallback": "フォールバック",
+        "active": "アクティブ",
+        "idle": "アイドル",
+        "notReady": "未準備"
+      },
+      "new": "新しい ScaledObject",
+      "deleteAria": "ScaledObject {{name}} を削除",
+      "editAria": "ScaledObject {{name}} を編集"
+    }
+  },
+  "backups": {
+    "title": "バックアップ",
+    "description": "VolumeSnapshot と Velero クラスターバックアップ。",
+    "restore": "復元",
+    "veleroBackup": "Velero バックアップ",
+    "createSnapshot": "スナップショットを作成",
+    "snapshots": {
+      "title": "ボリュームスナップショット",
+      "empty": "ボリュームスナップショットはありません。"
+    },
+    "veleroBackups": {
+      "title": "Velero バックアップ",
+      "empty": "Velero バックアップはありません。"
+    },
+    "veleroSchedules": {
+      "title": "Velero スケジュール",
+      "empty": "Velero スケジュールはありません。"
+    },
+    "newSchedule": "新しいスケジュール",
+    "columns": {
+      "namespaces": "Namespace",
+      "phase": "フェーズ",
+      "schedule": "スケジュール",
+      "lastBackup": "最終バックアップ"
+    }
+  },
+  "costPanels": {
+    "budgetState": {
+      "ok": "予算内",
+      "warning": "予算に接近",
+      "over": "予算超過"
+    },
+    "budgets": "予算",
+    "addBudget": "予算を追加",
+    "noBudgets": "予算はまだありません。Namespace ごとに設定すると、推定コストが上限に近づいたときに通知されます。",
+    "budgetOf": "{{current}} / {{budget}} · {{percent}}%",
+    "editBudgetAria": "{{namespace}} の予算を編集",
+    "removeBudgetAria": "{{namespace}} の予算を削除",
+    "budgetBarAria": "{{namespace}} は予算の {{percent}}% に達しています",
+    "totals": "予算設定済み Namespace の推定合計 {{current}}（予算 {{budget}}）。",
+    "withoutBudget": "予算未設定",
+    "verdict": {
+      "over": "過剰プロビジョニング",
+      "under": "過少プロビジョニング",
+      "ok": "適正サイズ"
+    },
+    "confidence": {
+      "high": "信頼度: 高",
+      "medium": "信頼度: 中",
+      "low": "信頼度: 低"
+    },
+    "rightsizing": "ライトサイジング",
+    "showFilter": "表示",
+    "needsAttention": "要対応",
+    "allContainers": "すべてのコンテナー",
+    "usageWindow": "使用量の期間",
+    "lastWindow": "過去 {{window}}",
+    "noUsageData": "使用量データなし",
+    "source": "ソース: {{source}}",
+    "summary": {
+      "savings": "月間の削減見込み",
+      "over": "過剰プロビジョニング",
+      "under": "リスクあり（過少プロビジョニング）"
+    },
+    "connectPrometheus": "推奨値を得るには Prometheus（AXIOM_PROMETHEUS_URL）または metrics-server を接続してください。",
+    "nothingNeedsAttention": "対応が必要な項目はありません。",
+    "recommendationsRegion": "ライトサイジングの推奨",
+    "columns": {
+      "workload": "ワークロード",
+      "cpu": "CPU（リクエスト → 推奨）",
+      "memory": "メモリ（リクエスト → 推奨）",
+      "verdict": "判定",
+      "monthlyChange": "月間の変化"
+    },
+    "used": "（使用量 {{value}}）",
+    "applyEllipsis": "適用…",
+    "footnote": "推奨値は観測された使用量に余裕を加えたものです。Axiom が独自にリクエストを変更することはありません。「適用」では正確な変更内容を先に表示し、確認後にのみ実行します。",
+    "totalsActual": "予算設定済み Namespace の実績合計 {{current}}（予算 {{budget}}）。",
+    "basedOnOpenCost": "OpenCost に基づく",
+    "basedOnRequests": "リクエストに基づく"
+  },
+  "helmCatalog": {
+    "repositories": "リポジトリ",
+    "noRepos": "チャートリポジトリはまだありません。Axiom は管理者がリポジトリを追加した後にのみ取得します。",
+    "chartCount": "{{n}} 個のチャート",
+    "removeRepoAria": "リポジトリ {{name}} を削除",
+    "repoName": "リポジトリ名",
+    "repoNamePlaceholder": "名前",
+    "repoUrl": "リポジトリ URL",
+    "adding": "追加中…",
+    "suggested": "おすすめ:",
+    "noDescription": "説明はありません。",
+    "searchAria": "チャートを検索",
+    "searchPlaceholder": "名前、説明、キーワードでチャートを検索",
+    "repository": "リポジトリ",
+    "allRepositories": "すべてのリポジトリ",
+    "repoErrors": "一部のリポジトリを読み取れませんでした: {{list}}",
+    "noMatch": "一致するチャートはありません。",
+    "appVersion": "アプリ {{version}}",
+    "deprecated": "非推奨",
+    "showing": "{{total}} 個中 {{shown}} 個のチャートを表示しています。",
+    "oci": {
+      "chartNames": "チャート名",
+      "chartNamesPlaceholder": "このレジストリ内のチャート名（カンマ区切り、例: nginx, redis）",
+      "kindLabel": "リポジトリの種類",
+      "index": "チャートリポジトリ",
+      "registry": "OCI レジストリ",
+      "login": "レジストリログイン",
+      "noLogin": "なし（パブリックレジストリ）",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "プライベート",
+    "privateTitle": "ログイン {{name}} を使用"
+  },
+  "storage": {
+    "title": "ストレージ",
+    "description": "すべての Namespace の StorageClass と PersistentVolumeClaim。",
+    "searchPlaceholder": "クレーム名を検索",
+    "claimUnit_other": "クレーム",
+    "claimsRegion": "PersistentVolumeClaim",
+    "columns": {
+      "claim": "クレーム",
+      "class": "クラス",
+      "size": "サイズ",
+      "volume": "ボリューム",
+      "access": "アクセス"
+    },
+    "empty": "現在のフィルターに一致するクレームはありません。",
+    "rawResources": "Raw リソース",
+    "noStorageClasses": "StorageClass が見つかりません。",
+    "noPersistentVolumes": "PersistentVolume が見つかりません。"
+  },
+  "vmDetail": {
+    "console": {
+      "unavailable": "コンソール情報を利用できません。",
+      "ready": "VM はコンソールアクセスの準備ができています",
+      "notReady": "VM の準備ができていません",
+      "runLocally": "ローカルで実行（kubeconfig が必要）",
+      "subresource": "Kubernetes API サブリソース"
+    },
+    "backToList": "仮想マシン",
+    "notFound": "VM <code>{{name}}</code> が見つかりませんでした。",
+    "eyebrow": "仮想マシン",
+    "actions": {
+      "stop": "停止",
+      "start": "起動",
+      "migrate": "移行",
+      "console": "コンソール"
+    },
+    "allVms": "すべての VM",
+    "placement": "配置",
+    "running": "実行中",
+    "consoleSuffix": "· コンソール"
+  },
+  "vms": {
+    "title": "仮想マシン",
+    "description": "KubeVirt 管理の VM。起動、停止、ライブマイグレーション、コンソール接続を行えます。",
+    "vmCount": "{{n}} 台の VM",
+    "createVm": "VM を作成",
+    "actions": {
+      "stop": "停止",
+      "start": "起動",
+      "migrate": "移行",
+      "console": "コンソール"
+    },
+    "console": {
+      "unavailable": "コンソール情報を利用できません。",
+      "ready": "VM はコンソールアクセスの準備ができています",
+      "notReady": "VM の準備ができていません",
+      "hint": "ローカルで virtctl を使用するか、以下のプロキシ経由の WebSocket パスに VNC クライアントを接続してください。",
+      "wsProxy": "ブラウザー WebSocket プロキシ",
+      "runLocally": "ローカルで実行（kubeconfig が必要）",
+      "subresource": "Kubernetes API サブリソース"
+    },
+    "protection": {
+      "new": "新規",
+      "snapshots": {
+        "title": "スナップショット",
+        "new": "新しいスナップショット",
+        "empty": "VM スナップショットはまだありません。"
+      },
+      "clones": {
+        "title": "クローン",
+        "new": "新しいクローン",
+        "empty": "VM クローンはまだありません。"
+      },
+      "exports": {
+        "title": "エクスポート",
+        "new": "新しいエクスポート",
+        "empty": "VM エクスポートはまだありません。"
+      },
+      "restores": {
+        "title": "復元",
+        "new": "新しい復元",
+        "empty": "VM の復元はまだありません。"
+      },
+      "fields": {
+        "vmName": "VM 名",
+        "sourceVm": "ソース VM",
+        "targetVmName": "ターゲット VM 名",
+        "snapshotName": "スナップショット名"
+      }
+    }
+  },
+  "debugContainer": {
+    "title": "デバッグコンテナー",
+    "description": "実行中のこの Pod に、デバッグツールを含む使い捨てのコンテナーを追加します。ネットワークを共有し、ターゲットを選択した場合はそのコンテナーのプロセスも共有します。Pod が置き換えられるまで削除できません。この操作は <code>pod.debug</code> として監査されます。",
+    "targetLabel": "ターゲットコンテナー",
+    "noTarget": "ターゲットのプロセス名前空間なし",
+    "targetOption": "ターゲット {{container}}",
+    "adding": "追加中…",
+    "add": "デバッグコンテナーを追加",
+    "resultTarget": "ターゲット {{target}}"
+  },
+  "podTerminal": {
+    "status": {
+      "idle": "アイドル",
+      "connecting": "接続中",
+      "connected": "接続済み",
+      "closed": "切断",
+      "error": "エラー"
+    },
+    "connectingTo": "{{target}}（{{shell}}）に接続中…",
+    "ticketFailed": "ターミナルセッションを開始できませんでした: {{error}}",
+    "wsFailed": "ターミナルの WebSocket を開けませんでした。",
+    "wsFailedHint": "このサイトが自己署名証明書を使用している場合は、一度 HTTPS でページを開いて証明書を受け入れてから、再度「接続」を押してください。",
+    "closedEarly": "セッション開始前に接続が閉じられました。",
+    "sessionEnded": "セッションが終了しました。",
+    "distrolessHint": "シェルのバイナリがない場合、このイメージは distroless の可能性があります。redis/nginx/busybox の Pod を試すか、存在するバイナリでワンショット実行してください。",
+    "container": "コンテナー",
+    "disconnect": "切断",
+    "connecting": "接続中…",
+    "connect": "接続",
+    "axiomDistroless": "Axiom コンソールのイメージは distroless のため、<code>/bin/sh</code> がありません。対話型シェルには別の Pod（例: redis/nginx）を開いてください。"
+  },
+  "nodeShell": {
+    "title": "Node シェル",
+    "checking": "確認中…",
+    "disabled": "このサーバーでは Node シェルが無効です。管理者は Axiom の Deployment で <code>AXIOM_ENABLE_NODE_SHELL=true</code> を設定して有効にできます。管理者専用で、すべてのセッションが監査されます。",
+    "warning": "<code>{{namespace}}</code> Namespace の短命な特権 Pod を介して <b>Node 上の root シェル</b>を開きます（管理者専用、<code>node.shell</code> として監査）。Pod は切断時または {{minutes}} 分後に削除されます。",
+    "needsLive": "対話型シェルにはライブの Kubernetes 接続が必要です。",
+    "open": "{{node}} で root シェルを開く"
+  },
+  "diffReview": {
+    "willBeCreated": "{{id}} — 作成されます",
+    "willBeChanged": "{{id}} — 変更されます",
+    "upToDate": "{{id}} — 変更なし、最新です",
+    "unavailable": "このサーバーでは変更プレビューを利用できません。マニフェストの適用は可能です。",
+    "rejected": "マニフェストが拒否されました。",
+    "changesTo": "{{kind}} {{name}} の変更",
+    "changes": "変更",
+    "noChanges": "変更なし",
+    "unchangedLines_other": "… 変更のない {{count}} 行",
+    "srAdded": "追加: ",
+    "srRemoved": "削除: "
+  },
+  "jobDetail": {
+    "backToJobs": "Job",
+    "notFound": "Job <code>{{name}}</code> が見つかりませんでした。",
+    "allJobs": "すべての Job",
+    "summary": "概要",
+    "completions": "完了数",
+    "duration": "所要時間",
+    "ownerCronJob": "所有元 CronJob",
+    "pods": "Pod（{{n}}）",
+    "noPods": "この Job の Pod が見つかりません。"
+  },
+  "cronJobDetail": {
+    "backToJobs": "Job",
+    "notFound": "CronJob <code>{{name}}</code> が見つかりませんでした。",
+    "triggering": "実行中…",
+    "runNow": "今すぐ実行",
+    "allJobs": "すべての Job",
+    "schedule": "スケジュール",
+    "cron": "Cron",
+    "suspended": "一時停止",
+    "activeJobs": "アクティブな Job",
+    "lastSchedule": "最終スケジュール",
+    "recentJobs": "最近の Job（{{n}}）",
+    "noJobs": "この CronJob からの Job はまだありません。",
+    "completions": "完了数"
+  },
+  "jobs": {
+    "title": "Job と CronJob",
+    "description": "すべての Namespace のスケジュール実行および単発のバッチワークロード。",
+    "searchPlaceholder": "Job 名を検索",
+    "cronJobs": {
+      "title": "CronJob",
+      "noMatches": "現在のフィルターに一致する CronJob はありません。",
+      "empty": "CronJob は設定されていません。"
+    },
+    "jobs": {
+      "title": "Job",
+      "noMatches": "現在のフィルターに一致する Job はありません。",
+      "empty": "Job が見つかりません。"
+    },
+    "columns": {
+      "schedule": "スケジュール",
+      "lastRun": "最終実行",
+      "completions": "完了数",
+      "duration": "所要時間"
+    },
+    "runNow": "今すぐ実行",
+    "scheduleEnabledFor": "{{name}} のスケジュールを有効化",
+    "namespaceFromCronJob": "{{namespace}} · {{cronJob}} から"
+  },
+  "logs": {
+    "streamFailed": "ログストリームが失敗しました。",
+    "titleWorkload": "ワークロードのログ",
+    "titlePod": "Pod のログ",
+    "descriptionWorkload": "ワークロードのすべての Pod とコンテナーを 1 つのストリームに統合し、[pod/container] を先頭に付けて表示します。",
+    "descriptionPod": "チャンク HTTP によるライブストリーミングターミナル。",
+    "source": "ログソース",
+    "modePod": "Pod",
+    "modeWorkload": "ワークロード",
+    "pod": "Pod",
+    "choosePod": "Pod を選択",
+    "container": "コンテナー",
+    "workload": "ワークロード",
+    "noWorkloads": "ワークロードなし",
+    "stop": "停止",
+    "load": "読み込み",
+    "follow": "フォロー",
+    "filterLabel": "行をフィルター（正規表現）",
+    "filterPlaceholder": "行をフィルター（正規表現、大文字小文字を区別しない）",
+    "timestamps": "タイムスタンプ",
+    "previousContainer": "前回のコンテナー",
+    "invalidRegex": "無効な正規表現: {{error}}",
+    "lineCount": "{{lines}} 行",
+    "hintFollow": "<kbd>Follow</kbd> を押すと <target>{{target}}</target> をストリーミングします。",
+    "hintLoad": "<kbd>Load</kbd> を押すと <target>{{target}}</target> の前回の実行を読み込みます。",
+    "aTarget": "ターゲット"
+  },
+  "podDetail": {
+    "exec": {
+      "running": "実行中…",
+      "run": "実行",
+      "outputPlaceholder": "ここに出力が表示されます。"
+    },
+    "container": {
+      "cpu": "CPU リクエスト/リミット",
+      "memory": "メモリ リクエスト/リミット",
+      "liveness": "Liveness",
+      "readiness": "Readiness",
+      "environment": "環境変数",
+      "mounts": "マウント"
+    },
+    "metrics": {
+      "unavailable": "メトリクスを利用できません — クラスターに metrics-server が必要です。",
+      "window": "metrics.k8s.io からサンプリングしたライブのローリングウィンドウです。Prometheus の履歴データではありません。",
+      "perContainer": "コンテナー別"
+    },
+    "shell": "シェル {{id}}",
+    "newShell": "新しいシェル",
+    "notFound": "Pod {{namespace}}/{{name}} が見つかりません。",
+    "owner": "所有者:",
+    "logs": "ログ",
+    "evict": "退避",
+    "notScheduled": "未スケジュール",
+    "stats": {
+      "cpuLimit": "CPU リミット",
+      "memoryLimit": "メモリリミット"
+    },
+    "tabs": {
+      "details": "詳細",
+      "terminal": "ターミナル",
+      "metrics": "メトリクス",
+      "events": "イベント（{{n}}）"
+    },
+    "spec": {
+      "title": "Pod spec",
+      "serviceAccount": "サービスアカウント",
+      "restartPolicy": "再起動ポリシー"
+    },
+    "containers": "コンテナー",
+    "initContainers": "Init コンテナー",
+    "volumes": "ボリューム",
+    "conditions": "コンディション",
+    "nodeSelector": "Node セレクター",
+    "tolerations": "Toleration",
+    "ports": "ポート",
+    "copyPortForward": "kubectl port-forward をコピー",
+    "interactiveUnavailable": "対話型ターミナルにはライブの Kubernetes 接続が必要です。代わりにワンショットコマンドを実行します。",
+    "manifestUnavailable": "このモードではマニフェストを利用できません。",
+    "noEvents": "この Pod のイベントはありません。",
+    "noLabels": "ラベルはありません。"
+  },
+  "pods": {
+    "title": "Pod",
+    "description": "すべての Namespace で実行中のすべての Pod。",
+    "evicting": "退避中…",
+    "evict": "退避",
+    "exec": "Exec",
+    "searchPlaceholder": "Pod 名を検索",
+    "selectAll": "すべての Pod を選択",
+    "selectOne": "Pod {{name}} を選択",
+    "columns": {
+      "ip": "IP"
+    },
+    "noMatches": "現在のフィルターに一致する Pod はありません。"
+  },
+  "workloadDetail": {
+    "stats": {
+      "desired": "必要数",
+      "available": "利用可能",
+      "pods": "Pod"
+    },
+    "tabs": {
+      "overview": "概要",
+      "pods": "Pod（{{n}}）",
+      "events": "イベント（{{n}}）",
+      "graph": "グラフ",
+      "changes": "変更履歴"
+    },
+    "noLabels": "ラベルはありません。",
+    "noAnnotations": "アノテーションはありません。",
+    "containerPorts": "コンテナーポート",
+    "noPods": "このワークロードの Pod が見つかりません。",
+    "noEvents": "関連するイベントはありません。"
+  },
+  "workloads": {
+    "title": "ワークロード",
+    "description": "すべての Namespace の Deployment、StatefulSet、DaemonSet、Pod、CronJob。",
+    "actionsFor": "{{name}} のアクション",
+    "menu": {
+      "start": "起動",
+      "stop": "停止",
+      "restart": "再起動",
+      "scale": "スケール…",
+      "rollout": "ロールアウト…",
+      "seal": "シール",
+      "unseal": "シール解除"
+    },
+    "runWorkload": "ワークロードを実行",
+    "searchPlaceholder": "名前またはイメージを検索",
+    "filterByKind": "種類でフィルター",
+    "allKinds": "すべての種類",
+    "selectAll": "すべてのワークロードを選択",
+    "selectOne": "ワークロード {{name}} を選択",
+    "columns": {
+      "desired": "必要数",
+      "available": "利用可能"
+    },
+    "empty": {
+      "title": "ワークロードはまだありません",
+      "description": "Deployment、StatefulSet、DaemonSet、CronJob を起動すると、ここに表示されます。",
+      "action": "最初のワークロードを実行"
+    },
+    "noMatches": "現在のフィルターに一致するワークロードはありません。"
+  }
+}

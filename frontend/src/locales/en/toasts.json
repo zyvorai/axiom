@@ -254,5 +254,14 @@
     "savedDescription": "The secret is write-only and cannot be shown again.",
     "deleted": "Deleted {{name}}",
     "deleteFailed": "Delete failed"
+  },
+  "registryLogins": {
+    "saved": "Saved login {{name}}",
+    "savedHint": "The password is write-only and cannot be shown again.",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "autoscalingEdit": {
+    "updated": "Updated {{name}}"
   }
 }

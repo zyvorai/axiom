@@ -16,6 +16,10 @@ export const SUPPORTED_LANGUAGES = [
     { code: "de", name: "Deutsch" },
     { code: "es", name: "Español" },
     { code: "fr", name: "Français" },
+    { code: "pt", name: "Português" },
+    { code: "it", name: "Italiano" },
+    { code: "ja", name: "日本語" },
+    { code: "zh", name: "简体中文" },
 ];
 const SUPPORTED = SUPPORTED_LANGUAGES.map((l) => l.code);
 export const STORAGE_KEY = "axiom.lang";
@@ -26,6 +30,11 @@ const LOADERS = {
     de: () => Promise.all([import(/* webpackChunkName: "locale-de" */ "@/locales/de"), import(/* webpackChunkName: "locale-de" */ "date-fns/locale/de")]),
     es: () => Promise.all([import(/* webpackChunkName: "locale-es" */ "@/locales/es"), import(/* webpackChunkName: "locale-es" */ "date-fns/locale/es")]),
     fr: () => Promise.all([import(/* webpackChunkName: "locale-fr" */ "@/locales/fr"), import(/* webpackChunkName: "locale-fr" */ "date-fns/locale/fr")]),
+    // "pt" formats as pt-BR in Intl, so dates use the matching date-fns locale.
+    pt: () => Promise.all([import(/* webpackChunkName: "locale-pt" */ "@/locales/pt"), import(/* webpackChunkName: "locale-pt" */ "date-fns/locale/pt-BR")]),
+    it: () => Promise.all([import(/* webpackChunkName: "locale-it" */ "@/locales/it"), import(/* webpackChunkName: "locale-it" */ "date-fns/locale/it")]),
+    ja: () => Promise.all([import(/* webpackChunkName: "locale-ja" */ "@/locales/ja"), import(/* webpackChunkName: "locale-ja" */ "date-fns/locale/ja")]),
+    zh: () => Promise.all([import(/* webpackChunkName: "locale-zh" */ "@/locales/zh"), import(/* webpackChunkName: "locale-zh" */ "date-fns/locale/zh-CN")]),
 };
 
 const dateFnsLocales = {}; // code -> date-fns locale (en uses date-fns' built-in default)
@@ -76,9 +85,11 @@ i18n.use(initReactI18next).init({
         : undefined,
 });
 
-// Locale files only carry `_one`/`_other`. Spanish and French also have a CLDR
-// "many" category (1 000 000 …); without a `_many` key i18next would fall back
-// to English, so `_other` doubles as `_many` unless a file defines it.
+// Locale files only carry `_one`/`_other` (Japanese and Chinese only `_other`:
+// CLDR gives them no other category). Spanish, French, Portuguese and Italian
+// also have a CLDR "many" category (1 000 000 …); without a `_many` key i18next
+// would fall back to English, so `_other` doubles as `_many` unless a file
+// defines it.
 function withManyPlurals(node) {
     if (!node || typeof node !== "object") return node;
     const out = {};

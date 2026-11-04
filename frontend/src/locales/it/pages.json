@@ -1,0 +1,1507 @@
+{
+  "notFound": {
+    "title": "Pagina non trovata",
+    "description": "Non c'è nulla in <path>{{path}}</path>. Potrebbe essere stata spostata oppure il link non è più valido.",
+    "goOverview": "Vai alla panoramica"
+  },
+  "users": {
+    "title": "Utenti",
+    "description": "Account locali affiancati all'SSO. I visualizzatori possono leggere ogni pagina ma non possono creare, modificare o eliminare nulla."
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "description": "Cluster, aspetto, single sign-on e integrazioni della piattaforma.",
+    "configured": "configurato",
+    "notConfigured": "non configurato",
+    "testing": "Verifica in corso…",
+    "testConnection": "Verifica connessione",
+    "clusters": {
+      "title": "Cluster",
+      "add": "Aggiungi cluster",
+      "lead": "Registra kubeconfig remoti per passare da un cluster all'altro della flotta. Cluster attivo: <mono>{{name}}</mono>",
+      "empty": "Nessun cluster configurato.",
+      "columns": {
+        "cluster": "Cluster"
+      },
+      "active": "attivo",
+      "unreachable": "non raggiungibile",
+      "latency": "{{ms}} ms",
+      "activate": "Attiva"
+    },
+    "appearance": {
+      "title": "Aspetto",
+      "lead": "Il tema viene salvato in questo browser. Sistema segue l'aspetto del dispositivo.",
+      "theme": "Tema",
+      "light": "Chiaro",
+      "dark": "Scuro",
+      "system": "Sistema"
+    },
+    "oidc": {
+      "title": "Single sign-on OIDC",
+      "issuer": "Emittente",
+      "loginUrl": "URL di accesso",
+      "clientId": "ID client"
+    },
+    "atlas": {
+      "url": "URL di Atlas",
+      "consoleUrl": "URL della console"
+    },
+    "postgres": {
+      "host": "Host",
+      "port": "Porta",
+      "database": "Database",
+      "user": "Utente",
+      "password": "Password",
+      "passwordSet": "Password (impostata — lasciare vuoto per mantenerla)",
+      "sslMode": "Modalità SSL"
+    },
+    "probe": {
+      "title": "Sonda",
+      "podNamespace": "Namespace del Pod",
+      "podName": "Nome del Pod",
+      "container": "Container",
+      "url": "URL della sonda"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "slackWebhook": "URL del webhook Slack",
+      "slackWebhookSet": "URL del webhook Slack (impostato — lasciare vuoto per mantenerlo)",
+      "alertWebhook": "URL del webhook degli avvisi",
+      "alertWebhookSet": "URL del webhook degli avvisi (impostato — lasciare vuoto per mantenerlo)",
+      "forwardWarnings": "Inoltra automaticamente gli eventi Warning",
+      "forwardWarningsHint": "Controlla ogni 60s e invia i nuovi eventi Warning del cluster ai canali sopra indicati.",
+      "testSlack": "Prova Slack",
+      "testWebhook": "Prova webhook"
+    },
+    "apiKeyNote": "L'accesso con chiave API si configura tramite la variabile d'ambiente <mono>AXIOM_API_KEY</mono> del processo Axiom."
+  },
+  "aiSettings": {
+    "title": "Assistente IA",
+    "pillEnabled": "attivo",
+    "pillOff": "disattivato",
+    "lead": "Funzione opzionale \"Spiega con l'IA\" su Pod ed eventi Warning, con un endpoint del proprio modello. Disattivata per impostazione predefinita. Ogni richiesta invia un'istantanea oscurata (eventi, stato dei container, le ultime righe di log; mai valori di Secret o ConfigMap né variabili d'ambiente) all'endpoint indicato sotto e viene registrata nell'audit come <mono>ai.explain</mono> (solo la destinazione). L'URL di base è una destinazione in uscita scelta da un amministratore.",
+    "enable": "Attiva assistente IA",
+    "enableHint": "Se disattivato, i pulsanti sono nascosti e l'API rifiuta le richieste.",
+    "provider": "Provider",
+    "baseUrl": "URL di base",
+    "model": "Modello",
+    "modelPlaceholder": "es. gpt-4o-mini, claude-sonnet-4-5, llama3.1",
+    "apiKey": "Chiave API",
+    "apiKeySet": "Chiave API (impostata — lasciare vuoto per mantenerla)",
+    "mask": "Maschera anche indirizzi IP e nomi host",
+    "maskAria": "Maschera indirizzi IP e nomi host",
+    "maskHint": "Consigliato. Secret, token e variabili d'ambiente vengono sempre rimossi.",
+    "testing": "Verifica in corso…",
+    "testConnection": "Verifica connessione"
+  },
+  "aiAssistant": {
+    "explain": "Spiega con l'IA",
+    "detailsAria": "Dettagli dell'assistente IA",
+    "sentTo": "Questi dati verranno inviati a <mono>{{where}}</mono>",
+    "demoNotice": "Modalità demo: le risposte sono predefinite e nulla lascia questo server.",
+    "redactOn": "Secret, token, variabili d'ambiente, IP e nomi host vengono rimossi prima dell'invio. Verificare il payload esatto qui sotto.",
+    "redactOff": "Secret, token e variabili d'ambiente vengono rimossi prima dell'invio. IP e nomi host NON sono mascherati (oscuramento disattivato). Verificare il payload qui sotto.",
+    "question": "Domanda facoltativa",
+    "questionPlaceholder": "es. Perché continua a riavviarsi?",
+    "preview": "Anteprima del payload (oscurato)",
+    "previewTruncated": "Anteprima del payload (oscurato) — troncata al limite di dimensione",
+    "previewAria": "Payload oscurato che verrà inviato",
+    "asking": "Richiesta in corso…",
+    "send": "Invia e spiega",
+    "answer": "Risposta (testo semplice, generato da un modello IA, potrebbe essere errato)"
+  },
+  "configMaps": {
+    "title": "ConfigMap",
+    "description": "Configurazione delle applicazioni in tutti i namespace.",
+    "create": "Crea ConfigMap",
+    "searchPlaceholder": "Cerca nome ConfigMap",
+    "tableAria": "ConfigMap",
+    "columns": {
+      "keys": "Chiavi"
+    },
+    "deleteAria": "Elimina ConfigMap {{name}}",
+    "empty": "Nessuna ConfigMap corrisponde ai filtri attuali."
+  },
+  "configMapDetail": {
+    "back": "ConfigMap",
+    "notFound": "ConfigMap <mono>{{ref}}</mono> non trovata.",
+    "keys_one": "{{count}} chiave",
+    "keys_other": "{{count}} chiavi",
+    "editData": "Modifica dati",
+    "all": "Tutte le ConfigMap",
+    "data": "Dati",
+    "noData": "Nessuna chiave di dati."
+  },
+  "secrets": {
+    "title": "Secret",
+    "description": "Secret Opaque, TLS e di registry in tutti i namespace.",
+    "create": "Crea Secret",
+    "searchPlaceholder": "Cerca nome Secret",
+    "tableAria": "Secret",
+    "columns": {
+      "keys": "Chiavi"
+    },
+    "deleteAria": "Elimina Secret {{name}}",
+    "empty": "Nessun Secret corrisponde ai filtri attuali.",
+    "external": {
+      "title": "External Secrets",
+      "aria": "Secret esterni",
+      "columns": {
+        "store": "Store",
+        "refresh": "Aggiornamento"
+      },
+      "empty": "Nessuna risorsa ExternalSecret trovata."
+    }
+  },
+  "secretDetail": {
+    "back": "Secret",
+    "notFound": "Secret <mono>{{ref}}</mono> non trovato.",
+    "keys_one": "{{count}} chiave",
+    "keys_other": "{{count}} chiavi",
+    "hideValues": "Nascondi valori",
+    "revealValues": "Mostra valori",
+    "saveValues": "Salva valori",
+    "all": "Tutti i Secret",
+    "keysTitle": "Chiavi",
+    "noKeys": "Nessuna chiave.",
+    "bytes": "{{size}} byte",
+    "valueAria": "Valore di {{key}}"
+  },
+  "quotas": {
+    "title": "Quote e limiti",
+    "description": "ResourceQuota, LimitRange, PodDisruptionBudget e PriorityClass.",
+    "resourceQuotas": {
+      "title": "Quote delle risorse",
+      "empty": "Nessuna ResourceQuota configurata."
+    },
+    "limitRanges": {
+      "title": "Intervalli di limiti",
+      "empty": "Nessun LimitRange configurato."
+    },
+    "pdbs": {
+      "title": "Pod disruption budget",
+      "empty": "Nessun PodDisruptionBudget configurato."
+    },
+    "priorityClasses": {
+      "title": "Classi di priorità",
+      "empty": "Nessuna PriorityClass configurata."
+    },
+    "columns": {
+      "hard": "Limite",
+      "used": "Utilizzato",
+      "limits": "Limiti",
+      "minAvailable": "Min. disponibili",
+      "maxUnavailable": "Max. non disponibili",
+      "healthy": "Integri",
+      "expected": "Previsti"
+    },
+    "expectedPods_one": "{{count}} Pod",
+    "expectedPods_other": "{{count}} Pod"
+  },
+  "customResources": {
+    "title": "Risorse personalizzate",
+    "description": "Sfoglia qualsiasi CustomResourceDefinition installata nel cluster.",
+    "searchPlaceholder": "Cerca CRD",
+    "tableAria": "Definizioni di risorse personalizzate",
+    "columns": {
+      "groupVersion": "Gruppo / Versione",
+      "scope": "Ambito"
+    },
+    "noMatch": "Nessuna CRD corrispondente.",
+    "instances": "Istanze di {{kind}}",
+    "permissionDenied": "Permesso negato: {{error}}",
+    "noInstances": "Nessuna istanza trovata.",
+    "selectHint": "Selezionare una CRD per sfogliarne le istanze."
+  },
+  "pluginView": {
+    "pageTitle": "Plugin",
+    "pageTitleNotFound": "Plugin non trovato",
+    "notFound": "Plugin \"{{id}}\" non trovato. Potrebbe essere stato rimosso.",
+    "instances": "Istanze di {{kind}}",
+    "permissionDenied": "Permesso negato: {{error}}",
+    "noInstances": "Nessuna istanza trovata.",
+    "deleteAria": "Elimina {{name}}",
+    "item": "elemento"
+  },
+  "platformIntents": {
+    "title": "Intenti della piattaforma",
+    "description": "Workload richiesti tramite intento in linguaggio naturale (Workload → Esegui workload → Intento).",
+    "tableAria": "Intenti della piattaforma",
+    "columns": {
+      "resources": "Risorse"
+    },
+    "empty": "Ancora nessun intento della piattaforma."
+  },
+  "savedViews": {
+    "title": "Viste salvate",
+    "views": "Viste",
+    "viewsWithCount": "Viste ({{n}})",
+    "noFilters": "nessun filtro",
+    "empty": "Ancora nessuna vista salvata. Impostare i filtri, assegnare un nome qui sotto e salvare.",
+    "listAria": "Elenco delle viste salvate",
+    "deleteAria": "Elimina vista {{name}}",
+    "deleteTitle": "Elimina vista",
+    "nameLabel": "Nome della vista",
+    "namePlaceholder": "Assegna un nome alla vista"
+  },
+  "events": {
+    "title": "Eventi",
+    "description": "Flusso degli eventi Kubernetes, dal più recente.",
+    "search": "Cerca motivo, messaggio o oggetto",
+    "filterType": "Filtra per tipo di evento",
+    "allTypes": "Tutti i tipi",
+    "openTimeline": "Apri cronologia",
+    "whatChangedFor": "Cosa è cambiato per {{object}}",
+    "whatChanged": "Cosa è cambiato",
+    "noMatches": "Nessun evento corrisponde ai filtri attuali.",
+    "empty": "Nessun evento recente."
+  },
+  "timeline": {
+    "title": "Cronologia",
+    "description": "Tutto ciò che è cambiato, in un unico feed: eventi Kubernetes, voci di audit di Axiom, avvisi e revisioni dei rollout.",
+    "since": {
+      "all": "Sempre",
+      "hour": "Ultima ora",
+      "sixHours": "Ultime 6 ore",
+      "day": "Ultime 24 ore",
+      "week": "Ultimi 7 giorni"
+    },
+    "sources": {
+      "event": "evento",
+      "audit": "audit",
+      "alert": "avviso",
+      "rollout": "rollout"
+    },
+    "searchLabel": "Cerca nella cronologia",
+    "searchPlaceholder": "Cerca riepilogo, oggetto o utente",
+    "allNamespaces": "Tutti i namespace",
+    "timeRange": "Intervallo di tempo",
+    "sourcesLabel": "Origini",
+    "clearObject": "Rimuovi filtro oggetto",
+    "entries": "Voci della cronologia",
+    "columns": {
+      "when": "Quando",
+      "severity": "Gravità",
+      "what": "Cosa è successo",
+      "by": "Da"
+    },
+    "clusterScope": "cluster",
+    "empty": "Nessun risultato con questi filtri."
+  },
+  "workloadTimeline": {
+    "title": "Cosa è cambiato",
+    "openInTimeline": "Apri nella cronologia",
+    "empty": "Nessuna modifica registrata per questo workload.",
+    "by": "da {{actor}}"
+  },
+  "namespaces": {
+    "title": "Namespace",
+    "description": "Tutti i namespace del cluster, con il numero di Pod e Service.",
+    "create": "Crea namespace",
+    "specs": {
+      "pods": "Pod",
+      "services": "Service"
+    },
+    "deleteAria": "Elimina namespace {{name}}"
+  },
+  "namespaceDetail": {
+    "notFound": "Namespace <mono>{{name}}</mono> non trovato.",
+    "podsRunning": "{{running}}/{{total}} Pod in esecuzione",
+    "allNamespaces": "Tutti i namespace",
+    "workloads": "Workload",
+    "tabs": {
+      "pods": "Pod ({{n}})",
+      "workloads": "Workload ({{n}})",
+      "services": "Service ({{n}})"
+    },
+    "noPods": "Nessun Pod in questo namespace.",
+    "noWorkloads": "Nessun workload in questo namespace.",
+    "noServices": "Nessun Service in questo namespace.",
+    "columns": {
+      "desired": "Desiderati"
+    },
+    "preferClusterWide": "Preferire l'elenco a livello di cluster?",
+    "openServices": "Apri Service"
+  },
+  "networking": {
+    "title": "Rete",
+    "description": "Grafo dei servizi tra Pod, Service ed endpoint.",
+    "graphNodes": "Nodi del grafo",
+    "connections": "Connessioni",
+    "services": "Service",
+    "live": "in tempo reale",
+    "columns": {
+      "from": "Da",
+      "to": "A",
+      "label": "Etichetta"
+    },
+    "policies": {
+      "createViaYaml": "Crea tramite YAML",
+      "empty": "Nessuna NetworkPolicy configurata.",
+      "region": "Policy di rete",
+      "columns": {
+        "types": "Tipi",
+        "podSelector": "Selettore dei Pod"
+      },
+      "allPods": "tutti i Pod",
+      "deleteAria": "Elimina policy {{name}}"
+    },
+    "packetwolf": {
+      "connected": "Connesso",
+      "unreachable": "Non raggiungibile",
+      "description": "Visibilità dei flussi eBPF tramite l'integrazione PacketWolf.",
+      "liveFlows": "Flussi in tempo reale",
+      "columns": {
+        "destination": "Destinazione",
+        "proto": "Proto",
+        "verdict": "Verdetto"
+      },
+      "noFlows": "Nessun flusso nella finestra attuale."
+    }
+  },
+  "networkPolicy": {
+    "isolated": "isolato",
+    "open": "aperto",
+    "notIsolated": "Non isolato: tutto il traffico è consentito.",
+    "denyAll": "Isolato e nulla è consentito (deny all).",
+    "more": "+{{n}} altri",
+    "toNamespaces": "→ namespace {{list}}",
+    "policy": "policy {{name}}",
+    "title": "Analisi delle policy",
+    "description": "Cosa accetta e può raggiungere ogni Pod, calcolato dai selettori e dalle porte delle policy. Le policy hanno effetto solo se il CNI del cluster le applica.",
+    "noNamespaces": "Nessun namespace.",
+    "policies_one": "<b>{{count}}</b> policy",
+    "policies_other": "<b>{{count}}</b> policy",
+    "pods_one": "<b>{{count}}</b> Pod",
+    "pods_other": "<b>{{count}}</b> Pod",
+    "uncovered_one": "<b>{{count}} Pod non è coperto da alcuna policy</b> e accetta traffico da qualsiasi origine: <mono>{{list}}</mono>",
+    "uncovered_other": "<b>{{count}} Pod non sono coperti da alcuna policy</b> e accettano traffico da qualsiasi origine: <mono>{{list}}</mono>",
+    "noPods": "Nessun Pod in questo namespace.",
+    "region": "Isolamento di rete dei Pod",
+    "columns": {
+      "policies": "Policy"
+    },
+    "showTraffic": "Mostra il traffico consentito per {{pod}}",
+    "allowedIngress": "Ingress consentito",
+    "allowedEgress": "Egress consentito"
+  },
+  "nodes": {
+    "title": "Node",
+    "description": "Topologia di calcolo, capacità allocabile e stato del kubelet.",
+    "total_one": "{{count}} Node in totale",
+    "total_other": "{{count}} Node in totale",
+    "specs": {
+      "pods": "Pod"
+    },
+    "facts": {
+      "os": "OS",
+      "kernel": "Kernel",
+      "runtime": "Runtime"
+    },
+    "actions": {
+      "cordon": "Cordon",
+      "uncordon": "Uncordon",
+      "drain": "Drain"
+    }
+  },
+  "nodeDetail": {
+    "metricsUnavailable": "Metriche non disponibili — richiede metrics-server nel cluster.",
+    "metricsWindow": "Finestra mobile in tempo reale campionata da metrics.k8s.io — non dati storici di Prometheus.",
+    "currentTaints": "Taint attuali",
+    "noTaints": "Nessun taint su questo Node.",
+    "removeTaint": "Rimuovi taint {{key}}",
+    "addTaint": "Aggiungi taint",
+    "effect": "Effetto",
+    "notFound": "Node <mono>{{name}}</mono> non trovato.",
+    "forbidden": "Il Node <mono>{{name}}</mono> non è disponibile con i permessi attuali.",
+    "eyebrow": "Node · {{role}}",
+    "allocatableCpu": "CPU allocabile",
+    "allocatableMemory": "Memoria allocabile",
+    "tabs": {
+      "details": "Dettagli",
+      "metrics": "Metriche",
+      "taints": "Taint ({{n}})",
+      "shell": "Shell"
+    },
+    "system": "Sistema",
+    "osImage": "Immagine OS",
+    "containerRuntime": "Runtime dei container",
+    "conditions": "Condizioni"
+  },
+  "onboarding": {
+    "title": "Primi passi",
+    "configure": "Configura",
+    "fixNow": "Correggi ora",
+    "sso": {
+      "title": "Collega il single sign-on",
+      "done": "OIDC o SAML è configurato — i link SSO nella schermata di accesso sono attivi.",
+      "todo": "Nessun provider OIDC/SAML ancora configurato. L'accesso locale con nome utente e password funziona, ma l'SSO è disattivato."
+    },
+    "demo": {
+      "title": "Abbandona le credenziali demo",
+      "todo": "Questa istanza usa le impostazioni predefinite di laboratorio. Impostare AXIOM_USERNAME e AXIOM_PASSWORD, oppure collegare l'SSO, prima di uscire dal laboratorio.",
+      "done": "Non sono in uso le credenziali predefinite di laboratorio."
+    },
+    "atlas": {
+      "title": "Collega lo storage Atlas",
+      "done": "Atlas è collegato — la pagina Atlas mostra backend, pool e volumi in tempo reale.",
+      "todo": "Nessun control plane di storage collegato. Una volta configurato, Atlas mostra volumi e pool e consente di effettuare il provisioning dello storage.",
+      "cta": "Visualizza Atlas"
+    },
+    "packetwolf": {
+      "title": "Collega la rete PacketWolf",
+      "connected": "PacketWolf è connesso. I dati dei flussi eBPF in tempo reale sono visibili nella pagina Rete.",
+      "unreachable": "L'URL di PacketWolf è impostato ma non raggiungibile — controllare AXIOM_PACKETWOLF_URL.",
+      "todo": "Impostare AXIOM_PACKETWOLF_URL per vedere i dati dei flussi Cilium/eBPF in tempo reale nella pagina Rete.",
+      "cta": "Visualizza Rete"
+    },
+    "postgres": {
+      "title": "Collega Postgres",
+      "description": "Necessario solo per le funzionalità basate su Postgres. Configurare host e credenziali nelle Impostazioni."
+    },
+    "probe": {
+      "title": "Collega una sonda esterna",
+      "description": "Una destinazione di controllo sintetico per lo stato della piattaforma. Configurabile nelle Impostazioni."
+    },
+    "intro": "Sei passaggi per portare questo cluster dalle impostazioni di laboratorio a qualcosa di affidabile in produzione. Due sono obbligatori.",
+    "introWelcome": "Benvenuto, {{name}}. Sei passaggi per portare questo cluster dalle impostazioni di laboratorio a qualcosa di affidabile in produzione. Due sono obbligatori.",
+    "progressLabel": "Avanzamento della configurazione",
+    "progress": "{{done}} di {{total}} completati",
+    "optional": "Facoltativo",
+    "statusSource": "Lo stato è letto in tempo reale da <code>/api/v1/integrations</code>, <code>/api/v1/packetwolf/status</code> e <code>/api/v1/auth/providers</code>."
+  },
+  "overview": {
+    "setupNotice": "La configurazione di questa istanza non è ancora completa.",
+    "finishSetup": "Completa la configurazione",
+    "tagline": "Il cloud privato nativo Kubernetes. Un'unica console da k3s alla produzione.",
+    "exploreWorkloads": "Esplora i workload",
+    "viewNodes": "Visualizza i Node",
+    "glance": {
+      "title": "In sintesi",
+      "description": "Tutto ciò che è in esecuzione su questo cluster, in questo momento."
+    },
+    "metrics": {
+      "nodes": "Node pronti",
+      "pods": "Pod in esecuzione",
+      "workloads": "Workload",
+      "vms": "VM in esecuzione"
+    },
+    "storageProvisioned": "{{used}} di {{capacity}} TB di storage allocati",
+    "utilization": {
+      "title": "Utilizzo",
+      "description": "Quanto il cluster ha lavorato rispetto a ciò che può allocare.",
+      "storage": "Storage"
+    },
+    "trend": {
+      "title": "Andamento",
+      "description": "CPU e memoria nell'ultima finestra osservata.",
+      "clusterCpu": "CPU del cluster",
+      "clusterMemory": "Memoria del cluster"
+    },
+    "informed": {
+      "title": "Rimani informato",
+      "description": "Avvisi, eventi del cluster e flussi dei Pod hanno le proprie pagine."
+    },
+    "cards": {
+      "alerts": "Avvisi",
+      "alertsText": "Warning e regole che richiedono attenzione.",
+      "events": "Eventi",
+      "eventsText": "Cosa sta facendo il cluster, in tempo reale.",
+      "logs": "Log dei Pod",
+      "logsText": "Trasmetti l'output di qualsiasi Pod in tempo reale."
+    }
+  },
+  "overviewHealth": {
+    "title": "Controllo di integrità",
+    "description": "Analisi automatica di Pod, Service, volumi, Ingress, autoscaler e Node.",
+    "analyzing": "Analisi del cluster in corso…",
+    "counts": "{{critical}} critici · {{warning}} warning · {{info}} info",
+    "open": "Apri controllo di integrità",
+    "noProblems": "Nessun problema rilevato."
+  },
+  "services": {
+    "title": "Service",
+    "description": "Service ClusterIP, NodePort e LoadBalancer in tutti i namespace.",
+    "search": "Cerca nome Service",
+    "columns": {
+      "clusterIp": "Cluster IP",
+      "ports": "Porte",
+      "endpoints": "Endpoint"
+    },
+    "empty": "Nessun Service corrisponde ai filtri attuali."
+  },
+  "serviceDetail": {
+    "notFound": "Service <mono>{{name}}</mono> non trovato.",
+    "allServices": "Tutti i Service",
+    "selector": "Selettore",
+    "endpoints": "Endpoint ({{n}})",
+    "noEndpoints": "Nessun endpoint.",
+    "matchingPods": "Pod corrispondenti ({{n}})",
+    "noMatchingPods": "Nessun Pod corrisponde a questo selettore."
+  },
+  "ingresses": {
+    "title": "Ingress",
+    "description": "Route esterne verso i Service del cluster, equivalenti alle Route di OpenShift.",
+    "search": "Cerca per nome o host",
+    "columns": {
+      "class": "Classe",
+      "hosts": "Host",
+      "address": "Indirizzo"
+    },
+    "empty": "Nessun Ingress corrisponde ai filtri attuali.",
+    "noGateways": "Nessun oggetto Gateway API trovato (GatewayClass/Gateway/HTTPRoute)."
+  },
+  "autoTable": {
+    "yes": "sì",
+    "no": "no",
+    "dataTable": "Tabella dati"
+  },
+  "resourceGraph": {
+    "lanes": {
+      "scale": "Autoscaler",
+      "workload": "Workload",
+      "revision": "Revisione",
+      "config": "Configurazione e storage"
+    },
+    "rootLabel": "{{label}} (questa risorsa)",
+    "unavailable": "Il grafo delle relazioni non è disponibile per questa risorsa: {{error}}",
+    "intro": "Come questa risorsa si collega a routing, scalabilità e configurazione. Solo nomi e stato — i valori di ConfigMap e Secret non vengono mai caricati. Selezionare un nodo per aprirlo.",
+    "region": "Grafo delle relazioni",
+    "svgLabel": "Grafo delle relazioni per {{kind}} {{name}}",
+    "truncated": "Risorsa di grandi dimensioni: viene mostrata solo una parte del grafo.",
+    "showList": "Mostra le relazioni come elenco",
+    "noRelated": "Nessuna risorsa correlata trovata."
+  },
+  "alerts": {
+    "title": "Avvisi",
+    "description": "Warning attivi e gruppi di regole di avviso Prometheus.",
+    "activeWarnings": "Warning attivi",
+    "columns": {
+      "warning": "Warning",
+      "resource": "Risorsa",
+      "groups": "Gruppi"
+    },
+    "noWarnings": "Nessun warning attivo.",
+    "ruleGroups": "Gruppi di regole di avviso",
+    "groupsCount": "{{n}} gruppi",
+    "noRules": "Nessuna regola di avviso configurata."
+  },
+  "fleet": {
+    "title": "Flotta",
+    "description": "Ogni cluster registrato, verificato in background: se risponde, quanti Node sono pronti e cosa richiede attenzione. Registrarne altri in Impostazioni → Cluster.",
+    "checking": "Verifica in corso…",
+    "checkNow": "Verifica ora",
+    "state": {
+      "healthy": "Integro",
+      "degraded": "Degradato",
+      "unreachable": "Non raggiungibile",
+      "unknown": "Non ancora verificato"
+    },
+    "active": "attivo",
+    "stateAria": "{{name}}: {{state}}",
+    "metrics": {
+      "nodes": "Node",
+      "pods": "Pod",
+      "apps": "App",
+      "warnings": "Warning"
+    },
+    "checkedLine": "{{ms}} ms · verificato {{time}}",
+    "notChecked": "Non ancora verificato",
+    "since": " · da {{time}}",
+    "switchTo": "Passa a",
+    "search": {
+      "aria": "Cerca in tutti i cluster",
+      "placeholder": "Dove si trova… cerca workload, Service e namespace in tutti i cluster",
+      "everything": "Tutto",
+      "workloads": "Workload",
+      "services": "Service",
+      "namespaces": "Namespace",
+      "notSearched": "Non cercati: {{list}}",
+      "noMatches_one": "Nessun risultato in {{count}} cluster.",
+      "noMatches_other": "Nessun risultato in {{count}} cluster.",
+      "results": "Risultati della ricerca",
+      "columns": {
+        "cluster": "Cluster",
+        "match": "Corrispondenza"
+      },
+      "truncated": "Visualizzati i primi {{shown}} di {{total}} risultati — restringere la ricerca."
+    },
+    "summary": {
+      "clusters": "Cluster",
+      "healthy": "Integri",
+      "attention": "Richiedono attenzione",
+      "nodes": "Node pronti",
+      "pods": "Pod in esecuzione",
+      "warnings": "Warning"
+    },
+    "empty": "Nessun cluster registrato.",
+    "totals": "I totali includono i cluster che hanno risposto",
+    "lastCheck": " · ultima verifica {{time}}",
+    "interval": " · verificato ogni {{n}}s",
+    "backgroundOff": " · le verifiche in background sono disattivate",
+    "history": {
+      "ongoing": "in corso",
+      "stripAria": "Stato nella finestra selezionata: {{bad}} intervalli su {{total}} non integri",
+      "reachable": "Raggiungibile <b>{{pct}}%</b>",
+      "failedChecks": "{{failed}} verifiche su {{total}} non riuscite",
+      "noIncidents": "Nessun incidente in questa finestra.",
+      "unreachableFor": "Non raggiungibile per {{duration}}",
+      "degradedFor": "Degradato per {{duration}}",
+      "label": "Cronologia",
+      "last1h": "Ultima ora",
+      "last6h": "Ultime 6 ore",
+      "last24h": "Ultime 24 ore"
+    },
+    "historyDurable": " · la cronologia viene conservata tra i riavvii",
+    "historyMemory": " · la cronologia viene conservata solo in memoria"
+  },
+  "healthFindings": {
+    "whatChanged": "Cosa è cambiato",
+    "suggestedFix": "Correzione suggerita:"
+  },
+  "healthCheck": {
+    "title": "Controllo di integrità",
+    "description": "Analisi basata su regole di Pod, Service, volumi, Ingress, autoscaler e Node, con una correzione suggerita per ogni rilevamento. Nessun dato lascia il cluster.",
+    "analyzing": "Analisi in corso…",
+    "runAgain": "Esegui di nuovo",
+    "allNamespaces": "Tutti i namespace",
+    "allNamespacesLower": "tutti i namespace",
+    "overall": "Complessivo · {{scope}}",
+    "countAria": "{{label}}: {{n}} rilevamenti. Attiva/disattiva filtro.",
+    "severities": {
+      "critical": "Critico",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "analyzerErrors": "Alcuni analizzatori non sono stati eseguiti, quindi il report potrebbe essere incompleto: {{errors}}",
+    "noProblems": "Nessun problema rilevato.",
+    "noFindingsAtSeverity": "Nessun rilevamento con questa gravità.",
+    "checkedBy": "Verificato da {{n}} analizzatori ({{list}}) · {{time}}"
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "bellUnread": "Notifiche, {{n}} non lette",
+    "unread": "· {{n}} non lette",
+    "markAllRead": "Segna tutte come lette",
+    "recent": "Notifiche recenti",
+    "empty": "Nessuna novità.",
+    "markRead": "Segna come letta",
+    "dismissAria": "Ignora {{reason}} su {{object}}",
+    "dismiss": "Ignora",
+    "viewAll": "Visualizza tutti gli avvisi"
+  },
+  "ops": {
+    "title": "Operazioni",
+    "description": "Helm, GitOps, agenti, identità, audit, accessi e costi.",
+    "tabs": {
+      "helm": "Helm",
+      "gitops": "GitOps",
+      "agents": "Agenti",
+      "identity": "Identità",
+      "audit": "Audit",
+      "access": "Accessi",
+      "webhooks": "Webhook",
+      "cost": "Costi"
+    },
+    "results": "Risultati",
+    "noneFound": "Nessun risultato.",
+    "helm": {
+      "rev": "rev {{n}}",
+      "revPlaceholder": "rev",
+      "rollback": "Rollback",
+      "uninstall": "Disinstalla",
+      "view": "Vista Helm",
+      "releases": "Release",
+      "catalog": "Catalogo",
+      "installChart": "Installa chart",
+      "empty": "Nessuna release Helm.",
+      "columns": {
+        "release": "Release",
+        "chart": "Chart",
+        "revision": "Revisione"
+      }
+    },
+    "gitops": {
+      "newApplication": "Nuova applicazione",
+      "empty": "Nessuna applicazione GitOps.",
+      "columns": {
+        "application": "Applicazione"
+      },
+      "sync": "Sincronizza",
+      "syncAria": "Sincronizza {{name}}",
+      "deleteAria": "Elimina {{name}}",
+      "editAria": "Modifica {{name}}"
+    },
+    "agents": {
+      "approve": "Approva proposta",
+      "deny": "Rifiuta proposta",
+      "autonomy": "autonomia: {{value}}",
+      "risk": "rischio: {{value}}",
+      "approval": "approvazione: {{value}}",
+      "empty": "Nessuna esecuzione di agenti."
+    },
+    "identity": {
+      "planes": "Piani di identità",
+      "empty": "Nessun piano di identità.",
+      "columns": {
+        "plane": "Piano",
+        "hostname": "Nome host"
+      },
+      "adminCredentials": "Credenziali di amministratore",
+      "adminSecret": "Secret {{name}} in {{namespace}}"
+    },
+    "audit": {
+      "searchPlaceholder": "Cerca azione, destinazione, dettaglio o utente",
+      "exportCsv": "Esporta CSV",
+      "exportJson": "Esporta JSON",
+      "noMatches": "Nessuna voce di audit corrispondente.",
+      "empty": "Ancora nessuna voce di audit registrata.",
+      "columns": {
+        "action": "Azione",
+        "detail": "Dettaglio",
+        "user": "Utente"
+      }
+    },
+    "rbac": {
+      "columns": {
+        "rules": "Regole",
+        "subjects": "Soggetti"
+      },
+      "rulesCount": "{{n}} regole",
+      "subjectsCount": "{{n}} soggetti",
+      "clusterRoles": "ClusterRole",
+      "clusterRoleBindings": "ClusterRoleBinding",
+      "roles": "Role",
+      "roleBindings": "RoleBinding",
+      "newRole": "Nuovo Role",
+      "newBinding": "Nuovo binding",
+      "views": {
+        "roles": "Role e binding",
+        "subjects": "Per soggetto",
+        "whoCan": "Chi può…"
+      },
+      "accessView": "Vista accessi"
+    },
+    "webhooks": {
+      "validating": "Webhook di convalida",
+      "mutating": "Webhook di mutazione",
+      "columns": {
+        "webhook": "Webhook",
+        "rules": "Regole",
+        "failurePolicy": "Policy di errore"
+      }
+    },
+    "cost": {
+      "totalMonthly": "Costo mensile totale",
+      "perCore": "/core",
+      "cpuRate": "Tariffa CPU",
+      "memoryRate": "Tariffa memoria",
+      "byNamespace": "Per namespace",
+      "noNamespaceData": "Nessun dato sui costi per namespace.",
+      "byWorkload": "Per workload",
+      "noWorkloadData": "Nessun dato sui costi per workload.",
+      "columns": {
+        "monthlyCost": "Costo mensile",
+        "workload": "Workload",
+        "whereItGoes": "Ripartizione"
+      },
+      "cores": "{{n}} core",
+      "totalMonthlyActual": "Costo mensile totale (effettivo)",
+      "sourceActual": "Costo effettivo · OpenCost",
+      "sourceEstimate": "Stima dalle richieste",
+      "window": "Finestra dei costi",
+      "last7d": "Ultimi 7 giorni",
+      "last14d": "Ultimi 14 giorni",
+      "last30d": "Ultimi 30 giorni",
+      "idle": "Inattivo (allocato ma non utilizzato)"
+    }
+  },
+  "rbac": {
+    "denied": "Il visualizzatore RBAC elenca i permessi di ogni soggetto, quindi richiede il ruolo operator o admin e un account non limitato ai namespace.",
+    "loadFailed": "Impossibile caricare i dati RBAC.",
+    "noRules": "Nessuna regola (il ruolo referenziato è vuoto o mancante).",
+    "rules": "Regole",
+    "columns": {
+      "apiGroups": "Gruppi API",
+      "resources": "Risorse",
+      "verbs": "Verbi",
+      "subject": "Soggetto",
+      "bindings": "Binding",
+      "reach": "Portata",
+      "scope": "Ambito",
+      "via": "Tramite"
+    },
+    "names": "nomi: {{names}}",
+    "grantsIn": "concede <code>{{role}}</code> in <code>{{namespace}}</code>",
+    "grantsEverywhere": "concede <code>{{role}}</code> in ogni namespace",
+    "viaGroup": "· tramite il gruppo implicito <code>{{group}}</code>",
+    "roleMissing": "ruolo mancante",
+    "clusterAdminWarning": "Questo soggetto ha permessi equivalenti a cluster-admin (tutti i verbi su tutte le risorse).",
+    "clusterWideCount": "A livello di cluster ({{n}})",
+    "noClusterBindings": "Nessun ClusterRoleBinding raggiunge questo soggetto.",
+    "namespacedCount": "Per namespace ({{n}})",
+    "noRoleBindings": "Nessun RoleBinding raggiunge questo soggetto.",
+    "searchSubjects": "Cerca soggetti",
+    "searchPlaceholder": "Cerca utenti, gruppi e service account",
+    "subjectKind": "Tipo di soggetto",
+    "kinds": {
+      "all": "Tutti i tipi",
+      "users": "Utenti",
+      "groups": "Gruppi",
+      "serviceAccounts": "Service account"
+    },
+    "noSubjects": "Nessun soggetto corrispondente.",
+    "subjects": "Soggetti",
+    "viewPermissions": "Visualizza i permessi di {{kind}} {{name}}",
+    "clusterWide": "a livello di cluster",
+    "namespaced": "per namespace",
+    "noBindings": "nessun binding",
+    "selectSubject": "Seleziona un soggetto per vederne i permessi effettivi.",
+    "who": {
+      "verb": "Verbo",
+      "resource": "Risorsa",
+      "resourcePlaceholder": "pods, pods/exec, secrets…",
+      "namespace": "Namespace (facoltativo)",
+      "namespacePlaceholder": "tutti i namespace",
+      "name": "Nome oggetto (facoltativo)",
+      "namePlaceholder": "corrisponde alle regole limitate a oggetti con nome",
+      "checking": "Verifica…",
+      "run": "Chi può?",
+      "titleIn": "Chi può eseguire <code>{{verb}}</code> su <code>{{resource}}</code> in <code>{{namespace}}</code>",
+      "titleAny": "Chi può eseguire <code>{{verb}}</code> su <code>{{resource}}</code> (qualsiasi namespace)",
+      "grants": "{{n}} concessione/i",
+      "none": "Nessun binding lo concede.",
+      "results": "Risultati di Chi può",
+      "inNamespace": "namespace {{namespace}}",
+      "truncated": "Vengono mostrati i primi {{n}} risultati."
+    }
+  },
+  "security": {
+    "title": "Sicurezza",
+    "description": "Risultati su vulnerabilità, configurazione e policy segnalati dagli scanner in esecuzione in questo cluster.",
+    "allNamespaces": "Tutti i namespace",
+    "noReports": "Nessun report degli scanner trovato",
+    "unavailable": "non disponibile",
+    "stats": {
+      "critical": "Vulnerabilità critiche",
+      "high": "Vulnerabilità alte",
+      "misconfig": "Errori di configurazione alti o superiori",
+      "policyFail": "Violazioni delle policy"
+    },
+    "reports_one": "{{count}} report",
+    "reports_other": "{{count}} report",
+    "workloads": "Workload",
+    "withFindings": "{{n}} con risultati, dal più rischioso",
+    "noFindings": "Nessun risultato in questo ambito.",
+    "workloadFindings": "Risultati dei workload",
+    "columns": {
+      "workload": "Workload",
+      "vulns": "Vulnerabilità",
+      "misconfig": "Errori di configurazione",
+      "policy": "Policy"
+    },
+    "showFindings": "Mostra i risultati per {{kind}} {{name}}",
+    "truncated": "I risultati sono stati troncati per dimensione.",
+    "countsNone": "{{label}}: nessuno",
+    "countsList": "{{label}}: {{list}}",
+    "sevCount": {
+      "critical": "{{n}} critiche",
+      "high": "{{n}} alte",
+      "medium": "{{n}} medie",
+      "low": "{{n}} basse",
+      "unknown": "{{n}} sconosciute"
+    },
+    "sevPill": {
+      "critical": "{{n}} C",
+      "high": "{{n}} A",
+      "medium": "{{n}} M",
+      "low": "{{n}} B",
+      "unknown": "{{n}} S"
+    },
+    "policyCount": {
+      "fail": "{{n}} non superati",
+      "warn": "{{n}} avvisi",
+      "error": "{{n}} errori",
+      "skip": "{{n}} saltati",
+      "pass": "{{n}} superati"
+    },
+    "detail": {
+      "reportType": "Tipo di report",
+      "tabs": {
+        "vulns": "Vulnerabilità",
+        "config": "Errori di configurazione",
+        "policy": "Policy"
+      },
+      "noVulns": "Nessuna vulnerabilità segnalata.",
+      "columns": {
+        "cve": "CVE",
+        "severity": "Gravità",
+        "package": "Pacchetto",
+        "installed": "Installata",
+        "fixedIn": "Corretta in",
+        "check": "Controllo",
+        "policyRule": "Policy / regola",
+        "result": "Risultato"
+      },
+      "noFix": "nessuna correzione",
+      "noMisconfig": "Nessun controllo di configurazione non superato.",
+      "noPolicyFails": "Nessun risultato di policy non superato.",
+      "noPolicyFailsPassing": "Nessun risultato di policy non superato ({{n}} superati).",
+      "policyResults": "Risultati delle policy",
+      "truncated": "Alcuni elenchi sono stati troncati; il report completo è disponibile negli strumenti dello scanner."
+    }
+  },
+  "severity": {
+    "critical": "Critico",
+    "warning": "Avviso",
+    "info": "Info",
+    "source": {
+      "event": "Evento",
+      "audit": "Audit",
+      "alert": "Allarme",
+      "rollout": "Rollout"
+    },
+    "status": {
+      "critical": "Critico",
+      "warning": "Avviso",
+      "healthy": "Integro"
+    }
+  },
+  "atlas": {
+    "title": "Atlas",
+    "description": "Control plane dello storage — Ceph, NFS e ZFS dietro un'unica API.",
+    "notConnected": "Atlas non connesso",
+    "configureGateway": "Configura l'URL del gateway Atlas.",
+    "openSettings": "Apri Impostazioni",
+    "console": "Console",
+    "createVolume": "Crea volume",
+    "metrics": {
+      "raw": "Capacità grezza",
+      "used": "Usato",
+      "available": "Disponibile"
+    },
+    "backends": "Backend",
+    "noBackends": "Nessun backend di storage registrato.",
+    "pools": "Pool",
+    "noPools": "Nessun pool ancora rilevato.",
+    "volumes": "Volumi",
+    "noVolumes": "Nessun volume ancora provisionato tramite Atlas.",
+    "buckets": "Bucket",
+    "noBuckets": "Nessun bucket di oggetti provisionato.",
+    "policies": "Policy",
+    "noPolicies": "Nessuna intent policy configurata."
+  },
+  "autoscaling": {
+    "title": "Autoscaling",
+    "description": "Autoscaler orizzontali, verticali e basati su eventi in tutti i namespace.",
+    "tabs": {
+      "hpa": "Orizzontale",
+      "vpa": "Verticale (VPA)",
+      "keda": "Basato su eventi (KEDA)"
+    },
+    "state": {
+      "notScaling": "Non in scalatura",
+      "atLimit": "Al limite",
+      "scalingTo": "Scalatura a {{replicas}}",
+      "stable": "Stabile"
+    },
+    "createAutoscaler": "Crea autoscaler",
+    "empty": "Nessun HorizontalPodAutoscaler configurato.",
+    "region": "Autoscaler",
+    "columns": {
+      "minMax": "Min – Max",
+      "current": "Attuale",
+      "metrics": "Metriche (attuale / obiettivo)",
+      "state": "Stato"
+    },
+    "deleteAria": "Elimina autoscaler {{name}}"
+  },
+  "autoscalingPanels": {
+    "vpa": {
+      "notInstalled": "Il Vertical Pod Autoscaler non è installato in questo cluster.",
+      "notInstalledHint": "Installa il recommender VPA per ottenere qui raccomandazioni di CPU e memoria per container. Axiom si limita a leggerle; non modifica mai le request.",
+      "empty": "Nessun VerticalPodAutoscaler.",
+      "region": "Vertical pod autoscaler",
+      "columns": {
+        "mode": "Modalità",
+        "container": "Container",
+        "cpu": "CPU (minimo · obiettivo · massimo)",
+        "memory": "Memoria (minimo · obiettivo · massimo)"
+      },
+      "new": "Nuovo VPA",
+      "deleteAria": "Elimina VPA {{name}}",
+      "editAria": "Modifica VPA {{name}}"
+    },
+    "keda": {
+      "notInstalled": "KEDA non è installato in questo cluster.",
+      "notInstalledHint": "Installa KEDA per scalare i workload in base alla profondità delle code, a pianificazioni cron, al carico HTTP e ad altre sorgenti di eventi. I suoi ScaledObject saranno elencati qui.",
+      "empty": "Nessuno ScaledObject.",
+      "region": "Scaled object KEDA",
+      "columns": {
+        "triggers": "Trigger",
+        "state": "Stato"
+      },
+      "state": {
+        "fallback": "Fallback",
+        "active": "Attivo",
+        "idle": "Inattivo",
+        "notReady": "Non pronto"
+      },
+      "new": "Nuovo ScaledObject",
+      "deleteAria": "Elimina ScaledObject {{name}}",
+      "editAria": "Modifica ScaledObject {{name}}"
+    }
+  },
+  "backups": {
+    "title": "Backup",
+    "description": "VolumeSnapshot e backup del cluster Velero.",
+    "restore": "Ripristina",
+    "veleroBackup": "Backup Velero",
+    "createSnapshot": "Crea snapshot",
+    "snapshots": {
+      "title": "Snapshot dei volumi",
+      "empty": "Nessuno snapshot dei volumi."
+    },
+    "veleroBackups": {
+      "title": "Backup Velero",
+      "empty": "Nessun backup Velero."
+    },
+    "veleroSchedules": {
+      "title": "Pianificazioni Velero",
+      "empty": "Nessuna pianificazione Velero."
+    },
+    "newSchedule": "Nuova pianificazione",
+    "columns": {
+      "namespaces": "Namespace",
+      "phase": "Fase",
+      "schedule": "Pianificazione",
+      "lastBackup": "Ultimo backup"
+    }
+  },
+  "costPanels": {
+    "budgetState": {
+      "ok": "In linea",
+      "warning": "Vicino al budget",
+      "over": "Oltre il budget"
+    },
+    "budgets": "Budget",
+    "addBudget": "Aggiungi budget",
+    "noBudgets": "Nessun budget. Impostane uno per namespace per ricevere un avviso quando il costo stimato si avvicina al limite.",
+    "budgetOf": "{{current}} di {{budget}} · {{percent}}%",
+    "editBudgetAria": "Modifica il budget per {{namespace}}",
+    "removeBudgetAria": "Rimuovi il budget per {{namespace}}",
+    "budgetBarAria": "{{namespace}} è al {{percent}}% del suo budget",
+    "totals": "{{current}} stimati nei namespace con budget, su {{budget}} di budget.",
+    "withoutBudget": "Senza budget",
+    "verdict": {
+      "over": "Sovradimensionato",
+      "under": "Sottodimensionato",
+      "ok": "Dimensionato correttamente"
+    },
+    "confidence": {
+      "high": "Affidabilità alta",
+      "medium": "Affidabilità media",
+      "low": "Affidabilità bassa"
+    },
+    "rightsizing": "Rightsizing",
+    "showFilter": "Mostra",
+    "needsAttention": "Richiede attenzione",
+    "allContainers": "Tutti i container",
+    "usageWindow": "Finestra di utilizzo",
+    "lastWindow": "Ultimi {{window}}",
+    "noUsageData": "Nessun dato di utilizzo",
+    "source": "Origine: {{source}}",
+    "summary": {
+      "savings": "Risparmio mensile potenziale",
+      "over": "Sovradimensionati",
+      "under": "A rischio (sottodimensionati)"
+    },
+    "connectPrometheus": "Collega Prometheus (AXIOM_PROMETHEUS_URL) o metrics-server per ottenere raccomandazioni.",
+    "nothingNeedsAttention": "Nulla richiede attenzione.",
+    "recommendationsRegion": "Raccomandazioni di rightsizing",
+    "columns": {
+      "workload": "Workload",
+      "cpu": "CPU (request → consigliata)",
+      "memory": "Memoria (request → consigliata)",
+      "verdict": "Esito",
+      "monthlyChange": "Variazione mensile"
+    },
+    "used": "(usati {{value}})",
+    "applyEllipsis": "Applica…",
+    "footnote": "Le raccomandazioni aggiungono un margine rispetto all'utilizzo osservato. Axiom non modifica mai le request in autonomia: Applica mostra prima la modifica esatta e agisce solo dopo la conferma.",
+    "totalsActual": "{{current}} effettivi nei namespace con budget, su {{budget}} di budget.",
+    "basedOnOpenCost": "Basato su OpenCost",
+    "basedOnRequests": "Basato sulle request"
+  },
+  "helmCatalog": {
+    "repositories": "Repository",
+    "noRepos": "Nessun repository di chart. Axiom recupera un repository solo dopo che un amministratore lo ha aggiunto.",
+    "chartCount": "{{n}} chart",
+    "removeRepoAria": "Rimuovi repository {{name}}",
+    "repoName": "Nome del repository",
+    "repoNamePlaceholder": "nome",
+    "repoUrl": "URL del repository",
+    "adding": "Aggiunta…",
+    "suggested": "Suggeriti:",
+    "noDescription": "Nessuna descrizione.",
+    "searchAria": "Cerca chart",
+    "searchPlaceholder": "Cerca chart per nome, descrizione o parola chiave",
+    "repository": "Repository",
+    "allRepositories": "Tutti i repository",
+    "repoErrors": "Impossibile leggere alcuni repository: {{list}}",
+    "noMatch": "Nessun chart corrispondente.",
+    "appVersion": "app {{version}}",
+    "deprecated": "deprecato",
+    "showing": "Visualizzati {{shown}} di {{total}} chart.",
+    "oci": {
+      "chartNames": "Nomi dei chart",
+      "chartNamesPlaceholder": "Nomi dei chart in questo registry, separati da virgole (es. nginx, redis)",
+      "kindLabel": "Tipo di repository",
+      "index": "Repository di chart",
+      "registry": "Registry OCI",
+      "login": "Login al registry",
+      "noLogin": "Nessuno (registry pubblico)",
+      "loginOption": "{{name}} — {{registry}}"
+    },
+    "private": "privato",
+    "privateTitle": "Usa il login {{name}}"
+  },
+  "storage": {
+    "title": "Storage",
+    "description": "StorageClass e PersistentVolumeClaim in tutti i namespace.",
+    "searchPlaceholder": "Cerca nome della claim",
+    "claimUnit_one": "claim",
+    "claimUnit_other": "claim",
+    "claimsRegion": "Persistent volume claim",
+    "columns": {
+      "claim": "Claim",
+      "class": "Classe",
+      "size": "Dimensione",
+      "volume": "Volume",
+      "access": "Accesso"
+    },
+    "empty": "Nessuna claim corrisponde ai filtri attuali.",
+    "rawResources": "Risorse grezze",
+    "noStorageClasses": "Nessuna StorageClass trovata.",
+    "noPersistentVolumes": "Nessun PersistentVolume trovato."
+  },
+  "vmDetail": {
+    "console": {
+      "unavailable": "Informazioni sulla console non disponibili.",
+      "ready": "La VM è pronta per l'accesso alla console",
+      "notReady": "La VM non è pronta",
+      "runLocally": "Esegui in locale (kubeconfig richiesto)",
+      "subresource": "Sottorisorsa dell'API Kubernetes"
+    },
+    "backToList": "Macchine virtuali",
+    "notFound": "VM <code>{{name}}</code> non trovata.",
+    "eyebrow": "Macchina virtuale",
+    "actions": {
+      "stop": "Arresta",
+      "start": "Avvia",
+      "migrate": "Migra",
+      "console": "Console"
+    },
+    "allVms": "Tutte le VM",
+    "placement": "Posizionamento",
+    "running": "In esecuzione",
+    "consoleSuffix": "· console"
+  },
+  "vms": {
+    "title": "Macchine virtuali",
+    "description": "VM gestite da KubeVirt. Avvia, arresta, migra a caldo e apri una console.",
+    "vmCount": "{{n}} VM",
+    "createVm": "Crea VM",
+    "actions": {
+      "stop": "Arresta",
+      "start": "Avvia",
+      "migrate": "Migra",
+      "console": "Console"
+    },
+    "console": {
+      "unavailable": "Informazioni sulla console non disponibili.",
+      "ready": "La VM è pronta per l'accesso alla console",
+      "notReady": "La VM non è pronta",
+      "hint": "Usa virtctl in locale oppure collega un client VNC al percorso WebSocket proxy indicato sotto.",
+      "wsProxy": "Proxy WebSocket del browser",
+      "runLocally": "Esegui in locale (kubeconfig richiesto)",
+      "subresource": "Sottorisorsa dell'API Kubernetes"
+    },
+    "protection": {
+      "new": "Nuovo",
+      "snapshots": {
+        "title": "Snapshot",
+        "new": "Nuovo snapshot",
+        "empty": "Nessuno snapshot di VM."
+      },
+      "clones": {
+        "title": "Cloni",
+        "new": "Nuovo clone",
+        "empty": "Nessun clone di VM."
+      },
+      "exports": {
+        "title": "Esportazioni",
+        "new": "Nuova esportazione",
+        "empty": "Nessuna esportazione di VM."
+      },
+      "restores": {
+        "title": "Ripristini",
+        "new": "Nuovo ripristino",
+        "empty": "Nessun ripristino di VM."
+      },
+      "fields": {
+        "vmName": "Nome VM",
+        "sourceVm": "VM di origine",
+        "targetVmName": "Nome VM di destinazione",
+        "snapshotName": "Nome snapshot"
+      }
+    }
+  },
+  "debugContainer": {
+    "title": "Container di debug",
+    "description": "Aggiunge a questo pod in esecuzione un container temporaneo con strumenti di debug, che ne condivide la rete (e, se si sceglie una destinazione, i processi di quel container). Non può essere rimosso finché il pod non viene sostituito. L'azione viene registrata come <code>pod.debug</code>.",
+    "targetLabel": "Container di destinazione",
+    "noTarget": "Nessun namespace di processo di destinazione",
+    "targetOption": "Destinazione {{container}}",
+    "adding": "Aggiunta…",
+    "add": "Aggiungi container di debug",
+    "resultTarget": "destinazione {{target}}"
+  },
+  "podTerminal": {
+    "status": {
+      "idle": "inattivo",
+      "connecting": "connessione",
+      "connected": "connesso",
+      "closed": "chiuso",
+      "error": "errore"
+    },
+    "connectingTo": "Connessione a {{target}} ({{shell}})…",
+    "ticketFailed": "Impossibile avviare una sessione di terminale: {{error}}",
+    "wsFailed": "Impossibile aprire il WebSocket del terminale.",
+    "wsFailedHint": "Se questo sito usa un certificato autofirmato, apri una volta la pagina in HTTPS e accetta il certificato, quindi riprova Connetti.",
+    "closedEarly": "Connessione chiusa prima dell'avvio di una sessione.",
+    "sessionEnded": "Sessione terminata.",
+    "distrolessHint": "Se manca il binario della shell, probabilmente l'immagine è distroless — prova un pod redis/nginx/busybox oppure un exec singolo con un binario esistente.",
+    "container": "Container",
+    "disconnect": "Disconnetti",
+    "connecting": "Connessione…",
+    "connect": "Connetti",
+    "axiomDistroless": "L'immagine della console Axiom è distroless — non contiene <code>/bin/sh</code>. Apri un altro pod (es. redis/nginx) per una shell interattiva."
+  },
+  "nodeShell": {
+    "title": "Shell del nodo",
+    "checking": "Verifica…",
+    "disabled": "La shell del nodo è disabilitata su questo server. Un amministratore può abilitarla impostando <code>AXIOM_ENABLE_NODE_SHELL=true</code> nel deployment di Axiom. È riservata agli amministratori e ogni sessione viene registrata.",
+    "warning": "Apre una <b>shell root sul nodo</b> tramite un pod privilegiato di breve durata nel namespace <code>{{namespace}}</code> (solo amministratori, registrato come <code>node.shell</code>). Il pod viene eliminato alla disconnessione o dopo {{minutes}} minuti.",
+    "needsLive": "Una shell interattiva richiede una connessione Kubernetes attiva.",
+    "open": "Apri shell root su {{node}}"
+  },
+  "diffReview": {
+    "willBeCreated": "{{id}} — verrà creato",
+    "willBeChanged": "{{id}} — verrà modificato",
+    "upToDate": "{{id}} — nessuna modifica, già aggiornato",
+    "unavailable": "L'anteprima delle modifiche non è disponibile su questo server. È comunque possibile applicare il manifest.",
+    "rejected": "Il manifest è stato rifiutato.",
+    "changesTo": "Modifiche a {{kind}} {{name}}",
+    "changes": "Modifiche",
+    "noChanges": "nessuna modifica",
+    "unchangedLines_one": "… {{count}} riga invariata",
+    "unchangedLines_other": "… {{count}} righe invariate",
+    "srAdded": "aggiunto: ",
+    "srRemoved": "rimosso: "
+  },
+  "jobDetail": {
+    "backToJobs": "Job",
+    "notFound": "Job <code>{{name}}</code> non trovato.",
+    "allJobs": "Tutti i job",
+    "summary": "Riepilogo",
+    "completions": "Completamenti",
+    "duration": "Durata",
+    "ownerCronJob": "CronJob proprietario",
+    "pods": "Pod ({{n}})",
+    "noPods": "Nessun pod trovato per questo job."
+  },
+  "cronJobDetail": {
+    "backToJobs": "Job",
+    "notFound": "CronJob <code>{{name}}</code> non trovato.",
+    "triggering": "Avvio…",
+    "runNow": "Esegui ora",
+    "allJobs": "Tutti i job",
+    "schedule": "Pianificazione",
+    "cron": "Cron",
+    "suspended": "Sospeso",
+    "activeJobs": "Job attivi",
+    "lastSchedule": "Ultima pianificazione",
+    "recentJobs": "Job recenti ({{n}})",
+    "noJobs": "Nessun job ancora creato da questo CronJob.",
+    "completions": "Completamenti"
+  },
+  "jobs": {
+    "title": "Job e CronJob",
+    "description": "Workload batch pianificati e una tantum in tutti i namespace.",
+    "searchPlaceholder": "Cerca nome del job",
+    "cronJobs": {
+      "title": "CronJob",
+      "noMatches": "Nessun CronJob corrisponde ai filtri attuali.",
+      "empty": "Nessun CronJob configurato."
+    },
+    "jobs": {
+      "title": "Job",
+      "noMatches": "Nessun Job corrisponde ai filtri attuali.",
+      "empty": "Nessun Job trovato."
+    },
+    "columns": {
+      "schedule": "Pianificazione",
+      "lastRun": "Ultima esecuzione",
+      "completions": "Completamenti",
+      "duration": "Durata"
+    },
+    "runNow": "Esegui ora",
+    "scheduleEnabledFor": "Pianificazione abilitata per {{name}}",
+    "namespaceFromCronJob": "{{namespace}} · da {{cronJob}}"
+  },
+  "logs": {
+    "streamFailed": "Lo stream dei log non è riuscito.",
+    "titleWorkload": "Log del workload",
+    "titlePod": "Log del pod",
+    "descriptionWorkload": "Tutti i pod e i container di un workload, uniti in un unico stream con prefisso [pod/container].",
+    "descriptionPod": "Terminale in streaming live tramite HTTP chunked.",
+    "source": "Origine dei log",
+    "modePod": "Pod",
+    "modeWorkload": "Workload",
+    "pod": "Pod",
+    "choosePod": "Scegli pod",
+    "container": "Container",
+    "workload": "Workload",
+    "noWorkloads": "Nessun workload",
+    "stop": "Interrompi",
+    "load": "Carica",
+    "follow": "Segui",
+    "filterLabel": "Filtra righe (espressione regolare)",
+    "filterPlaceholder": "Filtra righe (regex, senza distinzione maiuscole/minuscole)",
+    "timestamps": "Timestamp",
+    "previousContainer": "Container precedente",
+    "invalidRegex": "Espressione regolare non valida: {{error}}",
+    "lineCount": "{{lines}} righe",
+    "hintFollow": "Premi <kbd>Segui</kbd> per lo streaming di <target>{{target}}</target>.",
+    "hintLoad": "Premi <kbd>Carica</kbd> per leggere l'esecuzione precedente di <target>{{target}}</target>.",
+    "aTarget": "una destinazione"
+  },
+  "podDetail": {
+    "exec": {
+      "running": "Esecuzione…",
+      "run": "Esegui",
+      "outputPlaceholder": "L'output apparirà qui."
+    },
+    "container": {
+      "cpu": "CPU req/lim",
+      "memory": "Mem req/lim",
+      "liveness": "Liveness",
+      "readiness": "Readiness",
+      "environment": "Ambiente",
+      "mounts": "Mount"
+    },
+    "metrics": {
+      "unavailable": "Metriche non disponibili — richiede metrics-server nel cluster.",
+      "window": "Finestra mobile live campionata da metrics.k8s.io — non dati storici di Prometheus.",
+      "perContainer": "Per container"
+    },
+    "shell": "Shell {{id}}",
+    "newShell": "Nuova shell",
+    "notFound": "Pod {{namespace}}/{{name}} non trovato.",
+    "owner": "proprietario:",
+    "logs": "Log",
+    "evict": "Espelli",
+    "notScheduled": "Non schedulato",
+    "stats": {
+      "cpuLimit": "Limite CPU",
+      "memoryLimit": "Limite memoria"
+    },
+    "tabs": {
+      "details": "Dettagli",
+      "terminal": "Terminale",
+      "metrics": "Metriche",
+      "events": "Eventi ({{n}})"
+    },
+    "spec": {
+      "title": "Spec del pod",
+      "serviceAccount": "Service account",
+      "restartPolicy": "Policy di riavvio"
+    },
+    "containers": "Container",
+    "initContainers": "Init container",
+    "volumes": "Volumi",
+    "conditions": "Condizioni",
+    "nodeSelector": "Node selector",
+    "tolerations": "Toleration",
+    "ports": "Porte",
+    "copyPortForward": "Copia kubectl port-forward",
+    "interactiveUnavailable": "Il terminale interattivo richiede una connessione Kubernetes attiva. Viene eseguito invece un comando singolo.",
+    "manifestUnavailable": "Manifest non disponibile in questa modalità.",
+    "noEvents": "Nessun evento per questo pod.",
+    "noLabels": "Nessuna label."
+  },
+  "pods": {
+    "title": "Pod",
+    "description": "Tutti i pod in esecuzione in tutti i namespace.",
+    "evicting": "Espulsione…",
+    "evict": "Espelli",
+    "exec": "Exec",
+    "searchPlaceholder": "Cerca nome del pod",
+    "selectAll": "Seleziona tutti i pod",
+    "selectOne": "Seleziona pod {{name}}",
+    "columns": {
+      "ip": "IP"
+    },
+    "noMatches": "Nessun pod corrisponde ai filtri attuali."
+  },
+  "workloadDetail": {
+    "stats": {
+      "desired": "Desiderati",
+      "available": "Disponibili",
+      "pods": "Pod"
+    },
+    "tabs": {
+      "overview": "Panoramica",
+      "pods": "Pod ({{n}})",
+      "events": "Eventi ({{n}})",
+      "graph": "Grafo",
+      "changes": "Cosa è cambiato"
+    },
+    "noLabels": "Nessuna label.",
+    "noAnnotations": "Nessuna annotation.",
+    "containerPorts": "Porte dei container",
+    "noPods": "Nessun pod trovato per questo workload.",
+    "noEvents": "Nessun evento correlato."
+  },
+  "workloads": {
+    "title": "Workload",
+    "description": "Deployment, StatefulSet, DaemonSet, Pod e CronJob in tutti i namespace.",
+    "actionsFor": "Azioni per {{name}}",
+    "menu": {
+      "start": "Avvia",
+      "stop": "Arresta",
+      "restart": "Riavvia",
+      "scale": "Scala…",
+      "rollout": "Rollout…",
+      "seal": "Sigilla",
+      "unseal": "Rimuovi sigillo"
+    },
+    "runWorkload": "Esegui workload",
+    "searchPlaceholder": "Cerca nome o immagine",
+    "filterByKind": "Filtra per tipo",
+    "allKinds": "Tutti i tipi",
+    "selectAll": "Seleziona tutti i workload",
+    "selectOne": "Seleziona workload {{name}}",
+    "columns": {
+      "desired": "Desiderati",
+      "available": "Disponibili"
+    },
+    "empty": {
+      "title": "Nessun workload",
+      "description": "Deployment, StatefulSet, DaemonSet e CronJob verranno mostrati qui una volta avviati.",
+      "action": "Esegui il primo workload"
+    },
+    "noMatches": "Nessun workload corrisponde ai filtri attuali."
+  }
+}
