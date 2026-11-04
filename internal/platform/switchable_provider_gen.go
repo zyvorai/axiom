@@ -342,6 +342,24 @@ func (sp *SwitchableProvider) DeleteScaledObject(a0 context.Context, a1 string, 
 func (sp *SwitchableProvider) ListTriggerAuthentications(a0 context.Context, a1 string) (TriggerAuthenticationList, error) {
 	return sp.current(a0).ListTriggerAuthentications(a0, a1)
 }
+func (sp *SwitchableProvider) GetVPAEditable(a0 context.Context, a1 string, a2 string) (VPAEditable, error) {
+	return sp.current(a0).GetVPAEditable(a0, a1, a2)
+}
+func (sp *SwitchableProvider) PreviewVPAEdit(a0 context.Context, a1 string, a2 string, a3 VPAEditRequest) (AutoscalerEditPreview, error) {
+	return sp.current(a0).PreviewVPAEdit(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) UpdateVPA(a0 context.Context, a1 string, a2 string, a3 VPAEditRequest) (AutoscalerEditResult, error) {
+	return sp.current(a0).UpdateVPA(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) GetScaledObjectEditable(a0 context.Context, a1 string, a2 string) (ScaledObjectEditable, error) {
+	return sp.current(a0).GetScaledObjectEditable(a0, a1, a2)
+}
+func (sp *SwitchableProvider) PreviewScaledObjectEdit(a0 context.Context, a1 string, a2 string, a3 ScaledObjectEditRequest) (AutoscalerEditPreview, error) {
+	return sp.current(a0).PreviewScaledObjectEdit(a0, a1, a2, a3)
+}
+func (sp *SwitchableProvider) UpdateScaledObject(a0 context.Context, a1 string, a2 string, a3 ScaledObjectEditRequest) (AutoscalerEditResult, error) {
+	return sp.current(a0).UpdateScaledObject(a0, a1, a2, a3)
+}
 func (sp *SwitchableProvider) ListPodDisruptionBudgets(a0 context.Context, a1 string) ([]PDBSummary, error) {
 	return sp.current(a0).ListPodDisruptionBudgets(a0, a1)
 }

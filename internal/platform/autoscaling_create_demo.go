@@ -42,6 +42,7 @@ func demoAutoscalersInitLocked() {
 	for _, s := range demoScaledObjects() {
 		demoScaledObjectStore[s.Namespace+"/"+s.Name] = s
 	}
+	demoAutoscalerObjectsInitLocked() // full objects for editing (autoscaling_edit_demo.go)
 }
 
 func demoHPAsSnapshot(ns string) []HPASummary {
@@ -71,6 +72,7 @@ func (d *DemoProvider) CreateVPA(ctx context.Context, req VPACreateRequest) (Aut
 		return AutoscalerCreateResult{}, NewStatusError(http.StatusConflict, fmt.Errorf("VerticalPodAutoscaler %s already exists", key))
 	}
 	demoVPAStore[key] = vpaSummaryFromPlan(req, plan)
+	demoVPAObjects[key] = demoObjectFromPlan(plan)
 	return AutoscalerCreateResult{OK: true, Created: []AutoscalerObjectRef{plan.Object.ref(plan.Object.Version)}, Warnings: nonNilStrings(warnings)}, nil
 }
 
@@ -83,6 +85,7 @@ func (d *DemoProvider) DeleteVPA(ctx context.Context, ns, name string) error {
 		return notFoundf("VerticalPodAutoscaler %s not found", key)
 	}
 	delete(demoVPAStore, key)
+	delete(demoVPAObjects, key)
 	return nil
 }
 
@@ -111,6 +114,7 @@ func (d *DemoProvider) CreateScaledObject(ctx context.Context, req ScaledObjectC
 		return AutoscalerCreateResult{}, NewStatusError(http.StatusConflict, fmt.Errorf("ScaledObject %s already exists", key))
 	}
 	demoScaledObjectStore[key] = scaledObjectSummaryFromPlan(req, plan)
+	demoScaledObjectObjects[key] = demoObjectFromPlan(plan)
 	return AutoscalerCreateResult{OK: true, Created: []AutoscalerObjectRef{plan.Object.ref(plan.Object.Version)}, Warnings: nonNilStrings(warnings)}, nil
 }
 
@@ -123,6 +127,7 @@ func (d *DemoProvider) DeleteScaledObject(ctx context.Context, ns, name string) 
 		return notFoundf("ScaledObject %s not found", key)
 	}
 	delete(demoScaledObjectStore, key)
+	delete(demoScaledObjectObjects, key)
 	return nil
 }
 

@@ -126,6 +126,14 @@ type Provider interface {
 	CreateScaledObject(context.Context, ScaledObjectCreateRequest) (AutoscalerCreateResult, error)
 	DeleteScaledObject(context.Context, string, string) error
 	ListTriggerAuthentications(context.Context, string) (TriggerAuthenticationList, error)
+	// VPA and KEDA edit in place (autoscaling_edit.go): the typed fields, a
+	// managed-field diff, and a resourceVersion-guarded JSON Patch.
+	GetVPAEditable(context.Context, string, string) (VPAEditable, error)
+	PreviewVPAEdit(context.Context, string, string, VPAEditRequest) (AutoscalerEditPreview, error)
+	UpdateVPA(context.Context, string, string, VPAEditRequest) (AutoscalerEditResult, error)
+	GetScaledObjectEditable(context.Context, string, string) (ScaledObjectEditable, error)
+	PreviewScaledObjectEdit(context.Context, string, string, ScaledObjectEditRequest) (AutoscalerEditPreview, error)
+	UpdateScaledObject(context.Context, string, string, ScaledObjectEditRequest) (AutoscalerEditResult, error)
 
 	ListPodDisruptionBudgets(context.Context, string) ([]PDBSummary, error)
 

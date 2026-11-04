@@ -61,7 +61,7 @@ func demoScaledObjects() []ScaledObjectSummary {
 		{
 			Namespace: "payments", Name: "payments-api", TargetKind: "Deployment", TargetName: "payments-api",
 			MinReplicas: 2, MaxReplicas: 20, CurrentReplicas: 12,
-			Triggers: []ScaledObjectTrigger{{Type: "kafka", Name: "orders-lag"}, {Type: "prometheus", Name: "http_requests_per_second"}},
+			Triggers: []ScaledObjectTrigger{{Type: "kafka", Name: "orders-lag"}, {Type: "prometheus", Name: "http-requests"}},
 			Ready:    true, Active: true, Fallback: false,
 			Conditions: []AutoscalerCondition{
 				{Type: "Ready", Status: "True", Reason: "ScaledObjectReady", Message: "ScaledObject is defined correctly and is ready for scaling"},
