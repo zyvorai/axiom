@@ -10,8 +10,15 @@ package platform
 //
 // Every request goes through HelmFetcher (dial-time address checks, redirect
 // re-validation, no proxy, 15 s timeouts), the bearer-token realm included.
-// Only anonymous access is supported: the token request never carries
-// credentials.
+//
+// A repository may reference a stored registry credential (see
+// helm_registrycreds.go). Its username/password is sent ONLY to the registry
+// host the credential names: as HTTP Basic after a Basic challenge from that
+// host, or as HTTP Basic on the bearer-token request when the token realm is
+// that host or a host of the same registrable domain (auth.docker.io for
+// registry-1.docker.io). A realm anywhere else is refused rather than handed
+// the credentials, and redirects never carry an Authorization header.
+// Without a credential the token request is anonymous, as before.
 
 import (
 	"context"
@@ -32,6 +39,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 const (
@@ -56,6 +65,10 @@ const (
 	helmOCIChartLayer    = "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
 	helmOCIChartLayerOld = "application/tar+gzip" // Helm 3.0-3.7 pushes
 	helmOCIConfigMedia   = "application/vnd.cncf.helm.config.v1+json"
+
+	helmOCITokenDefaultTTL = 60 * time.Second
+	helmOCITokenMaxTTL     = 5 * time.Minute
+	helmOCITokenCacheMax   = 256
 )
 
 var (
@@ -418,10 +431,12 @@ type helmOCIClient struct {
 	f      *HelmFetcher
 	loc    helmOCILocation
 	scheme string
+	cred   *helmRegistryCred // nil: anonymous
 
 	mu     sync.Mutex
 	strict *HelmFetcher      // public-https-only fetcher for a token realm on another host
 	tokens map[string]string // scope -> anonymous bearer token
+	basic  bool              // the registry asked for Basic: send the credential up front
 }
 
 func newHelmOCIClient(f *HelmFetcher, repoURL string) (*helmOCIClient, error) {
@@ -430,6 +445,20 @@ func newHelmOCIClient(f *HelmFetcher, repoURL string) (*helmOCIClient, error) {
 		return nil, NewStatusError(http.StatusBadRequest, err)
 	}
 	return &helmOCIClient{f: f, loc: loc, scheme: "https", tokens: map[string]string{}}, nil
+}
+
+// newHelmOCIClientCred is newHelmOCIClient with an optional credential, which
+// must be for the repository's registry host.
+func newHelmOCIClientCred(f *HelmFetcher, repoURL string, cred *helmRegistryCred) (*helmOCIClient, error) {
+	c, err := newHelmOCIClient(f, repoURL)
+	if err != nil || cred == nil {
+		return c, err
+	}
+	if cred.Registry != c.loc.host {
+		return nil, NewStatusError(http.StatusBadRequest, fmt.Errorf("the registry credential is for registry %s, not %s", cred.Registry, c.loc.host))
+	}
+	c.cred = cred
+	return c, nil
 }
 
 func (c *helmOCIClient) url(path string, q url.Values) *url.URL {
@@ -483,10 +512,124 @@ func (c *helmOCIClient) ping(ctx context.Context) error {
 	return firstErr
 }
 
+// helmCachedToken is a bearer token obtained with a registry credential.
+type helmCachedToken struct {
+	token   string
+	expires time.Time
+}
+
+func (f *HelmFetcher) clock() time.Time {
+	if f.now != nil {
+		return f.now()
+	}
+	return time.Now()
+}
+
+// tokenKey identifies a credentialed token: registry, scope and a hash of the
+// credential (never the credential itself).
+func (c *helmOCIClient) tokenKey(scope string) string {
+	return c.loc.host + "\x00" + scope + "\x00" + c.cred.fingerprint()
+}
+
+// cachedToken returns the token for scope: per client for anonymous tokens
+// (as before), from the fetcher-wide cache until it expires for tokens
+// obtained with a credential.
 func (c *helmOCIClient) cachedToken(scope string) string {
+	if c.cred != nil {
+		f := c.f
+		f.tokMu.Lock()
+		defer f.tokMu.Unlock()
+		t, ok := f.tokCache[c.tokenKey(scope)]
+		if !ok || !f.clock().Before(t.expires) {
+			return ""
+		}
+		return t.token
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.tokens[scope]
+}
+
+func (c *helmOCIClient) storeToken(scope, tok string, ttl time.Duration) {
+	if c.cred == nil {
+		c.mu.Lock()
+		c.tokens[scope] = tok
+		c.mu.Unlock()
+		return
+	}
+	f := c.f
+	f.tokMu.Lock()
+	defer f.tokMu.Unlock()
+	now := f.clock()
+	if f.tokCache == nil {
+		f.tokCache = map[string]helmCachedToken{}
+	}
+	if len(f.tokCache) >= helmOCITokenCacheMax {
+		for k, v := range f.tokCache {
+			if !now.Before(v.expires) {
+				delete(f.tokCache, k)
+			}
+		}
+		if len(f.tokCache) >= helmOCITokenCacheMax {
+			clear(f.tokCache)
+		}
+	}
+	f.tokCache[c.tokenKey(scope)] = helmCachedToken{token: tok, expires: now.Add(ttl)}
+}
+
+func (c *helmOCIClient) useBasic() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.basic
+}
+
+func (c *helmOCIClient) setBasic() {
+	c.mu.Lock()
+	c.basic = true
+	c.mu.Unlock()
+}
+
+// helmTokenTTL is how long a token is reused: expires_in, 60 s when the
+// response has none, at most 5 minutes.
+func helmTokenTTL(expiresIn int64) time.Duration {
+	if expiresIn <= 0 {
+		return helmOCITokenDefaultTTL
+	}
+	if expiresIn > int64(helmOCITokenMaxTTL/time.Second) {
+		return helmOCITokenMaxTTL
+	}
+	return time.Duration(expiresIn) * time.Second
+}
+
+// helmCredentialRealmAllowed decides whether a registry credential may be
+// sent to a bearer-token realm: only when the realm is the registry host
+// itself, or a DNS name of the same registrable domain (eTLD+1 by the public
+// suffix list, so foo.github.io and bar.github.io are different sites).
+// Forwarding the password to any other host is exactly the leak to avoid.
+func helmCredentialRealmAllowed(realm *url.URL, registry string) bool {
+	if strings.EqualFold(realm.Host, registry) {
+		return true
+	}
+	ru, err := url.Parse("https://" + registry + "/")
+	if err != nil {
+		return false
+	}
+	rh, gh := strings.ToLower(realm.Hostname()), strings.ToLower(ru.Hostname())
+	if rh == "" || gh == "" {
+		return false
+	}
+	if rh == gh {
+		return true
+	}
+	if _, err := netip.ParseAddr(rh); err == nil {
+		return false
+	}
+	if _, err := netip.ParseAddr(gh); err == nil {
+		return false
+	}
+	a, err1 := publicsuffix.EffectiveTLDPlusOne(rh)
+	b, err2 := publicsuffix.EffectiveTLDPlusOne(gh)
+	return err1 == nil && err2 == nil && a == b
 }
 
 // fetchToken performs the anonymous half of the token flow: GET realm with
@@ -504,6 +647,13 @@ func (c *helmOCIClient) fetchToken(ctx context.Context, ch *helmBearerChallenge,
 		}
 		f = c.strictFetcher()
 	}
+	var hdr http.Header
+	if c.cred != nil {
+		if !helmCredentialRealmAllowed(realm, c.cred.Registry) {
+			return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s sends its token requests to %s, a different site: refusing to send the registry credentials there", c.loc.host, strings.ToLower(realm.Host)))
+		}
+		hdr = http.Header{"Authorization": {c.cred.basicAuth()}}
+	}
 	q := realm.Query()
 	if ch.service != "" {
 		q.Set("service", ch.service)
@@ -511,7 +661,7 @@ func (c *helmOCIClient) fetchToken(ctx context.Context, ch *helmBearerChallenge,
 	q.Set("scope", scope)
 	tu := *realm
 	tu.RawQuery = q.Encode()
-	resp, err := f.ociRequest(ctx, &tu, nil, helmOCIMaxToken, "registry token response", "")
+	resp, err := f.ociRequest(ctx, &tu, hdr, helmOCIMaxToken, "registry token response", "")
 	if err != nil {
 		if HTTPStatus(err) == http.StatusBadRequest {
 			return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry token realm refused: %w", err))
@@ -519,11 +669,20 @@ func (c *helmOCIClient) fetchToken(ctx context.Context, ch *helmBearerChallenge,
 		return "", err
 	}
 	if resp.status != http.StatusOK {
-		return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry token endpoint %s returned HTTP %d (only anonymous access is supported)", redactHelmURL(&tu), resp.status))
+		shown := redactHelmURL(&tu)
+		denied := resp.status == http.StatusUnauthorized || resp.status == http.StatusForbidden
+		switch {
+		case denied && c.cred != nil:
+			return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry token endpoint %s rejected the registry credentials (HTTP %d): check the username and password", shown, resp.status))
+		case denied:
+			return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry token endpoint %s refused an anonymous token (HTTP %d): %s", shown, resp.status, helmOCINeedsCredentials))
+		}
+		return "", NewStatusError(http.StatusBadGateway, fmt.Errorf("registry token endpoint %s returned HTTP %d", shown, resp.status))
 	}
 	var tok struct {
 		Token       string `json:"token"`
 		AccessToken string `json:"access_token"`
+		ExpiresIn   int64  `json:"expires_in"`
 	}
 	if err := json.Unmarshal(resp.body, &tok); err != nil {
 		return "", NewStatusError(http.StatusBadGateway, errors.New("registry token response is not valid JSON"))
@@ -535,54 +694,87 @@ func (c *helmOCIClient) fetchToken(ctx context.Context, ch *helmBearerChallenge,
 	if t == "" || strings.IndexFunc(t, func(r rune) bool { return r <= ' ' || r > '~' }) >= 0 {
 		return "", NewStatusError(http.StatusBadGateway, errors.New("registry token response carries no usable token"))
 	}
-	c.mu.Lock()
-	c.tokens[scope] = t
-	c.mu.Unlock()
+	c.storeToken(scope, t, helmTokenTTL(tok.ExpiresIn))
 	return t, nil
 }
 
-// get performs a registry GET, answering a bearer challenge once with an
-// anonymous token for scope. The returned response may have any status
-// except 401.
+// get performs a registry GET, answering a bearer challenge once with a
+// token for scope (anonymous, or obtained with the repository's credential)
+// and, with a credential, a Basic challenge from the registry host with that
+// credential. The returned response may have any status except 401.
 func (c *helmOCIClient) get(ctx context.Context, u *url.URL, accept, scope string, max int64, what, digest string) (*helmOCIResponse, error) {
-	hdr := func(tok string) http.Header {
+	// The credential only ever goes to the registry host itself.
+	ownHost := strings.EqualFold(u.Host, c.loc.host)
+	hdr := func(tok string, basic bool) http.Header {
 		h := http.Header{}
 		if accept != "" {
 			h.Set("Accept", accept)
 		}
-		if tok != "" {
+		switch {
+		case basic && c.cred != nil && ownHost:
+			h.Set("Authorization", c.cred.basicAuth())
+		case tok != "":
 			h.Set("Authorization", "Bearer "+tok)
 		}
 		return h
 	}
-	tok := c.cachedToken(scope)
-	resp, err := c.f.ociRequest(ctx, u, hdr(tok), max, what, digest)
+	basic := c.cred != nil && ownHost && c.useBasic()
+	tok := ""
+	if !basic {
+		tok = c.cachedToken(scope)
+	}
+	resp, err := c.f.ociRequest(ctx, u, hdr(tok, basic), max, what, digest)
 	if err != nil {
 		return nil, err
 	}
 	if resp.status != http.StatusUnauthorized {
 		return resp, nil
 	}
+	rejected := func() error {
+		return NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s rejected the registry credentials for %s: check the username and password", c.loc.host, what))
+	}
 	ch, other := helmBearerFromHeader(resp.header)
 	if ch == nil {
-		if other != "" {
-			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s requires %s credentials: only anonymous registries are supported", c.loc.host, other))
+		offersBasic := strings.Contains(","+other+",", ",basic,")
+		switch {
+		case c.cred != nil && ownHost && offersBasic && !basic:
+			c.setBasic()
+			resp, err = c.f.ociRequest(ctx, u, hdr("", true), max, what, digest)
+			if err != nil {
+				return nil, err
+			}
+			if resp.status == http.StatusUnauthorized {
+				return nil, rejected()
+			}
+			return resp, nil
+		case c.cred != nil && basic:
+			return nil, rejected()
+		case c.cred != nil:
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s asks for %q authentication, which is not supported (only Basic and bearer tokens are)", c.loc.host, other))
+		case other != "":
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s requires %s credentials: %s", c.loc.host, other, helmOCINeedsCredentials))
 		}
-		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s requires credentials: only anonymous registries are supported", c.loc.host))
+		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s requires credentials: %s", c.loc.host, helmOCINeedsCredentials))
 	}
 	newTok, err := c.fetchToken(ctx, ch, scope)
 	if err != nil {
 		return nil, err
 	}
 	if newTok == tok {
+		if c.cred != nil {
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s refused its own token", c.loc.host))
+		}
 		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s refused its own anonymous token", c.loc.host))
 	}
-	resp, err = c.f.ociRequest(ctx, u, hdr(newTok), max, what, digest)
+	resp, err = c.f.ociRequest(ctx, u, hdr(newTok, false), max, what, digest)
 	if err != nil {
 		return nil, err
 	}
 	if resp.status == http.StatusUnauthorized {
-		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s denied anonymous access to %s: only anonymous registries are supported", c.loc.host, what))
+		if c.cred != nil {
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s denied access to %s with the registry credentials: check that the account may pull it", c.loc.host, what))
+		}
+		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry %s denied anonymous access to %s: %s", c.loc.host, what, helmOCINeedsCredentials))
 	}
 	return resp, nil
 }
@@ -677,7 +869,10 @@ func (c *helmOCIClient) tags(ctx context.Context, chart string) ([]string, error
 	case http.StatusNotFound:
 		return nil, NewStatusError(http.StatusNotFound, fmt.Errorf("chart %q not found in %s", chart, c.loc))
 	case http.StatusForbidden:
-		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry denied anonymous access to chart %q", chart))
+		if c.cred != nil {
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry denied access to chart %q with the registry credentials", chart))
+		}
+		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry denied anonymous access to chart %q: %s", chart, helmOCINeedsCredentials))
 	default:
 		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry answered the tag list of %q with HTTP %d", chart, status))
 	}
@@ -875,13 +1070,27 @@ func (c *helmOCIClient) chartEntry(ctx context.Context, chart string) ([]*helmIn
 // otherwise unreadable charts are left out and only a registry that yields
 // no chart at all is an error.
 func (f *HelmFetcher) FetchOCIIndex(ctx context.Context, repo HelmRepo, strict bool) (*helmIndex, error) {
-	c, err := newHelmOCIClient(f, repo.URL)
+	ix, _, err := f.fetchOCIIndex(ctx, repo, nil, strict)
+	return ix, err
+}
+
+// fetchOCIIndex is FetchOCIIndex with an optional credential; it also
+// returns the scheme the registry answered on ("https", or "http" when
+// insecure repositories are allowed and the registry speaks plain http).
+func (f *HelmFetcher) fetchOCIIndex(ctx context.Context, repo HelmRepo, cred *helmRegistryCred, strict bool) (*helmIndex, string, error) {
+	c, err := newHelmOCIClientCred(f, repo.URL, cred)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if err := c.ping(ctx); err != nil {
-		return nil, err
+		return nil, "", err
 	}
+	ix, err := c.index(ctx, repo, strict)
+	return ix, c.scheme, err
+}
+
+func (c *helmOCIClient) index(ctx context.Context, repo HelmRepo, strict bool) (*helmIndex, error) {
+	var err error
 	charts := repo.Charts
 	if len(charts) == 0 {
 		if charts, err = c.catalog(ctx); err != nil {
@@ -939,7 +1148,11 @@ func (f *HelmFetcher) FetchOCIIndex(ctx context.Context, repo HelmRepo, strict b
 // FetchOCIChartValues downloads the chart layer of chart:version and returns
 // its values.yaml and README.md through the index archive reader.
 func (f *HelmFetcher) FetchOCIChartValues(ctx context.Context, repoURL, chart, version string) (string, string, error) {
-	c, err := newHelmOCIClient(f, repoURL)
+	return f.fetchOCIChartValues(ctx, repoURL, nil, chart, version)
+}
+
+func (f *HelmFetcher) fetchOCIChartValues(ctx context.Context, repoURL string, cred *helmRegistryCred, chart, version string) (string, string, error) {
+	c, err := newHelmOCIClientCred(f, repoURL, cred)
 	if err != nil {
 		return "", "", err
 	}
@@ -963,10 +1176,66 @@ func (f *HelmFetcher) FetchOCIChartValues(ctx context.Context, repoURL, chart, v
 
 // fetchRepoIndex fetches a repository's catalog index by kind.
 func (c *HelmCatalog) fetchRepoIndex(ctx context.Context, r HelmRepo, strict bool) (*helmIndex, error) {
+	ix, _, err := c.fetchRepoIndexScheme(ctx, r, strict)
+	return ix, err
+}
+
+// fetchRepoIndexScheme is fetchRepoIndex that also reports the scheme an OCI
+// registry answered on ("" for index repositories).
+func (c *HelmCatalog) fetchRepoIndexScheme(ctx context.Context, r HelmRepo, strict bool) (*helmIndex, string, error) {
 	if r.kind() == HelmRepoKindOCI {
-		return c.fetcher.FetchOCIIndex(ctx, r, strict)
+		cred, err := c.repoCred(ctx, r)
+		if err != nil {
+			return nil, "", err
+		}
+		return c.fetcher.fetchOCIIndex(ctx, r, cred, strict)
 	}
-	return c.fetcher.FetchIndex(ctx, r.URL)
+	ix, err := c.fetcher.FetchIndex(ctx, r.URL)
+	return ix, "", err
+}
+
+// repoCred loads the credential an OCI repository references (nil for none).
+func (c *HelmCatalog) repoCred(ctx context.Context, r HelmRepo) (*helmRegistryCred, error) {
+	if r.CredentialsSecret == "" {
+		return nil, nil
+	}
+	if c.creds == nil {
+		return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry credential %q is not available", r.CredentialsSecret))
+	}
+	cred, err := c.creds.get(ctx, r.CredentialsSecret)
+	if err != nil {
+		if HTTPStatus(err) == http.StatusNotFound {
+			return nil, NewStatusError(http.StatusBadGateway, fmt.Errorf("registry credential %q no longer exists", r.CredentialsSecret))
+		}
+		return nil, err
+	}
+	return &cred, nil
+}
+
+// checkRepoCred validates credentialsSecret when an OCI repository is added:
+// the credential must exist and be for the repository's registry host.
+func (c *HelmCatalog) checkRepoCred(ctx context.Context, name, repoURL string) error {
+	if err := checkHelmRegistryCredName(name); err != nil {
+		return err
+	}
+	if c.creds == nil {
+		return NewStatusError(http.StatusBadRequest, fmt.Errorf("registry credential %q not found", name))
+	}
+	cred, err := c.creds.get(ctx, name)
+	if err != nil {
+		if HTTPStatus(err) == http.StatusNotFound {
+			return NewStatusError(http.StatusBadRequest, fmt.Errorf("registry credential %q not found: add it under Helm → Registries first", name))
+		}
+		return err
+	}
+	loc, err := parseHelmOCIURL(repoURL)
+	if err != nil {
+		return NewStatusError(http.StatusBadRequest, err)
+	}
+	if cred.Registry != loc.host {
+		return NewStatusError(http.StatusBadRequest, fmt.Errorf("credentials are for registry %s, not %s", cred.Registry, loc.host))
+	}
+	return nil
 }
 
 func helmFetchBudget(r HelmRepo) time.Duration {

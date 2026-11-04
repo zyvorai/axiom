@@ -74,9 +74,13 @@ type HelmRepo struct {
 	// Charts names the charts of an OCI repository explicitly (most hosted
 	// registries do not offer /v2/_catalog).
 	Charts []string `json:"charts,omitempty"`
-	// CredentialsSecret is reserved for registry credentials; adding a
-	// repository with it set is refused (anonymous registries only).
+	// CredentialsSecret names a stored registry credential (OCI only; see
+	// HelmRegistryCredStore). It is a name, never the secret itself.
 	CredentialsSecret string `json:"credentialsSecret,omitempty"`
+	// PlainHTTP records that the registry answered over plain http when it
+	// was added (only possible with AXIOM_HELM_ALLOW_INSECURE_REPOS); helm
+	// install/upgrade then get --plain-http.
+	PlainHTTP bool `json:"plainHttp,omitempty"`
 }
 
 // HelmRepoStore persists the repository list.
@@ -359,6 +363,13 @@ type HelmFetcher struct {
 
 	once   sync.Once
 	client *http.Client
+
+	// Bearer tokens obtained with registry credentials, by (registry,
+	// scope, credential fingerprint); see helmoci.go. now is the clock
+	// (tests inject one).
+	now      func() time.Time
+	tokMu    sync.Mutex
+	tokCache map[string]helmCachedToken
 }
 
 // NewHelmFetcher returns a fetcher with the production resolver and dialer.
@@ -837,6 +848,11 @@ type HelmRepoView struct {
 	ChartCount int      `json:"chartCount"`
 	FetchedAt  string   `json:"fetchedAt"`
 	Error      string   `json:"error"`
+	// CredentialsSecret is the NAME of the registry credential the
+	// repository uses ("" for none); Authenticated says whether it uses one.
+	CredentialsSecret string `json:"credentialsSecret"`
+	Authenticated     bool   `json:"authenticated"`
+	PlainHTTP         bool   `json:"plainHttp,omitempty"`
 }
 
 type HelmChartSummary struct {
@@ -909,6 +925,7 @@ type HelmCatalog struct {
 	store   HelmRepoStore
 	fetcher *HelmFetcher
 	now     func() time.Time
+	creds   HelmRegistryCredStore // nil: no registry credentials
 
 	mu    sync.Mutex
 	cache map[string]*helmCacheEntry
@@ -924,6 +941,10 @@ func NewHelmCatalog(store HelmRepoStore, fetcher *HelmFetcher) *HelmCatalog {
 	return &HelmCatalog{store: store, fetcher: fetcher, now: time.Now, cache: map[string]*helmCacheEntry{}}
 }
 
+// SetRegistryCredStore gives the catalog the registry credentials that OCI
+// repositories may reference.
+func (c *HelmCatalog) SetRegistryCredStore(s HelmRegistryCredStore) { c.creds = s }
+
 func fmtTime(t time.Time) string {
 	if t.IsZero() {
 		return ""
@@ -932,7 +953,8 @@ func fmtTime(t time.Time) string {
 }
 
 func (c *HelmCatalog) view(r HelmRepo) HelmRepoView {
-	v := HelmRepoView{Name: r.Name, URL: r.URL, AddedAt: r.AddedAt, Kind: r.kind(), Charts: r.Charts}
+	v := HelmRepoView{Name: r.Name, URL: r.URL, AddedAt: r.AddedAt, Kind: r.kind(), Charts: r.Charts,
+		CredentialsSecret: r.CredentialsSecret, Authenticated: r.CredentialsSecret != "", PlainHTTP: r.PlainHTTP}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if e := c.cache[r.Name]; e != nil && e.url == r.URL {
@@ -994,8 +1016,9 @@ func (c *HelmCatalog) AddHelmRepo(ctx context.Context, req HelmRepoRequest) (Hel
 	default:
 		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New(`kind must be "index" or "oci"`))
 	}
-	if strings.TrimSpace(req.CredentialsSecret) != "" {
-		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New("registry credentials are not supported yet: only anonymous repositories can be added"))
+	credName := strings.TrimSpace(req.CredentialsSecret)
+	if credName != "" && kind != HelmRepoKindOCI {
+		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, errors.New("credentialsSecret applies only to OCI repositories"))
 	}
 	var repo HelmRepo
 	if kind == HelmRepoKindOCI {
@@ -1010,6 +1033,12 @@ func (c *HelmCatalog) AddHelmRepo(ctx context.Context, req HelmRepoRequest) (Hel
 		repo = HelmRepo{Name: name, URL: u, AddedAt: fmtTime(c.now()), Kind: HelmRepoKindOCI}
 		if len(charts) > 0 {
 			repo.Charts = charts
+		}
+		if credName != "" {
+			if err := c.checkRepoCred(ctx, credName, u); err != nil {
+				return HelmRepoView{}, err
+			}
+			repo.CredentialsSecret = credName
 		}
 	} else {
 		if len(req.Charts) > 0 {
@@ -1030,7 +1059,7 @@ func (c *HelmCatalog) AddHelmRepo(ctx context.Context, req HelmRepoRequest) (Hel
 	if _, err := helmRepoListAdd(existing, repo); err != nil {
 		return HelmRepoView{}, err
 	}
-	ix, err := c.fetchRepoIndex(ctx, repo, true)
+	ix, scheme, err := c.fetchRepoIndexScheme(ctx, repo, true)
 	if err != nil {
 		// Whatever went wrong (unreachable, refused, too large, not an
 		// index), the administrator's input is what failed to verify.
@@ -1038,6 +1067,9 @@ func (c *HelmCatalog) AddHelmRepo(ctx context.Context, req HelmRepoRequest) (Hel
 			return HelmRepoView{}, NewStatusError(http.StatusBadRequest, fmt.Errorf("could not read the OCI registry: %w", err))
 		}
 		return HelmRepoView{}, NewStatusError(http.StatusBadRequest, fmt.Errorf("could not read the repository index: %w", err))
+	}
+	if repo.kind() == HelmRepoKindOCI && scheme == "http" {
+		repo.PlainHTTP = true
 	}
 	if err := c.store.Add(ctx, repo); err != nil {
 		return HelmRepoView{}, err
@@ -1359,7 +1391,11 @@ func (c *HelmCatalog) ChartValues(ctx context.Context, repoName, chart, version 
 		return HelmChartValues{}, NewStatusError(http.StatusNotFound, fmt.Errorf("chart %q has no version %q", chart, version))
 	}
 	if r.kind() == HelmRepoKindOCI {
-		values, readme, err := c.fetcher.FetchOCIChartValues(ctx, r.URL, chart, string(e.Version))
+		cred, err := c.repoCred(ctx, r)
+		if err != nil {
+			return HelmChartValues{}, err
+		}
+		values, readme, err := c.fetcher.fetchOCIChartValues(ctx, r.URL, cred, chart, string(e.Version))
 		if err != nil {
 			if code := HTTPStatus(err); code == http.StatusBadRequest || code == http.StatusNotFound {
 				// The registry, not the caller, is what failed.

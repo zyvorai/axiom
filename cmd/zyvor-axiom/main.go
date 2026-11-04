@@ -127,6 +127,8 @@ func main() {
 
 		SAMLAllowIdPInitiated: cfg.SAMLAllowIdPInitiated,
 
+		HelmRegistryCredStore: platform.OpenHelmRegistryCredStore(cfg.Mode, provider),
+
 		PodProxy: podProxy,
 	}))
 	mux.Handle("/", ui.Handler())

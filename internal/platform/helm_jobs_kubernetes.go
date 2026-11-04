@@ -4,8 +4,10 @@ package platform
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -89,6 +91,72 @@ func (k *KubernetesProvider) createHelmValuesSecret(ctx context.Context, ns, job
 	}, corev1.VolumeMount{
 		Name: "values", MountPath: "/values", ReadOnly: true,
 	}, name, nil
+}
+
+// helmRegistryConfigPath is where the registry Secret is mounted; helm (3.8+)
+// reads registry credentials from $HELM_REGISTRY_CONFIG.
+const helmRegistryConfigPath = "/registry/config.json"
+
+// helmOCIJobAccess applies a resolved HelmOCIAccess to an OCI helm Job:
+// --plain-http for a plain-http repository, and for a repository with
+// credentials a short-lived Secret holding a Docker-style config.json,
+// mounted read-only, with HELM_REGISTRY_CONFIG pointing at it. The password
+// is only ever in that Secret: never in the Job's args or env. The returned
+// Secret name ("" for none) must be adopted by the Job once it exists (or
+// deleted if the Job cannot be created).
+func (k *KubernetesProvider) helmOCIJobAccess(ctx context.Context, ns, jobName string, req InstallHelmRequest) (args []string, vols []corev1.Volume, mounts []corev1.VolumeMount, env []corev1.EnvVar, secretName string, err error) {
+	a := req.OCIAccess
+	if req.OCIRef == "" || a == nil {
+		return nil, nil, nil, nil, "", nil
+	}
+	loc, err := parseHelmOCIURL(req.OCIRef)
+	if err != nil || loc.host != a.registry {
+		return nil, nil, nil, nil, "", NewStatusError(http.StatusBadRequest, errors.New("the resolved registry access does not match ociRef"))
+	}
+	if a.plainHTTP {
+		args = append(args, "--plain-http")
+	}
+	if !a.authenticated() {
+		return args, nil, nil, nil, "", nil
+	}
+	cfg, err := a.dockerConfig()
+	if err != nil {
+		return nil, nil, nil, nil, "", err
+	}
+	defer func() {
+		for i := range cfg {
+			cfg[i] = 0
+		}
+	}()
+	name := jobName + "-registry"
+	if _, err := k.client.CoreV1().Secrets(ns).Create(ctx, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name, Namespace: ns,
+			Labels: map[string]string{"app.kubernetes.io/managed-by": "zyvor-axiom"},
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{"config.json": cfg},
+	}, metav1.CreateOptions{}); err != nil {
+		// The API error names the Secret, never its data.
+		return nil, nil, nil, nil, "", fmt.Errorf("create registry credentials secret: %w", err)
+	}
+	vols = []corev1.Volume{{
+		Name:         "registry",
+		VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: name}},
+	}}
+	mounts = []corev1.VolumeMount{{Name: "registry", MountPath: "/registry", ReadOnly: true}}
+	env = []corev1.EnvVar{{Name: "HELM_REGISTRY_CONFIG", Value: helmRegistryConfigPath}}
+	return args, vols, mounts, env, name, nil
+}
+
+// deleteHelmJobSecret removes a Secret made for a Job that was never created.
+func (k *KubernetesProvider) deleteHelmJobSecret(ctx context.Context, ns, name string) {
+	if name == "" {
+		return
+	}
+	if err := k.client.CoreV1().Secrets(ns).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
+		log.Printf("helm: could not delete secret %s/%s: %v", ns, name, err)
+	}
 }
 
 // adoptHelmValuesSecret makes the Job the owner of its values Secret, so the
