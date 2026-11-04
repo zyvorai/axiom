@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Changed — License
+- Axiom is now licensed under the **Zyvor Production License v1.0** (`LicenseRef-Zyvor-Production-1.0`): source-available, free for non-production use, with production use requiring a commercial license from Zyvor AI Labs Private Limited. This replaces the previous "all rights reserved" notice. Added `NOTICE` and `LICENSES/LicenseRef-Zyvor-Production-1.0.txt`.
+
 ## [0.13.1] - 2026-11-04
 
 ### Changed — Languages

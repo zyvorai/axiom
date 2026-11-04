@@ -242,8 +242,15 @@ Settings → Notifications configures a Slack incoming-webhook URL and/or a gene
 - [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — current security/compliance posture
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
 - [`SECURITY.md`](SECURITY.md) — vulnerability disclosure policy
-- [`LICENSE`](LICENSE) — proprietary, all rights reserved
+- [`LICENSE`](LICENSE) — Zyvor Production License v1.0 (source-available; free for non-production use, production use needs a commercial license)
 - `legal/` — draft EULA/DPA templates for counsel review (not for customer use as-is)
+
+## License
+
+Axiom is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`, also in [LICENSES/](LICENSES/LicenseRef-Zyvor-Production-1.0.txt); see [NOTICE](NOTICE)).
+
+- **Free** for evaluation, development, testing, proofs of concept, research, education and all other non-production use.
+- **Production use needs a commercial license** from Zyvor AI Labs Private Limited: production clusters, customer workloads, SaaS, managed services, OEM and redistribution. See [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md); talk to us at [zyvor.dev](https://zyvor.dev).
 
 ## Project layout
 
