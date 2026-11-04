@@ -4,6 +4,8 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-04
+
 ### Changed — Languages
 - The last English-only labels are translated in all eight languages: role names in the Users table, user menu and two-factor gate (display only; stored and API role values are unchanged), AI provider names and the "(rate limited)" suffix, terminal window titles (`exec — …`, `logs — …`, `receipt`, the default `Terminal`), the network-policy `default-deny ingress/egress` badges and Ingress/Egress columns, the ConfigMap/Secret `KEY`/`value` and cluster-label placeholders. English wording is unchanged.
 
