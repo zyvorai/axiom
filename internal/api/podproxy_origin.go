@@ -335,6 +335,9 @@ func (p *PodProxyOrigin) redeem(w http.ResponseWriter, r *http.Request) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link is no longer valid")
 		return
 	}
+	if !p.grantClusterServable(w, g) {
+		return
+	}
 	sid, secret, err := p.sess.Create(g)
 	if err != nil {
 		podProxyDeny(w, http.StatusTooManyRequests, err.Error())
@@ -469,13 +472,15 @@ func (p *PodProxyOrigin) forward(w http.ResponseWriter, r *http.Request, provide
 		podProxyDeny(w, http.StatusForbidden, "service workers are not allowed on the pod proxy origin")
 		return
 	}
-	ctx := platform.WithClusterSession(r.Context(), g.ClusterKey)
-	target, err := provider.PodProxyTarget(ctx, g.Namespace, g.Pod, g.Port)
+	pinned, ok := podProxyPinnedProvider(w, provider, g)
+	if !ok {
+		return
+	}
+	target, err := pinned.PodProxyTarget(r.Context(), g.Namespace, g.Pod, g.Port)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	r = r.WithContext(ctx)
 	if r.ContentLength > podProxyMaxBody {
 		podProxyDeny(w, http.StatusRequestEntityTooLarge, "request body too large")
 		return
@@ -491,6 +496,75 @@ func (p *PodProxyOrigin) forward(w http.ResponseWriter, r *http.Request, provide
 	w.Header().Set("Content-Security-Policy", podProxyCSP)
 	w.Header().Del("Cache-Control")
 	servePodProxy(w, r, target, upstreamPath, hardenPodProxyOrigin)
+}
+
+// errPodProxyClusterGone is wrapped by podProxyClusterProvider when a pod
+// proxy grant names a cluster this replica cannot serve it from.
+var errPodProxyClusterGone = errors.New("pod proxy cluster unavailable")
+
+// podProxyLinkCluster resolves, for a window-link request, the cluster the
+// pod is looked up on and the Provider of exactly that cluster: on a
+// multi-cluster registry the calling tab's active cluster (by registered
+// name), otherwise "" and the provider itself.
+func podProxyLinkCluster(ctx context.Context, provider platform.Provider) (string, platform.Provider, error) {
+	sp, ok := provider.(*platform.SwitchableProvider)
+	if !ok {
+		return "", provider, nil
+	}
+	name := sp.ActiveName(ctx)
+	p, ok := sp.ProviderFor(name)
+	if !ok {
+		return "", nil, platform.NewStatusError(http.StatusNotFound, fmt.Errorf("no active cluster to open the pod on"))
+	}
+	return name, p, nil
+}
+
+// podProxyClusterProvider returns the Provider of the cluster a pod proxy
+// grant was minted on, independent of any cluster selection: a session never
+// follows a console tab (or a replica's default) to another cluster. A grant
+// naming a cluster that is not registered here (removed since, or never known
+// to this replica), a grant without a cluster on a multi-cluster registry
+// (minted before grants were pinned) and a grant naming a cluster on a
+// single-cluster provider are all refused.
+func podProxyClusterProvider(provider platform.Provider, cluster string) (platform.Provider, error) {
+	sp, multi := provider.(*platform.SwitchableProvider)
+	switch {
+	case multi && cluster == "":
+		return nil, fmt.Errorf("%w: this pod session does not record its cluster", errPodProxyClusterGone)
+	case multi:
+		p, ok := sp.ProviderFor(cluster)
+		if !ok {
+			return nil, fmt.Errorf("%w: cluster %q this pod session was opened on is no longer registered", errPodProxyClusterGone, cluster)
+		}
+		return p, nil
+	case cluster != "":
+		return nil, fmt.Errorf("%w: cluster %q this pod session was opened on is not known here", errPodProxyClusterGone, cluster)
+	}
+	return provider, nil
+}
+
+// podProxyPinnedProvider is podProxyClusterProvider for a request: when the
+// grant's cluster cannot be served here it logs why and answers 410.
+func podProxyPinnedProvider(w http.ResponseWriter, provider platform.Provider, g auth.PodProxyGrant) (platform.Provider, bool) {
+	pinned, err := podProxyClusterProvider(provider, g.Cluster)
+	if err != nil {
+		log.Printf("pod proxy: refusing %s/%s port %d for user %s: %v", g.Namespace, g.Pod, g.Port, g.User, err)
+		podProxyDeny(w, http.StatusGone, err.Error()+"; open the port again from the console")
+		return nil, false
+	}
+	return pinned, true
+}
+
+// grantClusterServable is the redeem-time cluster check: a ticket for a
+// cluster this replica cannot serve does not become a session.
+func (p *PodProxyOrigin) grantClusterServable(w http.ResponseWriter, g auth.PodProxyGrant) bool {
+	provider, _ := p.deps()
+	if provider == nil {
+		podProxyDeny(w, http.StatusServiceUnavailable, "pod proxy is not ready")
+		return false
+	}
+	_, ok := podProxyPinnedProvider(w, provider, g)
+	return ok
 }
 
 // podProxyPolicyHeaders are set by the proxy listener itself on every
@@ -558,15 +632,18 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ns, name := r.PathValue("namespace"), r.PathValue("name")
-	// Refuse unknown pods and undeclared ports now rather than on the proxy
-	// origin.
-	if _, err := s.provider.PodProxyTarget(r.Context(), ns, name, int32(req.Port)); err != nil {
+	// The link (and every session made from it) is pinned to the cluster the
+	// pod is resolved on now, by its registered name.
+	cluster, pinned, err := podProxyLinkCluster(r.Context(), s.provider)
+	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	clusterKey := r.Header.Get(platform.ClusterSessionHeader)
-	if clusterKey == "" {
-		clusterKey = "user:" + id.User
+	// Refuse unknown pods and undeclared ports now rather than on the proxy
+	// origin.
+	if _, err := pinned.PodProxyTarget(r.Context(), ns, name, int32(req.Port)); err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
 	}
 	// In host mode the session id is chosen now: it is the link's host label,
 	// and the ticket can only be redeemed on that host.
@@ -576,7 +653,7 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 	}
 	tok, _, err := s.podProxy.tickets.Issue(auth.PodProxyGrant{
 		User: id.User, Role: id.Role, Namespaces: id.Namespaces, Namespace: ns, Pod: name, Port: int32(req.Port),
-		Path: req.Path, ClusterKey: clusterKey, SessionID: sessionID,
+		Path: req.Path, Cluster: cluster, SessionID: sessionID,
 	})
 	if err != nil {
 		if errors.Is(err, auth.ErrPodProxyTableFull) {
@@ -586,7 +663,11 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	platform.RecordAxiomAudit("pod.window", ns+"/"+name, "port "+strconv.FormatInt(req.Port, 10)+" via pod proxy origin", id.User)
+	detail := "port " + strconv.FormatInt(req.Port, 10) + " via pod proxy origin"
+	if cluster != "" {
+		detail += " on cluster " + cluster
+	}
+	platform.RecordAxiomAudit("pod.window", ns+"/"+name, detail, id.User)
 	w.Header().Set("Cache-Control", "no-store")
 	origin := s.podProxy.origin
 	if s.podProxy.host != nil {

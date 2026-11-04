@@ -21,7 +21,7 @@ import (
 // NewSharedPodProxySessionStore):
 //
 //   - a ticket is an HMAC-signed token carrying its grant (user, role,
-//     namespace restriction, pod, port, path, cluster key, issue time, the
+//     namespace restriction, pod, port, path, cluster name, issue time, the
 //     per-session-host id) plus a random ticket id and its expiry, so any
 //     replica can redeem it. Single use is enforced in the replica's memory
 //     and, best effort, through PodProxyRedeemed's shared set of redeemed

@@ -74,9 +74,12 @@ type PodProxyGrant struct {
 	Port       int32    `json:"port"`
 	// Path is the base path the link opens (ticket only; always starts "/").
 	Path string `json:"path"`
-	// ClusterKey is the console's cluster-session key at link time, so the
-	// proxied pod is looked up on the cluster the operator was looking at.
-	ClusterKey string `json:"ck,omitempty"`
+	// Cluster is the registered name of the cluster the pod was resolved on
+	// when the link was minted (platform.SwitchableProvider; empty on a
+	// single-cluster provider). Every proxied request looks the pod up on
+	// exactly this cluster, whatever any console tab or replica has selected
+	// since, and is refused when it is no longer registered.
+	Cluster string `json:"cl,omitempty"`
 	// IssuedMs is when the console credential minted the ticket (Unix ms). A
 	// per-user revocation cut-off at or after this moment kills the ticket and
 	// every session made from it.

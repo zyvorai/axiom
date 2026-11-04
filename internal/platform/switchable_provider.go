@@ -152,6 +152,21 @@ func (sp *SwitchableProvider) ActiveName(ctx context.Context) string {
 	return sp.activeForLocked(clusterSessionFromContext(ctx))
 }
 
+// ProviderFor returns the Provider registered under cluster name, whatever
+// any session has selected, or false when no such cluster is registered
+// (never was, or was unregistered since). Callers that must stay on one
+// cluster for longer than a request (the pod proxy origin) resolve the
+// cluster once with ActiveName and then go through ProviderFor.
+func (sp *SwitchableProvider) ProviderFor(name string) (Provider, bool) {
+	sp.mu.RLock()
+	defer sp.mu.RUnlock()
+	e, ok := sp.entries[name]
+	if !ok || e.provider == nil {
+		return nil, false
+	}
+	return e.provider, true
+}
+
 // Count returns how many clusters are registered.
 func (sp *SwitchableProvider) Count() int {
 	sp.mu.RLock()

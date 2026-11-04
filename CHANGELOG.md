@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Fixed — pod proxy cluster
+- A pod proxy session now stays on the cluster its pod was opened on. `window-link` records the registered name of the cluster the pod was resolved on (the calling tab's active cluster) in the ticket and the session (signed into the token and cookie with `AXIOM_SESSION_SECRET`, in the in-memory grant otherwise), and the proxy listener looks the pod up on exactly that cluster on every request. Switching clusters in the console tab, a replica's own default and another replica's selection no longer re-target an open session to a same-named pod elsewhere. A ticket or session for a cluster that has since been unregistered, or that the serving replica does not know, is refused with `410` (and logged). Namespace restriction and revocation checks are unchanged. Signed pod proxy links and sessions issued by 0.12.0 do not record their cluster and are refused (`410`) after the upgrade; open the port again.
+
 ## [0.12.0] - 2026-11-04
 
 ### Changed — pod proxy across replicas

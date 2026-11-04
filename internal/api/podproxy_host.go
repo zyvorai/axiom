@@ -229,6 +229,9 @@ func (p *PodProxyOrigin) redeemHost(w http.ResponseWriter, r *http.Request, sid 
 		podProxyDeny(w, http.StatusForbidden, "this pod link is no longer valid")
 		return
 	}
+	if !p.grantClusterServable(w, g) {
+		return
+	}
 	secret, err := p.sess.CreateWithID(sid, g)
 	if err != nil {
 		code := http.StatusForbidden
