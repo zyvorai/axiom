@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-11-05
+
+### Changed — Website
+- The GitHub Pages site is refreshed: new hero and framed product shots, Fleet, GitOps and Autoscaling & cost sections, languages and license sections, WebP screenshots, sitemap and structured data, and a new social card (`scripts/site-shots.mjs`, `scripts/site-og.mjs` regenerate them).
+
 ### Changed — License
 - Axiom is now licensed under the **Zyvor Production License v1.0** (`LicenseRef-Zyvor-Production-1.0`): source-available, free for non-production use, with production use requiring a commercial license from Zyvor AI Labs Private Limited. This replaces the previous "all rights reserved" notice. Added `NOTICE` and `LICENSES/LicenseRef-Zyvor-Production-1.0.txt`.
 
