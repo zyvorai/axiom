@@ -57,9 +57,13 @@ func main() {
 	platform.SetAuditStore(platform.OpenAuditStore(cfg.Mode, provider))
 	platform.SetRemoteClusterStore(platform.OpenRemoteClusterStore(cfg.Mode, provider))
 	notifier := platform.NewHubNotifier(hub)
+	var fleetHistoryFlushed <-chan struct{}
 	if sp, ok := provider.(*platform.SwitchableProvider); ok {
 		platform.LoadRemoteClustersInto(context.Background(), sp)
 		sp.SetFleetNotifier(notifier)
+		// Restore the persisted fleet history before the first probe; the
+		// last save happens when dispatchCtx is cancelled at shutdown.
+		fleetHistoryFlushed = sp.StartFleetHistoryPersistence(dispatchCtx, platform.OpenFleetHistoryStore(cfg.Mode, provider), cfg.FleetHistoryPersistInterval)
 		sp.StartFleetProber(dispatchCtx, cfg.FleetProbeInterval)
 	}
 	// One budget store shared by the API and the budget watcher (the demo
@@ -170,6 +174,12 @@ func main() {
 	defer cancel()
 	_ = srv.Shutdown(ctx)
 	stopDispatch()
+	if fleetHistoryFlushed != nil {
+		select {
+		case <-fleetHistoryFlushed:
+		case <-ctx.Done():
+		}
+	}
 }
 
 func firstNonEmpty(a, b string) string {

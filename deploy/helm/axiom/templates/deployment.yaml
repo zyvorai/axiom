@@ -100,6 +100,10 @@ spec:
             - name: AXIOM_FLEET_PROBE_INTERVAL
               value: {{ .Values.auth.fleetProbeInterval | quote }}
             {{- end }}
+            {{- if .Values.auth.fleetHistoryPersistInterval }}
+            - name: AXIOM_FLEET_HISTORY_PERSIST_INTERVAL
+              value: {{ .Values.auth.fleetHistoryPersistInterval | quote }}
+            {{- end }}
             {{- if .Values.auth.budgetCheckInterval }}
             - name: AXIOM_BUDGET_CHECK_INTERVAL
               value: {{ .Values.auth.budgetCheckInterval | quote }}
@@ -208,6 +212,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: AXIOM_NAMESPACE
               valueFrom:
                 fieldRef:

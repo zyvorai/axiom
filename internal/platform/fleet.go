@@ -115,6 +115,13 @@ type fleetState struct {
 
 	// history holds the recent samples per cluster (fleet_history.go).
 	history map[string][]fleetRecord
+
+	// Persistence of the history (fleet_history_store.go).
+	persistent      bool          // a durable store is configured
+	persistInterval time.Duration // how often it is saved
+	lastSaveOK      time.Time     // when the last save succeeded
+	lastSaveErrLog  time.Time     // when a save failure was last logged
+	restoredFrom    time.Time     // newest restored snapshot's save time
 }
 
 func (sp *SwitchableProvider) fleet() *fleetState {
