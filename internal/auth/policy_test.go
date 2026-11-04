@@ -110,6 +110,19 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted operator rightsizing apply", "roper", "POST", "/api/v1/cost/rightsizing/apply", 403},
 		{"admin rightsizing apply", "demo", "POST", "/api/v1/cost/rightsizing/apply", 204},
 		{"restricted viewer cost estimate unchanged", "rviewer", "GET", "/api/v1/cost", 204},
+		// Actual-bill reconciliation: a cluster-wide cost read like budgets;
+		// configuring and testing it is an admin-only integration.
+		{"viewer cost invoice", "viewer", "GET", "/api/v1/cost/invoice", 204},
+		{"operator cost invoice", "oper", "GET", "/api/v1/cost/invoice", 204},
+		{"admin cost invoice", "demo", "GET", "/api/v1/cost/invoice", 204},
+		{"restricted viewer cost invoice", "rviewer", "GET", "/api/v1/cost/invoice", 403},
+		{"restricted operator cost invoice", "roper", "GET", "/api/v1/cost/invoice", 403},
+		{"restricted operator cost invoice query smuggle", "roper", "GET", "/api/v1/cost/invoice?namespace=team-a", 403},
+		{"viewer billing test", "viewer", "POST", "/api/v1/integrations/billing/test", 403},
+		{"operator billing test", "oper", "POST", "/api/v1/integrations/billing/test", 403},
+		{"restricted operator billing test", "roper", "POST", "/api/v1/integrations/billing/test", 403},
+		{"admin billing test", "demo", "POST", "/api/v1/integrations/billing/test", 204},
+		{"operator billing settings write", "oper", "PUT", "/api/v1/integrations", 403},
 		// Restricted identities cannot reach cluster-wide admin surfaces.
 		{"restricted operator apply", "roper", "POST", "/api/v1/apply", 403},
 		{"restricted viewer audit", "rviewer", "GET", "/api/v1/audit", 403},

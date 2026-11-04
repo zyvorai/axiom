@@ -258,5 +258,11 @@
   },
   "autoscalingEdit": {
     "updated": "{{name}} を更新しました"
+  },
+  "billing": {
+    "saved": "請求設定を保存しました",
+    "saveFailed": "請求設定を保存できませんでした",
+    "reachable": "請求書を読み取りました",
+    "testFailed": "請求書を読み取れませんでした"
   }
 }

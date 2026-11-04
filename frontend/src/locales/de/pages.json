@@ -1503,5 +1503,48 @@
       "action": "Ersten Workload ausführen"
     },
     "noMatches": "Keine Workloads entsprechen den aktuellen Filtern."
+  },
+  "billing": {
+    "experimental": "Experimentell",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing (BigQuery-Export)"
+    },
+    "invoice": {
+      "title": "Cloud-Rechnung vs. zugeordnet",
+      "demo": "Demodaten: feste Werte, es wird kein Cloud-Konto abgefragt.",
+      "currencyDiffers": "Die Rechnung lautet auf {{currency}}, die Zuordnung ist in USD bepreist, daher wird keine Differenz angezeigt.",
+      "failed": "Die Rechnung konnte nicht gelesen werden: {{error}}",
+      "toDate": "{{month}} (bisher)",
+      "explainer": "Zugeordnet ist die heutige monatliche Rate, anteilig auf die abgedeckten Tage umgerechnet, keine historische Aufzeichnung. Nicht zugeordnet ist alles andere auf der Rechnung: ungenutzte Kapazität, andere Dienste und Konten außerhalb dieses Clusters. Höchstens stündlich aktualisiert.",
+      "columns": {
+        "month": "Monat",
+        "invoice": "Rechnung",
+        "allocated": "Zugeordnet",
+        "unallocated": "Nicht zugeordnet"
+      }
+    },
+    "settings": {
+      "title": "Abgleich mit der Cloud-Rechnung",
+      "lead": "Vergleicht die zugeordneten Kosten des Clusters mit der tatsächlichen Cloud-Rechnung für diesen und den letzten Monat. Experimentell: Die Clients für AWS, Azure und Google Cloud wurden nur gegen aufgezeichnete Testdaten geprüft, nicht gegen echte Konten. Prüfen Sie die Zahlen daher anhand Ihrer Rechnung. Zugangsdaten werden im Integrations-Secret gespeichert und nie wieder angezeigt.",
+      "provider": "Anbieter",
+      "off": "Aus",
+      "tagKey": "Tag- oder Label-Schlüssel (optional)",
+      "tagKeyPlaceholder": "z. B. kubernetes-cluster",
+      "tagValue": "Tag- oder Label-Wert",
+      "awsRegion": "Cost-Explorer-Region",
+      "awsAccessKeyId": "Zugriffsschlüssel-ID",
+      "awsSecretAccessKey": "Geheimer Zugriffsschlüssel",
+      "azureTenantId": "Mandanten-ID",
+      "azureClientId": "Client-ID (Anwendung)",
+      "azureSubscriptionId": "Abonnement-ID",
+      "azureClientSecret": "Geheimer Clientschlüssel",
+      "gcpTable": "Billing-Export-Tabelle (project.dataset.table)",
+      "gcpProjectId": "Abfrageprojekt (optional)",
+      "gcpServiceAccountKey": "Dienstkontoschlüssel (JSON)",
+      "secretSet": "Gesetzt – leer lassen, um ihn zu behalten",
+      "permissions": "Verwenden Sie Zugangsdaten nur mit Leserechten: AWS ce:GetCostAndUsage; Azure Cost Management Reader auf dem Abonnement; GCP BigQuery Job User plus Data Viewer auf dem Export-Dataset."
+    }
   }
 }

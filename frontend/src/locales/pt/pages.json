@@ -1503,5 +1503,48 @@
       "action": "Execute seu primeiro workload"
     },
     "noMatches": "Nenhum workload corresponde aos filtros atuais."
+  },
+  "billing": {
+    "experimental": "Experimental",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing (exportação para BigQuery)"
+    },
+    "invoice": {
+      "title": "Fatura da nuvem vs. alocado",
+      "demo": "Dados de demonstração: valores fixos, nenhuma conta na nuvem é consultada.",
+      "currencyDiffers": "A fatura está em {{currency}} e a alocação é calculada em USD, por isso nenhuma diferença é mostrada.",
+      "failed": "Não foi possível ler a fatura: {{error}}",
+      "toDate": "{{month}} (até hoje)",
+      "explainer": "Alocado é o ritmo mensal atual proporcional aos dias cobertos, não um histórico. Não alocado é todo o resto da fatura: capacidade ociosa, outros serviços e contas fora deste cluster. Atualizado no máximo a cada hora.",
+      "columns": {
+        "month": "Mês",
+        "invoice": "Fatura",
+        "allocated": "Alocado",
+        "unallocated": "Não alocado"
+      }
+    },
+    "settings": {
+      "title": "Reconciliação com a fatura da nuvem",
+      "lead": "Compara o custo alocado do cluster com a fatura real da nuvem deste mês e do anterior. Experimental: os clientes de AWS, Azure e Google Cloud só foram testados com respostas gravadas, não com contas reais, por isso confira os valores na sua fatura. As credenciais ficam no Secret de integrações e nunca são mostradas novamente.",
+      "provider": "Provedor",
+      "off": "Desligado",
+      "tagKey": "Chave de tag ou rótulo (opcional)",
+      "tagKeyPlaceholder": "ex.: kubernetes-cluster",
+      "tagValue": "Valor da tag ou rótulo",
+      "awsRegion": "Região do Cost Explorer",
+      "awsAccessKeyId": "ID da chave de acesso",
+      "awsSecretAccessKey": "Chave de acesso secreta",
+      "azureTenantId": "ID do locatário",
+      "azureClientId": "ID do cliente (aplicativo)",
+      "azureSubscriptionId": "ID da assinatura",
+      "azureClientSecret": "Segredo do cliente",
+      "gcpTable": "Tabela de exportação de faturamento (project.dataset.table)",
+      "gcpProjectId": "Projeto da consulta (opcional)",
+      "gcpServiceAccountKey": "Chave da conta de serviço (JSON)",
+      "secretSet": "Definido — deixe em branco para manter",
+      "permissions": "Use credenciais somente leitura: AWS ce:GetCostAndUsage; Cost Management Reader do Azure na assinatura; BigQuery Job User e Data Viewer do GCP no conjunto de dados de exportação."
+    }
   }
 }

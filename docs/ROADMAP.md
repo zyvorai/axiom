@@ -71,6 +71,12 @@ are theirs, not ours.
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
 
+## Shipped in 0.13.0 (experimental)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Billing | Ops → Cost compares the actual AWS / Azure / GCP invoice for this and last month with the allocated cost (OpenCost or the estimate); admin-configured with write-only credentials, fixed provider hosts only. Experimental: tested against recorded fixtures only, not real accounts | Kubecost cloud-bill reconciliation, Vantage |
+
 ## Shipped in 0.12.0
 
 | Area | What you get | Comparable to |
@@ -91,7 +97,6 @@ are theirs, not ours.
 
 Deliberately left for later, with the reason:
 
-- **Billing:** per-cloud invoice integrations (OpenCost covers allocation, not your actual bill).
 - **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
 
 ## Not planned

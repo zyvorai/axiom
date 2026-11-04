@@ -1492,5 +1492,48 @@
       "action": "最初のワークロードを実行"
     },
     "noMatches": "現在のフィルターに一致するワークロードはありません。"
+  },
+  "billing": {
+    "experimental": "試験的",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing（BigQuery エクスポート）"
+    },
+    "invoice": {
+      "title": "クラウド請求額と割り当て額",
+      "demo": "デモデータ: 固定値です。クラウドアカウントには接続しません。",
+      "currencyDiffers": "請求書の通貨は {{currency}} で、割り当て額は USD で計算されるため、差額は表示しません。",
+      "failed": "請求書を読み取れませんでした: {{error}}",
+      "toDate": "{{month}}（今日まで）",
+      "explainer": "割り当て額は現在の月額ペースを対象日数で按分したもので、履歴ではありません。未割り当て額は請求書のそれ以外すべて（アイドル容量、このクラスター外のサービスやアカウント）です。更新は最大 1 時間ごとです。",
+      "columns": {
+        "month": "月",
+        "invoice": "請求額",
+        "allocated": "割り当て額",
+        "unallocated": "未割り当て額"
+      }
+    },
+    "settings": {
+      "title": "クラウド請求の照合",
+      "lead": "クラスターの割り当てコストを、今月と先月の実際のクラウド請求書と比較します。試験的機能: AWS、Azure、Google Cloud のクライアントは記録済みの応答でのみテストされており、実際のアカウントでは検証されていません。数値は必ず請求書と照らし合わせてください。認証情報は連携用 Secret に保存され、再表示されることはありません。",
+      "provider": "プロバイダー",
+      "off": "オフ",
+      "tagKey": "タグまたはラベルのキー（任意）",
+      "tagKeyPlaceholder": "例: kubernetes-cluster",
+      "tagValue": "タグまたはラベルの値",
+      "awsRegion": "Cost Explorer のリージョン",
+      "awsAccessKeyId": "アクセスキー ID",
+      "awsSecretAccessKey": "シークレットアクセスキー",
+      "azureTenantId": "テナント ID",
+      "azureClientId": "クライアント（アプリケーション）ID",
+      "azureSubscriptionId": "サブスクリプション ID",
+      "azureClientSecret": "クライアントシークレット",
+      "gcpTable": "課金エクスポートテーブル（project.dataset.table）",
+      "gcpProjectId": "クエリ用プロジェクト（任意）",
+      "gcpServiceAccountKey": "サービスアカウントキー（JSON）",
+      "secretSet": "設定済み — 空欄のままで保持",
+      "permissions": "読み取り専用の認証情報を使用してください: AWS は ce:GetCostAndUsage、Azure はサブスクリプションの Cost Management Reader、GCP はエクスポートデータセットの BigQuery Job User と Data Viewer。"
+    }
   }
 }

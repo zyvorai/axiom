@@ -23,3 +23,4 @@ export * from './fleet';
 export * from './gitops';
 export * from './autoscaling';
 export * from './deferred';
+export * from './billing';

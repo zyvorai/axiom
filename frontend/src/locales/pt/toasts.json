@@ -263,5 +263,11 @@
   },
   "autoscalingEdit": {
     "updated": "{{name}} atualizado"
+  },
+  "billing": {
+    "saved": "Configurações de faturamento salvas",
+    "saveFailed": "Não foi possível salvar as configurações de faturamento",
+    "reachable": "Fatura lida com sucesso",
+    "testFailed": "Não foi possível ler a fatura"
   }
 }

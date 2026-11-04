@@ -41,6 +41,23 @@ type Integrations struct {
 	AIModel     string `json:"aiModel"`
 	AIAPIKey    string `json:"aiApiKey,omitempty"`
 	AIRedactOff bool   `json:"aiRedactOff"`
+
+	// Actual-bill reconciliation (EXPERIMENTAL, see billing.go). Credentials
+	// (AWS access key pair, Azure client secret, GCP service-account key) live
+	// in the integrations Secret only and are never returned.
+	BillingProvider            string `json:"billingProvider"`
+	BillingTagKey              string `json:"billingTagKey"`
+	BillingTagValue            string `json:"billingTagValue"`
+	BillingAWSRegion           string `json:"billingAwsRegion"`
+	BillingAWSAccessKeyID      string `json:"billingAwsAccessKeyId,omitempty"`
+	BillingAWSSecretAccessKey  string `json:"billingAwsSecretAccessKey,omitempty"`
+	BillingAzureTenantID       string `json:"billingAzureTenantId"`
+	BillingAzureClientID       string `json:"billingAzureClientId"`
+	BillingAzureSubscriptionID string `json:"billingAzureSubscriptionId"`
+	BillingAzureClientSecret   string `json:"billingAzureClientSecret,omitempty"`
+	BillingGCPProjectID        string `json:"billingGcpProjectId"`
+	BillingGCPTable            string `json:"billingGcpTable"`
+	BillingGCPServiceAccountKey string `json:"billingGcpServiceAccountKey,omitempty"`
 }
 
 // IntegrationsView is the safe GET payload (secrets never returned in cleartext).
@@ -80,10 +97,25 @@ type IntegrationsView struct {
 	AIAPIKeySet  bool   `json:"aiApiKeySet"`
 	AIRedact     bool   `json:"aiRedact"`
 	AIConfigured bool   `json:"aiConfigured"`
+
+	BillingProvider                string `json:"billingProvider"`
+	BillingTagKey                  string `json:"billingTagKey"`
+	BillingTagValue                string `json:"billingTagValue"`
+	BillingAWSRegion               string `json:"billingAwsRegion"`
+	BillingAWSAccessKeyIDSet       bool   `json:"billingAwsAccessKeyIdSet"`
+	BillingAWSSecretAccessKeySet   bool   `json:"billingAwsSecretAccessKeySet"`
+	BillingAzureTenantID           string `json:"billingAzureTenantId"`
+	BillingAzureClientID           string `json:"billingAzureClientId"`
+	BillingAzureSubscriptionID     string `json:"billingAzureSubscriptionId"`
+	BillingAzureClientSecretSet    bool   `json:"billingAzureClientSecretSet"`
+	BillingGCPProjectID            string `json:"billingGcpProjectId"`
+	BillingGCPTable                string `json:"billingGcpTable"`
+	BillingGCPServiceAccountKeySet bool   `json:"billingGcpServiceAccountKeySet"`
+	BillingConfigured              bool   `json:"billingConfigured"`
 }
 
 func (i Integrations) View() IntegrationsView {
-	return IntegrationsView{
+	return i.billingView(IntegrationsView{
 		AtlasURL:        i.AtlasURL,
 		AtlasTokenSet:   strings.TrimSpace(i.AtlasToken) != "",
 		AtlasConsoleURL: i.AtlasConsoleURL,
@@ -119,7 +151,7 @@ func (i Integrations) View() IntegrationsView {
 		AIAPIKeySet:  strings.TrimSpace(i.AIAPIKey) != "",
 		AIRedact:     !i.AIRedactOff,
 		AIConfigured: i.aiConfigured(),
-	}
+	})
 }
 
 func (i Integrations) Normalize() Integrations {
@@ -150,6 +182,7 @@ func (i Integrations) Normalize() Integrations {
 	i.SlackWebhookURL = strings.TrimSpace(i.SlackWebhookURL)
 	i.AlertWebhookURL = strings.TrimSpace(i.AlertWebhookURL)
 	i = i.normalizeAI()
+	i = i.normalizeBilling()
 	return i
 }
 
@@ -188,6 +221,24 @@ type IntegrationsPatch struct {
 	AIAPIKey      *string `json:"aiApiKey"`
 	AIAPIKeyClear bool    `json:"aiApiKeyClear"`
 	AIRedact      *bool   `json:"aiRedact"`
+
+	BillingProvider                  *string `json:"billingProvider"`
+	BillingTagKey                    *string `json:"billingTagKey"`
+	BillingTagValue                  *string `json:"billingTagValue"`
+	BillingAWSRegion                 *string `json:"billingAwsRegion"`
+	BillingAWSAccessKeyID            *string `json:"billingAwsAccessKeyId"`
+	BillingAWSAccessKeyIDClear       bool    `json:"billingAwsAccessKeyIdClear"`
+	BillingAWSSecretAccessKey        *string `json:"billingAwsSecretAccessKey"`
+	BillingAWSSecretAccessKeyClear   bool    `json:"billingAwsSecretAccessKeyClear"`
+	BillingAzureTenantID             *string `json:"billingAzureTenantId"`
+	BillingAzureClientID             *string `json:"billingAzureClientId"`
+	BillingAzureSubscriptionID       *string `json:"billingAzureSubscriptionId"`
+	BillingAzureClientSecret         *string `json:"billingAzureClientSecret"`
+	BillingAzureClientSecretClear    bool    `json:"billingAzureClientSecretClear"`
+	BillingGCPProjectID              *string `json:"billingGcpProjectId"`
+	BillingGCPTable                  *string `json:"billingGcpTable"`
+	BillingGCPServiceAccountKey      *string `json:"billingGcpServiceAccountKey"`
+	BillingGCPServiceAccountKeyClear bool    `json:"billingGcpServiceAccountKeyClear"`
 }
 
 func (i Integrations) Apply(p IntegrationsPatch) Integrations {
@@ -260,6 +311,7 @@ func (i Integrations) Apply(p IntegrationsPatch) Integrations {
 		i.NotifyOnWarnings = *p.NotifyOnWarnings
 	}
 	i = i.applyAIPatch(p)
+	i = i.applyBillingPatch(p)
 	return i.Normalize()
 }
 

@@ -118,6 +118,9 @@ type Server struct {
 
 	// externalMFA holds second factors of directory (LDAP) accounts.
 	externalMFA *platform.ExternalMFAStore
+
+	// billing caches actual-invoice answers (cost_invoice.go; EXPERIMENTAL).
+	billing *platform.BillingService
 }
 
 func New(provider platform.Provider, mode, username, password, allowOrigin string, authOpts ...AuthOptions) http.Handler {
@@ -166,7 +169,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	if revocations == nil {
 		revocations = auth.NewRevocations(opts.RevocationStore)
 	}
-	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore()}
+	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore(), billing: platform.NewBillingService()}
 	if opts.PodProxy != nil {
 		opts.PodProxy.attach(provider, revocationsChecker{revocations})
 		s.podProxy = opts.PodProxy
@@ -352,6 +355,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/integrations/webhook/test", s.testAlertWebhook)
 	// AI assistant (opt-in; see internal/api/ai.go)
 	mux.HandleFunc("POST /api/v1/integrations/ai/test", s.testAI)
+	// Actual-bill reconciliation (EXPERIMENTAL; see internal/api/cost_invoice.go)
+	mux.HandleFunc("POST /api/v1/integrations/billing/test", s.testBilling)
 	mux.HandleFunc("GET /api/v1/ai/status", s.aiStatus)
 	mux.HandleFunc("POST /api/v1/ai/explain", s.aiExplain)
 	mux.HandleFunc("GET /api/v1/users", s.listUsers)

@@ -258,5 +258,11 @@
   },
   "autoscalingEdit": {
     "updated": "已更新 {{name}}"
+  },
+  "billing": {
+    "saved": "账单设置已保存",
+    "saveFailed": "无法保存账单设置",
+    "reachable": "已成功读取账单",
+    "testFailed": "无法读取账单"
   }
 }

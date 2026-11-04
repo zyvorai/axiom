@@ -23,6 +23,7 @@ import { useCluster } from "@/lib/cluster";
 import StatusBadge from "@/components/StatusBadge";
 import { NAV } from "@/constants/testIds";
 import AiSettingsCard from "@/components/AiSettingsCard";
+import BillingSettingsCard from "@/components/BillingSettingsCard";
 import LanguageSelect from "@/components/LanguageSelect";
 
 function Field({ label, id, ...props }) {
@@ -551,6 +552,8 @@ export default function Settings() {
                 </div>
 
                 <AiSettingsCard data={data} onSaved={setData} />
+
+                <BillingSettingsCard data={data} onSaved={setData} />
 
                 <div className="card text-[13.5px] text-ink-2">
                     <Trans i18nKey="pages:settings.apiKeyNote" components={{ mono: <span className="mono" /> }} />

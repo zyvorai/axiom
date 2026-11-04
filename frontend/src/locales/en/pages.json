@@ -1503,5 +1503,48 @@
       "action": "Run your first workload"
     },
     "noMatches": "No workloads match the current filters."
+  },
+  "billing": {
+    "experimental": "Experimental",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing (BigQuery export)"
+    },
+    "invoice": {
+      "title": "Cloud invoice vs allocated",
+      "demo": "Demo data: canned figures, no cloud account is contacted.",
+      "currencyDiffers": "The invoice is in {{currency}} and allocation is priced in USD, so no difference is shown.",
+      "failed": "Could not read the invoice: {{error}}",
+      "toDate": "{{month}} (to date)",
+      "explainer": "Allocated is today's monthly run-rate prorated to the days covered, not a historical record. Unallocated is everything else on the bill: idle capacity, other services and accounts outside this cluster. Refreshed at most hourly.",
+      "columns": {
+        "month": "Month",
+        "invoice": "Invoice",
+        "allocated": "Allocated",
+        "unallocated": "Unallocated"
+      }
+    },
+    "settings": {
+      "title": "Cloud bill reconciliation",
+      "lead": "Compare the cluster's allocated cost with the actual cloud invoice for this and last month. Experimental: the AWS, Azure and Google Cloud clients have only been tested against recorded fixtures, not real accounts, so check the numbers against your invoice. Credentials are stored in the integrations Secret and never shown again.",
+      "provider": "Provider",
+      "off": "Off",
+      "tagKey": "Tag or label key (optional)",
+      "tagKeyPlaceholder": "e.g. kubernetes-cluster",
+      "tagValue": "Tag or label value",
+      "awsRegion": "Cost Explorer region",
+      "awsAccessKeyId": "Access key ID",
+      "awsSecretAccessKey": "Secret access key",
+      "azureTenantId": "Tenant ID",
+      "azureClientId": "Client (application) ID",
+      "azureSubscriptionId": "Subscription ID",
+      "azureClientSecret": "Client secret",
+      "gcpTable": "Billing export table (project.dataset.table)",
+      "gcpProjectId": "Query project (optional)",
+      "gcpServiceAccountKey": "Service-account key (JSON)",
+      "secretSet": "Set — leave blank to keep",
+      "permissions": "Use read-only credentials: AWS ce:GetCostAndUsage; Azure Cost Management Reader on the subscription; GCP BigQuery Job User plus Data Viewer on the export dataset."
+    }
   }
 }

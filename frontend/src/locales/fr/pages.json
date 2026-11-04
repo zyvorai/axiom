@@ -1503,5 +1503,48 @@
       "action": "Lancer votre première charge de travail"
     },
     "noMatches": "Aucune charge de travail ne correspond aux filtres actuels."
+  },
+  "billing": {
+    "experimental": "Expérimental",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing (export BigQuery)"
+    },
+    "invoice": {
+      "title": "Facture cloud et coût alloué",
+      "demo": "Données de démonstration : chiffres fixes, aucun compte cloud n’est contacté.",
+      "currencyDiffers": "La facture est en {{currency}} et l’allocation est calculée en USD : aucun écart n’est affiché.",
+      "failed": "Impossible de lire la facture : {{error}}",
+      "toDate": "{{month}} (à ce jour)",
+      "explainer": "L’alloué est le rythme mensuel actuel rapporté aux jours couverts, pas un historique. Le non-alloué est tout le reste de la facture : capacité inutilisée, autres services et comptes hors de ce cluster. Actualisé au plus une fois par heure.",
+      "columns": {
+        "month": "Mois",
+        "invoice": "Facture",
+        "allocated": "Alloué",
+        "unallocated": "Non alloué"
+      }
+    },
+    "settings": {
+      "title": "Rapprochement avec la facture cloud",
+      "lead": "Compare le coût alloué du cluster à la facture cloud réelle de ce mois et du mois précédent. Expérimental : les clients AWS, Azure et Google Cloud n’ont été testés qu’avec des réponses enregistrées, jamais avec de vrais comptes ; vérifiez donc les chiffres sur votre facture. Les identifiants sont stockés dans le Secret des intégrations et ne sont plus jamais affichés.",
+      "provider": "Fournisseur",
+      "off": "Désactivé",
+      "tagKey": "Clé de tag ou de libellé (facultatif)",
+      "tagKeyPlaceholder": "ex. kubernetes-cluster",
+      "tagValue": "Valeur du tag ou du libellé",
+      "awsRegion": "Région Cost Explorer",
+      "awsAccessKeyId": "ID de clé d’accès",
+      "awsSecretAccessKey": "Clé d’accès secrète",
+      "azureTenantId": "ID du locataire",
+      "azureClientId": "ID client (application)",
+      "azureSubscriptionId": "ID d’abonnement",
+      "azureClientSecret": "Secret client",
+      "gcpTable": "Table d’export de facturation (project.dataset.table)",
+      "gcpProjectId": "Projet de requête (facultatif)",
+      "gcpServiceAccountKey": "Clé de compte de service (JSON)",
+      "secretSet": "Défini — laissez vide pour le conserver",
+      "permissions": "Utilisez des identifiants en lecture seule : AWS ce:GetCostAndUsage ; Cost Management Reader Azure sur l’abonnement ; BigQuery Job User et Data Viewer GCP sur le jeu de données d’export."
+    }
   }
 }

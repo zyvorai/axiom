@@ -1492,5 +1492,48 @@
       "action": "运行您的第一个工作负载"
     },
     "noMatches": "没有符合当前筛选条件的工作负载。"
+  },
+  "billing": {
+    "experimental": "实验性",
+    "providers": {
+      "aws": "AWS Cost Explorer",
+      "azure": "Azure Cost Management",
+      "gcp": "Google Cloud Billing（BigQuery 导出）"
+    },
+    "invoice": {
+      "title": "云账单与已分配成本",
+      "demo": "演示数据：固定数值，不会连接任何云账户。",
+      "currencyDiffers": "账单货币为 {{currency}}，而分配成本以 USD 计价，因此不显示差额。",
+      "failed": "无法读取账单：{{error}}",
+      "toDate": "{{month}}（截至今天）",
+      "explainer": "已分配是当前的月度成本速率按覆盖天数折算的结果，并非历史记录。未分配是账单上的其余部分：空闲容量、此集群之外的其他服务和账户。最多每小时刷新一次。",
+      "columns": {
+        "month": "月份",
+        "invoice": "账单",
+        "allocated": "已分配",
+        "unallocated": "未分配"
+      }
+    },
+    "settings": {
+      "title": "云账单对账",
+      "lead": "将集群的已分配成本与本月和上月的实际云账单进行比较。实验性功能：AWS、Azure 和 Google Cloud 客户端仅针对录制的响应测试过，未在真实账户上验证，请以您的账单核对数字。凭据保存在集成 Secret 中，之后不会再显示。",
+      "provider": "提供商",
+      "off": "关闭",
+      "tagKey": "标签键（可选）",
+      "tagKeyPlaceholder": "例如 kubernetes-cluster",
+      "tagValue": "标签值",
+      "awsRegion": "Cost Explorer 区域",
+      "awsAccessKeyId": "访问密钥 ID",
+      "awsSecretAccessKey": "秘密访问密钥",
+      "azureTenantId": "租户 ID",
+      "azureClientId": "客户端（应用程序）ID",
+      "azureSubscriptionId": "订阅 ID",
+      "azureClientSecret": "客户端密码",
+      "gcpTable": "账单导出表（project.dataset.table）",
+      "gcpProjectId": "查询项目（可选）",
+      "gcpServiceAccountKey": "服务账号密钥（JSON）",
+      "secretSet": "已设置 — 留空则保留",
+      "permissions": "请使用只读凭据：AWS 需要 ce:GetCostAndUsage；Azure 需要订阅上的 Cost Management Reader；GCP 需要导出数据集上的 BigQuery Job User 和 Data Viewer。"
+    }
   }
 }

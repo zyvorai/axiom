@@ -27,6 +27,7 @@ import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
 import { RBAC, HELM_CATALOG, GITOPS_CREATE, OPENCOST, GITOPS_EDIT } from "@/constants/testIds";
 import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
+import { CostInvoice } from "@/components/CostInvoice";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import GitOpsEditDialog from "@/components/GitOpsEditDialog";
@@ -1000,6 +1001,7 @@ function CostTab() {
                     </div>
                 )}
             </div>
+            <CostInvoice />
             <CostBudgets />
             <CostRightsizing />
             <div className="card p-0">

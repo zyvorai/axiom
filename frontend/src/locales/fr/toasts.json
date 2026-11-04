@@ -263,5 +263,11 @@
   },
   "autoscalingEdit": {
     "updated": "{{name}} mis à jour"
+  },
+  "billing": {
+    "saved": "Paramètres de facturation enregistrés",
+    "saveFailed": "Impossible d’enregistrer les paramètres de facturation",
+    "reachable": "Facture lue avec succès",
+    "testFailed": "Impossible de lire la facture"
   }
 }

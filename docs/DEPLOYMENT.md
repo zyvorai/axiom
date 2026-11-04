@@ -303,6 +303,29 @@ Controls and guarantees:
 - Outbound traffic: TLS verification stays on, redirects to a different host are refused, request bodies are capped at 64 KiB and responses at 1 MiB, timeouts are 60 s (10 s for the connection test). Only `http`/`https` base URLs are accepted. The base URL is chosen by an admin and is therefore a deliberate egress destination (including internal addresses such as a local Ollama); restrict who is admin and use an egress NetworkPolicy if you need to pin it.
 - Demo mode returns canned answers and contacts no model.
 
+## Cloud bill reconciliation (experimental)
+
+Ops → Cost can show the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate), with the difference as *unallocated*. It is **experimental**: The three clients have been tested **only against httptest fixtures** shaped after the providers' documented requests and responses (and the SigV4 signer against AWS's published example); they have **not been verified against real AWS, Azure or Google Cloud accounts**. Check its numbers against your invoice before relying on them.
+
+An admin configures it under Settings → Cloud bill reconciliation; there are no environment variables or Helm values, and nothing extra is needed in the ClusterRole (the settings use the existing `zyvor-axiom-integrations` ConfigMap and Secret). Use read-only credentials:
+
+| Provider | Settings | Grant |
+|---|---|---|
+| AWS Cost Explorer | Access key ID + secret access key, region `us-east-1` (or `cn-northwest-1` for China) | IAM `ce:GetCostAndUsage` on the payer or member account. Cost Explorer must be enabled; tag filters need the tag activated as a cost-allocation tag |
+| Azure Cost Management | Tenant ID, client (application) ID, client secret, subscription ID | *Cost Management Reader* on the subscription for the app registration |
+| Google Cloud Billing | Billing export table `project.dataset.table`, optional query project, service-account key JSON | Cloud Billing export to BigQuery enabled; *BigQuery Job User* on the query project and *BigQuery Data Viewer* on the export dataset |
+
+The optional tag / label filter (key = value) narrows the invoice to one cost-allocation tag (AWS), resource tag (Azure) or resource label (GCP), for example the cluster's own tag.
+
+Network and safety:
+
+- Outbound HTTPS only to the provider's fixed API hosts: `ce.us-east-1.amazonaws.com` (or `ce.cn-northwest-1.amazonaws.com.cn`); `login.microsoftonline.com` and `management.azure.com`; `oauth2.googleapis.com` and `bigquery.googleapis.com`. There is no configurable endpoint, and the GCP key file's own `token_uri` is ignored. Allow these in your egress policy.
+- No `HTTP(S)_PROXY`, no redirects, and the Helm catalog's dialer refuses any of those names resolving to a private, loopback or link-local address.
+- 20 s per request, 45 s per refresh, 4 MiB per response; invoice answers are cached for one hour (failures for five minutes), so a page load does not call the billing API.
+- Credentials are stored in the `zyvor-axiom-integrations` Secret only, are never returned by the API, never logged and never part of an error message. Cost Explorer charges per API request (about 0.01 USD); the hourly cache keeps this to a few requests a day. The BigQuery query scans the export table for two invoice months.
+- Settings → *Test connection* (`POST /api/v1/integrations/billing/test`) makes one uncached call and shows the monthly totals or the provider's error code.
+- Demo mode shows canned figures and contacts nothing.
+
 ## Production hardening checklist
 
 - Real TLS certificate (replace self-signed lab cert)

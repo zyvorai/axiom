@@ -263,5 +263,11 @@
   },
   "autoscalingEdit": {
     "updated": "Updated {{name}}"
+  },
+  "billing": {
+    "saved": "Billing settings saved",
+    "saveFailed": "Could not save the billing settings",
+    "reachable": "Invoice read successfully",
+    "testFailed": "Could not read the invoice"
   }
 }

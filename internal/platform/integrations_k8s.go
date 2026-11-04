@@ -71,6 +71,15 @@ func integrationsFromCM(cm *corev1.ConfigMap) Integrations {
 		AIBaseURL:         d["aiBaseUrl"],
 		AIModel:           d["aiModel"],
 		AIRedactOff:       d["aiRedact"] == "false", // absent => redaction stays on
+		BillingProvider:            d["billingProvider"],
+		BillingTagKey:              d["billingTagKey"],
+		BillingTagValue:            d["billingTagValue"],
+		BillingAWSRegion:           d["billingAwsRegion"],
+		BillingAzureTenantID:       d["billingAzureTenantId"],
+		BillingAzureClientID:       d["billingAzureClientId"],
+		BillingAzureSubscriptionID: d["billingAzureSubscriptionId"],
+		BillingGCPProjectID:        d["billingGcpProjectId"],
+		BillingGCPTable:            d["billingGcpTable"],
 	}
 }
 
@@ -96,6 +105,15 @@ func integrationsToCMData(in Integrations) map[string]string {
 		"aiBaseUrl":          in.AIBaseURL,
 		"aiModel":            in.AIModel,
 		"aiRedact":           strconv.FormatBool(!in.AIRedactOff),
+		"billingProvider":            in.BillingProvider,
+		"billingTagKey":              in.BillingTagKey,
+		"billingTagValue":            in.BillingTagValue,
+		"billingAwsRegion":           in.BillingAWSRegion,
+		"billingAzureTenantId":       in.BillingAzureTenantID,
+		"billingAzureClientId":       in.BillingAzureClientID,
+		"billingAzureSubscriptionId": in.BillingAzureSubscriptionID,
+		"billingGcpProjectId":        in.BillingGCPProjectID,
+		"billingGcpTable":            in.BillingGCPTable,
 	}
 }
 
@@ -115,6 +133,11 @@ func (s *K8sIntegrationStore) Load(ctx context.Context) (Integrations, bool, err
 		out.SlackWebhookURL = string(sec.Data["slackWebhookUrl"]) // webhook URLs are credentials: Secret, not ConfigMap
 		out.AlertWebhookURL = string(sec.Data["alertWebhookUrl"])
 		out.AIAPIKey = string(sec.Data["aiApiKey"]) // LLM API key: Secret only, never the ConfigMap
+		// Cloud billing credentials: Secret only, never the ConfigMap.
+		out.BillingAWSAccessKeyID = string(sec.Data["billingAwsAccessKeyId"])
+		out.BillingAWSSecretAccessKey = string(sec.Data["billingAwsSecretAccessKey"])
+		out.BillingAzureClientSecret = string(sec.Data["billingAzureClientSecret"])
+		out.BillingGCPServiceAccountKey = string(sec.Data["billingGcpServiceAccountKey"])
 	} else if !apierrors.IsNotFound(err) {
 		return Integrations{}, false, err
 	}
@@ -153,6 +176,11 @@ func (s *K8sIntegrationStore) Save(ctx context.Context, in Integrations) error {
 			"slackWebhookUrl":  []byte(in.SlackWebhookURL),
 			"alertWebhookUrl":  []byte(in.AlertWebhookURL),
 			"aiApiKey":         []byte(in.AIAPIKey),
+
+			"billingAwsAccessKeyId":       []byte(in.BillingAWSAccessKeyID),
+			"billingAwsSecretAccessKey":   []byte(in.BillingAWSSecretAccessKey),
+			"billingAzureClientSecret":    []byte(in.BillingAzureClientSecret),
+			"billingGcpServiceAccountKey": []byte(in.BillingGCPServiceAccountKey),
 		},
 	}
 	if _, err := s.client.CoreV1().Secrets(s.ns).Update(ctx, sec, metav1.UpdateOptions{}); err != nil {

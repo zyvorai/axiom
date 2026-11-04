@@ -263,5 +263,11 @@
   },
   "autoscalingEdit": {
     "updated": "{{name}} aktualisiert"
+  },
+  "billing": {
+    "saved": "Abrechnungseinstellungen gespeichert",
+    "saveFailed": "Die Abrechnungseinstellungen konnten nicht gespeichert werden",
+    "reachable": "Rechnung erfolgreich gelesen",
+    "testFailed": "Die Rechnung konnte nicht gelesen werden"
   }
 }

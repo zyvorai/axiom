@@ -30,6 +30,7 @@ func (s *Server) registerCost(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /api/v1/cost/budgets/{namespace}", c.deleteBudget)
 	mux.HandleFunc("GET /api/v1/cost/rightsizing", c.rightsizing)
 	mux.HandleFunc("POST /api/v1/cost/rightsizing/apply", c.applyRightsizing)
+	mux.HandleFunc("GET /api/v1/cost/invoice", s.costInvoice)
 }
 
 func (c *costAPI) listBudgets(w http.ResponseWriter, r *http.Request) {

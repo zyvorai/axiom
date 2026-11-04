@@ -89,6 +89,7 @@ var restrictedSensitivePrefixes = []string{
 	// Cluster-wide cost data. GET /api/v1/cost itself stays readable, as before.
 	"/api/v1/cost/budgets",
 	"/api/v1/cost/rightsizing",
+	"/api/v1/cost/invoice", // the cloud bill of the whole account (experimental)
 }
 
 // restrictedDenied decides whether a namespace-restricted identity may make

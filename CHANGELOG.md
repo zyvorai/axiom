@@ -4,6 +4,13 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — cloud bill reconciliation (experimental)
+- Ops → Cost shows the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate, prorated from the current run-rate) and the unallocated difference, with an *Experimental* badge; hidden until configured. `GET /api/v1/cost/invoice` returns `{provider, currency, months:[{month, invoiceTotal, allocated, unallocated, asOf, partial}], experimental:true, error?}` and is readable like budgets (every role except namespace-restricted accounts).
+- Providers, each a small standard-library client: AWS Cost Explorer `GetCostAndUsage` (UnblendedCost, monthly, hand-written SigV4), Azure Cost Management query (ActualCost, subscription scope, client-credentials token) and GCP Cloud Billing through a fixed parameterised BigQuery query over the billing export table (service-account JWT; strictly validated table name). Optional single tag / label filter.
+- Settings → Cloud bill reconciliation (admin only): provider, ids, region / table and tag filter in the integrations ConfigMap; the AWS key pair, Azure client secret and GCP service-account key only in the integrations Secret, write-only (`…Set` flags). `POST /api/v1/integrations/billing/test` makes one uncached call.
+- Outbound requests only over HTTPS to each provider's fixed API hosts (no configurable URL, no proxy, no redirects, the Helm catalog's public-address dialer), 20 s / 4 MiB per request, results cached for one hour (failures five minutes); errors carry only the provider's error code. Demo mode returns deterministic canned data.
+- **Experimental:** the clients are tested only against httptest fixtures and have not been verified against real AWS, Azure or Google Cloud accounts (see docs/GAPS.md).
+
 ## [0.12.1] - 2026-11-04
 
 ### Fixed — pod proxy cluster
