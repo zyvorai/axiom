@@ -16,6 +16,8 @@ Run on the dev k3s cluster (v1.35, Axiom 0.13.1, 2026-11-04); the test operators
 - **Private OCI registry over plain http (section 3):** no-login message, write-only login, repo with login, chart values, install and upgrade through the Job (pull with the stored login), in-use delete refused, audit entries. Not yet checked: a registry whose token realm is on another domain, and cloud registries (GHCR, ECR, ACR, Harbor).
 - **Durable fleet history (section 6):** ConfigMap created, `durable: true`, `restoredFrom` set after a restart. Not yet checked: multi-replica merge and many clusters.
 
+- **Pod proxy in host mode with two replicas and no session affinity (section 4):** per-session hostnames; a link minted on one replica redeems on the other and the cookie works on both; a replayed ticket is refused on both; another session's cookie, a tampered cookie and an unknown host are refused (403/404); the in-console route returns 410; a deleted operator's session is refused on both replicas within about 18 s (refresh 15 s); the redeemed-ticket ConfigMap stayed at 236 bytes; no errors in the logs. Run over SSH tunnels straight to each replica with `https://{id}.pods.verify.test:30591` hostnames, so real DNS/wildcard certificates, browsers, WebSocket apps and absolute-path apps (Grafana, Jupyter) are still unchecked, and so is multi-cluster pinning (dev has one cluster).
+
 Finding: a Helm install through Axiom fails when the chart creates a ServiceAccount (or other kinds the ClusterRole does not allow), because the install Job runs as Axiom's own ServiceAccount. Widen the ClusterRole for the kinds your charts create, or install such charts with Helm directly.
 
 ## 1. Cloud invoice reconciliation (experimental, 0.13.0)
