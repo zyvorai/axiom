@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import { Layers3, Plus, Trash2, Zap } from "lucide-react";
+import { Layers3, Pencil, Plus, Trash2, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import i18n from "@/lib/i18n";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AUTOSCALE as T, VPA_CREATE as V, KEDA_CREATE as K } from "@/constants/testIds";
+import { AUTOSCALE as T, VPA_CREATE as V, KEDA_CREATE as K, AUTOSCALE_EDIT as AE } from "@/constants/testIds";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { VpaCreateDialog, KedaCreateDialog } from "@/components/AutoscalingCreate";
+import { VpaEditDialog, KedaEditDialog } from "@/components/AutoscalingEdit";
 
 const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:autoscalingPanels.couldNotLoad");
 
@@ -86,6 +87,7 @@ export function VpaPanel() {
     const { data, error, reload } = useList("/vpas");
     const { isViewer } = useAuth();
     const [creating, setCreating] = useState(false);
+    const [editing, setEditing] = useState(null);
     const remove = useRemove("vpas", reload);
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
@@ -114,6 +116,7 @@ export function VpaPanel() {
                 </span>
             </div>
             <VpaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
+            <VpaEditDialog target={editing} onClose={() => setEditing(null)} onSaved={reload} />
             {data.items.length === 0 ? (
                 <div className="empty">{t("pages:autoscalingPanels.vpa.empty")}</div>
             ) : (
@@ -151,9 +154,14 @@ export function VpaPanel() {
                                         {!isViewer && (
                                             <td>
                                                 {i === 0 && (
+                                                    <>
+                                                    <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.vpaOpen(v.namespace, v.name)} aria-label={`Edit VPA ${v.name}`} onClick={() => setEditing({ namespace: v.namespace, name: v.name })}>
+                                                        <Pencil size={13} />
+                                                    </button>
                                                     <button type="button" className="btn btn-danger btn-sm" data-testid={V.remove(v.namespace, v.name)} aria-label={t("pages:autoscalingPanels.vpa.deleteAria", { name: v.name })} onClick={() => remove(v.namespace, v.name, "VPA")}>
                                                         <Trash2 size={13} />
                                                     </button>
+                                                    </>
                                                 )}
                                             </td>
                                         )}
@@ -174,6 +182,7 @@ export function KedaPanel() {
     const { data, error, reload } = useList("/scaledobjects");
     const { isViewer } = useAuth();
     const [creating, setCreating] = useState(false);
+    const [editing, setEditing] = useState(null);
     const remove = useRemove("scaledobjects", reload);
     if (error) return <div className="notice danger" role="alert">{error}</div>;
     if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
@@ -202,6 +211,7 @@ export function KedaPanel() {
                 </span>
             </div>
             <KedaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
+            <KedaEditDialog target={editing} onClose={() => setEditing(null)} onSaved={reload} />
             {data.items.length === 0 ? (
                 <div className="empty">{t("pages:autoscalingPanels.keda.empty")}</div>
             ) : (
@@ -247,6 +257,9 @@ export function KedaPanel() {
                                     </td>
                                     {!isViewer && (
                                         <td>
+                                            <button type="button" className="btn btn-line btn-sm mr-1.5" data-testid={AE.kedaOpen(s.namespace, s.name)} aria-label={`Edit ScaledObject ${s.name}`} onClick={() => setEditing({ namespace: s.namespace, name: s.name })}>
+                                                <Pencil size={13} />
+                                            </button>
                                             <button type="button" className="btn btn-danger btn-sm" data-testid={K.remove(s.namespace, s.name)} aria-label={t("pages:autoscalingPanels.keda.deleteAria", { name: s.name })} onClick={() => remove(s.namespace, s.name, "ScaledObject")}>
                                                 <Trash2 size={13} />
                                             </button>

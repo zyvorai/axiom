@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HELM_CATALOG as T, OCI } from "@/constants/testIds";
+import { HELM_CATALOG as T, OCI, REGCRED } from "@/constants/testIds";
+import RegistryLogins, { RegistryLoginsButton } from "@/components/RegistryLogins";
 
 const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:helmCatalog.generic");
 
@@ -35,6 +36,18 @@ function RepoManager({ repos, onChanged, canWrite }) {
     const [kind, setKind] = useState("index");
     const [charts, setCharts] = useState("");
     const [busy, setBusy] = useState(false);
+    const [logins, setLogins] = useState([]);
+    const [login, setLogin] = useState("");
+    const [loginsOpen, setLoginsOpen] = useState(false);
+
+    // Stored registry logins (admin-only; anyone else just sees none).
+    const loadLogins = useCallback(() => {
+        if (!canWrite) return;
+        api.get("/helm/registry-credentials").then((r) => setLogins(r.data || [])).catch(() => setLogins([]));
+    }, [canWrite]);
+    useEffect(() => {
+        loadLogins();
+    }, [loadLogins]);
 
     const add = async (n, u) => {
         setBusy(true);
@@ -43,12 +56,14 @@ function RepoManager({ repos, onChanged, canWrite }) {
             if (kind === "oci") {
                 // A registry has no index: list the charts to browse (most hosted registries refuse the catalog API).
                 body.charts = charts.split(/[\s,]+/).map((c) => c.trim()).filter(Boolean);
+                if (login) body.credentialsSecret = login;
             }
             await api.post("/helm/repos", body);
             toast.success(t("toasts:helmCatalog.repoAdded", { name: n }));
             setName("");
             setUrl("");
             setCharts("");
+            setLogin("");
             onChanged();
         } catch (e) {
             toast.error(t("toasts:helmCatalog.repoAddFailed"), { description: errText(e) });
@@ -89,6 +104,7 @@ function RepoManager({ repos, onChanged, canWrite }) {
                                 <div className="text-sm font-medium">
                                     {r.name}
                                     {r.kind === "oci" ? <span className="pill soft ml-2 text-[10px]">OCI</span> : null}
+                                    {r.authenticated ? <span className="pill soft ml-1 text-[10px]" data-testid={REGCRED.locked(r.name)} title={`Uses the login ${r.credentialsSecret}`}>private</span> : null}
                                 </div>
                                 <div className="mono truncate text-[11.5px] text-ink-3" title={r.url}>{r.url}</div>
                                 {r.error ? <div className="text-xs text-tone-red">{r.error}</div> : null}
@@ -133,6 +149,18 @@ function RepoManager({ repos, onChanged, canWrite }) {
                             <Input id="helm-repo-url" data-testid={T.repoUrl} value={url} onChange={(e) => setUrl(e.target.value)} placeholder={kind === "oci" ? "oci://ghcr.io/org/charts" : "https://charts.example.com"} className="bg-muted/30" />
                         </div>
                         {kind === "oci" && (
+                            <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+                                <Label htmlFor="helm-repo-login" className="text-xs text-muted-foreground">Registry login</Label>
+                                <select id="helm-repo-login" data-testid={REGCRED.select} className="select" value={login} onChange={(e) => setLogin(e.target.value)}>
+                                    <option value="">None (public registry)</option>
+                                    {logins.map((l) => (
+                                        <option key={l.name} value={l.name}>{l.name} — {l.registry}</option>
+                                    ))}
+                                </select>
+                                <RegistryLoginsButton onClick={() => setLoginsOpen(true)} />
+                            </div>
+                        )}
+                        {kind === "oci" && (
                             <div className="sm:col-span-3">
                                 <Label htmlFor="helm-repo-oci-charts" className="sr-only">{t("pages:helmCatalog.oci.chartNames")}</Label>
                                 <Input id="helm-repo-oci-charts" data-testid={OCI.charts} value={charts} onChange={(e) => setCharts(e.target.value)} placeholder={t("pages:helmCatalog.oci.chartNamesPlaceholder")} className="bg-muted/30" />
@@ -152,6 +180,7 @@ function RepoManager({ repos, onChanged, canWrite }) {
                     </div>
                 </>
             )}
+            <RegistryLogins open={loginsOpen} onOpenChange={setLoginsOpen} onChanged={() => { loadLogins(); onChanged(); }} />
         </div>
     );
 }

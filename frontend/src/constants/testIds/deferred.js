@@ -111,3 +111,42 @@ export const KEDA_CREATE = {
     error: 'keda-error',
     remove: (ns, n) => `keda-remove-${ns}-${n}`,
 };
+
+export const REGCRED = {
+    manage: 'helm-regcred-manage',
+    dialog: 'helm-regcred-dialog',
+    row: (n) => `helm-regcred-${n}`,
+    remove: (n) => `helm-regcred-remove-${n}`,
+    name: 'helm-regcred-name',
+    registry: 'helm-regcred-registry',
+    username: 'helm-regcred-username',
+    password: 'helm-regcred-password',
+    save: 'helm-regcred-save',
+    error: 'helm-regcred-error',
+    writeOnly: 'helm-regcred-writeonly',
+    select: 'helm-repo-credentials-select',
+    locked: (repo) => `helm-repo-locked-${repo}`,
+};
+
+export const AUTOSCALE_EDIT = {
+    vpaOpen: (ns, n) => `vpa-edit-${ns}-${n}`,
+    kedaOpen: (ns, n) => `keda-edit-${ns}-${n}`,
+    dialog: 'autoscale-edit-dialog',
+    notEditable: 'autoscale-edit-not-editable',
+    reasons: 'autoscale-edit-reasons',
+    mode: 'vpa-edit-mode',
+    cpu: 'vpa-edit-cpu',
+    memory: 'vpa-edit-memory',
+    min: 'keda-edit-min',
+    max: 'keda-edit-max',
+    polling: 'keda-edit-polling',
+    cooldown: 'keda-edit-cooldown',
+    triggerField: (i, k) => `keda-edit-trigger-${i}-${k}`,
+    triggerRemove: (i) => `keda-edit-trigger-remove-${i}`,
+    addTrigger: 'keda-edit-add-trigger',
+    preview: 'autoscale-edit-preview',
+    changes: 'autoscale-edit-changes',
+    noop: 'autoscale-edit-noop',
+    save: 'autoscale-edit-save',
+    error: 'autoscale-edit-error',
+};

@@ -327,13 +327,18 @@ export default function Fleet() {
     const [refreshing, setRefreshing] = useState(false);
     const [histWindow, setHistWindow] = useState("24h");
     const [history, setHistory] = useState({});
+    const [durable, setDurable] = useState(false);
 
     useEffect(() => {
         let alive = true;
         const tick = () =>
             api
                 .get("/fleet/history", { params: { window: histWindow } })
-                .then((r) => alive && setHistory(Object.fromEntries((r.data?.clusters || []).map((c) => [c.cluster, c]))))
+                .then((r) => {
+                    if (!alive) return;
+                    setHistory(Object.fromEntries((r.data?.clusters || []).map((c) => [c.cluster, c])));
+                    setDurable(!!r.data?.durable);
+                })
                 .catch(() => alive && setHistory({}));
         tick();
         const timer = setInterval(tick, POLL_MS);
@@ -433,6 +438,8 @@ export default function Fleet() {
                         {t("pages:fleet.totals")}
                         {fleet.checkedAt ? t("pages:fleet.lastCheck", { time: relTime(fleet.checkedAt) }) : ""}
                         {fleet.intervalSeconds > 0 ? t("pages:fleet.interval", { n: fleet.intervalSeconds }) : t("pages:fleet.backgroundOff")}
+                    
+                        <span data-testid="fleet-history-durable">{durable ? " · history is kept across restarts" : " · history is kept in memory only"}</span>
                     </p>
                 </>
             )}

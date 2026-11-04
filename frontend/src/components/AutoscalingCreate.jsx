@@ -167,7 +167,7 @@ export function VpaCreateDialog({ open, onOpenChange, onCreated }) {
 
 // ---------------------------------------------------------------- KEDA
 // Mirrors the server's closed allow-list: only these trigger types and settings are accepted.
-const TRIGGERS = {
+export const TRIGGERS = {
     cpu: { labelKey: "common:fields.cpu", fields: [{ k: "type", lKey: "dialogs:autoscalingCreate.keda.fields.metricType", options: ["Utilization", "AverageValue"] }, { k: "value", lKey: "dialogs:autoscalingCreate.keda.fields.targetValue", ph: "60" }] },
     memory: { labelKey: "common:fields.memory", fields: [{ k: "type", lKey: "dialogs:autoscalingCreate.keda.fields.metricType", options: ["Utilization", "AverageValue"] }, { k: "value", lKey: "dialogs:autoscalingCreate.keda.fields.targetValue", ph: "70" }] },
     cron: { labelKey: "dialogs:autoscalingCreate.keda.triggers.cron", fields: [{ k: "timezone", lKey: "dialogs:autoscalingCreate.keda.fields.timezone", ph: "Europe/Berlin" }, { k: "start", lKey: "dialogs:autoscalingCreate.keda.fields.start", ph: "0 8 * * 1-5" }, { k: "end", lKey: "dialogs:autoscalingCreate.keda.fields.end", ph: "0 18 * * 1-5" }, { k: "desiredReplicas", lKey: "dialogs:autoscalingCreate.keda.fields.replicasInWindow", ph: "5" }] },
@@ -178,7 +178,7 @@ const TRIGGERS = {
     "aws-sqs-queue": { labelKey: "dialogs:autoscalingCreate.keda.triggers.awsSqs", auth: true, fields: [{ k: "queueURL", lKey: "dialogs:autoscalingCreate.keda.fields.queueUrl", ph: "https://sqs.eu-west-1.amazonaws.com/123/queue" }, { k: "queueLength", lKey: "dialogs:autoscalingCreate.keda.fields.queueLength", ph: "5" }, { k: "awsRegion", lKey: "dialogs:autoscalingCreate.keda.fields.region", ph: "eu-west-1" }] },
 };
 
-const newTrigger = (type = "cron") => ({ type, settings: Object.fromEntries(TRIGGERS[type].fields.filter((f) => f.options).map((f) => [f.k, f.options[0]])), authenticationRef: "" });
+export const newTrigger = (type = "cron") => ({ type, settings: Object.fromEntries(TRIGGERS[type].fields.filter((f) => f.options).map((f) => [f.k, f.options[0]])), authenticationRef: "" });
 
 export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
     const { t } = useTranslation();
