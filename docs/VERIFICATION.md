@@ -8,6 +8,16 @@ that differs from "Expected".
 Conventions: `$AX` is your Axiom URL, `$AUTH` an admin credential (`-u user:pass` or a
 bearer token). Never paste real credentials into tickets or logs.
 
+## Already verified on a real cluster
+
+Run on the dev k3s cluster (v1.35, Axiom 0.13.1, 2026-11-04); the test operators and registry were removed afterwards.
+
+- **VPA and KEDA edit (section 5):** edit view, one-change preview, save with annotations preserved, stale write -> 409, a `kubectl`-made VPA with an unsupported field refused, KEDA trigger/max-replica edit applied and honoured by KEDA. Not yet checked: restricted-operator namespace limits against a real cluster.
+- **Private OCI registry over plain http (section 3):** no-login message, write-only login, repo with login, chart values, install and upgrade through the Job (pull with the stored login), in-use delete refused, audit entries. Not yet checked: a registry whose token realm is on another domain, and cloud registries (GHCR, ECR, ACR, Harbor).
+- **Durable fleet history (section 6):** ConfigMap created, `durable: true`, `restoredFrom` set after a restart. Not yet checked: multi-replica merge and many clusters.
+
+Finding: a Helm install through Axiom fails when the chart creates a ServiceAccount (or other kinds the ClusterRole does not allow), because the install Job runs as Axiom's own ServiceAccount. Widen the ClusterRole for the kinds your charts create, or install such charts with Helm directly.
+
 ## 1. Cloud invoice reconciliation (experimental, 0.13.0)
 
 Tested only against `httptest` fixtures. Use a **read-only** billing identity.

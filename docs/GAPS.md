@@ -102,3 +102,4 @@ Still thinner than a full private-cloud suite (intentionally or next):
 - ClusterRole write UI (deliberate security boundary)
 - SOC2 / pen-test packaging
 - On-demand Velero backup (`POST /api/v1/velero/backups`) is unit-tested against a fake clientset only — no cluster in this session's environment had the Velero CRDs installed to validate it against a real one
+- **Helm installs run with Axiom's own permissions.** A chart that creates resources the ClusterRole does not allow (for example ServiceAccounts, which `helm create` charts include) fails with "forbidden". Extend the ClusterRole for the kinds your charts need, or install those charts with Helm directly.
