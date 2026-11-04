@@ -153,3 +153,5 @@ footer a{color:var(--ink2);text-decoration:underline}footer a:hover{color:var(--
 .cmp .r .us{color:var(--ink);background:color-mix(in srgb,var(--blue) 12%,transparent)}
 .cmp .r.h .us{color:var(--link)}
 @media(max-width:720px){.cmp .r{grid-template-columns:1fr 1fr}.cmp .r.h{display:none}.cmp .r span:first-child{grid-column:1/-1;padding-bottom:0}}
+
+.shot video{display:block;width:100%;height:auto;background:#000}

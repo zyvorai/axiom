@@ -43,6 +43,8 @@ Axiom is deliberately small to run: a single Go binary with the React UI embedde
 
 ## See it live
 
+![Axiom in use — Overview, the ⌘K palette, Workloads and Fleet](docs/social/axiom-hero.gif)
+
 ![Axiom overview — cluster hero, metric rings, activity](docs/ux/overview.png)
 
 <table>
