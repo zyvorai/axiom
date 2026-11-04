@@ -30,7 +30,7 @@ import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import GitOpsEditDialog from "@/components/GitOpsEditDialog";
-import GitOpsCredentials, { CredentialsButton } from "@/components/GitOpsCredentials";
+import GitOpsCredentials, { CredentialsButton } from "@/components/GitOpsRepoCreds";
 import { useAuth } from "@/lib/auth";
 
 const TABS = [
