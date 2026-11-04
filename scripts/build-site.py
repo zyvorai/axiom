@@ -63,7 +63,7 @@ def layout(title, desc, slug, side, body, prevnext=""):
 <a class="skip" href="#main">Skip to content</a>
 <nav class="top"><div><b><a href="../">Axiom</a></b><span><a href="../#apps">Product</a><a class="on" href="./">Docs</a><a href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span></div></nav>
 <div class="docs">{side}<article id="main">{body}{prevnext}</article></div>
-<footer><div class="in">© 2026 Zyvor. <a href="https://github.com/zyvorai/axiom/edit/main/docs/">Edit these docs on GitHub</a>.</div></footer>
+<footer><div class="in">© 2026 Zyvor AI Labs. Licensed under the <a href="https://github.com/zyvorai/axiom/blob/main/LICENSE">Zyvor Production License v1.0</a>. <a href="https://github.com/zyvorai/axiom/edit/main/docs/">Edit these docs on GitHub</a>.</div></footer>
 </body></html>"""
 
 def sidebar(active, toc=""):
@@ -103,6 +103,11 @@ def main():
            '<p class="lead" style="text-align:left;margin:0">Everything from your first install to the production checklist.</p>'
            '<div class="hub">%s</div>' % cards)
     (OUT / "docs" / "index.html").write_text(layout("Documentation", "Guides and reference for Zyvor Axiom.", "", sidebar(""), hub))
+    base = "https://zyvorai.github.io/axiom/"
+    urls = [base] + [base + "docs/"] + [base + "docs/%s.html" % p[1] for p in PAGES]
+    (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                                     + "".join("  <url><loc>%s</loc></url>\n" % u for u in urls) + "</urlset>\n")
+    (OUT / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: %ssitemap.xml\n" % base)
     print("built", OUT, len(PAGES) + 1, "docs pages")
 
 main()

@@ -6,6 +6,7 @@
 <title>Zyvor Axiom — The private-cloud console for Kubernetes</title>
 <meta name="description" content="Applications first, Pods one click away. A single Go binary control plane for k3s and Kubernetes with logs, terminal, scaling, drain, Helm, backups and enterprise sign-in.">
 <meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://zyvorai.github.io/axiom/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 <meta property="og:type" content="website">
@@ -14,30 +15,33 @@
 <meta property="og:image" content="https://zyvorai.github.io/axiom/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:url" content="https://zyvorai.github.io/axiom/">
+<meta property="og:site_name" content="Zyvor Axiom">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://zyvorai.github.io/axiom/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Zyvor Axiom","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Kubernetes","description":"The private-cloud console for k3s and Kubernetes: applications first, Pods one click away, in a single Go binary.","url":"https://zyvorai.github.io/axiom/","license":"https://github.com/zyvorai/axiom/blob/main/LICENSE","publisher":{"@type":"Organization","name":"Zyvor AI Labs","url":"https://zyvor.dev"}}</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<nav class="top"><div><b><a href="./">Axiom</a></b><span><a href="#apps">Apps</a><a href="#ops">Operate</a><a href="#security">Security</a><a href="docs/">Docs</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span></div></nav>
+<nav class="top"><div><b><a href="./">Axiom</a></b><span><a href="#apps">Platform</a><a href="#ops">Operate</a><a href="#security">Security</a><a href="#languages">Languages</a><a href="docs/">Docs</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span><a class="navcta" href="https://github.com/zyvorai/axiom/releases/latest">Download</a></div></nav>
 
 <main id="main">
 <header class="hero">
-  <p class="eyebrow">Zyvor Axiom</p>
-  <h1>Your cluster.<br>Finally legible.</h1>
+  <a class="vpill" href="https://github.com/zyvorai/axiom/releases/latest">New in 0.13 · Fleet history, GitOps editing, VPA &amp; KEDA, 8 languages <span aria-hidden="true">›</span></a>
+  <h1>Your cluster.<br><em>Finally legible.</em></h1>
   <p class="sub">The private-cloud console for k3s and Kubernetes. Applications first, Pods one click away — in a single Go binary.</p>
   <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a class="l" href="docs/quickstart.html">Get started ›</a></div>
-  <div class="shot"><img src="shot-overview.png" alt="Axiom Overview: cluster health, metric rings and activity" width="1600" height="1000"></div>
+  <div class="shot frame hero-shot"><picture><source srcset="shot-overview.webp" type="image/webp"><img src="shot-overview.png" alt="Axiom Overview: cluster health, metric rings and activity" width="1600" height="1000"></picture></div>
 </header>
 
 <section class="wrap" aria-labelledby="intro">
   <h2 id="intro" class="reveal">Kubernetes, the way<br>you wish it looked.</h2>
   <p class="lead reveal">Axiom turns a wall of resources into the things you actually run — then gets out of your way. No agents to install, no database to babysit, no tabs to juggle.</p>
   <div class="stats reveal">
-    <div><b>29</b><span>purpose-built pages</span></div>
+    <div><b>43</b><span>purpose-built pages</span></div>
     <div><b>1</b><span>static binary</span></div>
     <div><b>4</b><span>sign-in methods</span></div>
-    <div><b>3</b><span>roles, enforced server-side</span></div>
+    <div><b>8</b><span>languages, one console</span></div>
   </div>
 </section>
 
@@ -46,63 +50,84 @@
     <p class="eyebrow">Applications</p>
     <h3>Think in apps,<br>not in objects.</h3>
     <p class="fl">Deployments, StatefulSets, DaemonSets and CronJobs appear as applications — with everything you do to them one click away.</p>
-    <div class="shot"><img src="shot-apps.png" alt="Axiom Workloads: every application with desired, ready and available counts and a health badge" width="1352" height="700" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-apps.webp" type="image/webp"><img src="shot-apps.png" alt="Axiom Workloads: every application with desired, ready and available counts and a health badge" width="1352" height="700" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Start, stop, restart, scale.</b> From the row menu, with confirmation where it matters.</li><li><b>Rollout history and undo.</b> Roll back to a previous revision.</li><li><b>Why isn’t it running?</b> An automatic diagnosis explains any Pod that isn’t cleanly Running.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Logs &amp; terminal</p>
     <h3>Inside any container,<br>instantly.</h3>
     <p class="fl">Live log tails that stay open as long as you do, an interactive terminal per Pod, and a one-click link to any declared port.</p>
-    <div class="shot"><img src="shot-logs.png" alt="Axiom Pod Logs: a live streaming log view with INFO and WARN lines" width="1352" height="520" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-logs.webp" type="image/webp"><img src="shot-logs.png" alt="Axiom Pod Logs: a live streaming log view with INFO and WARN lines" width="1352" height="520" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Streaming logs.</b> Follow a Pod without an artificial cutoff.</li><li><b>Terminal tab.</b> Interactive PTY on a live cluster; one-shot commands in demo mode.</li><li><b>Port links.</b> Open a container’s declared ports without a port-forward.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Nodes</p>
     <h3>Capacity at a glance.<br>Drain in a click.</h3>
     <p class="fl">Every node’s CPU, memory, Pod count, kubelet version and runtime on one screen — with cordon and drain right there.</p>
-    <div class="shot"><img src="shot-nodes.png" alt="Axiom Nodes: cards for each node with capacity, version and Cordon and Drain buttons" width="1352" height="592" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-nodes.webp" type="image/webp"><img src="shot-nodes.png" alt="Axiom Nodes: cards for each node with capacity, version and Cordon and Drain buttons" width="1352" height="592" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Cordon and drain.</b> Safely move work off a node before maintenance.</li><li><b>Protected namespaces.</b> System namespaces are guarded from bulk eviction.</li></ul>
   </div>
   <div class="feature reveal">
+    <p class="eyebrow">Fleet</p>
+    <h3>Every cluster.<br>One glance.</h3>
+    <p class="fl">Register more clusters and Axiom probes each one in the background: does it answer, how many nodes are ready, what needs attention. Search workloads across all of them.</p>
+    <div class="shot frame"><picture><source srcset="shots/fleet.webp" type="image/webp"><img src="shots/fleet.png" alt="Axiom Fleet: three healthy clusters with node and Pod totals, a history window selector and a cross-cluster search box" width="1352" height="760" loading="lazy"></picture></div>
+    <ul class="pts"><li><b>Uptime and incidents.</b> Per-cluster history with a state strip, over a window you choose.</li><li><b>Survives restarts.</b> History is kept in a ConfigMap and shared across replicas; a restart is drawn as a gap, not an outage.</li><li><b>Calm by design.</b> Two consecutive failures before a cluster is marked down, so a blip does not page anyone.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">GitOps</p>
+    <h3>Argo CD and Flux,<br>without the YAML.</h3>
+    <p class="fl">Create an application from a form, preview the exact manifest, then edit it in place — the change is shown before it is saved.</p>
+    <div class="shot frame"><picture><source srcset="shots/gitops.webp" type="image/webp"><img src="shots/gitops.png" alt="Axiom GitOps: Argo CD Applications, Flux Kustomizations and a HelmRelease with health, source, age and edit, sync and delete actions" width="1352" height="560" loading="lazy"></picture></div>
+    <ul class="pts"><li><b>Edit with a preview.</b> A structured diff of exactly what changes; a concurrent edit is refused, not overwritten.</li><li><b>Delete, honestly.</b> Shows whether the workloads go too, and asks you to type the name when they will.</li><li><b>Write-only credentials.</b> Repository logins are stored as labelled Secrets and never shown again.</li></ul>
+  </div>
+  <div class="feature reveal">
+    <p class="eyebrow">Autoscaling &amp; cost</p>
+    <h3>Scale on signals.<br>Know what it costs.</h3>
+    <p class="fl">Horizontal, vertical and event-driven autoscalers in one place — create or edit VPAs and KEDA ScaledObjects with a preview — and a cost view that can compare your estimate with the cloud invoice.</p>
+    <div class="shot frame"><picture><source srcset="shots/autoscaling.webp" type="image/webp"><img src="shots/autoscaling.png" alt="Axiom Autoscaling: HorizontalPodAutoscalers with current and target metrics and scaling state" width="1352" height="520" loading="lazy"></picture></div>
+    <ul class="pts"><li><b>VPA and KEDA.</b> Create and edit in place; objects the form cannot represent are shown as read-only with the reason.</li><li><b>Budgets and rightsizing.</b> Warnings before you overspend, and recommendations from p95 usage when Prometheus is connected.</li><li><b>OpenCost, optionally.</b> Switch from request-based estimates to actual allocation. Invoice reconciliation is experimental.</li></ul>
+  </div>
+  <div class="feature reveal">
     <p class="eyebrow">Helm</p>
-    <h3>Releases, in context.</h3>
-    <p class="fl">See every Helm release with chart, revision and health. Install a chart, roll back a revision or uninstall — without leaving the console.</p>
-    <div class="shot"><img src="shot-helm.png" alt="Axiom Ops Helm tab listing cert-manager, ingress-nginx and prometheus releases" width="1352" height="590" loading="lazy"></div>
+    <h3>Releases and charts,<br>in context.</h3>
+    <p class="fl">Browse repositories and OCI registries, read default values, then install, upgrade and roll back — including from private registries with write-only logins.</p>
+    <div class="shot"><picture><source srcset="shot-helm.webp" type="image/webp"><img src="shot-helm.png" alt="Axiom Ops Helm tab listing cert-manager, ingress-nginx and prometheus releases" width="1352" height="590" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Values stay private.</b> Stored in a Secret owned by the install Job, never a permanent plain-text ConfigMap.</li><li><b>More under Ops.</b> GitOps, agents, identity, audit, access, webhooks and cost.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Backups</p>
     <h3>Snapshots and Velero,<br>side by side.</h3>
     <p class="fl">Volume snapshots, Velero backups and schedules in one place, with create and restore actions a click away.</p>
-    <div class="shot"><img src="shot-backups.png" alt="Axiom Backups: volume snapshots, Velero backups and Velero schedules" width="1352" height="760" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-backups.webp" type="image/webp"><img src="shot-backups.png" alt="Axiom Backups: volume snapshots, Velero backups and Velero schedules" width="1352" height="760" loading="lazy"></picture></div>
     <ul class="pts"><li><b>On demand.</b> Create a snapshot or a Velero backup when you need one.</li><li><b>On a schedule.</b> See each schedule and when it last ran.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Timeline</p>
     <h3>What changed,<br>in one feed.</h3>
     <p class="fl">Kubernetes events, audit entries, alerts and rollout revisions merged into a single, filterable timeline — and a “What changed” tab on every workload.</p>
-    <div class="shot"><img src="shot-timeline.png" alt="Axiom Timeline: events, audit entries and rollouts for the payments-api Deployment in one list" width="1352" height="620" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-timeline.webp" type="image/webp"><img src="shot-timeline.png" alt="Axiom Timeline: events, audit entries and rollouts for the payments-api Deployment in one list" width="1352" height="620" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Filter by source.</b> Event, audit, alert or rollout, by namespace and time range.</li><li><b>Namespace-aware.</b> Restricted accounts only see their own namespaces.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Health check</p>
     <h3>Problems, each with<br>a suggested fix.</h3>
     <p class="fl">Rule-based analysers look for crash loops, OOM kills, Services with no endpoints, Pending volumes, broken Ingress backends and HPAs that cannot scale. No data leaves the cluster.</p>
-    <div class="shot"><img src="shot-health.png" alt="Axiom Health check: a critical crash-looping container, a warning for an HPA with a missing target and an info finding, each with a suggested fix" width="1352" height="730" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-health.webp" type="image/webp"><img src="shot-health.png" alt="Axiom Health check: a critical crash-looping container, a warning for an HPA with a missing target and an info finding, each with a suggested fix" width="1352" height="730" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Deterministic.</b> No model involved; every finding explains why it fired.</li><li><b>One click to context.</b> Jump from a finding to what changed on that object.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Security</p>
     <h3>Scanner findings,<br>read-only, in context.</h3>
     <p class="fl">Trivy-operator vulnerability and config-audit reports and Kyverno-style policy reports, rolled up per workload. Without those operators, the page tells you how to install them.</p>
-    <div class="shot"><img src="shot-security.png" alt="Axiom Security: counts of critical and high vulnerabilities, misconfigurations and policy failures, with a per-workload table" width="1352" height="830" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-security.webp" type="image/webp"><img src="shot-security.png" alt="Axiom Security: counts of critical and high vulnerabilities, misconfigurations and policy failures, with a per-workload table" width="1352" height="830" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Riskiest first.</b> Workloads sorted by severity across all three report types.</li><li><b>No scanner required to run Axiom.</b> The page appears empty, not broken, when the CRDs are absent.</li></ul>
   </div>
   <div class="feature reveal">
     <p class="eyebrow">Access review</p>
     <h3>Who can delete Secrets?<br>Ask.</h3>
     <p class="fl">A read-only RBAC viewer answers “who can do this, where, and through which binding” — by verb and resource, or by subject. Changes stay in your GitOps flow.</p>
-    <div class="shot"><img src="shot-access.png" alt="Axiom Access: a Who can delete secrets query listing four subjects, their scope and the binding that grants it" width="1352" height="900" loading="lazy"></div>
+    <div class="shot"><picture><source srcset="shot-access.webp" type="image/webp"><img src="shot-access.png" alt="Axiom Access: a Who can delete secrets query listing four subjects, their scope and the binding that grants it" width="1352" height="900" loading="lazy"></picture></div>
     <ul class="pts"><li><b>Effective permissions.</b> Bindings are resolved through their ClusterRoles, cluster-wide and per namespace.</li><li><b>Sensitive by design.</b> Admin and operator only; viewers cannot see it.</li></ul>
   </div>
 </div></section>
@@ -111,6 +136,10 @@
   <h2 class="reveal">Everything you reach for.<br>Nothing you don’t.</h2>
   <p class="lead reveal">Day-2 operations without a pile of kubectl one-liners.</p>
   <div class="grid">
+    <div class="card reveal"><p class="k">Fleet</p><h3>Health you can trust.</h3><p>Background probes, uptime and incident history per cluster, kept across restarts.</p></div>
+    <div class="card reveal"><p class="k">GitOps</p><h3>Argo CD and Flux.</h3><p>Create, edit with a preview, sync and delete — with credentials that stay write-only.</p></div>
+    <div class="card reveal"><p class="k">Autoscaling</p><h3>HPA, VPA, KEDA.</h3><p>See every autoscaler, create new ones and edit existing ones in place.</p></div>
+    <div class="card reveal"><p class="k">Cost</p><h3>Budgets and rightsizing.</h3><p>Request-based or OpenCost allocation, budgets that notify, and an experimental invoice comparison.</p></div>
     <div class="card reveal"><p class="k">Nodes</p><h3>Cordon, drain, taint.</h3><p>Live CPU and memory history per node. Evict Pods singly or in bulk, with protected namespaces guarded.</p></div>
     <div class="card reveal"><p class="k">Helm</p><h3>Releases, in context.</h3><p>Browse, install, upgrade and roll back Helm releases. Values never sit in a permanent plain-text ConfigMap.</p></div>
     <div class="card reveal"><p class="k">Backups</p><h3>Velero, built in.</h3><p>See Velero backups and schedules, and create a backup on demand from the same console you operate from.</p></div>
@@ -127,6 +156,8 @@
   <h2 class="reveal">Secure by default.<br>Boringly so.</h2>
   <p class="lead reveal">A console with cluster access has to be the most careful thing in the cluster. Axiom is built that way.</p>
   <div class="grid">
+    <div class="card reveal"><p class="k">Two-factor</p><h3>TOTP, with teeth.</h3><p>Authenticator codes and recovery codes for local and LDAP accounts, a policy to require them by role, and sign-out-everywhere that really revokes sessions.</p></div>
+    <div class="card reveal"><p class="k">Pod windows</p><h3>Own origin per session.</h3><p>Pod web UIs open on a separate origin, optionally a fresh hostname per session, with signed single-use tickets that work across replicas.</p></div>
     <div class="card reveal"><p class="k">Identity</p><h3>Local, OIDC, SAML, LDAP.</h3><p>Admin, operator and viewer roles checked in middleware. Restrict any account to specific namespaces. SAML assertions are signature-verified.</p></div>
     <div class="card reveal"><p class="k">Runtime</p><h3>Pod Security: restricted.</h3><p>Runs as non-root with a read-only root filesystem, every capability dropped and the RuntimeDefault seccomp profile.</p></div>
     <div class="card reveal"><p class="k">Supply chain</p><h3>Signed and checksummed.</h3><p>Release binaries ship with SHA-256 sums. Container images on GHCR are signed with cosign, keyless.</p></div>
@@ -134,6 +165,14 @@
     <div class="card reveal"><p class="k">Access review</p><h3>Who can do what.</h3><p>A read-only RBAC viewer answers “who can delete Secrets here?”, plus NetworkPolicy analysis and Trivy and Kyverno report views.</p></div>
     <div class="card reveal"><p class="k">AI, on your terms</p><h3>Bring your own model.</h3><p>Opt-in “Explain with AI” through your own OpenAI-compatible, Anthropic or local Ollama endpoint. You see the redacted payload first; Secret values never leave.</p></div>
   </div>
+</div></section>
+
+<section class="band" id="languages"><div class="wrap">
+  <p class="eyebrow center reveal">Languages</p>
+  <h2 class="reveal">Speaks your team’s<br>language.</h2>
+  <p class="lead reveal">The whole console — sign-in, every page, errors and notifications — in eight languages, picked from your browser or the user menu.</p>
+  <div class="langs reveal" role="list"><span role="listitem">English</span><span role="listitem">Deutsch</span><span role="listitem">Español</span><span role="listitem">Français</span><span role="listitem">Português</span><span role="listitem">Italiano</span><span role="listitem" lang="ja">日本語</span><span role="listitem" lang="zh">简体中文</span></div>
+  <p class="fine reveal">Translations are machine-assisted and not yet reviewed by native speakers — corrections are welcome.</p>
 </div></section>
 
 <section id="install"><div class="wrap">
@@ -151,6 +190,12 @@ helm install axiom deploy/helm/axiom \
   <div class="cta"><a class="btn" href="https://github.com/zyvorai/axiom/releases/latest">Latest release</a><a class="l" href="docs/deployment.html">Deployment guide ›</a></div>
 </div></section>
 
+<section class="license"><div class="wrap">
+  <h2 class="reveal">Free to try.<br>Licensed to run.</h2>
+  <p class="lead reveal">Axiom is source-available under the Zyvor Production License v1.0. Evaluation, development, testing and research are free. Production use needs a commercial license.</p>
+  <div class="cta reveal"><a class="l" href="https://github.com/zyvorai/axiom/blob/main/LICENSE">Read the license ›</a><a class="l" href="https://github.com/zyvorai/axiom/blob/main/docs/SUBSCRIPTION-MODEL.md">Plans and subscription ›</a></div>
+</div></section>
+
 <section class="band final"><div class="wrap">
   <h2 class="reveal">Meet your cluster<br>again.</h2>
   <p class="lead reveal">One binary. Four platforms. Ready when you are.</p>
@@ -164,7 +209,7 @@ helm install axiom deploy/helm/axiom \
     <div><h4>Docs</h4><a href="docs/quickstart.html">Quickstart</a><a href="docs/deployment.html">Deployment</a><a href="docs/api.html">API</a><a href="docs/architecture.html">Architecture</a><a href="docs/roadmap.html">Roadmap</a></div>
     <div><h4>Project</h4><a href="https://github.com/zyvorai/axiom">GitHub</a><a href="https://github.com/zyvorai/axiom/releases">Releases</a><a href="https://github.com/zyvorai/axiom/blob/main/CHANGELOG.md">Changelog</a></div>
   </div>
-  © 2026 Zyvor. Axiom is a Zyvor project. Metal3 workloads are intentionally unsupported.
+  © 2026 Zyvor AI Labs. Axiom is source-available under the <a href="https://github.com/zyvorai/axiom/blob/main/LICENSE">Zyvor Production License v1.0</a>. Metal3 workloads are intentionally unsupported.
 </div></footer>
 <script src="assets/site.js" defer></script>
 </body>
