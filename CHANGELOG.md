@@ -4,6 +4,8 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-04
+
 ### Changed — pod proxy across replicas
 - The pod proxy origin no longer needs session affinity. With `AXIOM_SESSION_SECRET` set (Helm `auth.sessionSecret`, already required for `replicaCount>1`), pod proxy tickets and session cookies are HMAC-signed tokens under a key derived from the session secret for this purpose only, so a `window-link` minted on one replica can be redeemed on another and the session cookie works on every replica, in path and host mode. Tickets stay single use across replicas through the new `zyvor-axiom-pod-proxy-redeemed` ConfigMap (redeemed ticket ids only, pruned after the 60-second ticket lifetime, conflict-safe updates; covered by the existing ConfigMap permissions) plus each replica's memory; if the ConfigMap cannot be read or written the redeeming replica's memory alone applies and the error is logged. The 10-minute sliding expiry is kept by re-issuing the cookie with a later signed deadline (at most once a minute) and the 1-hour maximum is counted from the signed creation time. Revocation, the role check and a new namespace-restriction check run on every request as before; the per-user link and session caps are now counted per replica. In host mode a replica that did not create a session answers a request without a valid cookie with an empty `404`. Without a session secret (single replica, random per-process key) tickets and sessions stay in memory exactly as before. The startup log reports `shared=true|false`. See `docs/GAPS.md` for the residual limits
 

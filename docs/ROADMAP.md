@@ -71,6 +71,12 @@ are theirs, not ours.
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
 
+## Shipped in 0.12.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Pod proxy | Tickets and sessions are signed and valid on every replica; no session affinity needed | — |
+
 ## Shipped in 0.11.0
 
 | Area | What you get | Comparable to |
