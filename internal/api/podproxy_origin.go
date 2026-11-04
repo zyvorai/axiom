@@ -42,6 +42,11 @@ import (
 // its own tickets and sessions (internal/auth/podproxy.go), and re-checks on
 // every request that the user who created the session has not been revoked
 // since.
+//
+// That layout puts every pod session on one origin. When AXIOM_POD_PROXY_ORIGIN
+// carries an {id} placeholder in its leftmost host label instead
+// (https://{id}.pods.example.com), every session gets a hostname — and so an
+// origin — of its own and lives at the root of it; see podproxy_host.go.
 
 const (
 	podProxyCookieName       = "axiom_pod_proxy"
@@ -95,6 +100,10 @@ type PodProxyOrigin struct {
 	tickets *auth.PodProxyTicketStore
 	sess    *auth.PodProxySessionStore
 
+	// host is set in per-session-host mode (AXIOM_POD_PROXY_ORIGIN with an
+	// {id} placeholder, podproxy_host.go); nil in fixed-origin mode.
+	host *podProxyHostMode
+
 	mu       sync.RWMutex
 	provider platform.Provider
 	revoked  PodProxyRevocationChecker
@@ -113,6 +122,9 @@ func NewPodProxyOrigin(cfg PodProxyOriginConfig) (*PodProxyOrigin, error) {
 	}
 	if _, _, err := net.SplitHostPort(addr); err != nil {
 		return nil, fmt.Errorf("AXIOM_POD_PROXY_ADDR %q: %v", addr, err)
+	}
+	if strings.Contains(origin, podProxyIDPlaceholder) {
+		return newPodProxyHostOrigin(cfg, addr, origin)
 	}
 	u, err := url.Parse(origin)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil ||
@@ -190,8 +202,18 @@ func sameListenAddr(a, b string) bool {
 // Addr is the proxy listener's listen address.
 func (p *PodProxyOrigin) Addr() string { return p.addr }
 
-// Origin is the public origin of the proxy listener.
+// Origin is the public origin of the proxy listener (in per-session-host mode
+// the template, with its {id} placeholder).
 func (p *PodProxyOrigin) Origin() string { return p.origin }
+
+// Mode is "host" when every proxy session gets its own hostname and "path"
+// for the fixed origin with /s/<sid>/ prefixes.
+func (p *PodProxyOrigin) Mode() string {
+	if p.host != nil {
+		return "host"
+	}
+	return "path"
+}
 
 // attach wires the console's provider and revocation set; NewWithUsers calls
 // it. Until then the proxy listener answers 503.
@@ -208,6 +230,9 @@ func (p *PodProxyOrigin) deps() (platform.Provider, PodProxyRevocationChecker) {
 }
 
 func (p *PodProxyOrigin) cookieName() string {
+	if p.host != nil && p.secure {
+		return podProxyHostCookieName
+	}
 	if p.secure {
 		return podProxySecureCookieName
 	}
@@ -244,6 +269,10 @@ func (p *PodProxyOrigin) Handler() http.Handler {
 		if p.secure {
 			h.Set("Strict-Transport-Security", "max-age=31536000")
 		}
+		if p.host != nil {
+			p.serveHost(w, r)
+			return
+		}
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/p/"):
 			p.redeem(w, r)
@@ -279,7 +308,7 @@ func (p *PodProxyOrigin) redeem(w http.ResponseWriter, r *http.Request) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link has expired or was already used; open the port again from the console")
 		return
 	}
-	if revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
+	if g.SessionID != "" || revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
 		podProxyDeny(w, http.StatusForbidden, "this pod link is no longer valid")
 		return
 	}
@@ -312,17 +341,32 @@ func (p *PodProxyOrigin) proxy(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	g, provider, ok := p.authorize(w, r, sid)
+	if !ok {
+		return
+	}
+	if !hasSlash {
+		http.Redirect(w, r, "/s/"+sid+"/", http.StatusFound)
+		return
+	}
+	p.forward(w, r, provider, g, "/"+rest)
+}
+
+// authorize checks the method, the session cookie for session sid and the
+// creating user's revocation state, answering the request itself when one of
+// them fails.
+func (p *PodProxyOrigin) authorize(w http.ResponseWriter, r *http.Request, sid string) (auth.PodProxyGrant, platform.Provider, bool) {
 	switch r.Method {
 	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
 	default:
 		w.Header().Set("Allow", "GET, HEAD, POST, PUT, PATCH, DELETE")
 		podProxyDeny(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
+		return auth.PodProxyGrant{}, nil, false
 	}
 	provider, revoked := p.deps()
 	if provider == nil || revoked == nil {
 		podProxyDeny(w, http.StatusServiceUnavailable, "pod proxy is not ready")
-		return
+		return auth.PodProxyGrant{}, nil, false
 	}
 	var g auth.PodProxyGrant
 	ok := false
@@ -336,19 +380,22 @@ func (p *PodProxyOrigin) proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	if !ok {
 		podProxyDeny(w, http.StatusForbidden, "no valid pod proxy session; open the port again from the console")
-		return
+		return auth.PodProxyGrant{}, nil, false
 	}
 	if revoked.UserRevokedSince(g.User, g.IssuedMs) || !podProxyRoleAllowed(g.Role) {
 		p.sess.Delete(sid)
 		podProxyDeny(w, http.StatusForbidden, "this pod proxy session was revoked")
-		return
+		return auth.PodProxyGrant{}, nil, false
 	}
-	if !hasSlash {
-		http.Redirect(w, r, "/s/"+sid+"/", http.StatusFound)
-		return
-	}
+	return g, provider, true
+}
+
+// forward sends an authorized request to the session's pod, with upstreamPath
+// as the path, through the shared proxy core.
+func (p *PodProxyOrigin) forward(w http.ResponseWriter, r *http.Request, provider platform.Provider, g auth.PodProxyGrant, upstreamPath string) {
 	// A service worker registered here could intercept other sessions on this
-	// origin; pod content may not install one.
+	// origin (in host mode: outlive the session on its host); pod content may
+	// not install one.
 	if r.Header.Get("Service-Worker") != "" {
 		podProxyDeny(w, http.StatusForbidden, "service workers are not allowed on the pod proxy origin")
 		return
@@ -374,7 +421,7 @@ func (p *PodProxyOrigin) proxy(w http.ResponseWriter, r *http.Request) {
 	// of those (and a few more it must not control) instead of setting them.
 	w.Header().Set("Content-Security-Policy", podProxyCSP)
 	w.Header().Del("Cache-Control")
-	servePodProxy(w, r, target, "/"+rest, hardenPodProxyOrigin)
+	servePodProxy(w, r, target, upstreamPath, hardenPodProxyOrigin)
 }
 
 // podProxyPolicyHeaders are set by the proxy listener itself on every
@@ -452,9 +499,15 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 	if clusterKey == "" {
 		clusterKey = "user:" + id.User
 	}
+	// In host mode the session id is chosen now: it is the link's host label,
+	// and the ticket can only be redeemed on that host.
+	sessionID := ""
+	if s.podProxy.host != nil {
+		sessionID = auth.NewPodProxySessionID()
+	}
 	tok, _, err := s.podProxy.tickets.Issue(auth.PodProxyGrant{
 		User: id.User, Role: id.Role, Namespace: ns, Pod: name, Port: int32(req.Port),
-		Path: req.Path, ClusterKey: clusterKey,
+		Path: req.Path, ClusterKey: clusterKey, SessionID: sessionID,
 	})
 	if err != nil {
 		if errors.Is(err, auth.ErrPodProxyTableFull) {
@@ -466,14 +519,24 @@ func (s *Server) podWindowLink(w http.ResponseWriter, r *http.Request) {
 	}
 	platform.RecordAxiomAudit("pod.window", ns+"/"+name, "port "+strconv.FormatInt(req.Port, 10)+" via pod proxy origin", id.User)
 	w.Header().Set("Cache-Control", "no-store")
+	origin := s.podProxy.origin
+	if s.podProxy.host != nil {
+		origin = s.podProxy.host.originFor(sessionID)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"url":       s.podProxy.origin + "/p/" + tok + "/",
+		"url":       origin + "/p/" + tok + "/",
 		"expiresIn": int(auth.PodProxyTicketTTL / time.Second),
 	})
 }
 
-// podProxyEnabled is the capability flag the UI reads.
-func (s *Server) podProxyEnabled() bool { return s.podProxy != nil }
+// podProxyMode is what the capabilities endpoint reports: "" when the pod
+// proxy origin is off, else "path" or "host" (PodProxyOrigin.Mode).
+func (s *Server) podProxyMode() string {
+	if s.podProxy == nil {
+		return ""
+	}
+	return s.podProxy.Mode()
+}
 
 // StartPodProxyOrigin runs p's listener until ctx is cancelled, with TLS when
 // certFile/keyFile are set. It returns once the listener is serving or failed

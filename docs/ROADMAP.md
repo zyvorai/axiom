@@ -80,7 +80,7 @@ Deliberately left for later, with the reason:
 - **Editing VPA and KEDA objects in place:** today delete and recreate.
 - **Languages:** more locales, and a few technical screens still show English (see docs/GAPS.md for the exact coverage); translations have not been reviewed by native speakers.
 - **Fleet history across restarts:** history is kept in memory per replica; a durable store would need a time-series backend.
-- **Pod proxy:** per-pod isolation on the proxy origin (today all pods opened through it share one proxy origin).
+- **Pod proxy:** per-session origins are available (host mode, `https://{id}.pods.example.com`); remaining: proxy tickets and sessions shared across replicas (today session affinity is needed).
 
 ## Not planned
 

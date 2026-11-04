@@ -207,6 +207,12 @@ spec:
               value: {{ .Values.podProxy.addr | quote }}
             - name: AXIOM_POD_PROXY_ORIGIN
               value: {{ required "podProxy.origin is required when podProxy.addr is set" .Values.podProxy.origin | quote }}
+            {{- if .Values.podProxy.tlsSecret }}
+            - name: AXIOM_POD_PROXY_TLS_CERT
+              value: /etc/axiom/pod-proxy-tls/tls.crt
+            - name: AXIOM_POD_PROXY_TLS_KEY
+              value: /etc/axiom/pod-proxy-tls/tls.key
+            {{- end }}
             {{- end }}
             - name: POD_NAMESPACE
               valueFrom:
@@ -224,6 +230,11 @@ spec:
             - name: tls
               mountPath: /etc/axiom/tls
               readOnly: true
+            {{- if and .Values.podProxy.addr .Values.podProxy.tlsSecret }}
+            - name: pod-proxy-tls
+              mountPath: /etc/axiom/pod-proxy-tls
+              readOnly: true
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /api/v1/health
@@ -244,6 +255,11 @@ spec:
         - name: tls
           secret:
             secretName: {{ include "axiom.tlsSecretName" . }}
+        {{- if and .Values.podProxy.addr .Values.podProxy.tlsSecret }}
+        - name: pod-proxy-tls
+          secret:
+            secretName: {{ .Values.podProxy.tlsSecret | quote }}
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service

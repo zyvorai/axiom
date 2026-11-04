@@ -93,6 +93,11 @@ type Config struct {
 	// windows from a separate origin. Both must be set; off by default.
 	PodProxyAddr   string
 	PodProxyOrigin string
+	// PodProxyTLSCert / PodProxyTLSKey (AXIOM_POD_PROXY_TLS_CERT / _KEY) are
+	// an optional certificate for the pod proxy listener, e.g. a wildcard one
+	// for https://{id}.pods.example.com; unset, it uses AXIOM_TLS_CERT/KEY.
+	PodProxyTLSCert string
+	PodProxyTLSKey  string
 	// OpenCostURL (AXIOM_OPENCOST_URL) switches GET /cost from request-based
 	// estimates to actual allocation cost; OpenCostToken
 	// (AXIOM_OPENCOST_TOKEN) is an optional bearer token for it. Never logged.
@@ -155,6 +160,8 @@ func FromEnv() Config {
 
 		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
 		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
+		PodProxyTLSCert: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_TLS_CERT")),
+		PodProxyTLSKey:  strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_TLS_KEY")),
 		OpenCostURL:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
 		OpenCostToken: strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
 	}
