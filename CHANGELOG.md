@@ -4,6 +4,8 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-04
+
 ### Added — Languages
 - The console is available in English, Deutsch, Español and Français (i18next + react-i18next). The language follows the saved choice (`localStorage` `axiom.lang`), else the browser language, else English, and can be changed from the user menu, the login page and Settings → Appearance (`data-testid="language-select"`); `<html lang>` follows it. English is bundled and is the fallback for any missing string; the other languages load on demand as separate chunks
 - Translated: the app shell (sidebar, top bar, command palette, shortcuts, user menu, banners, error pages), sign-in, account security and the two-factor gate, Users, and every page and its dialogs, toasts and empty states. Kubernetes kinds and terms, YAML, `kubectl` commands and text returned by the API stay as they are. Numbers, dollar amounts and dates are formatted for the selected language

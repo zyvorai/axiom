@@ -43,10 +43,13 @@ async function passwordStep(page, user, pass) {
 // lockout (failed sign-ins back off exponentially). A valid request clears it,
 // so wait until the server stops answering 429 before the first sign-in.
 async function waitForThrottleToClear(page) {
-  for (let i = 0; i < 70; i++) {
+  // Backoff after earlier specs' failed sign-ins can last up to 5 minutes. Poll in short
+  // steps (never sleep a whole Retry-After in one go) within a bounded overall budget.
+  const deadline = Date.now() + 330_000;
+  while (Date.now() < deadline) {
     const r = await page.request.get("/api/v1/session", { headers: { Authorization: `Basic ${Buffer.from("demo:demo").toString("base64")}` } });
     if (r.status() !== 429) return;
-    await new Promise((res) => setTimeout(res, Math.max(1000, Number(r.headers()["retry-after"] || 1) * 1000)));
+    await new Promise((res) => setTimeout(res, 5000));
   }
 }
 
@@ -56,7 +59,7 @@ async function createUser(page, name, pass) {
 }
 
 test.describe("two-factor sign-in", () => {
-  test.setTimeout(150_000);
+  test.setTimeout(420_000);
   test.beforeEach(async ({ page }) => {
     await waitForThrottleToClear(page);
   });

@@ -1,9 +1,22 @@
 # Roadmap
 
-Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.9.0, and
+Where Axiom stands against other Kubernetes consoles, what shipped in 0.4.0 to 0.10.0, and
 what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
+
+## Shipped in 0.10.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Languages | The console in English, German, Spanish and French: a language switcher on the login page, in the user menu and in Settings, locale-aware numbers, dates and currency, and lint that keeps every language complete | Rancher, Headlamp, OpenShift console localisation |
+| LDAP two-factor | TOTP second factor for directory accounts (stored in a dedicated Secret), covered by `AXIOM_REQUIRE_MFA`, with admin listing and reset | Rancher/Portainer MFA for external auth |
+| OCI Helm registries | Browse and install charts from OCI registries (ghcr.io, Docker Hub and others) with default values and README; digests verified, same SSRF guard as index repositories | Helm 3 OCI, Artifact Hub |
+| GitOps edit and credentials | Edit an Argo CD or Flux application's managed fields after a structured preview, refusing stale edits; write-only repository credentials for Argo CD and Flux | Argo CD app edit, Flux secretRef management |
+| VPA and KEDA creation | Typed, validated creation and deletion of VerticalPodAutoscalers and KEDA ScaledObjects with a YAML preview; trigger credentials only by TriggerAuthentication name | Lens/Rancher autoscaler forms |
+| Actual cost | Real allocation cost from OpenCost instead of request-based estimates, with idle cost and a per-namespace breakdown; budgets follow the same source | OpenCost, Kubecost |
+| Fleet history | Per-cluster uptime, a state timeline and incidents over 1 h, 6 h or 24 h | Rancher cluster history |
+| Pod proxy isolation | Optional second listener serves pod web UIs from a separate origin through single-use links, so pod content can no longer script the console | Argo CD/Grafana proxy isolation guidance |
 
 ## Shipped in 0.9.0
 
@@ -62,10 +75,12 @@ are theirs, not ours.
 
 Deliberately left for later, with the reason:
 
-- **Autoscaling & cost:** create/edit VPA and KEDA objects, and real billing data instead of request-based estimates (needs a billing integration per cloud).
-- **GitOps & Helm:** editing applications in place, Argo CD repository credentials, and credentials for private OCI chart registries.
-- **Reach:** internationalisation (a large string-extraction pass across every page) and serving the pod proxy from a separate origin (a deployment-topology change: a second hostname or listener).
-- **Fleet:** health history charts (state changes are audited and shown, not trended).
+- **Billing:** per-cloud invoice integrations (OpenCost covers allocation, not your actual bill).
+- **Registry credentials:** private OCI chart registries need a credential store and token exchange with secrets.
+- **Editing VPA and KEDA objects in place:** today delete and recreate.
+- **Languages:** more locales, and a few technical screens still show English (see docs/GAPS.md for the exact coverage); translations have not been reviewed by native speakers.
+- **Fleet history across restarts:** history is kept in memory per replica; a durable store would need a time-series backend.
+- **Pod proxy:** per-pod isolation on the proxy origin (today all pods opened through it share one proxy origin).
 
 ## Not planned
 
