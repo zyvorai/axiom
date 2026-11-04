@@ -934,6 +934,10 @@ type InstallHelmRequest struct {
 	// OCIRef names the chart as oci://host/path/chart (an OCI repository);
 	// when set, repoUrl must be empty and chartName is not required.
 	OCIRef string `json:"ociRef,omitempty"`
+	// OCIAccess is set by the server (never decoded from a request): the
+	// plain-http flag and registry credentials of the stored OCI repository
+	// OCIRef belongs to (ResolveHelmOCIAccess). nil means anonymous https.
+	OCIAccess *HelmOCIAccess `json:"-"`
 }
 
 type RBACPolicyRule struct {

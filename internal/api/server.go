@@ -43,6 +43,9 @@ type AuthOptions struct {
 	// HelmRepoStore persists the Helm chart catalog's repository list.
 	// Optional — nil keeps it in memory.
 	HelmRepoStore platform.HelmRepoStore
+	// HelmRegistryCredStore persists OCI registry credentials (write-only).
+	// Optional — nil keeps them in memory.
+	HelmRegistryCredStore platform.HelmRegistryCredStore
 	// CostBudgetStore persists per-namespace cost budgets. Optional — nil
 	// keeps them in memory.
 	CostBudgetStore platform.CostBudgetStore

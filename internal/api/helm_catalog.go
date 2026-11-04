@@ -22,9 +22,15 @@ func (s *Server) registerHelmCatalog(mux *http.ServeMux) {
 	store := s.auth.HelmRepoStore
 	if store == nil {
 		store = platform.NewMemoryHelmRepoStore()
+		s.auth.HelmRepoStore = store // shared with install/upgrade (resolveHelmOCIAccess)
+	}
+	if s.auth.HelmRegistryCredStore == nil {
+		s.auth.HelmRegistryCredStore = platform.NewMemoryHelmRegistryCredStore()
 	}
 	fetcher := platform.NewHelmFetcher(platform.HelmFetchPolicyFromEnv(), "zyvor-axiom/"+buildVersion)
 	h := &helmCatalogAPI{s: s, c: platform.NewHelmCatalog(store, fetcher)}
+	h.c.SetRegistryCredStore(s.auth.HelmRegistryCredStore)
+	s.registerHelmRegistryCreds(mux)
 	mux.HandleFunc("GET /api/v1/helm/repos", h.listRepos)
 	mux.HandleFunc("POST /api/v1/helm/repos", h.addRepo)
 	mux.HandleFunc("DELETE /api/v1/helm/repos/{name}", h.removeRepo)
@@ -61,7 +67,11 @@ func (h *helmCatalogAPI) addRepo(w http.ResponseWriter, r *http.Request) {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	platform.RecordAxiomAudit("helm.repo_add", v.Name, v.URL, h.s.auditUser(r))
+	detail := v.URL
+	if v.CredentialsSecret != "" {
+		detail += " registry-credential=" + v.CredentialsSecret
+	}
+	platform.RecordAxiomAudit("helm.repo_add", v.Name, detail, h.s.auditUser(r))
 	writeJSON(w, http.StatusCreated, v)
 }
 

@@ -399,16 +399,16 @@ func (s *Server) helmInstall(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
+	if err := s.resolveHelmOCIAccess(r, &req); err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
 	v, err := s.provider.InstallHelmChart(r.Context(), req)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	detail := req.RepoURL + " " + req.ChartName
-	if req.OCIRef != "" {
-		detail = req.OCIRef
-	}
-	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, detail, s.auditUser(r))
+	platform.RecordAxiomAudit("helm.install", req.Namespace+"/"+req.ReleaseName, helmInstallAuditDetail(req), s.auditUser(r))
 	EmitStateChanged("helm", "install")
 	writeJSON(w, http.StatusAccepted, v)
 }
@@ -726,12 +726,16 @@ func (s *Server) helmUpgrade(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
+	if err := s.resolveHelmOCIAccess(r, &req); err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
 	v, err := s.provider.UpgradeHelmChart(r.Context(), req)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	platform.RecordAxiomAudit("helm.upgrade", req.Namespace+"/"+req.ReleaseName, req.RepoURL+" "+req.ChartName, s.auditUser(r))
+	platform.RecordAxiomAudit("helm.upgrade", req.Namespace+"/"+req.ReleaseName, helmInstallAuditDetail(req), s.auditUser(r))
 	EmitStateChanged("helm", "upgrade")
 	writeJSON(w, http.StatusAccepted, v)
 }

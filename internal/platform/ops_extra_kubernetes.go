@@ -143,6 +143,13 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 	if req.ChartVersion != "" {
 		args = append(args, "--version", req.ChartVersion)
 	}
+	// Plain-http and registry credentials of the matched OCI repository
+	// (nothing at all for index charts and anonymous OCI references).
+	accessArgs, accessVols, accessMounts, env, registrySecret, err := k.helmOCIJobAccess(ctx, jobNS, jobName, req)
+	if err != nil {
+		return HelmActionResult{}, err
+	}
+	args = append(args, accessArgs...)
 
 	var volumes []corev1.Volume
 	var mounts []corev1.VolumeMount
@@ -150,6 +157,7 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 	if strings.TrimSpace(req.Values) != "" {
 		vol, mnt, name, err := k.createHelmValuesSecret(ctx, jobNS, jobName, req.Values)
 		if err != nil {
+			k.deleteHelmJobSecret(ctx, jobNS, registrySecret)
 			return HelmActionResult{}, err
 		}
 		valuesSecret = name
@@ -157,6 +165,8 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 		mounts = append(mounts, mnt)
 		args = append(args, "-f", "/values/values.yaml")
 	}
+	volumes = append(volumes, accessVols...)
+	mounts = append(mounts, accessMounts...)
 
 	backoff := int32(0)
 	ttl := int32(600)
@@ -183,6 +193,7 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 						Image:        helmImage,
 						Command:      append([]string{"helm"}, args...),
 						VolumeMounts: mounts,
+						Env:          env,
 					}},
 				},
 			},
@@ -190,9 +201,11 @@ func (k *KubernetesProvider) InstallHelmChart(ctx context.Context, req InstallHe
 	}
 	created, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
+		k.deleteHelmJobSecret(ctx, jobNS, registrySecret)
 		return HelmActionResult{}, err
 	}
 	k.adoptHelmValuesSecret(ctx, jobNS, valuesSecret, created)
+	k.adoptHelmValuesSecret(ctx, jobNS, registrySecret, created)
 	return HelmActionResult{
 		OK: true, Action: "install", JobName: jobNS + "/" + jobName,
 		Message: fmt.Sprintf("Helm install started for %s/%s", req.Namespace, req.ReleaseName),

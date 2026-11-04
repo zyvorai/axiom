@@ -4,6 +4,12 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — OCI registry credentials
+- Private OCI chart registries. `GET`/`POST /api/v1/helm/registry-credentials` and `DELETE /api/v1/helm/registry-credentials/{name}` store write-only `{"name","registry","username","password"}` credentials (`registry` is `host[:port]` only; password or access token at most 4 KiB; body at most 16 KiB, decode errors quote nothing). Admin only for all three, the listing included, which shows `name`, `registry`, `username`, `age` and `inUse` (the repositories that reference it) and never the password. `409` on an existing name (never overwritten), `409` when deleting a credential a repository still uses; no update (rotate = delete + recreate). All credentials live in one Secret, `zyvor-axiom-helm-registry-creds` (key `credentials.json`, conflict-safe updates; memory in demo). Audited as `helm.registry_credential_create` / `helm.registry_credential_delete` with name and registry only
+- `POST /api/v1/helm/repos` accepts `credentialsSecret` for OCI repositories: the credential must exist and be for the repository's host. Browsing answers a `Basic` challenge from the registry host, and a bearer challenge by requesting the token with the credential — only from the registry host or a realm on the same registrable domain; any other realm is refused instead of being sent the password, and redirects never carry it. Tokens are cached in memory for their `expires_in` (60 s default, 5 min cap). A registry that needs credentials now says "this registry needs credentials: add them under Helm → Registries". Repository rows gain `credentialsSecret` (the name), `authenticated` and `plainHttp`
+- OCI installs and upgrades use the credentials of the stored repository their `ociRef` belongs to (registry host + longest path prefix): the Helm Job mounts a short-lived Secret with a Docker-style `config.json`, owned by the Job, and sets `HELM_REGISTRY_CONFIG`; the password is never in the Job's args or env or in the audit entry (detail `<ociRef> registry-credential=<name>`). A repository added over plain http (with `AXIOM_HELM_ALLOW_INSECURE_REPOS`) is recorded as `plainHttp` and installed with `--plain-http`, so plain-http registries can now be installed from. Index installs and anonymous OCI installs are unchanged
+- `helm.upgrade` audit entries for OCI charts now carry the `ociRef` (they recorded an empty chart before)
+
 ## [0.10.0] - 2026-11-04
 
 ### Added — Languages

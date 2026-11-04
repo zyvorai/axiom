@@ -47,6 +47,13 @@ type ociReg struct {
 	tokenAuth     []string // Authorization headers seen by /token
 	storageAuth   []string // Authorization headers seen by /storage
 	accepts       []string
+	// Registry credentials: the token endpoint wants Basic tokenUser:tokenPass
+	// (and answers expires_in when tokenExpiresIn is set); basicUser makes
+	// /v2/ answer a Basic challenge and accept only basicUser:basicPass.
+	tokenUser, tokenPass string
+	tokenExpiresIn       int
+	basicUser, basicPass string
+	v2Auth               []string // Authorization headers seen under /v2/
 }
 
 func newOCIReg(t *testing.T, tlsServer bool) *ociReg {
@@ -144,6 +151,17 @@ func (rg *ociReg) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(400)
 			return
 		}
+		if rg.tokenUser != "" {
+			u, pw, ok := r.BasicAuth()
+			if !ok || u != rg.tokenUser || pw != rg.tokenPass {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+		if rg.tokenExpiresIn != 0 {
+			_ = json.NewEncoder(w).Encode(map[string]any{"token": ociTestToken, "expires_in": rg.tokenExpiresIn})
+			return
+		}
 		if rg.tokenBody != nil {
 			_, _ = w.Write(rg.tokenBody)
 			return
@@ -165,7 +183,14 @@ func (rg *ociReg) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if rg.requireToken || rg.basicOnly {
+	rg.v2Auth = append(rg.v2Auth, r.Header.Get("Authorization"))
+	if rg.basicUser != "" {
+		if u, pw, ok := r.BasicAuth(); !ok || u != rg.basicUser || pw != rg.basicPass {
+			w.Header().Set("WWW-Authenticate", `Basic realm="registry"`)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	} else if rg.requireToken || rg.basicOnly {
 		if rg.basicOnly || r.Header.Get("Authorization") != "Bearer "+ociTestToken {
 			if rg.basicOnly {
 				w.Header().Set("WWW-Authenticate", `Basic realm="registry"`)
@@ -596,11 +621,12 @@ func TestHelmOCICredentialsRequired(t *testing.T) {
 	rg.set(func() { rg.basicOnly = true })
 	c := newOCICatalog(t, &HelmFetcher{Policy: openPolicy})
 	_, err := c.AddHelmRepo(context.Background(), HelmRepoRequest{Name: "oci", URL: rg.ociURL("/charts"), Charts: []string{"nginx"}})
-	if HTTPStatus(err) != 400 || !strings.Contains(err.Error(), "only anonymous") {
+	if HTTPStatus(err) != 400 || !strings.Contains(err.Error(), helmOCINeedsCredentials) {
 		t.Fatalf("basic auth registry: %v", err)
 	}
+	// A credential that does not exist (the catalog has no store at all here).
 	_, err = c.AddHelmRepo(context.Background(), HelmRepoRequest{Name: "oci", URL: rg.ociURL("/charts"), CredentialsSecret: "my-registry"})
-	if HTTPStatus(err) != 400 || !strings.Contains(err.Error(), "credentials are not supported") {
+	if HTTPStatus(err) != 400 || !strings.Contains(err.Error(), `registry credential "my-registry" not found`) {
 		t.Fatalf("credentialsSecret: %v", err)
 	}
 }

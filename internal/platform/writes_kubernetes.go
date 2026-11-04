@@ -377,12 +377,18 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 	if req.ChartVersion != "" {
 		args = append(args, "--version", req.ChartVersion)
 	}
+	accessArgs, accessVols, accessMounts, env, registrySecret, err := k.helmOCIJobAccess(ctx, jobNS, jobName, req)
+	if err != nil {
+		return HelmActionResult{}, err
+	}
+	args = append(args, accessArgs...)
 	var volumes []corev1.Volume
 	var mounts []corev1.VolumeMount
 	valuesSecret := ""
 	if strings.TrimSpace(req.Values) != "" {
 		vol, mnt, name, err := k.createHelmValuesSecret(ctx, jobNS, jobName, req.Values)
 		if err != nil {
+			k.deleteHelmJobSecret(ctx, jobNS, registrySecret)
 			return HelmActionResult{}, err
 		}
 		valuesSecret = name
@@ -390,6 +396,8 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 		mounts = append(mounts, mnt)
 		args = append(args, "-f", "/values/values.yaml")
 	}
+	volumes = append(volumes, accessVols...)
+	mounts = append(mounts, accessMounts...)
 	backoff := int32(0)
 	ttl := int32(600)
 	job := &batchv1.Job{
@@ -408,7 +416,7 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 					RestartPolicy: corev1.RestartPolicyNever, ServiceAccountName: helmSA, Volumes: volumes,
 					Containers: []corev1.Container{{
 						Name: "helm", Image: helmImage,
-						Command: append([]string{"helm"}, args...), VolumeMounts: mounts,
+						Command: append([]string{"helm"}, args...), VolumeMounts: mounts, Env: env,
 					}},
 				},
 			},
@@ -416,9 +424,11 @@ func (k *KubernetesProvider) UpgradeHelmChart(ctx context.Context, req InstallHe
 	}
 	created, err := k.client.BatchV1().Jobs(jobNS).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
+		k.deleteHelmJobSecret(ctx, jobNS, registrySecret)
 		return HelmActionResult{}, err
 	}
 	k.adoptHelmValuesSecret(ctx, jobNS, valuesSecret, created)
+	k.adoptHelmValuesSecret(ctx, jobNS, registrySecret, created)
 	return HelmActionResult{
 		OK: true, Action: "upgrade", JobName: jobNS + "/" + jobName,
 		Message: fmt.Sprintf("Helm upgrade started for %s/%s", req.Namespace, req.ReleaseName),
