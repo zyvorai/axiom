@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +23,8 @@ import { DIFF } from "@/constants/testIds";
 // Two steps: "Review changes" asks POST /apply/diff what the manifest would change and shows the
 // diff (plus a warning when Argo CD / Flux / Helm also manage the object); Apply is only enabled
 // once that review succeeded for exactly the current text, so an edit invalidates it.
-export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply manifest", initialManifest = "", onApplied }) {
+export default function ApplyManifestDialog({ open, onOpenChange, title, initialManifest = "", onApplied }) {
+    const { t } = useTranslation();
     const [manifest, setManifest] = useState(initialManifest);
     const [result, setResult] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -42,7 +44,8 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
             const { data } = await api.post("/apply", { manifest });
             setResult(data);
             if (data.valid) {
-                toast.success(`Applied ${data.kind || "manifest"}${data.name ? ` ${data.name}` : ""}`);
+                const kind = data.kind || t("dialogs:applyManifest.manifestWord");
+                toast.success(data.name ? t("toasts:applyManifest.appliedNamed", { kind, name: data.name }) : t("toasts:applyManifest.applied", { kind }));
                 onApplied?.();
             }
         } catch (e) {
@@ -56,7 +59,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle>{title ?? t("dialogs:applyManifest.title")}</DialogTitle>
                 </DialogHeader>
                 <MacTerm title="manifest.yaml" bodyClassName="!p-0">
                     <Textarea
@@ -71,7 +74,9 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                 {result && (
                     <div className={`rounded-lg border px-3 py-2 text-xs ${result.valid ? "border-soft-success-border bg-soft-success text-tone-green" : "border-soft-danger-border bg-soft-danger text-tone-red"}`}>
                         {result.valid
-                            ? `Applied ${result.kind || "manifest"}${result.name ? ` ${result.namespace ? `${result.namespace}/` : ""}${result.name}` : ""}`
+                            ? result.name
+                                ? t("dialogs:applyManifest.appliedNamed", { kind: result.kind || t("dialogs:applyManifest.manifestWord"), name: `${result.namespace ? `${result.namespace}/` : ""}${result.name}` })
+                                : t("dialogs:applyManifest.applied", { kind: result.kind || t("dialogs:applyManifest.manifestWord") })
                             : (result.errors || [result.message]).filter(Boolean).join(", ")}
                     </div>
                 )}
@@ -86,7 +91,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                         disabled={busy || !manifest || review?.status === "loading"}
                         className="rounded-xl"
                     >
-                        {review?.status === "loading" ? "Reviewing…" : canApply(review, manifest) ? "Review again" : "Review changes"}
+                        {review?.status === "loading" ? t("dialogs:applyManifest.reviewing") : canApply(review, manifest) ? t("dialogs:applyManifest.reviewAgain") : t("dialogs:applyManifest.reviewChanges")}
                     </Button>
                     <Button
                         variant="brand"
@@ -95,7 +100,7 @@ export default function ApplyManifestDialog({ open, onOpenChange, title = "Apply
                         disabled={busy || !manifest || !canApply(review, manifest)}
                         className="rounded-xl"
                     >
-                        {busy ? "Applying…" : "Apply"}
+                        {busy ? t("dialogs:applyManifest.applying") : t("common:actions.apply")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation, Trans } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -8,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GITOPS_CREATE as T } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:gitops.generic");
 
 /**
  * Delete a GitOps application. The server says what the deletion really does
@@ -16,6 +18,7 @@ const errText = (e) => e?.response?.data?.error || e?.message || "Something went
  * application's resources); when it does, the name has to be typed.
  */
 export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
+    const { t } = useTranslation();
     const [preview, setPreview] = useState(null);
     const [error, setError] = useState("");
     const [typed, setTyped] = useState("");
@@ -45,7 +48,7 @@ export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
             const { data } = await api.delete(`/gitops/${app.kind}/${app.namespace}/${encodeURIComponent(app.name)}`, {
                 params: { removeSource: removeSource ? "true" : "false", confirm: preview.cascade ? typed : undefined },
             });
-            toast.success(`Deleted ${app.name}`, { description: (data.warnings || []).join(" ") || undefined });
+            toast.success(t("toasts:gitops.deleted", { name: app.name }), { description: (data.warnings || []).join(" ") || undefined });
             onDeleted();
             onClose();
         } catch (e) {
@@ -64,10 +67,10 @@ export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
         <Dialog open={!!app} onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="max-w-lg" data-testid={T.deleteDialog}>
                 <DialogHeader>
-                    <DialogTitle>Delete {app.name}?</DialogTitle>
+                    <DialogTitle>{t("dialogs:gitops.delete.title", { name: app.name })}</DialogTitle>
                     <DialogDescription>
                         {app.kind} · {app.namespace}
-                        {preview?.managedByAxiom ? " · created by Axiom" : ""}
+                        {preview?.managedByAxiom ? t("dialogs:gitops.delete.createdByAxiom") : ""}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -96,7 +99,7 @@ export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
                         {preview.cascade && (
                             <div className="space-y-1.5" data-testid={T.deleteCascade}>
                                 <Label htmlFor="gitops-delete-confirm" className="text-xs text-muted-foreground">
-                                    This also removes the application&apos;s resources. Type <span className="mono">{app.name}</span> to confirm.
+                                    <Trans i18nKey="dialogs:gitops.delete.cascadeConfirm" values={{ name: app.name }} components={{ code: <span className="mono" /> }} />
                                 </Label>
                                 <Input id="gitops-delete-confirm" data-testid={T.deleteConfirmInput} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" className="bg-muted/30" />
                             </div>
@@ -106,15 +109,15 @@ export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
                             <div className="space-y-1">
                                 {shared.length > 0 ? (
                                     <p className="text-xs text-ink-3" data-testid={T.deleteSharedNote}>
-                                        The source {src.kind}/{src.name} is still used by {shared.map((s) => `${s.kind}/${s.name}`).join(", ")}, so it stays.
+                                        {t("dialogs:gitops.delete.sourceShared", { source: `${src.kind}/${src.name}`, users: shared.map((s) => `${s.kind}/${s.name}`).join(", ") })}
                                     </p>
                                 ) : canRemoveSource ? (
                                     <label className="flex items-center gap-2 text-sm">
                                         <input type="checkbox" data-testid={T.deleteRemoveSource} checked={removeSource} onChange={(e) => setRemoveSource(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
-                                        Also remove the {src.kind} {src.name} (nothing else uses it)
+                                        {t("dialogs:gitops.delete.removeSource", { kind: src.kind, name: src.name })}
                                     </label>
                                 ) : (
-                                    <p className="text-xs text-ink-3">The {src.kind} {src.name} was not created by Axiom, so it is left alone.</p>
+                                    <p className="text-xs text-ink-3">{t("dialogs:gitops.delete.sourceNotOurs", { kind: src.kind, name: src.name })}</p>
                                 )}
                             </div>
                         )}
@@ -123,7 +126,7 @@ export default function GitOpsDeleteDialog({ app, onClose, onDeleted }) {
 
                 <DialogFooter>
                     <button type="button" className="btn btn-danger" data-testid={T.deleteConfirm} onClick={remove} disabled={busy || !preview || !confirmed}>
-                        <Trash2 size={14} /> {busy ? "Deleting…" : "Delete"}
+                        <Trash2 size={14} /> {busy ? t("dialogs:gitops.delete.deleting") : t("common:actions.delete")}
                     </button>
                 </DialogFooter>
             </DialogContent>

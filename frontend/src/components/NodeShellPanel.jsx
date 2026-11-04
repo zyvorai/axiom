@@ -5,6 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import PodTerminal from "@/components/PodTerminal";
 import { useAuth } from "@/lib/auth";
 import { NODESHELL } from "@/constants/testIds";
+import { useTranslation, Trans } from "react-i18next";
 
 /**
  * Root shell on a node. Off by default: the server only offers it when an
@@ -12,6 +13,7 @@ import { NODESHELL } from "@/constants/testIds";
  * (the server enforces both; this panel just explains the state).
  */
 export default function NodeShellPanel({ node }) {
+    const { t } = useTranslation();
     const { isViewer } = useAuth();
     const [caps, setCaps] = useState(null);
     const [open, setOpen] = useState(false);
@@ -32,13 +34,12 @@ export default function NodeShellPanel({ node }) {
     return (
         <GlassCard className="space-y-3 p-5" data-testid={NODESHELL.panel}>
             <div className="flex items-center gap-2 text-sm font-medium">
-                <Terminal className="h-4 w-4" aria-hidden="true" /> Node shell
+                <Terminal className="h-4 w-4" aria-hidden="true" /> {t("pages:nodeShell.title")}
             </div>
-            {!caps && <p className="text-xs text-muted-foreground">Checking…</p>}
+            {!caps && <p className="text-xs text-muted-foreground">{t("pages:nodeShell.checking")}</p>}
             {caps && !caps.nodeShell && (
                 <p className="text-xs text-muted-foreground" data-testid={NODESHELL.disabled}>
-                    The node shell is disabled on this server. An administrator can enable it by setting <span className="mono">AXIOM_ENABLE_NODE_SHELL=true</span> on the
-                    Axiom deployment. It is admin-only and every session is audited.
+                    <Trans i18nKey="pages:nodeShell.disabled" components={{ code: <span className="mono" /> }} />
                 </p>
             )}
             {caps?.nodeShell && (
@@ -46,13 +47,15 @@ export default function NodeShellPanel({ node }) {
                     <div className="notice danger" data-testid={NODESHELL.warning}>
                         <AlertTriangle size={16} aria-hidden="true" />
                         <span>
-                            This opens a <b>root shell on the node</b> through a short-lived privileged pod in the <span className="mono">{caps.nodeShellNamespace}</span>{" "}
-                            namespace (admins only, audited as <span className="mono">node.shell</span>). The pod is deleted when you disconnect or after{" "}
-                            {Math.round((caps.nodeShellTimeoutSeconds || 900) / 60)} minutes.
+                            <Trans
+                                i18nKey="pages:nodeShell.warning"
+                                values={{ namespace: caps.nodeShellNamespace, minutes: Math.round((caps.nodeShellTimeoutSeconds || 900) / 60) }}
+                                components={{ b: <b />, code: <span className="mono" /> }}
+                            />
                         </span>
                     </div>
                     {!caps.interactive ? (
-                        <p className="text-xs text-muted-foreground">An interactive shell needs a live Kubernetes connection.</p>
+                        <p className="text-xs text-muted-foreground">{t("pages:nodeShell.needsLive")}</p>
                     ) : open ? (
                         <PodTerminal
                             namespace="node"
@@ -63,7 +66,7 @@ export default function NodeShellPanel({ node }) {
                         />
                     ) : (
                         <button type="button" className="btn btn-line" onClick={() => setOpen(true)}>
-                            Open root shell on {node}
+                            {t("pages:nodeShell.open", { node })}
                         </button>
                     )}
                 </>

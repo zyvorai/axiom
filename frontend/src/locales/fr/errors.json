@@ -1,0 +1,47 @@
+{
+  "generic": "Une erreur s'est produite",
+  "loadBanner": {
+    "offlineTitle": "Serveur injoignable.",
+    "failedTitle": "Certaines données n'ont pas pu être chargées.",
+    "offlineHint": "Vérifiez votre connexion — cette page n'est peut-être plus à jour.",
+    "failedHint_one": "Le serveur a renvoyé une erreur ({{count}} requête). Les informations affichées peuvent être incomplètes.",
+    "failedHint_other": "Le serveur a renvoyé une erreur ({{count}} requêtes). Les informations affichées peuvent être incomplètes."
+  },
+  "boundary": {
+    "updatedTitle": "Axiom a été mis à jour",
+    "crashTitle": "Cette page a rencontré un problème",
+    "updatedHint": "Une version plus récente est disponible, cette page n'a donc pas pu se charger. Rechargez pour l'obtenir.",
+    "crashHint": "Un problème est survenu lors de l'affichage de cette page. Le reste de l'application fonctionne.",
+    "goOverview": "Aller à la vue d'ensemble"
+  },
+  "fleet": {
+    "searchFailed": "La recherche a échoué",
+    "switchFailed": "Impossible de changer de cluster",
+    "loadFailed": "Impossible de charger la flotte"
+  },
+  "ops": {
+    "rulesJson": "Les règles doivent être du JSON valide",
+    "subjectsJson": "Les sujets doivent être du JSON valide"
+  },
+  "rbac": {
+    "requestFailed": "La requête a échoué"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "Chargement impossible"
+  },
+  "costPanels": {
+    "generic": "Une erreur s'est produite"
+  },
+  "gitops": {
+    "generic": "Une erreur s'est produite"
+  },
+  "helmCatalog": {
+    "generic": "Une erreur s'est produite"
+  },
+  "workloads": {
+    "dnsLabel": "Utilisez des minuscules, des chiffres et « - » (commencer et finir par une lettre ou un chiffre, 63 max.)."
+  },
+  "autoscalingCreate": {
+    "generic": "Une erreur s'est produite"
+  }
+}

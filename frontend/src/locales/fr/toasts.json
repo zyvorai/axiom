@@ -1,0 +1,258 @@
+{
+  "users": {
+    "created": "Utilisateur {{name}} créé",
+    "createFailed": "Échec de la création",
+    "updated": "{{name}} mis à jour",
+    "updateFailed": "Échec de la mise à jour",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression",
+    "mfaReset": "Deux facteurs réinitialisés pour {{name}}",
+    "resetFailed": "Échec de la réinitialisation",
+    "revoked": "{{name}} a été déconnecté partout",
+    "failed": "Échec"
+  },
+  "settings": {
+    "saveFailed": "Échec de l'enregistrement",
+    "testFailed": "Échec du test",
+    "oidcSaved": "Paramètres OIDC enregistrés",
+    "oidcReachable": "OIDC joignable",
+    "oidcTestFailed": "Échec du test OIDC",
+    "atlasSaved": "Paramètres Atlas enregistrés",
+    "atlasReachable": "Atlas joignable",
+    "atlasTestFailed": "Échec du test Atlas",
+    "postgresSaved": "Paramètres Postgres enregistrés",
+    "postgresReachable": "Postgres joignable",
+    "postgresTestFailed": "Échec du test Postgres",
+    "probeSaved": "Paramètres de la sonde enregistrés",
+    "probeReachable": "Sonde joignable",
+    "probeTestFailed": "Échec du test de la sonde",
+    "notifySaved": "Paramètres de notification enregistrés",
+    "slackSent": "Message Slack envoyé",
+    "slackTestFailed": "Échec du test Slack",
+    "webhookDelivered": "Webhook livré",
+    "webhookTestFailed": "Échec du test du webhook",
+    "clusterRegistered": "Cluster {{name}} enregistré",
+    "registerFailed": "Échec de l'enregistrement du cluster"
+  },
+  "aiSettings": {
+    "saved": "Paramètres de l'assistant IA enregistrés",
+    "saveFailed": "Échec de l'enregistrement",
+    "reachable": "Endpoint IA joignable",
+    "aiTestFailed": "Échec du test IA",
+    "testFailed": "Échec du test"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} créée",
+    "createFailed": "Échec de la création",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap mise à jour",
+    "updateFailed": "Échec de la mise à jour"
+  },
+  "secrets": {
+    "created": "Secret {{name}} créé",
+    "createFailed": "Échec de la création",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "secretDetail": {
+    "revealFailed": "Échec de l'affichage des valeurs",
+    "updated": "Secret mis à jour",
+    "updateFailed": "Échec de la mise à jour"
+  },
+  "pluginView": {
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} créé",
+    "createFailed": "Échec de la création",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "networking": {
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}} : isolement demandé",
+    "uncordonRequested": "{{name}} : réintégration demandée",
+    "drainRequested": "{{name}} : drainage demandé",
+    "cordonFailed": "Échec de l'isolement",
+    "uncordonFailed": "Échec de la réintégration",
+    "drainFailed": "Échec du drainage",
+    "taintAdded": "Taint ajouté à {{name}}",
+    "addTaintFailed": "Échec de l'ajout du taint",
+    "taintRemoved": "Taint retiré de {{name}}",
+    "removeTaintFailed": "Échec du retrait du taint"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} désinstallé",
+      "uninstallFailed": "Échec de la désinstallation",
+      "rolledBack": "{{name}} restauré",
+      "rollbackFailed": "Échec de la restauration",
+      "installStarted": "Installation de {{name}} lancée",
+      "installFailed": "Échec de l'installation"
+    },
+    "gitops": {
+      "syncRequested": "{{name}} : synchronisation demandée",
+      "syncFailed": "Échec de la synchronisation"
+    },
+    "agents": {
+      "approved": "{{name}} : approuvé",
+      "denied": "{{name}} : refusé",
+      "approveFailed": "Échec de l'approbation",
+      "denyFailed": "Échec du refus"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} créé",
+      "createRoleFailed": "Échec de la création du Role",
+      "bindingCreated": "RoleBinding {{name}} créé",
+      "createBindingFailed": "Échec de la création du RoleBinding",
+      "deleted": "{{name}} supprimé",
+      "deleteFailed": "Échec de la suppression"
+    }
+  },
+  "applyManifest": {
+    "applied": "{{kind}} appliqué",
+    "appliedNamed": "{{kind}} {{name}} appliqué"
+  },
+  "atlas": {
+    "volumeRequested": "Volume {{name}} demandé",
+    "volumeRequestedDescription": "Le provisionnement s'exécute comme une tâche asynchrone dans Atlas.",
+    "createFailed": "Échec de la création du volume"
+  },
+  "autoscaling": {
+    "created": "HPA créé pour {{name}}",
+    "createFailed": "Échec de la création du HPA",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "backups": {
+    "backupRequested": "Sauvegarde {{name}} demandée",
+    "createBackupFailed": "Échec de la création de la sauvegarde",
+    "restoreRequested": "Restauration {{name}} demandée",
+    "restoreFailed": "Échec de la restauration",
+    "scheduleCreated": "Planification {{name}} créée",
+    "createScheduleFailed": "Échec de la création de la planification",
+    "veleroRequested": "Sauvegarde Velero {{name}} demandée",
+    "veleroFailed": "Échec de la sauvegarde Velero"
+  },
+  "costPanels": {
+    "budgetSaved": "Budget enregistré pour {{namespace}}",
+    "budgetSaveFailed": "Impossible d'enregistrer le budget",
+    "budgetRemoved": "Budget de {{namespace}} retiré",
+    "removeFailed": "Échec du retrait",
+    "requestsUpdated": "Requests mis à jour pour {{target}}",
+    "requestsUpdatedDescription": "La charge de travail est déployée avec les nouvelles valeurs."
+  },
+  "gitops": {
+    "deleted": "{{name}} supprimé",
+    "created": "{{name}} créé"
+  },
+  "helmCatalog": {
+    "repoAdded": "Dépôt {{name}} ajouté",
+    "repoAddFailed": "Impossible d'ajouter le dépôt",
+    "repoRemoved": "{{name}} retiré",
+    "removeFailed": "Échec du retrait",
+    "installStarted": "Installation de {{name}} lancée",
+    "installStartedDescription": "Elle s'exécute comme un Job en arrière-plan ; la release apparaît dans Releases une fois Helm terminé.",
+    "installFailed": "Échec de l'installation"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}} : arrêt demandé",
+    "stopFailed": "échec de l'arrêt",
+    "startRequested": "{{name}} : démarrage demandé",
+    "startFailed": "échec du démarrage",
+    "migrateRequested": "{{name}} : migration demandée",
+    "migrateFailed": "échec de la migration"
+  },
+  "vms": {
+    "stopRequested": "{{name}} : arrêt demandé",
+    "stopFailed": "échec de l'arrêt",
+    "startRequested": "{{name}} : démarrage demandé",
+    "startFailed": "échec du démarrage",
+    "migrateRequested": "{{name}} : migration demandée",
+    "migrateFailed": "échec de la migration",
+    "requested": "Demandé",
+    "createFailed": "Échec de la création",
+    "created": "VM {{name}} créée"
+  },
+  "debugContainer": {
+    "added": "Conteneur de débogage {{container}} ajouté",
+    "addFailed": "Impossible d'ajouter un conteneur de débogage"
+  },
+  "diffReview": {
+    "applyFailed": "Échec de l'application",
+    "applied": "{{kind}} appliqué"
+  },
+  "cronJobDetail": {
+    "triggered": "{{name}} déclenché",
+    "triggerFailed": "Échec du déclenchement"
+  },
+  "jobs": {
+    "triggered": "{{name}} déclenché",
+    "triggerFailed": "Échec du déclenchement",
+    "suspended": "{{name}} suspendu",
+    "resumed": "{{name}} repris",
+    "updateFailed": "Échec de la mise à jour",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "podDetail": {
+    "copyFailed": "Impossible de copier dans le presse-papiers",
+    "evicted": "{{name}} évincé",
+    "evictFailed": "Échec de l'éviction",
+    "openPortFailed": "Impossible d'ouvrir le port"
+  },
+  "pods": {
+    "evicted": "{{name}} évincé",
+    "evictFailed": "Échec de l'éviction",
+    "skippedNote_one": " ({{count}} pod sélectionné n'apparaît plus, ignoré)",
+    "skippedNote_other": " ({{count}} pods sélectionnés n'apparaissent plus, ignorés)",
+    "bulkEvictFailed": "{{failed}} évictions sur {{total}} ont échoué{{note}}",
+    "bulkEvicted_one": "{{count}} pod évincé{{note}}",
+    "bulkEvicted_other": "{{count}} pods évincés{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} demandé",
+    "actionFailed": "Échec de {{action}}",
+    "workloadActionRequested": "{{name}} : {{action}} demandé",
+    "scaled": "{{name}} mis à l'échelle à {{replicas}}",
+    "scaleFailed": "Échec de la mise à l'échelle",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression",
+    "launched": "{{name}} lancé",
+    "launchFailed": "Échec du lancement",
+    "parseFailed": "Échec de l'analyse",
+    "placed": "Charge de travail placée à partir de l'intention",
+    "placeFailed": "Échec du placement",
+    "skippedNote_one": " ({{count}} élément sélectionné n'apparaît plus, ignoré)",
+    "skippedNote_other": " ({{count}} éléments sélectionnés n'apparaissent plus, ignorés)",
+    "bulkDeleteFailed": "{{failed}} suppressions sur {{total}} ont échoué{{note}}",
+    "bulkRestartFailed": "{{failed}} redémarrages sur {{total}} ont échoué{{note}}",
+    "bulkDeleted_one": "{{count}} charge de travail supprimée{{note}}",
+    "bulkDeleted_other": "{{count}} charges de travail supprimées{{note}}",
+    "bulkRestarted_one": "{{count}} charge de travail redémarrée{{note}}",
+    "bulkRestarted_other": "{{count}} charges de travail redémarrées{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "{{name}} créé"
+  },
+  "gitopsEdit": {
+    "updated": "{{name}} mis à jour"
+  },
+  "autoscalingPanels": {
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  },
+  "gitopsCredentials": {
+    "saved": "Identifiants {{name}} enregistrés",
+    "savedDescription": "Le secret est en écriture seule et ne peut plus être affiché.",
+    "deleted": "{{name}} supprimé",
+    "deleteFailed": "Échec de la suppression"
+  }
+}

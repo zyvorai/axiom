@@ -4,18 +4,20 @@ import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function PlatformIntents() {
+    const { t } = useTranslation();
     const [items, setItems] = useState(null);
 
     useEffect(() => {
         let alive = true;
         const load = () => api.get("/platform-intents").then((r) => alive && setItems(r.data));
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -31,22 +33,22 @@ export default function PlatformIntents() {
     return (
         <div className="page">
             <PageHeader
-                title="Platform Intents"
-                description="Workloads requested via natural-language intent (Workloads → Run workload → Intent)."
+                title={t("pages:platformIntents.title")}
+                description={t("pages:platformIntents.description")}
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Platform intents">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:platformIntents.tableAria")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Kind</th>
-                                <th>Image</th>
-                                <th>Resources</th>
-                                <th>Status</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.kind")}</th>
+                                <th>{t("common:fields.image")}</th>
+                                <th>{t("pages:platformIntents.columns.resources")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,7 +74,7 @@ export default function PlatformIntents() {
                             {items.length === 0 && (
                                 <tr>
                                     <td colSpan={7}>
-                                        <div className="empty">No platform intents yet.</div>
+                                        <div className="empty">{t("pages:platformIntents.empty")}</div>
                                     </td>
                                 </tr>
                             )}

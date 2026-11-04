@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NETPOL } from "@/constants/testIds";
+import { useTranslation, Trans } from "react-i18next";
 
 // Per-pod effective NetworkPolicy position, computed server-side from the
 // selectors (GET /networking/policies/{namespace}/analysis). Read-only.
@@ -18,17 +19,19 @@ function Pill({ tone, children }) {
 }
 
 function Direction({ isolated }) {
-    return isolated ? <Pill tone="green">isolated</Pill> : <Pill tone="orange">open</Pill>;
+    const { t } = useTranslation();
+    return isolated ? <Pill tone="green">{t("pages:networkPolicy.isolated")}</Pill> : <Pill tone="orange">{t("pages:networkPolicy.open")}</Pill>;
 }
 
 function AllowList({ title, isolated, allows }) {
+    const { t } = useTranslation();
     return (
         <div>
             <div className="mb-1 text-[11px] font-[500] uppercase tracking-widest text-ink-3">{title}</div>
             {!isolated ? (
-                <div className="text-[12.5px] text-ink-3">Not isolated: all traffic is allowed.</div>
+                <div className="text-[12.5px] text-ink-3">{t("pages:networkPolicy.notIsolated")}</div>
             ) : allows.length === 0 ? (
-                <div className="text-[12.5px] text-ink-3">Isolated and nothing is allowed (deny all).</div>
+                <div className="text-[12.5px] text-ink-3">{t("pages:networkPolicy.denyAll")}</div>
             ) : (
                 <ul className="space-y-1.5">
                     {allows.map((a, i) => (
@@ -38,14 +41,14 @@ function AllowList({ title, isolated, allows }) {
                                 <span className="text-ink-3">
                                     {" "}
                                     → {a.pods.join(", ")}
-                                    {a.podCount > a.pods.length ? ` +${a.podCount - a.pods.length} more` : ""}
+                                    {a.podCount > a.pods.length ? ` ${t("pages:networkPolicy.more", { n: a.podCount - a.pods.length })}` : ""}
                                 </span>
                             )}
                             {a.namespaces && a.namespaces.length > 0 && a.kind === "namespace" && (
-                                <span className="text-ink-3"> → namespaces {a.namespaces.join(", ")}</span>
+                                <span className="text-ink-3"> {t("pages:networkPolicy.toNamespaces", { list: a.namespaces.join(", ") })}</span>
                             )}
                             <span className="mono text-ink-3"> · {a.ports.join(", ")}</span>
-                            <small className="block text-ink-4">policy {a.policy}</small>
+                            <small className="block text-ink-4">{t("pages:networkPolicy.policy", { name: a.policy })}</small>
                         </li>
                     ))}
                 </ul>
@@ -55,6 +58,7 @@ function AllowList({ title, isolated, allows }) {
 }
 
 export default function NetworkPolicyAnalysis() {
+    const { t } = useTranslation();
     const selectId = useId();
     const [namespaces, setNamespaces] = useState(null);
     const [ns, setNs] = useState("");
@@ -106,11 +110,11 @@ export default function NetworkPolicyAnalysis() {
         <GlassCard className="overflow-hidden" data-testid={NETPOL.root}>
             <div className="card-h">
                 <h2 className="flex items-center gap-2 text-[15px]">
-                    <ShieldCheck size={16} className="text-tone-link" aria-hidden="true" /> Policy analysis
+                    <ShieldCheck size={16} className="text-tone-link" aria-hidden="true" /> {t("pages:networkPolicy.title")}
                 </h2>
                 <div className="r flex items-center gap-2">
                     <label htmlFor={selectId} className="text-[12.5px] text-ink-3">
-                        Namespace
+                        {t("common:fields.namespace")}
                     </label>
                     <select
                         id={selectId}
@@ -128,22 +132,22 @@ export default function NetworkPolicyAnalysis() {
                 </div>
             </div>
             <p className="px-4 pb-2 text-[12.5px] text-ink-3">
-                What each pod accepts and may reach, computed from the policies' selectors and ports. Policies only take effect when the cluster's CNI enforces them.
+                {t("pages:networkPolicy.description")}
             </p>
             {!namespaces || (ns && !data && !error) ? (
                 <Skeleton className="m-4 h-24 rounded-2xl bg-muted" />
             ) : error ? (
                 <div className="empty">{error}</div>
             ) : !data ? (
-                <div className="empty">No namespaces.</div>
+                <div className="empty">{t("pages:networkPolicy.noNamespaces")}</div>
             ) : (
                 <>
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 pb-3 text-[13px]" data-testid={NETPOL.summary}>
                         <span>
-                            <b>{data.policies}</b> polic{data.policies === 1 ? "y" : "ies"}
+                            <Trans i18nKey="pages:networkPolicy.policies" count={data.policies} components={{ b: <b /> }} />
                         </span>
                         <span>
-                            <b>{data.pods.length}</b> pod{data.pods.length === 1 ? "" : "s"}
+                            <Trans i18nKey="pages:networkPolicy.pods" count={data.pods.length} components={{ b: <b /> }} />
                         </span>
                         {data.defaultDenyIngress && <Pill tone="green">default-deny ingress</Pill>}
                         {data.defaultDenyEgress && <Pill tone="green">default-deny egress</Pill>}
@@ -152,8 +156,12 @@ export default function NetworkPolicyAnalysis() {
                         <div className="notice mx-4 mb-3" role="status" data-testid={NETPOL.uncovered}>
                             <ShieldAlert size={16} aria-hidden="true" />
                             <span>
-                                <b>{data.uncovered.length} pod{data.uncovered.length === 1 ? " is" : "s are"} not covered by any policy</b> and accept traffic
-                                from anywhere: <span className="mono">{data.uncovered.slice(0, 8).join(", ")}{data.uncovered.length > 8 ? ", …" : ""}</span>
+                                <Trans
+                                    i18nKey="pages:networkPolicy.uncovered"
+                                    count={data.uncovered.length}
+                                    values={{ list: `${data.uncovered.slice(0, 8).join(", ")}${data.uncovered.length > 8 ? ", …" : ""}` }}
+                                    components={{ b: <b />, mono: <span className="mono" /> }}
+                                />
                             </span>
                         </div>
                     )}
@@ -165,16 +173,16 @@ export default function NetworkPolicyAnalysis() {
                             </p>
                         ))}
                     {data.pods.length === 0 ? (
-                        <div className="empty">No pods in this namespace.</div>
+                        <div className="empty">{t("pages:networkPolicy.noPods")}</div>
                     ) : (
-                        <div className="max-h-[480px] overflow-auto" tabIndex={0} role="region" aria-label="Pod network isolation">
+                        <div className="max-h-[480px] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:networkPolicy.region")}>
                             <table className="tbl">
                                 <thead>
                                     <tr>
                                         <th>Pod</th>
                                         <th>Ingress</th>
                                         <th>Egress</th>
-                                        <th>Policies</th>
+                                        <th>{t("pages:networkPolicy.columns.policies")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -186,7 +194,7 @@ export default function NetworkPolicyAnalysis() {
                                                         type="button"
                                                         className="flex items-center gap-1.5 text-left"
                                                         aria-expanded={open.has(p.pod)}
-                                                        aria-label={`Show allowed traffic for ${p.pod}`}
+                                                        aria-label={t("pages:networkPolicy.showTraffic", { pod: p.pod })}
                                                         onClick={() => toggle(p.pod)}
                                                     >
                                                         {open.has(p.pod) ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
@@ -205,8 +213,8 @@ export default function NetworkPolicyAnalysis() {
                                                 <tr data-testid={NETPOL.podDetail(p.pod)}>
                                                     <td colSpan={4}>
                                                         <div className="grid g2">
-                                                            <AllowList title="Allowed ingress" isolated={p.ingressIsolated} allows={p.ingress} />
-                                                            <AllowList title="Allowed egress" isolated={p.egressIsolated} allows={p.egress} />
+                                                            <AllowList title={t("pages:networkPolicy.allowedIngress")} isolated={p.ingressIsolated} allows={p.ingress} />
+                                                            <AllowList title={t("pages:networkPolicy.allowedEgress")} isolated={p.egressIsolated} allows={p.egress} />
                                                         </div>
                                                     </td>
                                                 </tr>

@@ -25,11 +25,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 const SECRET_TYPES = ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth"];
 
 function CreateSecretDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [namespace, setNamespace] = useState("default");
     const [name, setName] = useState("");
     const [type, setType] = useState("Opaque");
@@ -47,13 +49,13 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/secrets", { namespace, name, type, data });
-            toast.success(`Secret ${name} created`);
+            toast.success(t("toasts:secrets.created", { name }));
             onOpenChange(false);
             setName("");
             setPairs([{ key: "", value: "" }]);
             onCreated();
         } catch (e) {
-            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:secrets.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -63,55 +65,55 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create secret</DialogTitle>
+                    <DialogTitle>{t("dialogs:secrets.create.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="secrets-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="secrets-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="secrets-namespace" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="secrets-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="secrets-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="secrets-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="secrets-type" className="text-xs text-muted-foreground">Type</Label>
+                        <Label htmlFor="secrets-type" className="text-xs text-muted-foreground">{t("common:fields.type")}</Label>
                         <Select value={type} onValueChange={setType}>
                             <SelectTrigger id="secrets-type" className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {SECRET_TYPES.map((t) => (
-                                    <SelectItem key={t} value={t}>
-                                        {t}
+                                {SECRET_TYPES.map((st) => (
+                                    <SelectItem key={st} value={st}>
+                                        {st}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <div id="secret-data-label" className="text-xs font-medium leading-none text-muted-foreground">Data</div>
+                        <div id="secret-data-label" className="text-xs font-medium leading-none text-muted-foreground">{t("dialogs:secrets.create.data")}</div>
                         <div className="space-y-2" role="group" aria-labelledby="secret-data-label">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={`Key ${i + 1}`} className="bg-muted/30" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={`Value ${i + 1}`} className="bg-muted/30" />
-                                    <button aria-label="Remove row" title="Remove row" onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={t("dialogs:secrets.create.keyAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={t("dialogs:secrets.create.valueAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <button aria-label={t("dialogs:secrets.create.removeRow")} title={t("dialogs:secrets.create.removeRow")} onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>
                                 </div>
                             ))}
                         </div>
                         <Button size="sm" variant="ghost" onClick={addPair} className="mt-1 text-xs text-muted-foreground">
-                            <Plus className="mr-1 h-3.5 w-3.5" /> Add key
+                            <Plus className="mr-1 h-3.5 w-3.5" /> {t("dialogs:secrets.create.addKey")}
                         </Button>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
-                        {busy ? "Creating…" : "Create"}
+                        {busy ? t("dialogs:secrets.create.creating") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -120,6 +122,7 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
 }
 
 function ExternalSecretsSection() {
+    const { t } = useTranslation();
     const [items, setItems] = useState(null);
 
     useEffect(() => {
@@ -133,19 +136,19 @@ function ExternalSecretsSection() {
     return (
         <GlassCard className="overflow-hidden p-0">
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                <Link2 className="h-4 w-4 text-tone-link" /> External Secrets
+                <Link2 className="h-4 w-4 text-tone-link" /> {t("pages:secrets.external.title")}
             </div>
-            <div className="max-h-[300px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="External secrets">
+            <div className="max-h-[300px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.aria")}>
                 {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
                 {items && (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Store</th>
-                                <th>Refresh</th>
-                                <th>Status</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("pages:secrets.external.columns.store")}</th>
+                                <th>{t("pages:secrets.external.columns.refresh")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -166,7 +169,7 @@ function ExternalSecretsSection() {
                             {items.length === 0 && (
                                 <tr>
                                     <td colSpan={5}>
-                                        <div className="empty">No ExternalSecret resources found.</div>
+                                        <div className="empty">{t("pages:secrets.external.empty")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -179,6 +182,7 @@ function ExternalSecretsSection() {
 }
 
 export default function Secrets() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useState("");
@@ -201,17 +205,17 @@ export default function Secrets() {
 
     const remove = async (s) => {
         const ok = await confirm({
-            title: `Delete secret ${s.name}?`,
-            description: "This also removes all its keys. This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:secrets.delete.title", { name: s.name }),
+            description: t("dialogs:secrets.delete.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/secrets/${s.namespace}/${encodeURIComponent(s.name)}`);
-            toast.success(`Deleted ${s.name}`);
+            toast.success(t("toasts:secrets.deleted", { name: s.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:secrets.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -227,15 +231,15 @@ export default function Secrets() {
     return (
         <div className="page">
             <PageHeader
-                title="Secrets"
-                description="Opaque, TLS and registry secrets across all namespaces."
+                title={t("pages:secrets.title")}
+                description={t("pages:secrets.description")}
                 action={
                     <>
                         <button type="button" className="btn btn-line" onClick={load}>
-                            <RefreshCcw size={15} /> Refresh
+                            <RefreshCcw size={15} /> {t("common:actions.refresh")}
                         </button>
                         <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
-                            <Plus size={15} /> Create secret
+                            <Plus size={15} /> {t("pages:secrets.create")}
                         </button>
                     </>
                 }
@@ -243,7 +247,7 @@ export default function Secrets() {
                     <div className="input">
                         <Search size={15} className="text-ink-3" />
                         <input
-                            placeholder="Search secret name"
+                            placeholder={t("pages:secrets.searchPlaceholder")}
                             value={q}
                             onChange={(e) => setQ(e.target.value)} className="bare-input"
                         />
@@ -252,16 +256,16 @@ export default function Secrets() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Secrets">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.tableAria")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Type</th>
-                                <th>Keys</th>
-                                <th>Age</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.type")}</th>
+                                <th>{t("pages:secrets.columns.keys")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -292,7 +296,7 @@ export default function Secrets() {
                                     </td>
                                     <td className="mono">{s.age}</td>
                                     <td>
-                                        <button type="button" className="btn btn-line btn-sm" aria-label={`Delete secret ${s.name}`} title={`Delete secret ${s.name}`} onClick={() => remove(s)}>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={t("pages:secrets.deleteAria", { name: s.name })} title={t("pages:secrets.deleteAria", { name: s.name })} onClick={() => remove(s)}>
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -301,7 +305,7 @@ export default function Secrets() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={6}>
-                                        <div className="empty">No secrets match the current filters.</div>
+                                        <div className="empty">{t("pages:secrets.empty")}</div>
                                     </td>
                                 </tr>
                             )}

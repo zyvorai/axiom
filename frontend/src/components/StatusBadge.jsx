@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 const MAP = {
@@ -20,9 +21,12 @@ const MAP = {
     audit:    { tone: "var(--blue)", label: "audit" },
 };
 
-/** Flat tone-dot pill — see .pill in axiom-shell.css. */
+/** Flat tone-dot pill — see .pill in axiom-shell.css. Known statuses are translated
+ * (common:status.<status>); anything else (e.g. a Kubernetes reason) is shown as-is. */
 export default function StatusBadge({ status, className }) {
-    const s = MAP[status] || { tone: "var(--blue)", label: status };
+    const { t } = useTranslation();
+    const known = Object.prototype.hasOwnProperty.call(MAP, status) ? MAP[status] : null;
+    const s = known ? { ...known, label: t(`common:status.${status}`) } : { tone: "var(--blue)", label: status };
     return (
         <span className={cn("pill", className)} style={{ "--c": s.tone }}>
             <i aria-hidden="true" />

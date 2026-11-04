@@ -5,6 +5,8 @@ import GlassCard from "@/components/GlassCard";
 import { SeverityBadge, SourceBadge } from "@/components/SeverityBadge";
 import { TIMELINE } from "@/constants/testIds";
 import { relTime, timelineHref } from "@/lib/troubleshoot";
+import { useTranslation } from "react-i18next";
+import { formatDate } from "@/lib/i18n";
 
 /**
  * "What changed" for one workload: its events, audit entries, alerts and rollout
@@ -12,6 +14,7 @@ import { relTime, timelineHref } from "@/lib/troubleshoot";
  * self-contained so it can be dropped into any detail page as a tab body.
  */
 export default function WorkloadTimeline({ namespace, kind, name }) {
+    const { t } = useTranslation();
     const [entries, setEntries] = useState(null);
     const [error, setError] = useState("");
     const object = `${kind}/${name}`;
@@ -28,19 +31,19 @@ export default function WorkloadTimeline({ namespace, kind, name }) {
                 })
                 .catch((e) => alive && setError(e?.response?.data?.error || e.message));
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [namespace, object]);
 
     return (
         <GlassCard className="overflow-hidden p-0" data-testid={TIMELINE.workloadRoot}>
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <div className="text-sm font-medium">What changed</div>
+                <div className="text-sm font-medium">{t("pages:workloadTimeline.title")}</div>
                 <Link to={timelineHref({ namespace, object })} className="text-xs text-tone-link hover:underline">
-                    Open in Timeline
+                    {t("pages:workloadTimeline.openInTimeline")}
                 </Link>
             </div>
             {error && (
@@ -48,9 +51,9 @@ export default function WorkloadTimeline({ namespace, kind, name }) {
                     {error}
                 </div>
             )}
-            {!entries && !error && <div className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</div>}
+            {!entries && !error && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("common:states.loading")}</div>}
             {entries && entries.length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-muted-foreground">No recorded changes for this workload.</div>
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("pages:workloadTimeline.empty")}</div>
             )}
             {(entries || []).map((e, i) => (
                 <div
@@ -58,7 +61,7 @@ export default function WorkloadTimeline({ namespace, kind, name }) {
                     data-testid={TIMELINE.workloadRow(i)}
                     className="grid grid-cols-12 items-center gap-3 border-b border-border px-4 py-3 last:border-none"
                 >
-                    <div className="col-span-2 mono text-xs text-muted-foreground" title={new Date(e.time).toLocaleString()}>
+                    <div className="col-span-2 mono text-xs text-muted-foreground" title={formatDate(e.time)}>
                         {relTime(e.time)}
                     </div>
                     <div className="col-span-2">
@@ -69,7 +72,7 @@ export default function WorkloadTimeline({ namespace, kind, name }) {
                     </div>
                     <div className="col-span-6 text-sm text-foreground">
                         {e.summary}
-                        {e.actor && <span className="text-xs text-muted-foreground"> · by {e.actor}</span>}
+                        {e.actor && <span className="text-xs text-muted-foreground"> · {t("pages:workloadTimeline.by", { actor: e.actor })}</span>}
                     </div>
                 </div>
             ))}

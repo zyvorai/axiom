@@ -1,10 +1,11 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import { resourceHref } from "@/lib/resourceHref";
+import { dateFnsLocale } from "@/lib/i18n";
 
 /** "3 minutes ago"-style label; falls back to the raw value for unparseable input. */
 export function relTime(iso) {
     try {
-        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
+        return formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: dateFnsLocale() });
     } catch {
         return String(iso ?? "");
     }

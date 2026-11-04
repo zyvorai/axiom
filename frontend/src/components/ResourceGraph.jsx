@@ -5,6 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GRAPH } from "@/constants/testIds";
 import { resourceHref } from "@/lib/resourceHref";
+import { useTranslation } from "react-i18next";
 
 // Relationship graph (GET /graph/{ns}/{kind}/{name}): ingress -> service -> workload ->
 // replicaset -> pods, plus the autoscaler and the config/secret/volume names it references.
@@ -19,6 +20,15 @@ const LANES = [
     { id: "pod", label: "Pods", kinds: ["Pod"] },
     { id: "config", label: "Config & storage", kinds: ["ConfigMap", "Secret", "PersistentVolumeClaim"] },
 ];
+
+/** Translated lane heading; Kubernetes kinds (Ingress, Service, Pods) stay English. */
+function laneLabel(t, lane) {
+    if (lane.id === "scale") return t("pages:resourceGraph.lanes.scale");
+    if (lane.id === "workload") return t("pages:resourceGraph.lanes.workload");
+    if (lane.id === "revision") return t("pages:resourceGraph.lanes.revision");
+    if (lane.id === "config") return t("pages:resourceGraph.lanes.config");
+    return lane.label;
+}
 
 const NODE_W = 172;
 const NODE_H = 36;
@@ -84,7 +94,9 @@ function edgePath(a, b) {
 }
 
 function GraphNodeShape({ node, p, isRoot, href, onNavigate }) {
-    const label = `${node.kind} ${node.name}${node.status ? `, ${node.status}` : ""}${isRoot ? " (this resource)" : ""}`;
+    const { t } = useTranslation();
+    const base = `${node.kind} ${node.name}${node.status ? `, ${node.status}` : ""}`;
+    const label = isRoot ? t("pages:resourceGraph.rootLabel", { label: base }) : base;
     const body = (
         <>
             <title>{label}</title>
@@ -129,6 +141,7 @@ function GraphNodeShape({ node, p, isRoot, href, onNavigate }) {
 }
 
 export default function ResourceGraph({ namespace, kind, name }) {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [graph, setGraph] = useState(null);
     const [error, setError] = useState(null);
@@ -152,7 +165,7 @@ export default function ResourceGraph({ namespace, kind, name }) {
     if (error) {
         return (
             <GlassCard className="p-6 text-center text-sm text-muted-foreground" data-testid={GRAPH.root}>
-                The relationship graph is not available for this resource: {error}
+                {t("pages:resourceGraph.unavailable", { error })}
             </GlassCard>
         );
     }
@@ -161,16 +174,15 @@ export default function ResourceGraph({ namespace, kind, name }) {
     return (
         <GlassCard className="p-4" data-testid={GRAPH.root}>
             <p className="mb-3 text-[12.5px] text-ink-3">
-                How this resource connects to routing, scaling and configuration. Names and status only — values of ConfigMaps and
-                Secrets are never loaded. Select a node to open it.
+                {t("pages:resourceGraph.intro")}
             </p>
-            <div className="overflow-x-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Relationship graph">
+            <div className="overflow-x-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:resourceGraph.region")}>
                 <svg
                     width={layout.width}
                     height={layout.height}
                     viewBox={`0 0 ${layout.width} ${layout.height}`}
                     role="group"
-                    aria-label={`Relationship graph for ${kind} ${name}`}
+                    aria-label={t("pages:resourceGraph.svgLabel", { kind, name })}
                     className="block"
                 >
                     <defs>
@@ -180,7 +192,7 @@ export default function ResourceGraph({ namespace, kind, name }) {
                     </defs>
                     {layout.lanes.map((lane) => (
                         <text key={lane.id} x={PAD + layout.pos[lane.nodes[0].id].col * (NODE_W + COL_GAP)} y={PAD + 8} className="fill-ink-3" fontSize={10.5} fontWeight={600}>
-                            {lane.label}
+                            {laneLabel(t, lane)}
                         </text>
                     ))}
                     <g aria-hidden="true">
@@ -214,12 +226,12 @@ export default function ResourceGraph({ namespace, kind, name }) {
                 </svg>
             </div>
             {graph.truncated && (
-                <p className="mt-2 text-[12px] text-tone-amber">Large resource: only part of the graph is shown.</p>
+                <p className="mt-2 text-[12px] text-tone-amber">{t("pages:resourceGraph.truncated")}</p>
             )}
             <details className="mt-3 text-[12.5px]">
-                <summary className="cursor-pointer text-ink-2">Show relationships as a list</summary>
+                <summary className="cursor-pointer text-ink-2">{t("pages:resourceGraph.showList")}</summary>
                 <ul data-testid={GRAPH.list} className="mt-2 space-y-1">
-                    {graph.edges.length === 0 && <li className="text-ink-3">No related resources found.</li>}
+                    {graph.edges.length === 0 && <li className="text-ink-3">{t("pages:resourceGraph.noRelated")}</li>}
                     {graph.edges.map((e, i) => (
                         <li key={i} className="mono">
                             {byId[e.from]?.kind} {byId[e.from]?.name} <span className="text-ink-3">{e.relation}</span> {byId[e.to]?.kind}{" "}

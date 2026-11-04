@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,12 +27,13 @@ function tokenizeJson(src) {
 
 function Highlighted({ value }) {
     const tokens = useMemo(() => tokenizeJson(value || ""), [value]);
+    const { t } = useTranslation();
     return (
         <pre
             className="code-pane max-h-[65vh] min-h-[65vh] overflow-auto whitespace-pre px-4 py-3 text-[12.5px] leading-[1.55]"
             tabIndex={0}
             role="region"
-            aria-label="Manifest (read-only)"
+            aria-label={t("common:editor.readOnly")}
         >
             {tokens.map((tok, i) => (
                 <span key={i} className={`tok-${tok.t}`}>

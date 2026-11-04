@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Layers3, Plus, Trash2, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import i18n from "@/lib/i18n";
 import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTOSCALE as T, VPA_CREATE as V, KEDA_CREATE as K } from "@/constants/testIds";
@@ -9,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { VpaCreateDialog, KedaCreateDialog } from "@/components/AutoscalingCreate";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Could not load";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:autoscalingPanels.couldNotLoad");
 
 function useList(path) {
     const [state, setState] = useState({ data: null, error: "" });
@@ -22,10 +24,10 @@ function useList(path) {
                 .then((r) => alive && setState({ data: r.data, error: "" }))
                 .catch((e) => alive && setState({ data: null, error: errText(e) }));
         tick();
-        const t = setInterval(tick, 15000);
+        const timer = setInterval(tick, 15000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [path, tick2]);
     return { ...state, reload: () => setTick2((n) => n + 1) };
@@ -33,15 +35,20 @@ function useList(path) {
 
 function useRemove(path, reload) {
     const confirm = useConfirm();
+    const { t } = useTranslation();
     return async (ns, name, what) => {
-        const ok = await confirm({ title: `Delete ${what} ${name}?`, description: "The workload itself is not touched.", confirmLabel: "Delete" });
+        const ok = await confirm({
+            title: t("dialogs:autoscalingPanels.deleteTitle", { kind: what, name }),
+            description: t("dialogs:autoscalingPanels.deleteDescription"),
+            confirmLabel: t("common:actions.delete"),
+        });
         if (!ok) return;
         try {
             await api.delete(`/${path}/${encodeURIComponent(ns)}/${encodeURIComponent(name)}`);
-            toast.success(`Deleted ${name}`);
+            toast.success(t("toasts:autoscalingPanels.deleted", { name }));
             reload();
         } catch (e) {
-            toast.error("Delete failed", { description: errText(e) });
+            toast.error(t("toasts:autoscalingPanels.deleteFailed"), { description: errText(e) });
         }
     };
 }
@@ -60,11 +67,11 @@ function Conditions({ items }) {
     );
 }
 
-function NotInstalled({ testId, name, hint }) {
+function NotInstalled({ testId, title, hint }) {
     return (
         <GlassCard className="p-6">
             <div className="empty" data-testid={testId}>
-                <b>{name} is not installed in this cluster.</b>
+                <b>{title}</b>
                 <div className="mt-1 text-[12.5px] text-ink-3">{hint}</div>
             </div>
         </GlassCard>
@@ -75,6 +82,7 @@ const q = (v) => (v == null || v === "" ? "—" : v);
 
 /** Read-only view of VerticalPodAutoscalers and what they recommend. */
 export function VpaPanel() {
+    const { t } = useTranslation();
     const { data, error, reload } = useList("/vpas");
     const { isViewer } = useAuth();
     const [creating, setCreating] = useState(false);
@@ -85,8 +93,8 @@ export function VpaPanel() {
         return (
             <NotInstalled
                 testId={T.vpaNotInstalled}
-                name="The Vertical Pod Autoscaler"
-                hint="Install the VPA recommender to get per-container CPU and memory recommendations here. Axiom only reads them; it never changes requests."
+                title={t("pages:autoscalingPanels.vpa.notInstalled")}
+                hint={t("pages:autoscalingPanels.vpa.notInstalledHint")}
             />
         );
     }
@@ -100,26 +108,26 @@ export function VpaPanel() {
                     {data.items.length}
                     {!isViewer && (
                         <button type="button" className="btn btn-fill btn-sm" data-testid={V.open} onClick={() => setCreating(true)}>
-                            <Plus size={13} /> New VPA
+                            <Plus size={13} /> {t("pages:autoscalingPanels.vpa.new")}
                         </button>
                     )}
                 </span>
             </div>
             <VpaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
             {data.items.length === 0 ? (
-                <div className="empty">No VerticalPodAutoscalers.</div>
+                <div className="empty">{t("pages:autoscalingPanels.vpa.empty")}</div>
             ) : (
-                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="Vertical pod autoscalers">
+                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:autoscalingPanels.vpa.region")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Target</th>
-                                <th>Mode</th>
-                                <th>Container</th>
-                                <th>CPU (lower · target · upper)</th>
-                                <th>Memory (lower · target · upper)</th>
-                                {!isViewer && <th><span className="sr-only">Actions</span></th>}
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.target")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.mode")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.container")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.cpu")}</th>
+                                <th>{t("pages:autoscalingPanels.vpa.columns.memory")}</th>
+                                {!isViewer && <th><span className="sr-only">{t("common:fields.actions")}</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -143,7 +151,7 @@ export function VpaPanel() {
                                         {!isViewer && (
                                             <td>
                                                 {i === 0 && (
-                                                    <button type="button" className="btn btn-danger btn-sm" data-testid={V.remove(v.namespace, v.name)} aria-label={`Delete VPA ${v.name}`} onClick={() => remove(v.namespace, v.name, "VPA")}>
+                                                    <button type="button" className="btn btn-danger btn-sm" data-testid={V.remove(v.namespace, v.name)} aria-label={t("pages:autoscalingPanels.vpa.deleteAria", { name: v.name })} onClick={() => remove(v.namespace, v.name, "VPA")}>
                                                         <Trash2 size={13} />
                                                     </button>
                                                 )}
@@ -162,6 +170,7 @@ export function VpaPanel() {
 
 /** Read-only view of KEDA ScaledObjects. Trigger settings are never shown, only the trigger types. */
 export function KedaPanel() {
+    const { t } = useTranslation();
     const { data, error, reload } = useList("/scaledobjects");
     const { isViewer } = useAuth();
     const [creating, setCreating] = useState(false);
@@ -172,8 +181,8 @@ export function KedaPanel() {
         return (
             <NotInstalled
                 testId={T.kedaNotInstalled}
-                name="KEDA"
-                hint="Install KEDA to scale workloads on queue depth, cron schedules, HTTP load and other event sources. Its ScaledObjects will be listed here."
+                title={t("pages:autoscalingPanels.keda.notInstalled")}
+                hint={t("pages:autoscalingPanels.keda.notInstalledHint")}
             />
         );
     }
@@ -187,25 +196,25 @@ export function KedaPanel() {
                     {data.items.length}
                     {!isViewer && (
                         <button type="button" className="btn btn-fill btn-sm" data-testid={K.open} onClick={() => setCreating(true)}>
-                            <Plus size={13} /> New ScaledObject
+                            <Plus size={13} /> {t("pages:autoscalingPanels.keda.new")}
                         </button>
                     )}
                 </span>
             </div>
             <KedaCreateDialog open={creating} onOpenChange={setCreating} onCreated={reload} />
             {data.items.length === 0 ? (
-                <div className="empty">No ScaledObjects.</div>
+                <div className="empty">{t("pages:autoscalingPanels.keda.empty")}</div>
             ) : (
-                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label="KEDA scaled objects">
+                <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t("pages:autoscalingPanels.keda.region")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Target</th>
-                                <th>Replicas</th>
-                                <th>Triggers</th>
-                                <th>State</th>
-                                {!isViewer && <th><span className="sr-only">Actions</span></th>}
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.target")}</th>
+                                <th>{t("common:fields.replicas")}</th>
+                                <th>{t("pages:autoscalingPanels.keda.columns.triggers")}</th>
+                                <th>{t("pages:autoscalingPanels.keda.columns.state")}</th>
+                                {!isViewer && <th><span className="sr-only">{t("common:fields.actions")}</span></th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -222,10 +231,10 @@ export function KedaPanel() {
                                     </td>
                                     <td data-testid={T.kedaTriggers(s.namespace, s.name)}>
                                         <div className="flex flex-wrap gap-1">
-                                            {(s.triggers || []).map((t, i) => (
-                                                <span key={`${t.type}-${i}`} className="pill soft mono text-[11px]">
-                                                    {t.type}
-                                                    {t.name ? ` · ${t.name}` : ""}
+                                            {(s.triggers || []).map((tr, i) => (
+                                                <span key={`${tr.type}-${i}`} className="pill soft mono text-[11px]">
+                                                    {tr.type}
+                                                    {tr.name ? ` · ${tr.name}` : ""}
                                                 </span>
                                             ))}
                                         </div>
@@ -233,12 +242,12 @@ export function KedaPanel() {
                                     <td>
                                         <span className="pill" style={{ "--c": s.fallback ? "var(--orange)" : s.active ? "var(--green)" : s.ready ? "var(--blue)" : "var(--red)" }}>
                                             <i aria-hidden="true" />
-                                            {s.fallback ? "Fallback" : s.active ? "Active" : s.ready ? "Idle" : "Not ready"}
+                                            {s.fallback ? t("pages:autoscalingPanels.keda.state.fallback") : s.active ? t("pages:autoscalingPanels.keda.state.active") : s.ready ? t("pages:autoscalingPanels.keda.state.idle") : t("pages:autoscalingPanels.keda.state.notReady")}
                                         </span>
                                     </td>
                                     {!isViewer && (
                                         <td>
-                                            <button type="button" className="btn btn-danger btn-sm" data-testid={K.remove(s.namespace, s.name)} aria-label={`Delete ScaledObject ${s.name}`} onClick={() => remove(s.namespace, s.name, "ScaledObject")}>
+                                            <button type="button" className="btn btn-danger btn-sm" data-testid={K.remove(s.namespace, s.name)} aria-label={t("pages:autoscalingPanels.keda.deleteAria", { name: s.name })} onClick={() => remove(s.namespace, s.name, "ScaledObject")}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </td>

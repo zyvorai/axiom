@@ -8,6 +8,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Network } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 function labelsMatch(podLabels, selector) {
     if (!selector || !Object.keys(selector).length) return false;
@@ -18,6 +19,7 @@ function labelsMatch(podLabels, selector) {
 }
 
 export default function ServiceDetail() {
+    const { t } = useTranslation();
     const { namespace, name } = useParams();
     const navigate = useNavigate();
     const ns = decodeURIComponent(namespace || "");
@@ -60,10 +62,10 @@ export default function ServiceDetail() {
         return (
             <div className="page space-y-4">
                 <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/services")}>
-                    <ArrowLeft className="h-3.5 w-3.5" /> Services
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:services.title")}
                 </button>
                 <GlassCard className="empty">
-                    Service <span className="mono text-foreground">{ns}/{nm}</span> was not found.
+                    <Trans i18nKey="pages:serviceDetail.notFound" values={{ name: `${ns}/${nm}` }} components={{ mono: <span className="mono text-foreground" /> }} />
                 </GlassCard>
             </div>
         );
@@ -89,14 +91,14 @@ export default function ServiceDetail() {
                 }
                 action={
                     <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/services")}>
-                        <ArrowLeft className="h-3.5 w-3.5" /> All services
+                        <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:serviceDetail.allServices")}
                     </button>
                 }
             />
 
             <GlassCard>
                 <SpecTable
-                    title="Ports"
+                    title={t("pages:services.columns.ports")}
                     columns={1}
                     rows={(svc.ports || []).map((p, i) => ({
                         label: p.name || `port-${i}`,
@@ -109,7 +111,7 @@ export default function ServiceDetail() {
             {svc.selector && Object.keys(svc.selector).length > 0 && (
                 <GlassCard>
                     <SpecTable
-                        title="Selector"
+                        title={t("pages:serviceDetail.selector")}
                         rows={Object.entries(svc.selector).map(([k, v]) => ({ label: k, value: v, mono: true }))}
                     />
                 </GlassCard>
@@ -117,10 +119,10 @@ export default function ServiceDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
-                    <Network className="h-4 w-4 text-tone-link" /> Endpoints ({(svc.endpoints || []).length})
+                    <Network className="h-4 w-4 text-tone-link" /> {t("pages:serviceDetail.endpoints", { n: (svc.endpoints || []).length })}
                 </div>
                 {(svc.endpoints || []).length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">No endpoints.</div>
+                    <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("pages:serviceDetail.noEndpoints")}</div>
                 ) : (
                     <div className="flex flex-wrap gap-2 p-4">
                         {(svc.endpoints || []).map((ep) => (
@@ -134,18 +136,18 @@ export default function ServiceDetail() {
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 className="text-[15px]">Matching pods ({matchingPods.length})</h2>
+                    <h2 className="text-[15px]">{t("pages:serviceDetail.matchingPods", { n: matchingPods.length })}</h2>
                 </div>
                 {matchingPods.length === 0 ? (
-                    <div className="empty">No pods match this selector.</div>
+                    <div className="empty">{t("pages:serviceDetail.noMatchingPods")}</div>
                 ) : (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Status</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.status")}</th>
                                 <th>IP</th>
-                                <th>Node</th>
+                                <th>{t("common:fields.node")}</th>
                             </tr>
                         </thead>
                         <tbody>

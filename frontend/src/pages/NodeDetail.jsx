@@ -37,8 +37,23 @@ import {
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import NodeShellPanel from "@/components/NodeShellPanel";
+import { useTranslation, Trans } from "react-i18next";
+
+// Toast texts per node action (static keys so every string is checked).
+function nodeActionRequested(t, action, name) {
+    if (action === "cordon") return t("toasts:nodes.cordonRequested", { name });
+    if (action === "uncordon") return t("toasts:nodes.uncordonRequested", { name });
+    return t("toasts:nodes.drainRequested", { name });
+}
+
+function nodeActionFailed(t, action) {
+    if (action === "cordon") return t("toasts:nodes.cordonFailed");
+    if (action === "uncordon") return t("toasts:nodes.uncordonFailed");
+    return t("toasts:nodes.drainFailed");
+}
 
 function MetricsPanel({ name }) {
+    const { t } = useTranslation();
     const [series, setSeries] = useState(null);
 
     useEffect(() => {
@@ -49,16 +64,16 @@ function MetricsPanel({ name }) {
                 .then((r) => alive && setSeries(r.data))
                 .catch(() => alive && setSeries(false));
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [name]);
 
     if (series === null) return <Skeleton className="h-40 rounded-2xl" />;
     if (series === false) {
-        return <GlassCard className="p-6 text-center text-sm text-muted-foreground">Metrics unavailable — requires metrics-server on the cluster.</GlassCard>;
+        return <GlassCard className="p-6 text-center text-sm text-muted-foreground">{t("pages:nodeDetail.metricsUnavailable")}</GlassCard>;
     }
 
     const cpuPoints = (series.points || []).map((p) => p.cpuMillicores);
@@ -67,13 +82,13 @@ function MetricsPanel({ name }) {
     return (
         <div className="space-y-4">
             <div className="border-y border-border px-3 py-2 text-xs text-muted-foreground">
-                Live rolling window sampled from metrics.k8s.io — not historical Prometheus data.
+                {t("pages:nodeDetail.metricsWindow")}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Cpu className="h-3.5 w-3.5 text-tone-link" /> CPU
+                            <Cpu className="h-3.5 w-3.5 text-tone-link" /> {t("common:fields.cpu")}
                         </div>
                         <span className="mono text-xs text-muted-foreground">{series.cpuMillicores}m</span>
                     </div>
@@ -82,7 +97,7 @@ function MetricsPanel({ name }) {
                 <GlassCard className="p-5">
                     <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <MemoryStick className="h-3.5 w-3.5 text-tone-green" /> Memory
+                            <MemoryStick className="h-3.5 w-3.5 text-tone-green" /> {t("common:fields.memory")}
                         </div>
                         <span className="mono text-xs text-muted-foreground">{(series.memoryBytes / (1024 * 1024)).toFixed(0)} MiB</span>
                     </div>
@@ -94,6 +109,7 @@ function MetricsPanel({ name }) {
 }
 
 function TaintsPanel({ name, taints, onChanged }) {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [key, setKey] = useState("");
     const [value, setValue] = useState("");
@@ -105,65 +121,65 @@ function TaintsPanel({ name, taints, onChanged }) {
         setBusy(true);
         try {
             await api.post(`/nodes/${encodeURIComponent(name)}/taints`, { key, value, effect });
-            toast.success(`Taint added to ${name}`);
+            toast.success(t("toasts:nodes.taintAdded", { name }));
             setKey("");
             setValue("");
             onChanged();
         } catch (e) {
-            toast.error("Add taint failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:nodes.addTaintFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
     };
 
-    const remove = async (t) => {
+    const remove = async (taint) => {
         const ok = await confirm({
-            title: `Remove taint ${t.key}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Remove",
+            title: t("dialogs:nodeDetail.removeTaint.title", { key: taint.key }),
+            description: t("dialogs:nodeDetail.removeTaint.description"),
+            confirmLabel: t("common:actions.remove"),
         });
         if (!ok) return;
         try {
-            await api.delete(`/nodes/${encodeURIComponent(name)}/taints/${encodeURIComponent(t.key)}`, {
-                params: { effect: t.effect },
+            await api.delete(`/nodes/${encodeURIComponent(name)}/taints/${encodeURIComponent(taint.key)}`, {
+                params: { effect: taint.effect },
             });
-            toast.success(`Taint removed from ${name}`);
+            toast.success(t("toasts:nodes.taintRemoved", { name }));
             onChanged();
         } catch (e) {
-            toast.error("Remove taint failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:nodes.removeTaintFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     return (
         <div className="space-y-4">
             <GlassCard className="overflow-hidden">
-                <div className="border-b px-4 py-3 text-sm font-medium">Current taints</div>
-                {(taints || []).length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">No taints on this node.</div>}
-                {(taints || []).map((t, i) => (
+                <div className="border-b px-4 py-3 text-sm font-medium">{t("pages:nodeDetail.currentTaints")}</div>
+                {(taints || []).length === 0 && <div className="px-4 py-8 text-center text-sm text-muted-foreground">{t("pages:nodeDetail.noTaints")}</div>}
+                {(taints || []).map((taint, i) => (
                     <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none">
                         <Badge variant="outline" className="mono text-xs">
-                            {t.key}
-                            {t.value ? `=${t.value}` : ""}:{t.effect}
+                            {taint.key}
+                            {taint.value ? `=${taint.value}` : ""}:{taint.effect}
                         </Badge>
-                        <Button size="sm" variant="ghost" aria-label={`Remove taint ${t.key}`} title={`Remove taint ${t.key}`} onClick={() => remove(t)} className="h-8 px-2 text-muted-foreground hover:text-tone-red">
+                        <Button size="sm" variant="ghost" aria-label={t("pages:nodeDetail.removeTaint", { key: taint.key })} title={t("pages:nodeDetail.removeTaint", { key: taint.key })} onClick={() => remove(taint)} className="h-8 px-2 text-muted-foreground hover:text-tone-red">
                             <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                     </div>
                 ))}
             </GlassCard>
             <GlassCard className="p-4">
-                <div className="mb-3 text-sm font-medium">Add taint</div>
+                <div className="mb-3 text-sm font-medium">{t("pages:nodeDetail.addTaint")}</div>
                 <div className="grid grid-cols-4 gap-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="node-detail-key" className="text-xs text-muted-foreground">Key</Label>
+                        <Label htmlFor="node-detail-key" className="text-xs text-muted-foreground">{t("common:fields.key")}</Label>
                         <Input id="node-detail-key" value={key} onChange={(e) => setKey(e.target.value)} placeholder="dedicated" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="node-detail-value" className="text-xs text-muted-foreground">Value</Label>
+                        <Label htmlFor="node-detail-value" className="text-xs text-muted-foreground">{t("common:fields.value")}</Label>
                         <Input id="node-detail-value" value={value} onChange={(e) => setValue(e.target.value)} placeholder="gpu" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="node-detail-effect" className="text-xs text-muted-foreground">Effect</Label>
+                        <Label htmlFor="node-detail-effect" className="text-xs text-muted-foreground">{t("pages:nodeDetail.effect")}</Label>
                         <Select value={effect} onValueChange={setEffect}>
                             <SelectTrigger id="node-detail-effect">
                                 <SelectValue />
@@ -177,7 +193,7 @@ function TaintsPanel({ name, taints, onChanged }) {
                     </div>
                     <div className="flex items-end">
                         <Button variant="brand" onClick={add} disabled={busy || !key} className="w-full rounded-xl">
-                            <Plus className="mr-1.5 h-3.5 w-3.5" /> Add
+                            <Plus className="mr-1.5 h-3.5 w-3.5" /> {t("common:actions.add")}
                         </Button>
                     </div>
                 </div>
@@ -187,6 +203,7 @@ function TaintsPanel({ name, taints, onChanged }) {
 }
 
 export default function NodeDetail() {
+    const { t } = useTranslation();
     const { name } = useParams();
     const navigate = useNavigate();
     const [node, setNode] = useState(null);
@@ -211,10 +228,10 @@ export default function NodeDetail() {
         setBusy(action);
         try {
             await api.post(`/nodes/${encodeURIComponent(name)}/${path}`);
-            toast.success(`${name}: ${action} requested`);
+            toast.success(nodeActionRequested(t, action, name));
             await load();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(nodeActionFailed(t, action), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -225,11 +242,14 @@ export default function NodeDetail() {
         return (
             <div className="page space-y-4">
                 <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/nodes")}>
-                    <ArrowLeft className="h-3.5 w-3.5" /> Nodes
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:nodes.title")}
                 </button>
                 <GlassCard className="empty">
-                    Node <span className="mono text-foreground">{name}</span>{" "}
-                    {loadError === 404 ? "was not found." : "isn't available with your current permissions."}
+                    {loadError === 404 ? (
+                        <Trans i18nKey="pages:nodeDetail.notFound" values={{ name }} components={{ mono: <span className="mono text-foreground" /> }} />
+                    ) : (
+                        <Trans i18nKey="pages:nodeDetail.forbidden" values={{ name }} components={{ mono: <span className="mono text-foreground" /> }} />
+                    )}
                 </GlassCard>
             </div>
         );
@@ -244,11 +264,11 @@ export default function NodeDetail() {
     return (
         <div className="page space-y-6">
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-4 w-4" /> Back
+                <ArrowLeft className="h-4 w-4" /> {t("common:actions.back")}
             </button>
 
             <DetailHeader
-                eyebrow={`Node · ${node.role}`}
+                eyebrow={t("pages:nodeDetail.eyebrow", { role: node.role })}
                 name={node.name}
                 meta={
                     <>
@@ -263,58 +283,58 @@ export default function NodeDetail() {
                     <>
                         {node.status === "SchedulingDisabled" ? (
                             <Button variant="outline" disabled={busy === "uncordon"} onClick={() => act("uncordon", "uncordon")} className="rounded-xl">
-                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Uncordon
+                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> {t("pages:nodes.actions.uncordon")}
                             </Button>
                         ) : (
                             <Button variant="outline" disabled={busy === "cordon"} onClick={() => act("cordon", "cordon")} className="rounded-xl">
-                                <Ban className="mr-1.5 h-3.5 w-3.5" /> Cordon
+                                <Ban className="mr-1.5 h-3.5 w-3.5" /> {t("pages:nodes.actions.cordon")}
                             </Button>
                         )}
                         <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-soft-danger-border bg-soft-danger text-tone-red hover:bg-soft-danger">
-                            <LogOut className="mr-1.5 h-3.5 w-3.5" /> Drain
+                            <LogOut className="mr-1.5 h-3.5 w-3.5" /> {t("pages:nodes.actions.drain")}
                         </Button>
                     </>
                 }
             />
 
             <div className="stats">
-                <FeatureTile size="compact" mono label="Pods" value={`${node.pods}/${node.allocatablePods}`} />
-                <FeatureTile size="compact" mono icon={Cpu} label="Allocatable CPU" value={node.allocatableCpu} />
-                <FeatureTile size="compact" mono icon={MemoryStick} label="Allocatable Memory" value={node.allocatableMemory} />
-                <FeatureTile size="compact" mono label="Version" value={<span className="truncate">{node.version}</span>} />
+                <FeatureTile size="compact" mono label={t("pages:nodes.specs.pods")} value={`${node.pods}/${node.allocatablePods}`} />
+                <FeatureTile size="compact" mono icon={Cpu} label={t("pages:nodeDetail.allocatableCpu")} value={node.allocatableCpu} />
+                <FeatureTile size="compact" mono icon={MemoryStick} label={t("pages:nodeDetail.allocatableMemory")} value={node.allocatableMemory} />
+                <FeatureTile size="compact" mono label={t("common:fields.version")} value={<span className="truncate">{node.version}</span>} />
             </div>
 
             <Tabs defaultValue="overview">
                 <TabsList className="tabs h-auto flex-wrap gap-1 p-1">
                     <TabsTrigger value="overview" className="gap-1.5">
-                        <Box className="h-3.5 w-3.5" /> Details
+                        <Box className="h-3.5 w-3.5" /> {t("pages:nodeDetail.tabs.details")}
                     </TabsTrigger>
                     <TabsTrigger value="metrics" className="gap-1.5">
-                        <Activity className="h-3.5 w-3.5" /> Metrics
+                        <Activity className="h-3.5 w-3.5" /> {t("pages:nodeDetail.tabs.metrics")}
                     </TabsTrigger>
                     <TabsTrigger value="taints" className="gap-1.5">
-                        <Tag className="h-3.5 w-3.5" /> Taints ({(node.taints || []).length})
+                        <Tag className="h-3.5 w-3.5" /> {t("pages:nodeDetail.tabs.taints", { n: (node.taints || []).length })}
                     </TabsTrigger>
                     <TabsTrigger value="shell" className="gap-1.5">
-                        <TerminalIcon className="h-3.5 w-3.5" /> Shell
+                        <TerminalIcon className="h-3.5 w-3.5" /> {t("pages:nodeDetail.tabs.shell")}
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
                     <GlassCard>
                         <SpecTable
-                            title="System"
+                            title={t("pages:nodeDetail.system")}
                             columns={2}
                             rows={[
-                                { label: "OS image", value: node.osImage || "—", mono: true },
-                                { label: "Kernel", value: node.kernelVersion || "—", mono: true },
-                                { label: "Container runtime", value: node.containerRuntime || "—", mono: true },
+                                { label: t("pages:nodeDetail.osImage"), value: node.osImage || "—", mono: true },
+                                { label: t("pages:nodes.facts.kernel"), value: node.kernelVersion || "—", mono: true },
+                                { label: t("pages:nodeDetail.containerRuntime"), value: node.containerRuntime || "—", mono: true },
                             ]}
                         />
                     </GlassCard>
                     {(node.conditions || []).length > 0 && (
                         <GlassCard className="overflow-hidden">
-                            <div className="border-b px-4 py-3 text-sm font-medium">Conditions</div>
+                            <div className="border-b px-4 py-3 text-sm font-medium">{t("pages:nodeDetail.conditions")}</div>
                             {node.conditions.map((c, i) => (
                                 <div key={i} className="flex items-center justify-between border-b px-4 py-3 last:border-none text-xs">
                                     <span>{c.type}</span>

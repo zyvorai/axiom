@@ -263,6 +263,15 @@ Two themes via the top-bar toggle or **Settings → Appearance** (`lib/theme.js`
 
 Default is dark. ⌘K → "Toggle light/dark mode" also switches.
 
+## Languages
+
+The UI is translated into **English, Deutsch, Español and Français** with i18next + react-i18next (`src/lib/i18n.js`, strings in `src/locales/<lang>/<namespace>.json`, how-to in `src/locales/README.md`, terminology in `src/locales/GLOSSARY.md`). English is the source of truth, ships in the main bundle and is the fallback for any missing key; each other language is a lazily loaded chunk (with its date-fns locale) fetched before first paint when it is the saved choice.
+
+- **Choice:** `localStorage["axiom.lang"]`, else the browser language (`de-AT` → `de`), else English. Picked from the user menu, the login page footer and Settings → Appearance (a native `<select>`, `data-testid="language-select"`); switching sets `<html lang>` and re-renders in place.
+- **What stays English:** Kubernetes kinds and terms (Pod, Namespace, Deployment, Ingress…), YAML, field paths, metric names, `kubectl` commands, product names, and any text the API returns (errors, event messages, findings).
+- **Formatting:** `formatNumber` / `formatCurrency` (USD) / `formatDate` / `formatRelative` and `dateFnsLocale()` from `lib/i18n.js`; their English output is the same as before i18n.
+- **Guard:** `npm run lint:i18n` (part of `npm run lint`) fails on missing/extra keys, mismatched `{{placeholders}}`/`<tags>` or incomplete `_one`/`_other` plurals, and warns about JSX text that still looks hard-coded.
+
 ## Accessibility conventions
 
 The UI is audited with axe-core (WCAG 2.0 A/AA) on every route in both themes; the target is **zero** violations. What that requires in code:

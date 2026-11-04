@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import PageHeader from "@/components/PageHeader";
 import { usePageTitle } from "@/lib/pageTitle";
+import { useTranslation, Trans } from "react-i18next";
 import { Check, ShieldCheck, Cloudy, Radar, KeyRound, Database, Activity, ArrowRight } from "lucide-react";
 
 function useSetupStatus() {
@@ -27,15 +28,16 @@ function useSetupStatus() {
 }
 
 export default function Onboarding() {
-    usePageTitle("Getting started");
+    const { t } = useTranslation();
+    usePageTitle(t("pages:onboarding.title"));
     const status = useSetupStatus();
     const { user } = useAuth();
 
     if (!status) {
         return (
             <div className="page">
-                <PageHeader title="Getting started" />
-                <div className="card empty">Loading…</div>
+                <PageHeader title={t("pages:onboarding.title")} />
+                <div className="card empty">{t("common:states.loading")}</div>
             </div>
         );
     }
@@ -49,65 +51,59 @@ export default function Onboarding() {
             done: ssoConfigured,
             required: true,
             icon: ShieldCheck,
-            title: "Connect single sign-on",
-            description: ssoConfigured
-                ? "OIDC or SAML is configured — the SSO links on the login screen are live."
-                : "No OIDC/SAML provider configured yet. Local username and password sign-in works, but SSO is off.",
+            title: t("pages:onboarding.sso.title"),
+            description: ssoConfigured ? t("pages:onboarding.sso.done") : t("pages:onboarding.sso.todo"),
             to: "/settings",
-            cta: "Configure",
+            cta: t("pages:onboarding.configure"),
         },
         {
             done: !usingDemoDefaults,
             required: true,
             icon: KeyRound,
-            title: "Move off the demo credential",
-            description: usingDemoDefaults
-                ? "This instance runs with lab defaults. Set AXIOM_USERNAME and AXIOM_PASSWORD, or connect SSO, before it leaves the lab."
-                : "Not running with lab default credentials.",
+            title: t("pages:onboarding.demo.title"),
+            description: usingDemoDefaults ? t("pages:onboarding.demo.todo") : t("pages:onboarding.demo.done"),
             to: usingDemoDefaults ? "/settings" : null,
-            cta: "Fix now",
+            cta: t("pages:onboarding.fixNow"),
         },
         {
             done: !!integrations?.atlasConfigured,
             required: false,
             icon: Cloudy,
-            title: "Connect Atlas storage",
-            description: integrations?.atlasConfigured
-                ? "Atlas is wired — the Atlas page shows live backends, pools and volumes."
-                : "No storage control plane connected. Atlas shows volumes and pools and lets you provision storage once configured.",
+            title: t("pages:onboarding.atlas.title"),
+            description: integrations?.atlasConfigured ? t("pages:onboarding.atlas.done") : t("pages:onboarding.atlas.todo"),
             to: "/atlas",
-            cta: "View Atlas",
+            cta: t("pages:onboarding.atlas.cta"),
         },
         {
             done: !!packetwolf?.configured,
             required: false,
             icon: Radar,
-            title: "Connect PacketWolf networking",
+            title: t("pages:onboarding.packetwolf.title"),
             description: packetwolf?.configured
                 ? packetwolf.reachable
-                    ? "PacketWolf is connected. Live eBPF flow data shows on the Networking page."
-                    : "PacketWolf URL is set but unreachable — check AXIOM_PACKETWOLF_URL."
-                : "Set AXIOM_PACKETWOLF_URL to see live Cilium/eBPF flow data on the Networking page.",
+                    ? t("pages:onboarding.packetwolf.connected")
+                    : t("pages:onboarding.packetwolf.unreachable")
+                : t("pages:onboarding.packetwolf.todo"),
             to: "/networking",
-            cta: "View Networking",
+            cta: t("pages:onboarding.packetwolf.cta"),
         },
         {
             done: !!integrations?.postgresConfigured,
             required: false,
             icon: Database,
-            title: "Connect Postgres",
-            description: "Only needed for Postgres-backed features. Configure host and credentials in Settings.",
+            title: t("pages:onboarding.postgres.title"),
+            description: t("pages:onboarding.postgres.description"),
             to: "/settings",
-            cta: "Configure",
+            cta: t("pages:onboarding.configure"),
         },
         {
             done: !!integrations?.probeConfigured,
             required: false,
             icon: Activity,
-            title: "Connect an external probe",
-            description: "A synthetic-check target for platform health. Configure in Settings.",
+            title: t("pages:onboarding.probe.title"),
+            description: t("pages:onboarding.probe.description"),
             to: "/settings",
-            cta: "Configure",
+            cta: t("pages:onboarding.configure"),
         },
     ];
 
@@ -116,11 +112,11 @@ export default function Onboarding() {
     return (
         <div className="page rhythm">
             <section className="hero hero-media">
-                <h1>Getting started</h1>
-                <p>{`${user ? `Welcome, ${user.name}. ` : ""}Six steps to take this cluster from lab defaults to something you'd trust in production. Two are required.`}</p>
-                <div className="progress-row mx-auto mt-8 max-w-[420px]" role="group" aria-label="Setup progress">
+                <h1>{t("pages:onboarding.title")}</h1>
+                <p>{user ? t("pages:onboarding.introWelcome", { name: user.name }) : t("pages:onboarding.intro")}</p>
+                <div className="progress-row mx-auto mt-8 max-w-[420px]" role="group" aria-label={t("pages:onboarding.progressLabel")}>
                     <span>
-                        {doneCount} of {steps.length} complete
+                        {t("pages:onboarding.progress", { done: doneCount, total: steps.length })}
                     </span>
                     <div className="meter">
                         <i style={{ width: `${(doneCount / steps.length) * 100}%` }} />
@@ -136,11 +132,11 @@ export default function Onboarding() {
                                 <h2>
                                     <s.icon size={17} />
                                     {s.title}
-                                    {!s.required && <span className="pill soft">Optional</span>}
+                                    {!s.required && <span className="pill soft">{t("pages:onboarding.optional")}</span>}
                                     {s.done && (
                                         <span className="pill" style={{ "--c": "var(--green)" }}>
                                             <i aria-hidden="true" />
-                                            Done
+                                            {t("common:actions.done")}
                                         </span>
                                     )}
                                 </h2>
@@ -159,8 +155,7 @@ export default function Onboarding() {
                 </div>
             </div>
             <p className="text-[13px] text-ink-3 mt-[18px]">
-                Status is live from <span className="mono">/api/v1/integrations</span>, <span className="mono">/api/v1/packetwolf/status</span>{" "}
-                and <span className="mono">/api/v1/auth/providers</span>.
+                <Trans i18nKey="pages:onboarding.statusSource" components={{ code: <span className="mono" /> }} />
             </p>
         </div>
     );

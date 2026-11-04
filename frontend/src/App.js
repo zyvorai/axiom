@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { ClusterProvider } from "@/lib/cluster";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import AppShell from "@/components/AppShell";
+import { useLanguage } from "@/lib/i18n";
 import Login from "@/pages/Login";
 const Overview = lazy(() => import("@/pages/Overview"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
@@ -65,6 +66,9 @@ function LoginGate() {
 }
 
 export default function App() {
+    // Subscribing here re-renders the tree on a language switch, so text that is
+    // formatted outside a useTranslation() component (dates, numbers) updates too.
+    useLanguage();
     return (
         <ThemeProvider>
             <AuthProvider>

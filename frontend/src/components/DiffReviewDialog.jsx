@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { DIFF } from "@/constants/testIds";
 import DiffReview, { canApply, useManifestReview } from "@/components/DiffReview";
@@ -13,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
  * honestly (a backend that cannot apply says so and nothing is claimed as applied).
  */
 export default function DiffReviewDialog({ open, onOpenChange, manifest, fallbackKind = "manifest", onApplied }) {
+    const { t } = useTranslation();
     const { review, run, reset } = useManifestReview();
     const [busy, setBusy] = useState(false);
     const [failure, setFailure] = useState(null);
@@ -33,16 +35,16 @@ export default function DiffReviewDialog({ open, onOpenChange, manifest, fallbac
             const { data } = await api.post("/apply", { manifest });
             if (!data.valid) {
                 const msg = (data.errors || [data.message]).filter(Boolean).join(", ");
-                toast.error("Apply failed", { description: msg });
+                toast.error(t("toasts:diffReview.applyFailed"), { description: msg });
                 setFailure(msg);
                 return;
             }
-            toast.success(`Applied ${data.kind || fallbackKind}`);
+            toast.success(t("toasts:diffReview.applied", { kind: data.kind || fallbackKind }));
             onOpenChange(false);
             onApplied?.(data);
         } catch (e) {
             const msg = e?.response?.data?.error || e.message;
-            toast.error("Apply failed", { description: msg });
+            toast.error(t("toasts:diffReview.applyFailed"), { description: msg });
             setFailure(msg);
         } finally {
             setBusy(false);
@@ -53,9 +55,9 @@ export default function DiffReviewDialog({ open, onOpenChange, manifest, fallbac
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl" data-testid={DIFF.dialog}>
                 <DialogHeader>
-                    <DialogTitle>Review changes</DialogTitle>
+                    <DialogTitle>{t("dialogs:diffReview.title")}</DialogTitle>
                     <DialogDescription>
-                        This is what applying your edit changes on the cluster. Nothing is applied until you press Apply.
+                        {t("dialogs:diffReview.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <DiffReview review={review} />
@@ -66,7 +68,7 @@ export default function DiffReviewDialog({ open, onOpenChange, manifest, fallbac
                 )}
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
-                        Cancel
+                        {t("common:actions.cancel")}
                     </Button>
                     <Button
                         variant="brand"
@@ -75,7 +77,7 @@ export default function DiffReviewDialog({ open, onOpenChange, manifest, fallbac
                         disabled={busy || !canApply(review, manifest)}
                         className="rounded-xl"
                     >
-                        {busy ? "Applying…" : "Apply"}
+                        {busy ? t("dialogs:diffReview.applying") : t("common:actions.apply")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
@@ -13,6 +14,7 @@ import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
 
 export default function Storage() {
+    const { t } = useTranslation();
     const [volumes, setVolumes] = useState(null);
     const [storageClasses, setStorageClasses] = useState(null);
     const [persistentVolumes, setPersistentVolumes] = useState(null);
@@ -25,10 +27,10 @@ export default function Storage() {
         load();
         api.get("/storageclasses").then((r) => alive && setStorageClasses(r.data || [])).catch(() => alive && setStorageClasses([]));
         api.get("/persistentvolumes").then((r) => alive && setPersistentVolumes(r.data || [])).catch(() => alive && setPersistentVolumes([]));
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -67,11 +69,11 @@ export default function Storage() {
     return (
         <div data-testid={STORAGE.root} className="page">
             <PageHeader
-                title="Storage"
-                description="StorageClasses and PersistentVolumeClaims across all namespaces."
+                title={t("pages:storage.title")}
+                description={t("pages:storage.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search claim name" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:storage.searchPlaceholder")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="storage"
@@ -93,23 +95,23 @@ export default function Storage() {
                             <Database size={14} className="text-tone-link" aria-hidden="true" />
                             <span className="mono">{sc.name}</span>
                         </span>
-                        <em>{sc.count === 1 ? "claim" : "claims"}</em>
+                        <em>{t("pages:storage.claimUnit", { count: sc.count })}</em>
                     </div>
                 ))}
             </div>
 
             <div className="card overflow-hidden mt-3.5 p-0">
-                <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Persistent volume claims">
+                <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:storage.claimsRegion")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Claim</th>
-                                <th>Namespace</th>
-                                <th>Class</th>
-                                <th>Size</th>
-                                <th>Volume</th>
-                                <th>Access</th>
-                                <th>Status</th>
+                                <th>{t("pages:storage.columns.claim")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("pages:storage.columns.class")}</th>
+                                <th>{t("pages:storage.columns.size")}</th>
+                                <th>{t("pages:storage.columns.volume")}</th>
+                                <th>{t("pages:storage.columns.access")}</th>
+                                <th>{t("common:fields.status")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,7 +136,7 @@ export default function Storage() {
                             {claims.length === 0 && (
                                 <tr>
                                     <td colSpan={7}>
-                                        <div className="empty">No claims match the current filters.</div>
+                                        <div className="empty">{t("pages:storage.empty")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -144,20 +146,20 @@ export default function Storage() {
             </div>
 
             <div className="section-h mt-10">
-                <h2>Raw resources</h2>
+                <h2>{t("pages:storage.rawResources")}</h2>
             </div>
             <div className="grid g2">
                 <AutoTable
                     title="StorageClasses"
                     icon={Layers}
                     items={storageClasses}
-                    emptyHint={storageClasses === null ? "Loading…" : "No StorageClasses found."}
+                    emptyHint={storageClasses === null ? t("common:states.loading") : t("pages:storage.noStorageClasses")}
                 />
                 <AutoTable
                     title="PersistentVolumes"
                     icon={HardDrive}
                     items={persistentVolumes}
-                    emptyHint={persistentVolumes === null ? "Loading…" : "No PersistentVolumes found."}
+                    emptyHint={persistentVolumes === null ? t("common:states.loading") : t("pages:storage.noPersistentVolumes")}
                 />
             </div>
         </div>

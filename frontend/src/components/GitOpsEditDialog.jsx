@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Save } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { api } from "@/lib/api";
 import MacTerm from "@/components/MacTerm";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { GITOPS_EDIT as T } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:gitops.generic");
 
 function Field({ id, label, testId, value, onChange, placeholder, disabled }) {
     return (
@@ -33,6 +35,7 @@ function toBody(f) {
 
 /** Edit an application's managed fields in place: review the structured change, then save. */
 export default function GitOpsEditDialog({ app, onClose, onSaved }) {
+    const { t } = useTranslation();
     const [obj, setObj] = useState(null);
     const [form, setForm] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -87,7 +90,7 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
         setError("");
         try {
             await api.put(`/gitops/${app.kind}/${app.namespace}/${encodeURIComponent(app.name)}`, body);
-            toast.success(`Updated ${app.name}`);
+            toast.success(t("toasts:gitopsEdit.updated", { name: app.name }));
             onSaved();
             onClose();
         } catch (e) {
@@ -105,9 +108,9 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
         <Dialog open={!!app} onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="max-w-2xl" data-testid={T.dialog}>
                 <DialogHeader>
-                    <DialogTitle>Edit {app.name}</DialogTitle>
+                    <DialogTitle>{t("dialogs:gitopsEdit.title", { name: app.name })}</DialogTitle>
                     <DialogDescription>
-                        {app.kind} · {app.namespace}. Only the fields below are changed; everything else on the object is left alone.
+                        {t("dialogs:gitopsEdit.description", { kind: app.kind, namespace: app.namespace })}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -115,13 +118,13 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
                 {error ? (
                     <div className="notice danger" role="alert" data-testid={stale ? T.stale : T.error}>
                         {error}
-                        {stale ? " Close this dialog and open it again to start from the current version." : ""}
+                        {stale ? t("dialogs:gitopsEdit.staleHint") : ""}
                     </div>
                 ) : null}
 
                 {obj && !obj.editable && (
                     <div className="notice" data-testid={T.notEditable}>
-                        This application uses settings the form cannot represent, so it is shown read-only:
+                        {t("dialogs:gitopsEdit.notEditable")}
                         <ul className="mt-1 list-disc pl-5" data-testid={T.reasons}>
                             {(obj.reasons || []).map((r) => (
                                 <li key={r}>{r}</li>
@@ -131,22 +134,22 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
                 )}
 
                 {obj?.editable && form && (
-                    <div tabIndex={0} role="region" aria-label="Application settings" className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+                    <div tabIndex={0} role="region" aria-label={t("dialogs:gitopsEdit.region")} className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
                         <div className="grid gap-3 sm:grid-cols-2">
                             {helmSource ? (
-                                <Field id="gitops-edit-chart-version" label="Chart version" testId={T.chartVersion} value={form.source.chartVersion} onChange={(v) => setSource({ chartVersion: v })} />
+                                <Field id="gitops-edit-chart-version" label={t("dialogs:gitops.create.chartVersion")} testId={T.chartVersion} value={form.source.chartVersion} onChange={(v) => setSource({ chartVersion: v })} />
                             ) : (
                                 <>
-                                    <Field id="gitops-edit-revision" label="Branch, tag or commit" testId={T.revision} value={form.source.revision} onChange={(v) => setSource({ revision: v })} />
-                                    <Field id="gitops-edit-path" label="Path in the repository" testId={T.path} value={form.source.path} onChange={(v) => setSource({ path: v })} />
+                                    <Field id="gitops-edit-revision" label={t("dialogs:gitops.create.revision")} testId={T.revision} value={form.source.revision} onChange={(v) => setSource({ revision: v })} />
+                                    <Field id="gitops-edit-path" label={t("dialogs:gitops.create.path")} testId={T.path} value={form.source.path} onChange={(v) => setSource({ path: v })} />
                                 </>
                             )}
-                            <Field id="gitops-edit-dest-namespace" label="Deploy into namespace" testId={T.destNamespace} value={form.destination?.namespace} onChange={(v) => set({ destination: { ...form.destination, namespace: v } })} />
-                            {flux && <Field id="gitops-edit-interval" label="Reconcile interval" testId={T.interval} value={form.interval} onChange={(v) => set({ interval: v })} />}
+                            <Field id="gitops-edit-dest-namespace" label={t("dialogs:gitops.create.destNamespace")} testId={T.destNamespace} value={form.destination?.namespace} onChange={(v) => set({ destination: { ...form.destination, namespace: v } })} />
+                            {flux && <Field id="gitops-edit-interval" label={t("dialogs:gitops.create.interval")} testId={T.interval} value={form.interval} onChange={(v) => set({ interval: v })} />}
                         </div>
                         {helmSource && (
                             <div className="space-y-1.5">
-                                <Label htmlFor="gitops-edit-values" className="text-xs text-muted-foreground">Values YAML</Label>
+                                <Label htmlFor="gitops-edit-values" className="text-xs text-muted-foreground">{t("dialogs:gitopsEdit.valuesYaml")}</Label>
                                 <MacTerm title="values.yaml" bodyClassName="!p-0">
                                     <Textarea id="gitops-edit-values" data-testid={T.values} value={form.values || ""} onChange={(e) => set({ values: e.target.value })} className="macos-term-body mono min-h-[110px] resize-y rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0" spellCheck={false} />
                                 </MacTerm>
@@ -154,11 +157,11 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
                         )}
                         {form.syncPolicy && form.engine === "argocd" && (
                             <fieldset className="space-y-1.5 rounded-xl border border-border p-3">
-                                <legend className="px-1 text-xs text-muted-foreground">Sync</legend>
-                                {[["automated", "Sync automatically"], ["prune", "Prune resources removed from Git"], ["selfHeal", "Self-heal manual changes"]].map(([k, l]) => (
+                                <legend className="px-1 text-xs text-muted-foreground">{t("dialogs:gitops.create.sync")}</legend>
+                                {[["automated", "dialogs:gitopsEdit.automated"], ["prune", "dialogs:gitopsEdit.prune"], ["selfHeal", "dialogs:gitopsEdit.selfHeal"]].map(([k, lKey]) => (
                                     <label key={k} className="flex cursor-pointer items-center gap-2 text-sm">
                                         <input type="checkbox" checked={!!form.syncPolicy[k]} onChange={(e) => setSync({ [k]: e.target.checked })} className="h-4 w-4 rounded border-border accent-primary" />
-                                        {l}
+                                        {t(lKey)}
                                     </label>
                                 ))}
                             </fieldset>
@@ -169,13 +172,13 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
                 {preview && (
                     <div className="space-y-2">
                         {preview.noop ? (
-                            <p className="text-sm text-ink-3" data-testid={T.noop}>Nothing would change.</p>
+                            <p className="text-sm text-ink-3" data-testid={T.noop}>{t("dialogs:gitopsEdit.noop")}</p>
                         ) : (
                             <ul className="divide-y divide-border rounded-xl border border-border" data-testid={T.changes}>
                                 {preview.changes.map((c) => (
                                     <li key={`${c.object}/${c.field}`} className="px-3 py-2 text-sm">
                                         <span className="mono text-[12px] text-ink-3">{c.object}</span> <b>{c.field}</b>
-                                        <div className="mono text-[12px]">{String(c.from ?? "(none)")} → {String(c.to ?? "(none)")}</div>
+                                        <div className="mono text-[12px]">{String(c.from ?? t("dialogs:gitopsEdit.none"))} → {String(c.to ?? t("dialogs:gitopsEdit.none"))}</div>
                                     </li>
                                 ))}
                             </ul>
@@ -183,16 +186,16 @@ export default function GitOpsEditDialog({ app, onClose, onSaved }) {
                         {(preview.warnings || []).map((w) => (
                             <p key={w} className="text-[11.5px] text-tone-amber">{w}</p>
                         ))}
-                        {!current && <p className="text-[11.5px] text-ink-3">You changed a field after previewing — preview again.</p>}
+                        {!current && <p className="text-[11.5px] text-ink-3">{t("dialogs:gitopsEdit.staleChange")}</p>}
                     </div>
                 )}
 
                 <DialogFooter className="gap-2">
                     <button type="button" className="btn btn-line" data-testid={T.preview} onClick={doPreview} disabled={!!busy || !obj?.editable}>
-                        <Eye size={14} /> {busy === "preview" ? "Comparing…" : "Preview changes"}
+                        <Eye size={14} /> {busy === "preview" ? t("dialogs:gitopsEdit.comparing") : t("dialogs:gitopsEdit.previewChanges")}
                     </button>
                     <button type="button" className="btn btn-fill" data-testid={T.save} onClick={save} disabled={!!busy || !current || preview?.noop}>
-                        <Save size={14} /> {busy === "save" ? "Saving…" : "Save"}
+                        <Save size={14} /> {busy === "save" ? t("common:actions.saving") : t("common:actions.save")}
                     </button>
                 </DialogFooter>
             </DialogContent>

@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "@/axiom-shell.css";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
@@ -17,7 +18,7 @@ import { useAuth } from "@/lib/auth";
 import LoadErrorBanner from "@/components/LoadErrorBanner";
 import { clearApiFailures } from "@/lib/apiHealth";
 import { defaultTitle } from "@/lib/pageTitle";
-import { NAV_ITEMS } from "@/constants/navItems";
+import { NAV_ITEMS, navLabel } from "@/constants/navItems";
 import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/sidebar";
 
 const MOBILE_BREAKPOINT = 900;
@@ -32,6 +33,7 @@ export default function AppShell() {
 
 function Shell() {
     const { user } = useAuth();
+    const { t, i18n } = useTranslation();
     // AXIOM_REQUIRE_MFA covers this account but it has not enrolled: the API
     // refuses everything except enrolment, so show only the enrolment screen.
     const mfaGated = !!(user?.mfa?.required && !user.mfa.enrolled);
@@ -50,8 +52,8 @@ function Shell() {
     // so a page's own usePageTitle still wins; this only covers states with no header
     // (loading, "not found", a deleted job) that would otherwise keep a stale/generic title.
     useLayoutEffect(() => {
-        document.title = defaultTitle(pathname, NAV_ITEMS);
-    }, [pathname]);
+        document.title = defaultTitle(pathname, NAV_ITEMS.map((n) => ({ ...n, label: navLabel(t, n) })));
+    }, [pathname, t, i18n.language]);
     // failures belong to the page that caused them
     useEffect(() => clearApiFailures(), [pathname]);
 
@@ -94,7 +96,7 @@ function Shell() {
                         mainRef.current?.focus();
                     }}
                 >
-                    Skip to content
+                    {t("nav:shell.skipToContent")}
                 </a>
                 <CommandPalette />
                 <ShortcutsDialog />

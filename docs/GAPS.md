@@ -38,6 +38,15 @@ Closed or substantially narrowed in the current tree (see CHANGELOG):
 - LDAP group-based role mapping (`AXIOM_LDAP_ADMIN_GROUP`/`AXIOM_LDAP_VIEWER_GROUP`/`AXIOM_LDAP_GROUP_ATTR`) — only for the `AXIOM_LDAP_BASE_DN`-constructed bind form; AD-style NetBIOS/UPN binds still always get the `operator` default
 - Two-factor sign-in for LDAP directory accounts: same enrolment, login, replay protection, throttling and `AXIOM_REQUIRE_MFA` policy as local accounts, records in the `zyvor-axiom-external-mfa` Secret, admin list (`GET /api/v1/users/external-mfa`) and reset
 
+- UI languages: English, Deutsch, Español and Français (`frontend/src/locales`, `npm run lint:i18n`) — every page (43 of 43 page components) and every shared component that shows text (90 of the 102 page/component files; the other 12 have no text of their own), about 1,950 strings per language
+
+Known UI limitations (reviewed, not yet fixed):
+
+- **Not translated, by design:** Kubernetes kinds and API terms (Pod, Namespace, Deployment, StorageClasses, NetworkPolicies, …), YAML/JSON, field paths, metric names, units (`MiB`, `GiB`, `m`, `vCPU`), `kubectl`/`virtctl` commands, example placeholders (`tenant-b`, URLs, cron expressions), product names, and everything the API returns (error messages, event messages, health and security findings, rightsizing notes, AI answers)
+- **Not translated yet:** user and role names as stored (`admin`, `viewer`), the AI provider names and the "(rate limited)" suffix in `lib/ai.js`, terminal window titles (`exec — …`, `logs — …`), and a handful of short labels the `lint:i18n` heuristic still lists (about 20, mostly Kubernetes kind headings)
+- **English wording quirks are kept on purpose:** where the English UI always printed a plural ("1 nodes total", "1 keys", "1 charts") the English string is unchanged so existing tests stay valid; German, Spanish and French use the correct singular
+- **Four languages, no right-to-left support.** Dates and numbers follow the UI language, not a separate regional setting, and money is always USD (the cost model's currency)
+
 Known security limitations (reviewed, not yet fixed):
 
 - **Two-factor sign-in does not cover SSO accounts** (they rely on the IdP's MFA), and a person who loses both their device and their recovery codes needs an administrator to reset it. A directory account's enrolment status may take up to 5 s to reach other replicas (codes themselves are always checked against the shared Secret)

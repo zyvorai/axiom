@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -29,6 +30,7 @@ import { toast } from "sonner";
 const POLICIES = ["production", "database", "development", "shared", "ai"];
 
 function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ name: "", policy: "development", size_gi: 10, namespace: "default", create_pvc: true });
     const [busy, setBusy] = useState(false);
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -38,11 +40,11 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
         setBusy(true);
         try {
             await api.post("/atlas/volumes", form);
-            toast.success(`Volume ${form.name} requested`, { description: "Provisioning runs as an async job in Atlas." });
+            toast.success(t("toasts:atlas.volumeRequested", { name: form.name }), { description: t("toasts:atlas.volumeRequestedDescription") });
             onOpenChange(false);
             onCreated?.();
         } catch (e) {
-            toast.error("Create volume failed", { description: e?.response?.data?.error?.message || e?.response?.data?.error || e.message });
+            toast.error(t("toasts:atlas.createFailed"), { description: e?.response?.data?.error?.message || e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -52,15 +54,15 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create volume</DialogTitle>
+                    <DialogTitle>{t("dialogs:atlas.createVolume.title")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="atlas-name" className="text-xs text-muted-foreground">Name</Label>
+                        <Label htmlFor="atlas-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                         <Input id="atlas-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="billing-db-root" className="bg-muted/30" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="atlas-policy" className="text-xs text-muted-foreground">Policy</Label>
+                        <Label htmlFor="atlas-policy" className="text-xs text-muted-foreground">{t("dialogs:atlas.createVolume.policy")}</Label>
                         <Select value={form.policy} onValueChange={(v) => set({ policy: v })}>
                             <SelectTrigger id="atlas-policy" className="bg-muted/30">
                                 <SelectValue />
@@ -76,18 +78,18 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="atlas-size" className="text-xs text-muted-foreground">Size (GiB)</Label>
+                            <Label htmlFor="atlas-size" className="text-xs text-muted-foreground">{t("dialogs:atlas.createVolume.size")}</Label>
                             <Input id="atlas-size" type="number" min={1} value={form.size_gi} onChange={(e) => set({ size_gi: Number(e.target.value) })} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="atlas-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="atlas-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="atlas-namespace" value={form.namespace} onChange={(e) => set({ namespace: e.target.value })} className="bg-muted/30" />
                         </div>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="brand" onClick={submit} disabled={busy || !form.name} className="rounded-xl">
-                        {busy ? "Requesting…" : "Create"}
+                        {busy ? t("dialogs:atlas.createVolume.requesting") : t("common:actions.create")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -96,6 +98,7 @@ function CreateVolumeDialog({ open, onOpenChange, onCreated }) {
 }
 
 export default function Atlas() {
+    const { t } = useTranslation();
     const [data, setData] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -105,10 +108,10 @@ export default function Atlas() {
         let alive = true;
         const tick = () => api.get("/atlas").then((r) => alive && setData(r.data));
         tick();
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -124,19 +127,19 @@ export default function Atlas() {
         return (
             <div className="page">
                 <PageHeader
-                    title="Atlas"
-                    description="Storage control plane — Ceph, NFS and ZFS behind one API."
+                    title={t("pages:atlas.title")}
+                    description={t("pages:atlas.description")}
                 />
                 <GlassCard className="flex items-center gap-4">
                     <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-soft-warning text-tone-amber">
                         <ShieldAlert className="h-5 w-5" />
                     </div>
                     <div>
-                        <div className="text-sm font-medium">Atlas not connected</div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">{data.reason || "Configure the Atlas gateway URL."}</div>
+                        <div className="text-sm font-medium">{t("pages:atlas.notConnected")}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{data.reason || t("pages:atlas.configureGateway")}</div>
                     </div>
                     <Link to="/settings" className="btn btn-line ml-auto">
-                        Open Settings
+                        {t("pages:atlas.openSettings")}
                     </Link>
                 </GlassCard>
             </div>
@@ -154,17 +157,17 @@ export default function Atlas() {
     return (
         <div className="page">
             <PageHeader
-                title="Atlas"
-                description="Storage control plane — Ceph, NFS and ZFS behind one API."
+                title={t("pages:atlas.title")}
+                description={t("pages:atlas.description")}
                 action={
                     <>
                         {data.consoleURL && (
                             <a href={data.consoleURL} target="_blank" rel="noreferrer" className="btn btn-line">
-                                <ExternalLink size={14} /> Console
+                                <ExternalLink size={14} /> {t("pages:atlas.console")}
                             </a>
                         )}
                         <button type="button" className="btn btn-fill" onClick={() => setDialogOpen(true)}>
-                            <Plus size={15} /> Create volume
+                            <Plus size={15} /> {t("pages:atlas.createVolume")}
                         </button>
                     </>
                 }
@@ -173,12 +176,12 @@ export default function Atlas() {
             {metrics && (
                 <div className="grid gap-4 md:grid-cols-3">
                     {[
-                        { label: "Raw capacity", value: metrics.raw_capacity_bytes, icon: Server },
-                        { label: "Used", value: metrics.used_capacity_bytes, icon: HardDrive },
-                        { label: "Available", value: metrics.available_capacity_bytes, icon: Database },
+                        { id: "raw", label: t("pages:atlas.metrics.raw"), value: metrics.raw_capacity_bytes, icon: Server },
+                        { id: "used", label: t("pages:atlas.metrics.used"), value: metrics.used_capacity_bytes, icon: HardDrive },
+                        { id: "available", label: t("pages:atlas.metrics.available"), value: metrics.available_capacity_bytes, icon: Database },
                     ].map((c) => (
                         <FeatureTile
-                            key={c.label}
+                            key={c.id}
                             label={c.label}
                             icon={c.icon}
                             value={
@@ -193,15 +196,15 @@ export default function Atlas() {
             )}
 
             <div className="grid gap-4 lg:grid-cols-2">
-                <AutoTable title="Backends" icon={Server} items={backends} emptyHint="No storage backends registered." />
-                <AutoTable title="Pools" icon={Database} items={pools} emptyHint="No pools discovered yet." />
+                <AutoTable title={t("pages:atlas.backends")} icon={Server} items={backends} emptyHint={t("pages:atlas.noBackends")} />
+                <AutoTable title={t("pages:atlas.pools")} icon={Database} items={pools} emptyHint={t("pages:atlas.noPools")} />
             </div>
 
-            <AutoTable title="Volumes" icon={HardDrive} items={volumes} emptyHint="No volumes provisioned through Atlas yet." />
+            <AutoTable title={t("pages:atlas.volumes")} icon={HardDrive} items={volumes} emptyHint={t("pages:atlas.noVolumes")} />
 
             <div className="grid gap-4 lg:grid-cols-2">
-                <AutoTable title="Buckets" icon={Package} items={buckets} emptyHint="No object buckets provisioned." />
-                <AutoTable title="Policies" icon={ShieldAlert} items={policies} emptyHint="No intent policies configured." />
+                <AutoTable title={t("pages:atlas.buckets")} icon={Package} items={buckets} emptyHint={t("pages:atlas.noBuckets")} />
+                <AutoTable title={t("pages:atlas.policies")} icon={ShieldAlert} items={policies} emptyHint={t("pages:atlas.noPolicies")} />
             </div>
 
             {storageClasses.length > 0 && (

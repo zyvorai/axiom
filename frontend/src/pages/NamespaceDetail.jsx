@@ -18,12 +18,14 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Box, Network, Layers } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 function Empty({ hint }) {
     return <div className="px-4 py-10 text-center text-sm text-muted-foreground">{hint}</div>;
 }
 
 export default function NamespaceDetail() {
+    const { t } = useTranslation();
     const { name } = useParams();
     const navigate = useNavigate();
     const ns = decodeURIComponent(name || "");
@@ -52,10 +54,10 @@ export default function NamespaceDetail() {
             });
         };
         load();
-        const t = setInterval(load, 10000);
+        const timer = setInterval(load, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, [ns]);
 
@@ -77,10 +79,10 @@ export default function NamespaceDetail() {
         return (
             <div className="page space-y-6">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/namespaces")} className="gap-1.5">
-                    <ArrowLeft className="h-3.5 w-3.5" /> Namespaces
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:namespaces.title")}
                 </Button>
                 <GlassCard className="p-8 text-center text-sm text-muted-foreground">
-                    Namespace <span className="mono text-foreground">{ns}</span> was not found.
+                    <Trans i18nKey="pages:namespaceDetail.notFound" values={{ name: ns }} components={{ mono: <span className="mono text-foreground" /> }} />
                 </GlassCard>
             </div>
         );
@@ -89,7 +91,7 @@ export default function NamespaceDetail() {
     return (
         <div className="page space-y-6">
             <DetailHeader
-                eyebrow="Namespace"
+                eyebrow={t("common:fields.namespace")}
                 name={ns}
                 meta={
                     <>
@@ -98,49 +100,49 @@ export default function NamespaceDetail() {
                         <span>{meta.age || "—"}</span>
                         <span>·</span>
                         <span>
-                            {runningPods}/{pods.length} pods running
+                            {t("pages:namespaceDetail.podsRunning", { running: runningPods, total: pods.length })}
                         </span>
                     </>
                 }
                 action={
                     <Button variant="outline" size="sm" onClick={() => navigate("/namespaces")} className="rounded-xl gap-1.5">
-                        <ArrowLeft className="h-3.5 w-3.5" /> All namespaces
+                        <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:namespaceDetail.allNamespaces")}
                     </Button>
                 }
             />
 
             <div className="stats c3">
-                <FeatureTile icon={Box} label="Pods" value={pods.length} />
-                <FeatureTile icon={Layers} label="Workloads" value={workloads.length} />
-                <FeatureTile icon={Network} label="Services" value={services.length} />
+                <FeatureTile icon={Box} label={t("pages:namespaces.specs.pods")} value={pods.length} />
+                <FeatureTile icon={Layers} label={t("pages:namespaceDetail.workloads")} value={workloads.length} />
+                <FeatureTile icon={Network} label={t("pages:namespaces.specs.services")} value={services.length} />
             </div>
 
             <Tabs defaultValue="pods">
                 <TabsList className="tabs">
                     <TabsTrigger value="pods" className="gap-1.5">
-                        <Box className="h-3.5 w-3.5" /> Pods ({pods.length})
+                        <Box className="h-3.5 w-3.5" /> {t("pages:namespaceDetail.tabs.pods", { n: pods.length })}
                     </TabsTrigger>
                     <TabsTrigger value="workloads" className="gap-1.5">
-                        <Layers className="h-3.5 w-3.5" /> Workloads ({workloads.length})
+                        <Layers className="h-3.5 w-3.5" /> {t("pages:namespaceDetail.tabs.workloads", { n: workloads.length })}
                     </TabsTrigger>
                     <TabsTrigger value="services" className="gap-1.5">
-                        <Network className="h-3.5 w-3.5" /> Services ({services.length})
+                        <Network className="h-3.5 w-3.5" /> {t("pages:namespaceDetail.tabs.services", { n: services.length })}
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="pods" className="mt-4">
                     <GlassCard className="overflow-hidden">
                         {pods.length === 0 ? (
-                            <Empty hint="No pods in this namespace." />
+                            <Empty hint={t("pages:namespaceDetail.noPods")} />
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Ready</TableHead>
-                                        <TableHead>Node</TableHead>
-                                        <TableHead>Age</TableHead>
+                                        <TableHead>{t("common:fields.name")}</TableHead>
+                                        <TableHead>{t("common:fields.status")}</TableHead>
+                                        <TableHead>{t("common:fields.ready")}</TableHead>
+                                        <TableHead>{t("common:fields.node")}</TableHead>
+                                        <TableHead>{t("common:fields.age")}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -168,17 +170,17 @@ export default function NamespaceDetail() {
                 <TabsContent value="workloads" className="mt-4">
                     <GlassCard className="overflow-hidden">
                         {workloads.length === 0 ? (
-                            <Empty hint="No workloads in this namespace." />
+                            <Empty hint={t("pages:namespaceDetail.noWorkloads")} />
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Kind</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Ready</TableHead>
-                                        <TableHead>Desired</TableHead>
-                                        <TableHead>Age</TableHead>
+                                        <TableHead>{t("common:fields.name")}</TableHead>
+                                        <TableHead>{t("common:fields.kind")}</TableHead>
+                                        <TableHead>{t("common:fields.status")}</TableHead>
+                                        <TableHead>{t("common:fields.ready")}</TableHead>
+                                        <TableHead>{t("pages:namespaceDetail.columns.desired")}</TableHead>
+                                        <TableHead>{t("common:fields.age")}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -215,16 +217,16 @@ export default function NamespaceDetail() {
                 <TabsContent value="services" className="mt-4">
                     <GlassCard className="overflow-hidden">
                         {services.length === 0 ? (
-                            <Empty hint="No services in this namespace." />
+                            <Empty hint={t("pages:namespaceDetail.noServices")} />
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Cluster IP</TableHead>
-                                        <TableHead>Ports</TableHead>
-                                        <TableHead>Age</TableHead>
+                                        <TableHead>{t("common:fields.name")}</TableHead>
+                                        <TableHead>{t("common:fields.type")}</TableHead>
+                                        <TableHead>{t("pages:services.columns.clusterIp")}</TableHead>
+                                        <TableHead>{t("pages:services.columns.ports")}</TableHead>
+                                        <TableHead>{t("common:fields.age")}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -266,9 +268,9 @@ export default function NamespaceDetail() {
                         )}
                     </GlassCard>
                     <p className="mt-3 text-xs text-muted-foreground">
-                        Prefer the cluster-wide list?{" "}
+                        {t("pages:namespaceDetail.preferClusterWide")}{" "}
                         <Link to="/services" className="text-tone-link underline-offset-2 hover:underline">
-                            Open Services
+                            {t("pages:namespaceDetail.openServices")}
                         </Link>
                     </p>
                 </TabsContent>

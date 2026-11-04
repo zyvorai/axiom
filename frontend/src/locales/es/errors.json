@@ -1,0 +1,47 @@
+{
+  "generic": "Algo ha ido mal",
+  "loadBanner": {
+    "offlineTitle": "No se puede conectar con el servidor.",
+    "failedTitle": "No se pudieron cargar algunos datos.",
+    "offlineHint": "Compruebe su conexión: esta página puede estar desactualizada.",
+    "failedHint_one": "El servidor devolvió un error ({{count}} solicitud). Lo que ve puede estar incompleto.",
+    "failedHint_other": "El servidor devolvió un error ({{count}} solicitudes). Lo que ve puede estar incompleto."
+  },
+  "boundary": {
+    "updatedTitle": "Axiom se ha actualizado",
+    "crashTitle": "Esta página ha tenido un problema",
+    "updatedHint": "Hay una versión más reciente, por eso esta página no se pudo cargar. Recargue para obtenerla.",
+    "crashHint": "Algo falló al mostrar esta página. El resto de la aplicación funciona.",
+    "goOverview": "Ir al resumen"
+  },
+  "fleet": {
+    "searchFailed": "La búsqueda falló",
+    "switchFailed": "No se pudo cambiar de clúster",
+    "loadFailed": "No se pudo cargar la flota"
+  },
+  "ops": {
+    "rulesJson": "Las reglas deben ser JSON válido",
+    "subjectsJson": "Los sujetos deben ser JSON válido"
+  },
+  "rbac": {
+    "requestFailed": "La solicitud falló"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "No se pudo cargar"
+  },
+  "costPanels": {
+    "generic": "Algo salió mal"
+  },
+  "gitops": {
+    "generic": "Algo salió mal"
+  },
+  "helmCatalog": {
+    "generic": "Algo salió mal"
+  },
+  "workloads": {
+    "dnsLabel": "Use minúsculas, números y “-” (debe empezar y terminar con una letra o un número, máx. 63)."
+  },
+  "autoscalingCreate": {
+    "generic": "Algo salió mal"
+  }
+}

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -33,6 +34,7 @@ import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
 
 function ExecDialog({ pod, onOpenChange }) {
+    const { t } = useTranslation();
     const containers = pod.containers && pod.containers.length ? pod.containers : [""];
     const [container, setContainer] = useState(containers[0]);
     const [command, setCommand] = useState("ls -la");
@@ -59,12 +61,12 @@ function ExecDialog({ pod, onOpenChange }) {
         <Dialog open onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
-                    <DialogTitle className="mono text-sm">Exec · {pod.name}</DialogTitle>
+                    <DialogTitle className="mono text-sm">{t("dialogs:pods.exec.title", { name: pod.name })}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                     {containers.length > 1 && (
                         <Select value={container} onValueChange={setContainer}>
-                            <SelectTrigger aria-label="Container" className="bg-muted/30">
+                            <SelectTrigger aria-label={t("dialogs:pods.exec.container")} className="bg-muted/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -85,14 +87,14 @@ function ExecDialog({ pod, onOpenChange }) {
                             placeholder="ls -la"
                         />
                         <Button variant="brand" onClick={run} disabled={busy} className="shrink-0 rounded-xl">
-                            {busy ? "Running…" : "Run"}
+                            {busy ? t("dialogs:pods.exec.running") : t("dialogs:pods.exec.run")}
                         </Button>
                     </div>
                     <MacTerm
                         title={`exec — ${pod.name}`}
                         bodyClassName="h-64 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-term-plain"
                     >
-                        {output || <span className="text-term-dim">Output will appear here.</span>}
+                        {output || <span className="text-term-dim">{t("dialogs:pods.exec.outputPlaceholder")}</span>}
                     </MacTerm>
                 </div>
             </DialogContent>
@@ -101,6 +103,7 @@ function ExecDialog({ pod, onOpenChange }) {
 }
 
 export default function Pods() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [data, setData] = useState(null);
     const [q, setQ] = useUrlState("q", "");
@@ -115,10 +118,10 @@ export default function Pods() {
         let alive = true;
         const tick = () => api.get("/pods").then((r) => alive && setData(r.data));
         tick();
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -135,17 +138,17 @@ export default function Pods() {
 
     const evict = async (p) => {
         const ok = await confirm({
-            title: `Evict pod ${p.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Evict",
+            title: t("dialogs:pods.evict.title", { name: p.name }),
+            description: t("dialogs:pods.evict.description"),
+            confirmLabel: t("dialogs:pods.evict.confirm"),
         });
         if (!ok) return;
         try {
             await api.post(`/pods/${p.namespace}/${encodeURIComponent(p.name)}/evict`);
-            toast.success(`Evicted ${p.name}`);
+            toast.success(t("toasts:pods.evicted", { name: p.name }));
             load();
         } catch (e) {
-            toast.error("Evict failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:pods.evictFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -168,9 +171,9 @@ export default function Pods() {
         // acting on fewer pods than the user actually selected.
         const skipped = selected.size - targets.length;
         const ok = await confirm({
-            title: `Evict ${targets.length} pod${targets.length === 1 ? "" : "s"}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Evict",
+            title: t("dialogs:pods.bulkEvict.title", { count: targets.length }),
+            description: t("dialogs:pods.evict.description"),
+            confirmLabel: t("dialogs:pods.evict.confirm"),
         });
         if (!ok) return;
         setBulkBusy(true);
@@ -179,9 +182,9 @@ export default function Pods() {
                 targets.map((p) => api.post(`/pods/${p.namespace}/${encodeURIComponent(p.name)}/evict`))
             );
             const failed = results.filter((r) => r.status === "rejected").length;
-            const skippedNote = skipped > 0 ? ` (${skipped} selected pod${skipped === 1 ? "" : "s"} no longer listed, skipped)` : "";
-            if (failed) toast.error(`${failed} of ${targets.length} evictions failed${skippedNote}`);
-            else toast.success(`Evicted ${targets.length} pod${targets.length === 1 ? "" : "s"}${skippedNote}`);
+            const note = skipped > 0 ? t("toasts:pods.skippedNote", { count: skipped }) : "";
+            if (failed) toast.error(t("toasts:pods.bulkEvictFailed", { failed, total: targets.length, note }));
+            else toast.success(t("toasts:pods.bulkEvicted", { count: targets.length, note }));
             setSelected(new Set());
             load();
         } finally {
@@ -201,21 +204,21 @@ export default function Pods() {
     return (
         <div className="page">
             <PageHeader
-                title="Pods"
-                description="Every running pod across all namespaces."
+                title={t("pages:pods.title")}
+                description={t("pages:pods.description")}
                 action={
                     selected.size > 0 && (
                         <div className="flex items-center gap-3 border-y border-border px-3 py-1.5">
-                            <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+                            <span className="text-xs text-muted-foreground">{t("common:count.selected", { count: selected.size })}</span>
                             <Button size="sm" variant="outline" disabled={bulkBusy} onClick={bulkEvict} className="h-7 rounded-lg border-soft-danger-border bg-soft-danger text-xs text-tone-red hover:bg-soft-danger">
-                                <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? "Evicting…" : "Evict"}
+                                <Trash2 className="mr-1 h-3 w-3" /> {bulkBusy ? t("pages:pods.evicting") : t("pages:pods.evict")}
                             </Button>
                         </div>
                     )
                 }
                 tools={
                     <>
-                        <SearchBox placeholder="Search pod name" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:pods.searchPlaceholder")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="pods"
@@ -230,33 +233,33 @@ export default function Pods() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label="Pods">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:pods.title")}>
                     <table className="tbl">
                         <thead>
                             <tr>
                                 <th className="w-10">
                                     <Checkbox
-                                        aria-label="Select all pods"
+                                        aria-label={t("pages:pods.selectAll")}
                                         checked={rows.length > 0 && selected.size === rows.length}
                                         onCheckedChange={toggleAll}
                                     />
                                 </th>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Node</th>
-                                <th>Ready</th>
-                                <th>Restarts</th>
-                                <th>Status</th>
-                                <th>IP</th>
-                                <th>Age</th>
-                                <th><span className="sr-only">Actions</span></th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.node")}</th>
+                                <th>{t("common:fields.ready")}</th>
+                                <th>{t("common:fields.restarts")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("pages:pods.columns.ip")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             {rows.map((p) => (
                                 <tr key={`${p.namespace}/${p.name}`}>
                                     <td>
-                                        <Checkbox aria-label={`Select pod ${p.name}`} checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
+                                        <Checkbox aria-label={t("pages:pods.selectOne", { name: p.name })} checked={selected.has(key(p))} onCheckedChange={(v) => toggle(p, v)} />
                                     </td>
                                     <td className="name">
                                         <Link to={`/pods/${p.namespace}/${encodeURIComponent(p.name)}`} className="hover:underline">
@@ -274,10 +277,10 @@ export default function Pods() {
                                     <td className="mono">{p.age}</td>
                                     <td>
                                         <div className="flex items-center justify-end gap-1.5">
-                                            <button type="button" className="btn btn-line btn-sm" title="Exec" onClick={() => setExecTarget(p)}>
+                                            <button type="button" className="btn btn-line btn-sm" title={t("pages:pods.exec")} onClick={() => setExecTarget(p)}>
                                                 <Terminal size={13} />
                                             </button>
-                                            <button type="button" className="btn btn-line btn-sm" title="Evict" onClick={() => evict(p)}>
+                                            <button type="button" className="btn btn-line btn-sm" title={t("pages:pods.evict")} onClick={() => evict(p)}>
                                                 <Trash2 size={13} />
                                             </button>
                                         </div>
@@ -287,7 +290,7 @@ export default function Pods() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={10}>
-                                        <div className="empty">No pods match the current filters.</div>
+                                        <div className="empty">{t("pages:pods.noMatches")}</div>
                                     </td>
                                 </tr>
                             )}

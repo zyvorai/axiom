@@ -1,0 +1,258 @@
+{
+  "users": {
+    "created": "User {{name}} created",
+    "createFailed": "Create failed",
+    "updated": "Updated {{name}}",
+    "updateFailed": "Update failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed",
+    "mfaReset": "Two-factor reset for {{name}}",
+    "resetFailed": "Reset failed",
+    "revoked": "{{name}} was signed out everywhere",
+    "failed": "Failed"
+  },
+  "settings": {
+    "saveFailed": "Save failed",
+    "testFailed": "Test failed",
+    "oidcSaved": "OIDC settings saved",
+    "oidcReachable": "OIDC reachable",
+    "oidcTestFailed": "OIDC test failed",
+    "atlasSaved": "Atlas settings saved",
+    "atlasReachable": "Atlas reachable",
+    "atlasTestFailed": "Atlas test failed",
+    "postgresSaved": "Postgres settings saved",
+    "postgresReachable": "Postgres reachable",
+    "postgresTestFailed": "Postgres test failed",
+    "probeSaved": "Probe settings saved",
+    "probeReachable": "Probe reachable",
+    "probeTestFailed": "Probe test failed",
+    "notifySaved": "Notification settings saved",
+    "slackSent": "Slack message sent",
+    "slackTestFailed": "Slack test failed",
+    "webhookDelivered": "Webhook delivered",
+    "webhookTestFailed": "Webhook test failed",
+    "clusterRegistered": "Cluster {{name}} registered",
+    "registerFailed": "Register failed"
+  },
+  "aiSettings": {
+    "saved": "AI assistant settings saved",
+    "saveFailed": "Save failed",
+    "reachable": "AI endpoint reachable",
+    "aiTestFailed": "AI test failed",
+    "testFailed": "Test failed"
+  },
+  "configMaps": {
+    "created": "ConfigMap {{name}} created",
+    "createFailed": "Create failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "configMapDetail": {
+    "updated": "ConfigMap updated",
+    "updateFailed": "Update failed"
+  },
+  "secrets": {
+    "created": "Secret {{name}} created",
+    "createFailed": "Create failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "secretDetail": {
+    "revealFailed": "Reveal failed",
+    "updated": "Secret updated",
+    "updateFailed": "Update failed"
+  },
+  "pluginView": {
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "namespaces": {
+    "created": "Namespace {{name}} created",
+    "createFailed": "Create failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "networking": {
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "nodes": {
+    "cordonRequested": "{{name}}: cordon requested",
+    "uncordonRequested": "{{name}}: uncordon requested",
+    "drainRequested": "{{name}}: drain requested",
+    "cordonFailed": "cordon failed",
+    "uncordonFailed": "uncordon failed",
+    "drainFailed": "drain failed",
+    "taintAdded": "Taint added to {{name}}",
+    "addTaintFailed": "Add taint failed",
+    "taintRemoved": "Taint removed from {{name}}",
+    "removeTaintFailed": "Remove taint failed"
+  },
+  "ops": {
+    "helm": {
+      "uninstalled": "{{name}} uninstalled",
+      "uninstallFailed": "Uninstall failed",
+      "rolledBack": "{{name}} rolled back",
+      "rollbackFailed": "Rollback failed",
+      "installStarted": "Install started for {{name}}",
+      "installFailed": "Install failed"
+    },
+    "gitops": {
+      "syncRequested": "{{name}}: sync requested",
+      "syncFailed": "Sync failed"
+    },
+    "agents": {
+      "approved": "{{name}}: approved",
+      "denied": "{{name}}: denied",
+      "approveFailed": "approve failed",
+      "denyFailed": "deny failed"
+    },
+    "rbac": {
+      "roleCreated": "Role {{name}} created",
+      "createRoleFailed": "Create role failed",
+      "bindingCreated": "RoleBinding {{name}} created",
+      "createBindingFailed": "Create role binding failed",
+      "deleted": "Deleted {{name}}",
+      "deleteFailed": "Delete failed"
+    }
+  },
+  "applyManifest": {
+    "applied": "Applied {{kind}}",
+    "appliedNamed": "Applied {{kind}} {{name}}"
+  },
+  "atlas": {
+    "volumeRequested": "Volume {{name}} requested",
+    "volumeRequestedDescription": "Provisioning runs as an async job in Atlas.",
+    "createFailed": "Create volume failed"
+  },
+  "autoscaling": {
+    "created": "HPA created for {{name}}",
+    "createFailed": "Create HPA failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "backups": {
+    "backupRequested": "Backup {{name}} requested",
+    "createBackupFailed": "Create backup failed",
+    "restoreRequested": "Restore {{name}} requested",
+    "restoreFailed": "Restore failed",
+    "scheduleCreated": "Schedule {{name}} created",
+    "createScheduleFailed": "Create schedule failed",
+    "veleroRequested": "Velero backup {{name}} requested",
+    "veleroFailed": "Velero backup failed"
+  },
+  "costPanels": {
+    "budgetSaved": "Budget saved for {{namespace}}",
+    "budgetSaveFailed": "Could not save the budget",
+    "budgetRemoved": "Removed the budget for {{namespace}}",
+    "removeFailed": "Remove failed",
+    "requestsUpdated": "Updated requests for {{target}}",
+    "requestsUpdatedDescription": "The workload is rolling out with the new values."
+  },
+  "gitops": {
+    "deleted": "Deleted {{name}}",
+    "created": "Created {{name}}"
+  },
+  "helmCatalog": {
+    "repoAdded": "Added repository {{name}}",
+    "repoAddFailed": "Could not add the repository",
+    "repoRemoved": "Removed {{name}}",
+    "removeFailed": "Remove failed",
+    "installStarted": "Install started for {{name}}",
+    "installStartedDescription": "It runs as a background Job; the release appears under Releases once Helm finishes.",
+    "installFailed": "Install failed"
+  },
+  "vmDetail": {
+    "stopRequested": "{{name}}: stop requested",
+    "stopFailed": "stop failed",
+    "startRequested": "{{name}}: start requested",
+    "startFailed": "start failed",
+    "migrateRequested": "{{name}}: migrate requested",
+    "migrateFailed": "migrate failed"
+  },
+  "vms": {
+    "stopRequested": "{{name}}: stop requested",
+    "stopFailed": "stop failed",
+    "startRequested": "{{name}}: start requested",
+    "startFailed": "start failed",
+    "migrateRequested": "{{name}}: migrate requested",
+    "migrateFailed": "migrate failed",
+    "requested": "Requested",
+    "createFailed": "Create failed",
+    "created": "VM {{name}} created"
+  },
+  "debugContainer": {
+    "added": "Debug container {{container}} added",
+    "addFailed": "Could not add a debug container"
+  },
+  "diffReview": {
+    "applyFailed": "Apply failed",
+    "applied": "Applied {{kind}}"
+  },
+  "cronJobDetail": {
+    "triggered": "Triggered {{name}}",
+    "triggerFailed": "Trigger failed"
+  },
+  "jobs": {
+    "triggered": "Triggered {{name}}",
+    "triggerFailed": "Trigger failed",
+    "suspended": "Suspended {{name}}",
+    "resumed": "Resumed {{name}}",
+    "updateFailed": "Update failed",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "podDetail": {
+    "copyFailed": "Could not copy to the clipboard",
+    "evicted": "Evicted {{name}}",
+    "evictFailed": "Evict failed",
+    "openPortFailed": "Could not open the port"
+  },
+  "pods": {
+    "evicted": "Evicted {{name}}",
+    "evictFailed": "Evict failed",
+    "skippedNote_one": " ({{count}} selected pod no longer listed, skipped)",
+    "skippedNote_other": " ({{count}} selected pods no longer listed, skipped)",
+    "bulkEvictFailed": "{{failed}} of {{total}} evictions failed{{note}}",
+    "bulkEvicted_one": "Evicted {{count}} pod{{note}}",
+    "bulkEvicted_other": "Evicted {{count}} pods{{note}}"
+  },
+  "workloads": {
+    "actionRequested": "{{action}} requested",
+    "actionFailed": "{{action}} failed",
+    "workloadActionRequested": "{{name}}: {{action}} requested",
+    "scaled": "{{name}} scaled to {{replicas}}",
+    "scaleFailed": "Scale failed",
+    "deleted": "{{name}} deleted",
+    "deleteFailed": "Delete failed",
+    "launched": "{{name}} launched",
+    "launchFailed": "Launch failed",
+    "parseFailed": "Parse failed",
+    "placed": "Workload placed from intent",
+    "placeFailed": "Place failed",
+    "skippedNote_one": " ({{count}} selected item no longer listed, skipped)",
+    "skippedNote_other": " ({{count}} selected items no longer listed, skipped)",
+    "bulkDeleteFailed": "{{failed}} of {{total}} deletes failed{{note}}",
+    "bulkRestartFailed": "{{failed}} of {{total}} restarts failed{{note}}",
+    "bulkDeleted_one": "Deleted {{count}} workload{{note}}",
+    "bulkDeleted_other": "Deleted {{count}} workloads{{note}}",
+    "bulkRestarted_one": "Restarted {{count}} workload{{note}}",
+    "bulkRestarted_other": "Restarted {{count}} workloads{{note}}"
+  },
+  "autoscalingCreate": {
+    "created": "Created {{name}}"
+  },
+  "gitopsEdit": {
+    "updated": "Updated {{name}}"
+  },
+  "autoscalingPanels": {
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  },
+  "gitopsCredentials": {
+    "saved": "Saved credentials {{name}}",
+    "savedDescription": "The secret is write-only and cannot be shown again.",
+    "deleted": "Deleted {{name}}",
+    "deleteFailed": "Delete failed"
+  }
+}

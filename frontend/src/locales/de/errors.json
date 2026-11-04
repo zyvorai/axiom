@@ -1,0 +1,47 @@
+{
+  "generic": "Etwas ist schiefgelaufen",
+  "loadBanner": {
+    "offlineTitle": "Server nicht erreichbar.",
+    "failedTitle": "Einige Daten konnten nicht geladen werden.",
+    "offlineHint": "Prüfen Sie Ihre Verbindung — diese Seite ist möglicherweise veraltet.",
+    "failedHint_one": "Der Server hat einen Fehler gemeldet ({{count}} Anfrage). Die Anzeige ist möglicherweise unvollständig.",
+    "failedHint_other": "Der Server hat einen Fehler gemeldet ({{count}} Anfragen). Die Anzeige ist möglicherweise unvollständig."
+  },
+  "boundary": {
+    "updatedTitle": "Axiom wurde aktualisiert",
+    "crashTitle": "Auf dieser Seite ist ein Problem aufgetreten",
+    "updatedHint": "Eine neuere Version ist verfügbar, daher konnte diese Seite nicht geladen werden. Laden Sie neu, um sie zu erhalten.",
+    "crashHint": "Beim Anzeigen dieser Seite ist etwas schiefgelaufen. Der Rest der App funktioniert.",
+    "goOverview": "Zur Übersicht"
+  },
+  "fleet": {
+    "searchFailed": "Suche fehlgeschlagen",
+    "switchFailed": "Cluster konnte nicht gewechselt werden",
+    "loadFailed": "Die Flotte konnte nicht geladen werden"
+  },
+  "ops": {
+    "rulesJson": "Regeln müssen gültiges JSON sein",
+    "subjectsJson": "Subjekte müssen gültiges JSON sein"
+  },
+  "rbac": {
+    "requestFailed": "Anfrage fehlgeschlagen"
+  },
+  "autoscalingPanels": {
+    "couldNotLoad": "Konnte nicht geladen werden"
+  },
+  "costPanels": {
+    "generic": "Etwas ist schiefgelaufen"
+  },
+  "gitops": {
+    "generic": "Etwas ist schiefgelaufen"
+  },
+  "helmCatalog": {
+    "generic": "Etwas ist schiefgelaufen"
+  },
+  "workloads": {
+    "dnsLabel": "Verwenden Sie Kleinbuchstaben, Ziffern und „-“ (Anfang und Ende mit Buchstabe oder Ziffer, max. 63)."
+  },
+  "autoscalingCreate": {
+    "generic": "Etwas ist schiefgelaufen"
+  }
+}

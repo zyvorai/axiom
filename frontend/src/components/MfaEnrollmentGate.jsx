@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { KeyRound, LogOut, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import AccountSecurityDialog from "@/components/AccountSecurityDialog";
@@ -15,6 +16,7 @@ import { MFA } from "@/constants/testIds";
 export default function MfaEnrollmentGate() {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [open, setOpen] = useState(true);
 
     const leave = async () => {
@@ -27,18 +29,17 @@ export default function MfaEnrollmentGate() {
             <GlassCard className="mx-auto mt-10 max-w-lg space-y-4 p-6">
                 <div className="flex items-center gap-2">
                     <ShieldAlert size={20} className="text-tone-amber" aria-hidden="true" />
-                    <h1 className="text-lg font-semibold">Set up two-factor sign-in</h1>
+                    <h1 className="text-lg font-semibold">{t("auth:gate.title")}</h1>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    Your administrator requires two-factor sign-in for {user?.role ? `the ${user.role} role` : "your role"}. Add an authenticator app to
-                    continue — it takes a minute, and you will sign in again with a code afterwards.
+                    {user?.role ? t("auth:gate.bodyRole", { role: user.role }) : t("auth:gate.body")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                     <button type="button" className="btn btn-fill" data-testid={MFA.gateOpen} onClick={() => setOpen(true)}>
-                        <KeyRound size={14} /> Set up now
+                        <KeyRound size={14} /> {t("auth:gate.setUpNow")}
                     </button>
                     <button type="button" className="btn btn-line" data-testid={MFA.gateSignOut} onClick={leave}>
-                        <LogOut size={14} /> Sign out
+                        <LogOut size={14} /> {t("nav:userMenu.signOut")}
                     </button>
                 </div>
             </GlassCard>

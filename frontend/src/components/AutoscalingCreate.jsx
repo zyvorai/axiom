@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { api } from "@/lib/api";
 import MacTerm from "@/components/MacTerm";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VPA_CREATE as V, KEDA_CREATE as K } from "@/constants/testIds";
 
-const errText = (e) => e?.response?.data?.error || e?.message || "Something went wrong";
+const errText = (e) => e?.response?.data?.error || e?.message || i18n.t("errors:autoscalingCreate.generic");
 
 function useWorkloads(open) {
     const [list, setList] = useState([]);
@@ -20,6 +22,7 @@ function useWorkloads(open) {
 }
 
 function Preview({ preview, yamlId, warnId, stale }) {
+    const { t } = useTranslation();
     if (!preview) return null;
     return (
         <div className="space-y-2">
@@ -30,19 +33,20 @@ function Preview({ preview, yamlId, warnId, stale }) {
                     ))}
                 </ul>
             )}
-            <MacTerm title={stale ? "Out of date — preview again" : "What will be created"} bodyClassName="!p-0">
-                <pre tabIndex={0} role="region" aria-label="Generated YAML" className="macos-term-body mono max-h-56 overflow-auto px-4 py-3 text-xs leading-[1.55]" data-testid={yamlId}>{preview.yaml}</pre>
+            <MacTerm title={stale ? t("dialogs:gitops.create.previewStale") : t("dialogs:gitops.create.previewTitle")} bodyClassName="!p-0">
+                <pre tabIndex={0} role="region" aria-label={t("dialogs:gitops.create.generatedYaml")} className="macos-term-body mono max-h-56 overflow-auto px-4 py-3 text-xs leading-[1.55]" data-testid={yamlId}>{preview.yaml}</pre>
             </MacTerm>
         </div>
     );
 }
 
 function TargetSelect({ id, testId, workloads, value, onChange, kinds }) {
+    const { t } = useTranslation();
     return (
         <div className="space-y-1.5">
-            <Label htmlFor={id} className="text-xs text-muted-foreground">Target workload</Label>
+            <Label htmlFor={id} className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.targetWorkload")}</Label>
             <select id={id} data-testid={testId} className="select w-full" value={value} onChange={(e) => onChange(e.target.value)}>
-                <option value="">Select a workload</option>
+                <option value="">{t("dialogs:autoscaling.create.selectWorkload")}</option>
                 {workloads
                     .filter((w) => !kinds || kinds.includes(w.kind))
                     .map((w) => (
@@ -57,6 +61,7 @@ function TargetSelect({ id, testId, workloads, value, onChange, kinds }) {
 
 // ---------------------------------------------------------------- VPA
 export function VpaCreateDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const workloads = useWorkloads(open);
     const [target, setTarget] = useState("");
     const [name, setName] = useState("");
@@ -106,7 +111,7 @@ export function VpaCreateDialog({ open, onOpenChange, onCreated }) {
         setError("");
         try {
             await api.post("/vpas", body);
-            toast.success(`Created ${body.name}`);
+            toast.success(t("toasts:autoscalingCreate.created", { name: body.name }));
             onCreated();
             onOpenChange(false);
         } catch (e) {
@@ -120,39 +125,39 @@ export function VpaCreateDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-xl" data-testid={V.dialog}>
                 <DialogHeader>
-                    <DialogTitle>New VerticalPodAutoscaler</DialogTitle>
-                    <DialogDescription>Recommends CPU and memory requests for a workload. In Off mode it only recommends and never restarts pods.</DialogDescription>
+                    <DialogTitle>{t("dialogs:autoscalingCreate.vpa.title")}</DialogTitle>
+                    <DialogDescription>{t("dialogs:autoscalingCreate.vpa.description")}</DialogDescription>
                 </DialogHeader>
-                <div tabIndex={0} role="region" aria-label="VPA settings" className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+                <div tabIndex={0} role="region" aria-label={t("dialogs:autoscalingCreate.vpa.region")} className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
                     <TargetSelect id="vpa-target" testId={V.target} workloads={workloads} value={target} onChange={setTarget} kinds={["Deployment", "StatefulSet", "DaemonSet", "ReplicaSet"]} />
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-1.5">
-                            <Label htmlFor="vpa-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="vpa-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="vpa-name" data-testid={V.name} value={name} onChange={(e) => setName(e.target.value)} placeholder={body.name || "my-vpa"} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="vpa-mode" className="text-xs text-muted-foreground">Update mode</Label>
+                            <Label htmlFor="vpa-mode" className="text-xs text-muted-foreground">{t("dialogs:autoscalingCreate.vpa.updateMode")}</Label>
                             <select id="vpa-mode" data-testid={V.mode} className="select w-full" value={mode} onChange={(e) => setMode(e.target.value)}>
-                                <option value="Off">Off — recommend only</option>
-                                <option value="Initial">Initial — apply to new pods</option>
-                                <option value="Recreate">Recreate — restart pods to apply</option>
+                                <option value="Off">{t("dialogs:autoscalingCreate.vpa.modes.off")}</option>
+                                <option value="Initial">{t("dialogs:autoscalingCreate.vpa.modes.initial")}</option>
+                                <option value="Recreate">{t("dialogs:autoscalingCreate.vpa.modes.recreate")}</option>
                                 <option value="Auto">Auto</option>
                             </select>
                         </div>
                     </div>
                     <div className="flex items-center gap-5 text-sm">
-                        <label className="flex items-center gap-2"><input type="checkbox" data-testid={V.cpu} checked={cpu} onChange={(e) => setCpu(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" /> CPU</label>
-                        <label className="flex items-center gap-2"><input type="checkbox" data-testid={V.memory} checked={mem} onChange={(e) => setMem(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" /> Memory</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" data-testid={V.cpu} checked={cpu} onChange={(e) => setCpu(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" /> {t("common:fields.cpu")}</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" data-testid={V.memory} checked={mem} onChange={(e) => setMem(e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" /> {t("common:fields.memory")}</label>
                     </div>
                     {error ? <div className="notice danger" role="alert" data-testid={V.error}>{error}</div> : null}
                     <Preview preview={preview} yamlId={V.yaml} warnId={V.warnings} stale={!current} />
                 </div>
                 <DialogFooter className="gap-2">
                     <button type="button" className="btn btn-line" data-testid={V.preview} onClick={doPreview} disabled={!!busy || !target || body.controlledResources.length === 0}>
-                        <Eye size={14} /> {busy === "preview" ? "Rendering…" : "Preview YAML"}
+                        <Eye size={14} /> {busy === "preview" ? t("dialogs:gitops.create.rendering") : t("dialogs:gitops.create.previewYaml")}
                     </button>
                     <button type="button" className="btn btn-fill" data-testid={V.create} onClick={create} disabled={!!busy || !current}>
-                        <Plus size={14} /> {busy === "create" ? "Creating…" : "Create"}
+                        <Plus size={14} /> {busy === "create" ? t("dialogs:autoscaling.create.creating") : t("common:actions.create")}
                     </button>
                 </DialogFooter>
             </DialogContent>
@@ -163,19 +168,20 @@ export function VpaCreateDialog({ open, onOpenChange, onCreated }) {
 // ---------------------------------------------------------------- KEDA
 // Mirrors the server's closed allow-list: only these trigger types and settings are accepted.
 const TRIGGERS = {
-    cpu: { label: "CPU", fields: [{ k: "type", l: "Metric type", options: ["Utilization", "AverageValue"] }, { k: "value", l: "Target value", ph: "60" }] },
-    memory: { label: "Memory", fields: [{ k: "type", l: "Metric type", options: ["Utilization", "AverageValue"] }, { k: "value", l: "Target value", ph: "70" }] },
-    cron: { label: "Cron schedule", fields: [{ k: "timezone", l: "Timezone", ph: "Europe/Berlin" }, { k: "start", l: "Start", ph: "0 8 * * 1-5" }, { k: "end", l: "End", ph: "0 18 * * 1-5" }, { k: "desiredReplicas", l: "Replicas in window", ph: "5" }] },
-    prometheus: { label: "Prometheus query", auth: true, fields: [{ k: "serverAddress", l: "Server address", ph: "http://prometheus.monitoring:9090" }, { k: "query", l: "Query", ph: "sum(rate(http_requests_total[2m]))" }, { k: "threshold", l: "Threshold", ph: "100" }] },
-    kafka: { label: "Kafka lag", auth: true, fields: [{ k: "bootstrapServers", l: "Bootstrap servers", ph: "kafka:9092" }, { k: "consumerGroup", l: "Consumer group", ph: "orders" }, { k: "topic", l: "Topic", ph: "orders" }, { k: "lagThreshold", l: "Lag threshold", ph: "50" }] },
-    redis: { label: "Redis list length", auth: true, fields: [{ k: "address", l: "Address", ph: "redis:6379" }, { k: "listName", l: "List", ph: "jobs" }, { k: "listLength", l: "Length threshold", ph: "10" }] },
-    rabbitmq: { label: "RabbitMQ queue", auth: true, fields: [{ k: "queueName", l: "Queue", ph: "tasks" }, { k: "mode", l: "Mode", options: ["QueueLength", "MessageRate"] }, { k: "value", l: "Value", ph: "20" }] },
-    "aws-sqs-queue": { label: "AWS SQS queue", auth: true, fields: [{ k: "queueURL", l: "Queue URL", ph: "https://sqs.eu-west-1.amazonaws.com/123/queue" }, { k: "queueLength", l: "Queue length", ph: "5" }, { k: "awsRegion", l: "Region", ph: "eu-west-1" }] },
+    cpu: { labelKey: "common:fields.cpu", fields: [{ k: "type", lKey: "dialogs:autoscalingCreate.keda.fields.metricType", options: ["Utilization", "AverageValue"] }, { k: "value", lKey: "dialogs:autoscalingCreate.keda.fields.targetValue", ph: "60" }] },
+    memory: { labelKey: "common:fields.memory", fields: [{ k: "type", lKey: "dialogs:autoscalingCreate.keda.fields.metricType", options: ["Utilization", "AverageValue"] }, { k: "value", lKey: "dialogs:autoscalingCreate.keda.fields.targetValue", ph: "70" }] },
+    cron: { labelKey: "dialogs:autoscalingCreate.keda.triggers.cron", fields: [{ k: "timezone", lKey: "dialogs:autoscalingCreate.keda.fields.timezone", ph: "Europe/Berlin" }, { k: "start", lKey: "dialogs:autoscalingCreate.keda.fields.start", ph: "0 8 * * 1-5" }, { k: "end", lKey: "dialogs:autoscalingCreate.keda.fields.end", ph: "0 18 * * 1-5" }, { k: "desiredReplicas", lKey: "dialogs:autoscalingCreate.keda.fields.replicasInWindow", ph: "5" }] },
+    prometheus: { labelKey: "dialogs:autoscalingCreate.keda.triggers.prometheus", auth: true, fields: [{ k: "serverAddress", lKey: "dialogs:autoscalingCreate.keda.fields.serverAddress", ph: "http://prometheus.monitoring:9090" }, { k: "query", lKey: "dialogs:autoscalingCreate.keda.fields.query", ph: "sum(rate(http_requests_total[2m]))" }, { k: "threshold", lKey: "dialogs:autoscalingCreate.keda.fields.threshold", ph: "100" }] },
+    kafka: { labelKey: "dialogs:autoscalingCreate.keda.triggers.kafka", auth: true, fields: [{ k: "bootstrapServers", lKey: "dialogs:autoscalingCreate.keda.fields.bootstrapServers", ph: "kafka:9092" }, { k: "consumerGroup", lKey: "dialogs:autoscalingCreate.keda.fields.consumerGroup", ph: "orders" }, { k: "topic", lKey: "dialogs:autoscalingCreate.keda.fields.topic", ph: "orders" }, { k: "lagThreshold", lKey: "dialogs:autoscalingCreate.keda.fields.lagThreshold", ph: "50" }] },
+    redis: { labelKey: "dialogs:autoscalingCreate.keda.triggers.redis", auth: true, fields: [{ k: "address", lKey: "dialogs:autoscalingCreate.keda.fields.address", ph: "redis:6379" }, { k: "listName", lKey: "dialogs:autoscalingCreate.keda.fields.list", ph: "jobs" }, { k: "listLength", lKey: "dialogs:autoscalingCreate.keda.fields.lengthThreshold", ph: "10" }] },
+    rabbitmq: { labelKey: "dialogs:autoscalingCreate.keda.triggers.rabbitmq", auth: true, fields: [{ k: "queueName", lKey: "dialogs:autoscalingCreate.keda.fields.queue", ph: "tasks" }, { k: "mode", lKey: "dialogs:autoscalingCreate.keda.fields.mode", options: ["QueueLength", "MessageRate"] }, { k: "value", lKey: "common:fields.value", ph: "20" }] },
+    "aws-sqs-queue": { labelKey: "dialogs:autoscalingCreate.keda.triggers.awsSqs", auth: true, fields: [{ k: "queueURL", lKey: "dialogs:autoscalingCreate.keda.fields.queueUrl", ph: "https://sqs.eu-west-1.amazonaws.com/123/queue" }, { k: "queueLength", lKey: "dialogs:autoscalingCreate.keda.fields.queueLength", ph: "5" }, { k: "awsRegion", lKey: "dialogs:autoscalingCreate.keda.fields.region", ph: "eu-west-1" }] },
 };
 
 const newTrigger = (type = "cron") => ({ type, settings: Object.fromEntries(TRIGGERS[type].fields.filter((f) => f.options).map((f) => [f.k, f.options[0]])), authenticationRef: "" });
 
 export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
     const workloads = useWorkloads(open);
     const [target, setTarget] = useState("");
     const [name, setName] = useState("");
@@ -249,7 +255,7 @@ export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
         setError("");
         try {
             await api.post("/scaledobjects", body);
-            toast.success(`Created ${body.name}`);
+            toast.success(t("toasts:autoscalingCreate.created", { name: body.name }));
             onCreated();
             onOpenChange(false);
         } catch (e) {
@@ -263,42 +269,42 @@ export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl" data-testid={K.dialog}>
                 <DialogHeader>
-                    <DialogTitle>New KEDA ScaledObject</DialogTitle>
-                    <DialogDescription>Scale a workload on events. Credentials are never entered here: pick an existing TriggerAuthentication.</DialogDescription>
+                    <DialogTitle>{t("dialogs:autoscalingCreate.keda.title")}</DialogTitle>
+                    <DialogDescription>{t("dialogs:autoscalingCreate.keda.description")}</DialogDescription>
                 </DialogHeader>
-                <div tabIndex={0} role="region" aria-label="ScaledObject settings" className="max-h-[58vh] space-y-3 overflow-y-auto pr-1">
+                <div tabIndex={0} role="region" aria-label={t("dialogs:autoscalingCreate.keda.region")} className="max-h-[58vh] space-y-3 overflow-y-auto pr-1">
                     <TargetSelect id="keda-target" testId={K.target} workloads={workloads} value={target} onChange={setTarget} kinds={["Deployment", "StatefulSet"]} />
                     <div className="grid gap-3 sm:grid-cols-3">
                         <div className="space-y-1.5 sm:col-span-1">
-                            <Label htmlFor="keda-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="keda-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="keda-name" data-testid={K.name} value={name} onChange={(e) => setName(e.target.value)} placeholder={body.name || "my-scaler"} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="keda-min" className="text-xs text-muted-foreground">Min replicas</Label>
+                            <Label htmlFor="keda-min" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.minReplicas")}</Label>
                             <Input id="keda-min" data-testid={K.min} type="number" min={0} value={minR} onChange={(e) => setMinR(e.target.value)} className="bg-muted/30" />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="keda-max" className="text-xs text-muted-foreground">Max replicas</Label>
+                            <Label htmlFor="keda-max" className="text-xs text-muted-foreground">{t("dialogs:autoscaling.create.maxReplicas")}</Label>
                             <Input id="keda-max" data-testid={K.max} type="number" min={1} value={maxR} onChange={(e) => setMaxR(e.target.value)} className="bg-muted/30" />
                         </div>
                     </div>
 
-                    {triggers.map((t, i) => {
-                        const def = TRIGGERS[t.type];
+                    {triggers.map((trg, i) => {
+                        const def = TRIGGERS[trg.type];
                         return (
                             <fieldset key={i} className="space-y-2 rounded-xl border border-border p-3">
-                                <legend className="px-1 text-xs text-muted-foreground">Trigger {i + 1}</legend>
+                                <legend className="px-1 text-xs text-muted-foreground">{t("dialogs:autoscalingCreate.keda.trigger", { n: i + 1 })}</legend>
                                 <div className="flex items-end gap-2">
                                     <div className="flex-1 space-y-1.5">
-                                        <Label htmlFor={`keda-type-${i}`} className="text-xs text-muted-foreground">Type</Label>
-                                        <select id={`keda-type-${i}`} data-testid={K.triggerType(i)} className="select w-full" value={t.type} onChange={(e) => setTrigger(i, newTrigger(e.target.value))}>
+                                        <Label htmlFor={`keda-type-${i}`} className="text-xs text-muted-foreground">{t("common:fields.type")}</Label>
+                                        <select id={`keda-type-${i}`} data-testid={K.triggerType(i)} className="select w-full" value={trg.type} onChange={(e) => setTrigger(i, newTrigger(e.target.value))}>
                                             {Object.entries(TRIGGERS).map(([k, v]) => (
-                                                <option key={k} value={k}>{v.label}</option>
+                                                <option key={k} value={k}>{t(v.labelKey)}</option>
                                             ))}
                                         </select>
                                     </div>
                                     {triggers.length > 1 && (
-                                        <button type="button" className="btn btn-danger btn-sm" data-testid={K.removeTrigger(i)} aria-label={`Remove trigger ${i + 1}`} onClick={() => setTriggers((ts) => ts.filter((_, j) => j !== i))}>
+                                        <button type="button" className="btn btn-danger btn-sm" data-testid={K.removeTrigger(i)} aria-label={t("dialogs:autoscalingCreate.keda.removeTrigger", { n: i + 1 })} onClick={() => setTriggers((ts) => ts.filter((_, j) => j !== i))}>
                                             <Trash2 size={13} />
                                         </button>
                                     )}
@@ -306,24 +312,24 @@ export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
                                 <div className="grid gap-2 sm:grid-cols-2">
                                     {def.fields.map((f) => (
                                         <div key={f.k} className="space-y-1">
-                                            <Label htmlFor={`keda-${i}-${f.k}`} className="text-xs text-muted-foreground">{f.l}</Label>
+                                            <Label htmlFor={`keda-${i}-${f.k}`} className="text-xs text-muted-foreground">{t(f.lKey)}</Label>
                                             {f.options ? (
-                                                <select id={`keda-${i}-${f.k}`} data-testid={K.triggerField(i, f.k)} className="select w-full" value={t.settings[f.k] || f.options[0]} onChange={(e) => setTrigger(i, { settings: { ...t.settings, [f.k]: e.target.value } })}>
+                                                <select id={`keda-${i}-${f.k}`} data-testid={K.triggerField(i, f.k)} className="select w-full" value={trg.settings[f.k] || f.options[0]} onChange={(e) => setTrigger(i, { settings: { ...trg.settings, [f.k]: e.target.value } })}>
                                                     {f.options.map((o) => (
                                                         <option key={o} value={o}>{o}</option>
                                                     ))}
                                                 </select>
                                             ) : (
-                                                <Input id={`keda-${i}-${f.k}`} data-testid={K.triggerField(i, f.k)} value={t.settings[f.k] || ""} onChange={(e) => setTrigger(i, { settings: { ...t.settings, [f.k]: e.target.value } })} placeholder={f.ph} className="bg-muted/30" />
+                                                <Input id={`keda-${i}-${f.k}`} data-testid={K.triggerField(i, f.k)} value={trg.settings[f.k] || ""} onChange={(e) => setTrigger(i, { settings: { ...trg.settings, [f.k]: e.target.value } })} placeholder={f.ph} className="bg-muted/30" />
                                             )}
                                         </div>
                                     ))}
                                 </div>
                                 {def.auth && (
                                     <div className="space-y-1">
-                                        <Label htmlFor={`keda-auth-${i}`} className="text-xs text-muted-foreground">Credentials (TriggerAuthentication)</Label>
-                                        <select id={`keda-auth-${i}`} data-testid={K.triggerAuth(i)} className="select w-full" value={t.authenticationRef} onChange={(e) => setTrigger(i, { authenticationRef: e.target.value })}>
-                                            <option value="">None</option>
+                                        <Label htmlFor={`keda-auth-${i}`} className="text-xs text-muted-foreground">{t("dialogs:autoscalingCreate.keda.credentials")}</Label>
+                                        <select id={`keda-auth-${i}`} data-testid={K.triggerAuth(i)} className="select w-full" value={trg.authenticationRef} onChange={(e) => setTrigger(i, { authenticationRef: e.target.value })}>
+                                            <option value="">{t("common:states.none")}</option>
                                             {auths.map((a) => (
                                                 <option key={a.name} value={a.name}>{a.name}</option>
                                             ))}
@@ -334,7 +340,7 @@ export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
                         );
                     })}
                     <button type="button" className="btn btn-line btn-sm" data-testid={K.addTrigger} onClick={() => setTriggers((ts) => [...ts, newTrigger("cpu")])}>
-                        <Plus size={13} /> Add trigger
+                        <Plus size={13} /> {t("dialogs:autoscalingCreate.keda.addTrigger")}
                     </button>
 
                     {error ? <div className="notice danger" role="alert" data-testid={K.error}>{error}</div> : null}
@@ -342,10 +348,10 @@ export function KedaCreateDialog({ open, onOpenChange, onCreated }) {
                 </div>
                 <DialogFooter className="gap-2">
                     <button type="button" className="btn btn-line" data-testid={K.preview} onClick={doPreview} disabled={!!busy || !target}>
-                        <Eye size={14} /> {busy === "preview" ? "Rendering…" : "Preview YAML"}
+                        <Eye size={14} /> {busy === "preview" ? t("dialogs:gitops.create.rendering") : t("dialogs:gitops.create.previewYaml")}
                     </button>
                     <button type="button" className="btn btn-fill" data-testid={K.create} onClick={create} disabled={!!busy || !current}>
-                        <Plus size={14} /> {busy === "create" ? "Creating…" : "Create"}
+                        <Plus size={14} /> {busy === "create" ? t("dialogs:autoscaling.create.creating") : t("common:actions.create")}
                     </button>
                 </DialogFooter>
             </DialogContent>

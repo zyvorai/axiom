@@ -8,18 +8,29 @@ import { SeverityBadge, SourceBadge } from "@/components/SeverityBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TIMELINE } from "@/constants/testIds";
 import { objectHref, relTime } from "@/lib/troubleshoot";
+import { useTranslation } from "react-i18next";
+import { formatDate } from "@/lib/i18n";
 
 const SOURCES = ["event", "audit", "alert", "rollout"];
-const SINCE = [
-    { value: "", label: "All time" },
-    { value: "1h", label: "Last hour" },
-    { value: "6h", label: "Last 6 hours" },
-    { value: "24h", label: "Last 24 hours" },
-    { value: "7d", label: "Last 7 days" },
+const sinceOptions = (t) => [
+    { value: "", label: t("pages:timeline.since.all") },
+    { value: "1h", label: t("pages:timeline.since.hour") },
+    { value: "6h", label: t("pages:timeline.since.sixHours") },
+    { value: "24h", label: t("pages:timeline.since.day") },
+    { value: "7d", label: t("pages:timeline.since.week") },
 ];
+
+function sourceLabel(t, s) {
+    if (s === "event") return t("pages:timeline.sources.event");
+    if (s === "audit") return t("pages:timeline.sources.audit");
+    if (s === "alert") return t("pages:timeline.sources.alert");
+    if (s === "rollout") return t("pages:timeline.sources.rollout");
+    return s;
+}
 
 /** One merged feed of Kubernetes events, Axiom audit entries, alerts and rollouts. */
 export default function Timeline() {
+    const { t } = useTranslation();
     const [params, setParams] = useSearchParams();
     const namespace = params.get("namespace") || "";
     const object = params.get("object") || "";
@@ -64,8 +75,8 @@ export default function Timeline() {
 
     useEffect(() => {
         load();
-        const t = setInterval(load, 10000);
-        return () => clearInterval(t);
+        const timer = setInterval(load, 10000);
+        return () => clearInterval(timer);
     }, [load]);
 
     const rows = useMemo(() => {
@@ -88,11 +99,11 @@ export default function Timeline() {
     return (
         <div data-testid={TIMELINE.root} className="page">
             <PageHeader
-                title="Timeline"
-                description="Everything that changed, in one feed: Kubernetes events, Axiom audit entries, alerts and rollout revisions."
+                title={t("pages:timeline.title")}
+                description={t("pages:timeline.description")}
                 action={
                     <button type="button" data-testid={TIMELINE.refresh} className="btn btn-line" onClick={load}>
-                        <RefreshCw size={15} /> Refresh
+                        <RefreshCw size={15} /> {t("common:actions.refresh")}
                     </button>
                 }
                 tools={
@@ -101,8 +112,8 @@ export default function Timeline() {
                             <Search size={15} className="text-ink-3" aria-hidden="true" />
                             <input
                                 data-testid={TIMELINE.search}
-                                aria-label="Search the timeline"
-                                placeholder="Search summary, object or user"
+                                aria-label={t("pages:timeline.searchLabel")}
+                                placeholder={t("pages:timeline.searchPlaceholder")}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
                                 className="bare-input"
@@ -110,12 +121,12 @@ export default function Timeline() {
                         </div>
                         <select
                             data-testid={TIMELINE.namespace}
-                            aria-label="Namespace"
+                            aria-label={t("common:fields.namespace")}
                             className="select"
                             value={namespace}
                             onChange={(e) => setParam("namespace", e.target.value)}
                         >
-                            <option value="">All namespaces</option>
+                            <option value="">{t("pages:timeline.allNamespaces")}</option>
                             {namespaces.map((n) => (
                                 <option key={n} value={n}>
                                     {n}
@@ -124,18 +135,18 @@ export default function Timeline() {
                         </select>
                         <select
                             data-testid={TIMELINE.since}
-                            aria-label="Time range"
+                            aria-label={t("pages:timeline.timeRange")}
                             className="select"
                             value={since}
                             onChange={(e) => setSince(e.target.value)}
                         >
-                            {SINCE.map((s) => (
+                            {sinceOptions(t).map((s) => (
                                 <option key={s.value} value={s.value}>
                                     {s.label}
                                 </option>
                             ))}
                         </select>
-                        <div className="seg" role="group" aria-label="Sources">
+                        <div className="seg" role="group" aria-label={t("pages:timeline.sourcesLabel")}>
                             {SOURCES.map((s) => (
                                 <button
                                     key={s}
@@ -144,14 +155,14 @@ export default function Timeline() {
                                     aria-pressed={sources.has(s)}
                                     onClick={() => toggleSource(s)}
                                 >
-                                    {s}
+                                    {sourceLabel(t, s)}
                                 </button>
                             ))}
                         </div>
                         {object && (
                             <span className="pill soft" data-testid={TIMELINE.objectChip}>
                                 {object}
-                                <button type="button" aria-label="Clear object filter" onClick={() => setParam("object", "")} className="ml-1">
+                                <button type="button" aria-label={t("pages:timeline.clearObject")} onClick={() => setParam("object", "")} className="ml-1">
                                     <X size={12} />
                                 </button>
                             </span>
@@ -170,16 +181,16 @@ export default function Timeline() {
                 <Skeleton className="h-[60vh] rounded-2xl bg-muted" />
             ) : (
                 <GlassCard className="overflow-hidden p-0">
-                    <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Timeline entries">
+                    <div className="max-h-[70vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:timeline.entries")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
-                                    <th>When</th>
-                                    <th>Source</th>
-                                    <th>Severity</th>
-                                    <th>Object</th>
-                                    <th>What happened</th>
-                                    <th>By</th>
+                                    <th>{t("pages:timeline.columns.when")}</th>
+                                    <th>{t("common:fields.source")}</th>
+                                    <th>{t("pages:timeline.columns.severity")}</th>
+                                    <th>{t("common:fields.object")}</th>
+                                    <th>{t("pages:timeline.columns.what")}</th>
+                                    <th>{t("pages:timeline.columns.by")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -187,7 +198,7 @@ export default function Timeline() {
                                     const href = e.object ? objectHref(e.namespace, e.object) : null;
                                     return (
                                         <tr key={`${e.time}-${i}`} data-testid={TIMELINE.row(i)}>
-                                            <td className="mono num" title={new Date(e.time).toLocaleString()}>
+                                            <td className="mono num" title={formatDate(e.time)}>
                                                 {relTime(e.time)}
                                             </td>
                                             <td>
@@ -207,7 +218,7 @@ export default function Timeline() {
                                                         `${e.namespace ? `${e.namespace}/` : ""}${e.object}`
                                                     )
                                                 ) : (
-                                                    <span className="text-ink-3">cluster</span>
+                                                    <span className="text-ink-3">{t("pages:timeline.clusterScope")}</span>
                                                 )}
                                             </td>
                                             <td>{e.summary}</td>
@@ -219,7 +230,7 @@ export default function Timeline() {
                                     <tr>
                                         <td colSpan={6}>
                                             <div className="empty" data-testid={TIMELINE.empty}>
-                                                Nothing matches these filters.
+                                                {t("pages:timeline.empty")}
                                             </div>
                                         </td>
                                     </tr>

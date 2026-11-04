@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -20,7 +21,15 @@ import { Cpu, MemoryStick, X, Play, Square, ArrowRightLeft, Terminal, Copy, Chec
 import { VMS } from "@/constants/testIds";
 import { toast } from "sonner";
 
+// Toast keys per action id (the ids themselves are API paths and stay English).
+const ACTION_TOASTS = {
+    stop: { ok: "toasts:vms.stopRequested", fail: "toasts:vms.stopFailed" },
+    start: { ok: "toasts:vms.startRequested", fail: "toasts:vms.startFailed" },
+    migrate: { ok: "toasts:vms.migrateRequested", fail: "toasts:vms.migrateFailed" },
+};
+
 function ConsolePanel({ vm }) {
+    const { t } = useTranslation();
     const [info, setInfo] = useState(null);
     const [copied, setCopied] = useState(false);
 
@@ -36,7 +45,7 @@ function ConsolePanel({ vm }) {
     }, [vm]);
 
     if (info === null) return <Skeleton className="h-40 rounded-xl bg-muted" />;
-    if (info === false) return <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">Console info unavailable.</div>;
+    if (info === false) return <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">{t("pages:vms.console.unavailable")}</div>;
 
     const copy = () => {
         navigator.clipboard?.writeText(info.virtctl);
@@ -51,36 +60,37 @@ function ConsolePanel({ vm }) {
                     <Terminal className="h-4 w-4 text-tone-link" />
                 </div>
                 <div>
-                    <div className="text-sm font-medium">{info.ready ? "VM is ready for console access" : "VM is not ready"}</div>
+                    <div className="text-sm font-medium">{info.ready ? t("pages:vms.console.ready") : t("pages:vms.console.notReady")}</div>
                     <div className="text-xs text-muted-foreground">
-                        Use virtctl locally, or connect a VNC client to the proxied WebSocket path below.
+                        {t("pages:vms.console.hint")}
                     </div>
                 </div>
             </div>
             {info.wsPath && (
                 <div>
-                    <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Browser WebSocket proxy</div>
+                    <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">{t("pages:vms.console.wsProxy")}</div>
                     <code className="mono block truncate text-[11px] text-tone-green">{info.wsPath}</code>
                 </div>
             )}
             <div>
-                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Run locally (kubeconfig required)</div>
+                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">{t("pages:vms.console.runLocally")}</div>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
                     <code className="mono flex-1 truncate text-xs text-tone-green">{info.virtctl}</code>
-                    <button onClick={copy} aria-label="Copy" title="Copy" className="text-muted-foreground hover:text-foreground">
+                    <button onClick={copy} aria-label={t("common:actions.copy")} title={t("common:actions.copy")} className="text-muted-foreground hover:text-foreground">
                         {copied ? <Check className="h-3.5 w-3.5 text-tone-green" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                 </div>
             </div>
             <div>
-                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Kubernetes API subresource</div>
+                <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">{t("pages:vms.console.subresource")}</div>
                 <code className="mono block truncate text-[11px] text-muted-foreground">{info.vncPath}</code>
             </div>
         </div>
     );
 }
 
-function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, emptyHint }) {
+function ProtectionSection({ title, newTitle, icon: Icon, endpoint, columns, formFields, emptyHint }) {
+    const { t } = useTranslation();
     const [items, setItems] = useState(null);
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState({});
@@ -103,12 +113,12 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
         setBusy(true);
         try {
             await api.post(endpoint, form);
-            toast.success("Requested");
+            toast.success(t("toasts:vms.requested"));
             setOpen(false);
             setForm({});
             load();
         } catch (e) {
-            toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:vms.createFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -121,7 +131,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                     <Icon className="h-4 w-4 text-tone-link" /> {title}
                 </div>
                 <Button size="sm" variant="brand" onClick={() => setOpen(true)} className="rounded-xl">
-                    <Plus className="mr-1 h-3.5 w-3.5" /> New
+                    <Plus className="mr-1 h-3.5 w-3.5" /> {t("pages:vms.protection.new")}
                 </Button>
             </div>
             <div className="max-h-[360px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={title}>
@@ -147,7 +157,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>New {title.replace(/s$/, "")}</DialogTitle>
+                        <DialogTitle>{newTitle}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         {formFields.map((f) => (
@@ -164,7 +174,7 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
                     </div>
                     <DialogFooter>
                         <Button variant="brand" onClick={submit} disabled={busy} className="rounded-xl">
-                            {busy ? "Creating…" : "Create"}
+                            {busy ? t("dialogs:vms.creating") : t("common:actions.create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -174,28 +184,30 @@ function ProtectionSection({ title, icon: Icon, endpoint, columns, formFields, e
 }
 
 function VmProtection() {
+    const { t } = useTranslation();
     return (
         <Tabs defaultValue="snapshots">
             <TabsList className="tabs !h-auto !rounded-none !bg-transparent !p-0">
                 <TabsTrigger value="snapshots" className="gap-1.5">
-                    <Camera className="h-3.5 w-3.5" /> Snapshots
+                    <Camera className="h-3.5 w-3.5" /> {t("pages:vms.protection.snapshots.title")}
                 </TabsTrigger>
                 <TabsTrigger value="clones" className="gap-1.5">
-                    <CopyIcon className="h-3.5 w-3.5" /> Clones
+                    <CopyIcon className="h-3.5 w-3.5" /> {t("pages:vms.protection.clones.title")}
                 </TabsTrigger>
                 <TabsTrigger value="exports" className="gap-1.5">
-                    <Upload className="h-3.5 w-3.5" /> Exports
+                    <Upload className="h-3.5 w-3.5" /> {t("pages:vms.protection.exports.title")}
                 </TabsTrigger>
                 <TabsTrigger value="restores" className="gap-1.5">
-                    <RotateCcw className="h-3.5 w-3.5" /> Restores
+                    <RotateCcw className="h-3.5 w-3.5" /> {t("pages:vms.protection.restores.title")}
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="snapshots" className="mt-3">
                 <ProtectionSection
-                    title="Snapshots"
+                    title={t("pages:vms.protection.snapshots.title")}
+                    newTitle={t("pages:vms.protection.snapshots.new")}
                     icon={Camera}
                     endpoint="/vm-snapshots"
-                    emptyHint="No VM snapshots yet."
+                    emptyHint={t("pages:vms.protection.snapshots.empty")}
                     columns={[
                         {
                             key: "name",
@@ -213,18 +225,19 @@ function VmProtection() {
                         { key: "age", span: "col-span-2", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
                     ]}
                     formFields={[
-                        { key: "namespace", label: "Namespace", placeholder: "default" },
-                        { key: "name", label: "Name", placeholder: "snap-1" },
-                        { key: "vm", label: "VM name", placeholder: "edge-api-vm" },
+                        { key: "namespace", label: t("common:fields.namespace"), placeholder: "default" },
+                        { key: "name", label: t("common:fields.name"), placeholder: "snap-1" },
+                        { key: "vm", label: t("pages:vms.protection.fields.vmName"), placeholder: "edge-api-vm" },
                     ]}
                 />
             </TabsContent>
             <TabsContent value="clones" className="mt-3">
                 <ProtectionSection
-                    title="Clones"
+                    title={t("pages:vms.protection.clones.title")}
+                    newTitle={t("pages:vms.protection.clones.new")}
                     icon={CopyIcon}
                     endpoint="/vm-clones"
-                    emptyHint="No VM clones yet."
+                    emptyHint={t("pages:vms.protection.clones.empty")}
                     columns={[
                         {
                             key: "name",
@@ -242,19 +255,20 @@ function VmProtection() {
                         { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
                     ]}
                     formFields={[
-                        { key: "namespace", label: "Namespace", placeholder: "default" },
-                        { key: "name", label: "Name", placeholder: "clone-1" },
-                        { key: "sourceVM", label: "Source VM", placeholder: "edge-api-vm" },
-                        { key: "targetVM", label: "Target VM name", placeholder: "edge-api-vm-clone" },
+                        { key: "namespace", label: t("common:fields.namespace"), placeholder: "default" },
+                        { key: "name", label: t("common:fields.name"), placeholder: "clone-1" },
+                        { key: "sourceVM", label: t("pages:vms.protection.fields.sourceVm"), placeholder: "edge-api-vm" },
+                        { key: "targetVM", label: t("pages:vms.protection.fields.targetVmName"), placeholder: "edge-api-vm-clone" },
                     ]}
                 />
             </TabsContent>
             <TabsContent value="exports" className="mt-3">
                 <ProtectionSection
-                    title="Exports"
+                    title={t("pages:vms.protection.exports.title")}
+                    newTitle={t("pages:vms.protection.exports.new")}
                     icon={Upload}
                     endpoint="/vm-exports"
-                    emptyHint="No VM exports yet."
+                    emptyHint={t("pages:vms.protection.exports.empty")}
                     columns={[
                         {
                             key: "name",
@@ -272,18 +286,19 @@ function VmProtection() {
                         { key: "age", span: "col-span-2", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
                     ]}
                     formFields={[
-                        { key: "namespace", label: "Namespace", placeholder: "default" },
-                        { key: "name", label: "Name", placeholder: "export-1" },
-                        { key: "vm", label: "VM name", placeholder: "edge-api-vm" },
+                        { key: "namespace", label: t("common:fields.namespace"), placeholder: "default" },
+                        { key: "name", label: t("common:fields.name"), placeholder: "export-1" },
+                        { key: "vm", label: t("pages:vms.protection.fields.vmName"), placeholder: "edge-api-vm" },
                     ]}
                 />
             </TabsContent>
             <TabsContent value="restores" className="mt-3">
                 <ProtectionSection
-                    title="Restores"
+                    title={t("pages:vms.protection.restores.title")}
+                    newTitle={t("pages:vms.protection.restores.new")}
                     icon={RotateCcw}
                     endpoint="/vm-restores"
-                    emptyHint="No VM restores yet."
+                    emptyHint={t("pages:vms.protection.restores.empty")}
                     columns={[
                         {
                             key: "name",
@@ -301,10 +316,10 @@ function VmProtection() {
                         { key: "age", span: "col-span-1", render: (r) => <span className="mono text-right text-xs text-muted-foreground block">{r.age}</span> },
                     ]}
                     formFields={[
-                        { key: "namespace", label: "Namespace", placeholder: "default" },
-                        { key: "name", label: "Name", placeholder: "restore-1" },
-                        { key: "snapshot", label: "Snapshot name", placeholder: "snap-1" },
-                        { key: "targetVM", label: "Target VM name", placeholder: "edge-api-vm-restored" },
+                        { key: "namespace", label: t("common:fields.namespace"), placeholder: "default" },
+                        { key: "name", label: t("common:fields.name"), placeholder: "restore-1" },
+                        { key: "snapshot", label: t("pages:vms.protection.fields.snapshotName"), placeholder: "snap-1" },
+                        { key: "targetVM", label: t("pages:vms.protection.fields.targetVmName"), placeholder: "edge-api-vm-restored" },
                     ]}
                 />
             </TabsContent>
@@ -313,6 +328,7 @@ function VmProtection() {
 }
 
 export default function VirtualMachines() {
+    const { t } = useTranslation();
     const [vms, setVms] = useState(null);
     const [openVm, setOpenVm] = useState(null);
     const [busy, setBusy] = useState("");
@@ -331,10 +347,10 @@ export default function VirtualMachines() {
         let alive = true;
         const tick = () => api.get("/vms").then((r) => alive && setVms(r.data));
         tick();
-        const t = setInterval(tick, 10000);
+        const timer = setInterval(tick, 10000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -343,10 +359,10 @@ export default function VirtualMachines() {
         setBusy(key);
         try {
             await api.post(`/vms/${vm.namespace}/${encodeURIComponent(vm.name)}/${path}`);
-            toast.success(`${vm.name}: ${action} requested`);
+            toast.success(t(ACTION_TOASTS[action].ok, { name: vm.name }));
             await load();
         } catch (e) {
-            toast.error(`${action} failed`, { description: e?.response?.data?.error || e.message });
+            toast.error(t(ACTION_TOASTS[action].fail), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy("");
         }
@@ -367,13 +383,13 @@ export default function VirtualMachines() {
     return (
         <div data-testid={VMS.root} className="page">
             <PageHeader
-                title="Virtual Machines"
-                description="KubeVirt-managed VMs. Start, stop, live-migrate and open a console."
+                title={t("pages:vms.title")}
+                description={t("pages:vms.description")}
                 action={
                     <>
-                        <span className="text-[13px] text-ink-3">{vms.length} VMs</span>
+                        <span className="text-[13px] text-ink-3">{t("pages:vms.vmCount", { n: vms.length })}</span>
                         <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
-                            <Plus size={15} /> Create VM
+                            <Plus size={15} /> {t("pages:vms.createVm")}
                         </button>
                     </>
                 }
@@ -382,29 +398,29 @@ export default function VirtualMachines() {
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Create virtual machine</DialogTitle>
+                        <DialogTitle>{t("dialogs:vms.create.title")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div className="space-y-1.5">
-                            <Label htmlFor="virtual-machines-namespace" className="text-xs text-muted-foreground">Namespace</Label>
+                            <Label htmlFor="virtual-machines-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
                             <Input id="virtual-machines-namespace" className="bg-muted/30" value={createForm.namespace} onChange={(e) => setCreateForm((f) => ({ ...f, namespace: e.target.value }))} />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="virtual-machines-name" className="text-xs text-muted-foreground">Name</Label>
+                            <Label htmlFor="virtual-machines-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
                             <Input id="virtual-machines-name" className="bg-muted/30" value={createForm.name} onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))} placeholder="web-vm" />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="virtual-machines-cpu-cores" className="text-xs text-muted-foreground">CPU cores</Label>
+                                <Label htmlFor="virtual-machines-cpu-cores" className="text-xs text-muted-foreground">{t("dialogs:vms.create.cpuCores")}</Label>
                                 <Input id="virtual-machines-cpu-cores" className="bg-muted/30" value={createForm.cpu} onChange={(e) => setCreateForm((f) => ({ ...f, cpu: e.target.value }))} />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="virtual-machines-memory" className="text-xs text-muted-foreground">Memory</Label>
+                                <Label htmlFor="virtual-machines-memory" className="text-xs text-muted-foreground">{t("common:fields.memory")}</Label>
                                 <Input id="virtual-machines-memory" className="bg-muted/30" value={createForm.memory} onChange={(e) => setCreateForm((f) => ({ ...f, memory: e.target.value }))} />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="virtual-machines-container-disk-image" className="text-xs text-muted-foreground">Container disk image</Label>
+                            <Label htmlFor="virtual-machines-container-disk-image" className="text-xs text-muted-foreground">{t("dialogs:vms.create.image")}</Label>
                             <Input id="virtual-machines-container-disk-image" className="bg-muted/30" value={createForm.image} onChange={(e) => setCreateForm((f) => ({ ...f, image: e.target.value }))} />
                         </div>
                     </div>
@@ -417,17 +433,17 @@ export default function VirtualMachines() {
                                 setBusy("create");
                                 try {
                                     await api.post("/vms", { ...createForm, running: true });
-                                    toast.success(`VM ${createForm.name} created`);
+                                    toast.success(t("toasts:vms.created", { name: createForm.name }));
                                     setCreateOpen(false);
                                     await load();
                                 } catch (e) {
-                                    toast.error("Create failed", { description: e?.response?.data?.error || e.message });
+                                    toast.error(t("toasts:vms.createFailed"), { description: e?.response?.data?.error || e.message });
                                 } finally {
                                     setBusy("");
                                 }
                             }}
                         >
-                            {busy === "create" ? "Creating…" : "Create"}
+                            {busy === "create" ? t("dialogs:vms.creating") : t("common:actions.create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -453,11 +469,11 @@ export default function VirtualMachines() {
                                     <b>{vm.cpu}</b>
                                 </div>
                                 <div>
-                                    <MemoryStick size={13} /> Memory
+                                    <MemoryStick size={13} /> {t("common:fields.memory")}
                                     <b>{vm.memory}</b>
                                 </div>
                                 <div>
-                                    Node
+                                    {t("common:fields.node")}
                                     <b className="mono text-[14px] mt-1.5">
                                         {vm.node || "—"}
                                     </b>
@@ -471,7 +487,7 @@ export default function VirtualMachines() {
                                         disabled={busy === `${vm.namespace}/${vm.name}:stop`}
                                         onClick={() => act(vm, "stop", "stop")}
                                     >
-                                        <Square size={12} /> Stop
+                                        <Square size={12} /> {t("pages:vms.actions.stop")}
                                     </button>
                                 ) : (
                                     <button
@@ -480,7 +496,7 @@ export default function VirtualMachines() {
                                         disabled={busy === `${vm.namespace}/${vm.name}:start`}
                                         onClick={() => act(vm, "start", "start")}
                                     >
-                                        <Play size={12} /> Start
+                                        <Play size={12} /> {t("pages:vms.actions.start")}
                                     </button>
                                 )}
                                 <button
@@ -489,10 +505,10 @@ export default function VirtualMachines() {
                                     disabled={!running || busy === `${vm.namespace}/${vm.name}:migrate`}
                                     onClick={() => act(vm, "migrate", "migrate")}
                                 >
-                                    <ArrowRightLeft size={13} /> Migrate
+                                    <ArrowRightLeft size={13} /> {t("pages:vms.actions.migrate")}
                                 </button>
                                 <button type="button" className="btn btn-fill btn-sm" onClick={() => setOpenVm(vm)}>
-                                    <Terminal size={13} /> Console
+                                    <Terminal size={13} /> {t("pages:vms.actions.console")}
                                 </button>
                                 <span className="ml-auto text-[12.5px] text-ink-3 self-center">{vm.age}</span>
                             </div>
@@ -516,7 +532,7 @@ export default function VirtualMachines() {
                         </div>
                         <button
                             data-testid={VMS.consoleClose}
-                            aria-label="Close" title="Close" onClick={() => setOpenVm(null)}
+                            aria-label={t("common:actions.close")} title={t("common:actions.close")} onClick={() => setOpenVm(null)}
                             className="rounded-lg border border-border bg-muted p-1.5 text-muted-foreground hover:bg-accent"
                         >
                             <X className="h-4 w-4" />

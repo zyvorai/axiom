@@ -8,8 +8,10 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation, Trans } from "react-i18next";
 
 export default function CronJobDetail() {
+    const { t } = useTranslation();
     const { namespace, name } = useParams();
     const navigate = useNavigate();
     const ns = decodeURIComponent(namespace || "");
@@ -56,10 +58,10 @@ export default function CronJobDetail() {
         setBusy(true);
         try {
             await api.post(`/cronjobs/${encodeURIComponent(ns)}/${encodeURIComponent(nm)}/trigger`);
-            toast.success(`Triggered ${nm}`);
+            toast.success(t("toasts:cronJobDetail.triggered", { name: nm }));
             await load();
         } catch (e) {
-            toast.error("Trigger failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:cronJobDetail.triggerFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
             setBusy(false);
         }
@@ -78,10 +80,10 @@ export default function CronJobDetail() {
         return (
             <div className="page space-y-4">
                 <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
-                    <ArrowLeft className="h-3.5 w-3.5" /> Jobs
+                    <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:cronJobDetail.backToJobs")}
                 </button>
                 <GlassCard className="empty">
-                    CronJob <span className="mono text-foreground">{ns}/{nm}</span> was not found.
+                    <Trans i18nKey="pages:cronJobDetail.notFound" values={{ name: `${ns}/${nm}` }} components={{ code: <span className="mono text-foreground" /> }} />
                 </GlassCard>
             </div>
         );
@@ -108,10 +110,10 @@ export default function CronJobDetail() {
                 action={
                     <div className="flex gap-2">
                         <button type="button" className="btn btn-line btn-sm" disabled={busy} onClick={trigger}>
-                            <PlayCircle className="h-3.5 w-3.5" /> {busy ? "Triggering…" : "Run now"}
+                            <PlayCircle className="h-3.5 w-3.5" /> {busy ? t("pages:cronJobDetail.triggering") : t("pages:cronJobDetail.runNow")}
                         </button>
                         <button type="button" className="btn btn-line btn-sm" onClick={() => navigate("/jobs")}>
-                            <ArrowLeft className="h-3.5 w-3.5" /> All jobs
+                            <ArrowLeft className="h-3.5 w-3.5" /> {t("pages:cronJobDetail.allJobs")}
                         </button>
                     </div>
                 }
@@ -119,30 +121,30 @@ export default function CronJobDetail() {
 
             <GlassCard>
                 <SpecTable
-                    title="Schedule"
+                    title={t("pages:cronJobDetail.schedule")}
                     rows={[
-                        { label: "Cron", value: cron.schedule || "—", mono: true },
-                        { label: "Suspended", value: cron.suspend ? "Yes" : "No" },
-                        { label: "Active jobs", value: String(cron.active ?? 0), mono: true },
-                        { label: "Last schedule", value: cron.lastSchedule || "—", mono: true },
+                        { label: t("pages:cronJobDetail.cron"), value: cron.schedule || "—", mono: true },
+                        { label: t("pages:cronJobDetail.suspended"), value: cron.suspend ? t("common:states.yes") : t("common:states.no") },
+                        { label: t("pages:cronJobDetail.activeJobs"), value: String(cron.active ?? 0), mono: true },
+                        { label: t("pages:cronJobDetail.lastSchedule"), value: cron.lastSchedule || "—", mono: true },
                     ]}
                 />
             </GlassCard>
 
             <GlassCard className="overflow-hidden">
                 <div className="card-h">
-                    <h2 className="text-[15px]">Recent jobs ({ownedJobs.length})</h2>
+                    <h2 className="text-[15px]">{t("pages:cronJobDetail.recentJobs", { n: ownedJobs.length })}</h2>
                 </div>
                 {ownedJobs.length === 0 ? (
-                    <div className="empty">No jobs from this CronJob yet.</div>
+                    <div className="empty">{t("pages:cronJobDetail.noJobs")}</div>
                 ) : (
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Completions</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th>{t("pages:cronJobDetail.completions")}</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>

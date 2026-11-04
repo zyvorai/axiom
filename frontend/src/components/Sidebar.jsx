@@ -3,7 +3,8 @@ import { NavLink } from "react-router-dom";
 import { ChevronDown, ChevronsLeft, ChevronsRight } from "lucide-react";
 import ClusterSwitcher from "@/components/ClusterSwitcher";
 import { NAV } from "@/constants/testIds";
-import { NAV_ITEMS, NAV_GROUP_ORDER, RAIL_PINNED_KEYS, resolveIcon } from "@/constants/navItems";
+import { useTranslation } from "react-i18next";
+import { NAV_ITEMS, NAV_GROUP_ORDER, RAIL_PINNED_KEYS, resolveIcon, navLabel, navGroupLabel } from "@/constants/navItems";
 import { api } from "@/lib/api";
 import { useNavCounts } from "@/lib/navCounts";
 
@@ -13,13 +14,14 @@ export default function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCl
     const [plugins, setPlugins] = useState([]);
     const [closedGroups, setClosedGroups] = useState({});
     const counts = useNavCounts();
+    const { t } = useTranslation();
 
     useEffect(() => {
         api.get("/plugins").then((r) => setPlugins(r.data || [])).catch(() => setPlugins([]));
     }, []);
 
     const ITEMS = [
-        ...NAV_ITEMS,
+        ...NAV_ITEMS.map((i) => ({ ...i, label: navLabel(t, i) })),
         ...plugins.map((p) => ({
             to: `/plugins/${p.name}`,
             label: p.displayName,
@@ -70,7 +72,7 @@ export default function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCl
                               <div key={group.label} className={`grp ${closedGroups[group.label] ? "closed" : ""}`}>
                                   <button type="button" className="grp-h" onClick={() => toggleGroup(group.label)}>
                                       <ChevronDown size={11} />
-                                      {group.label}
+                                      {navGroupLabel(t, group.label)}
                                   </button>
                                   {group.items.map(({ to, label, sub, icon: Icon, key }) => {
                                       const cnt = countFor(key);
@@ -102,10 +104,10 @@ export default function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCl
                         data-testid={NAV.sidebarCollapseToggle}
                         className="item"
                         onClick={onToggleCollapsed}
-                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                        aria-label={collapsed ? t("nav:sidebar.expand") : t("nav:sidebar.collapse")}
                     >
                         {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-                        <span className="lbl">Collapse</span>
+                        <span className="lbl">{t("nav:sidebar.collapseShort")}</span>
                     </button>
                 </div>
             </aside>

@@ -9,8 +9,10 @@ import { ArrowRight, Rocket } from "lucide-react";
 import { OVERVIEW } from "@/constants/testIds";
 import { useAlertsCount } from "@/lib/alerts";
 import OverviewHealth from "@/components/OverviewHealth";
+import { useTranslation } from "react-i18next";
 
 function SetupBanner() {
+    const { t } = useTranslation();
     const [needsSetup, setNeedsSetup] = useState(false);
 
     useEffect(() => {
@@ -33,16 +35,17 @@ function SetupBanner() {
     return (
         <div className="notice">
             <Rocket size={16} />
-            Setup for this instance isn't finished yet.
+            {t("pages:overview.setupNotice")}
             <Link to="/getting-started">
-                Finish setup <ArrowRight size={14} />
+                {t("pages:overview.finishSetup")} <ArrowRight size={14} />
             </Link>
         </div>
     );
 }
 
 export default function Overview() {
-    usePageTitle("Overview");
+    const { t } = useTranslation();
+    usePageTitle(t("nav:items.overview"));
     const [data, setData] = useState(null);
     const alertCount = useAlertsCount();
 
@@ -53,10 +56,10 @@ export default function Overview() {
                 if (alive) setData(o.data);
             });
         load();
-        const t = setInterval(load, 6000);
+        const timer = setInterval(load, 6000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -83,16 +86,16 @@ export default function Overview() {
         : 0;
 
     const inventory = [
-        { key: "nodes", label: "Nodes ready", value: data.readyNodes, of: data.nodes },
-        { key: "pods", label: "Pods running", value: data.runningPods, of: data.pods },
-        { key: "workloads", label: "Workloads", value: data.workloads },
-        { key: "vms", label: "VMs running", value: data.readyVms, of: data.vms },
+        { key: "nodes", label: t("pages:overview.metrics.nodes"), value: data.readyNodes, of: data.nodes },
+        { key: "pods", label: t("pages:overview.metrics.pods"), value: data.runningPods, of: data.pods },
+        { key: "workloads", label: t("pages:overview.metrics.workloads"), value: data.workloads },
+        { key: "vms", label: t("pages:overview.metrics.vms"), value: data.readyVms, of: data.vms },
     ];
 
     const utilization = [
-        { label: "CPU", value: Math.round(data.cpuPercent) },
-        { label: "Memory", value: Math.round(data.memoryPercent) },
-        { label: "Storage", value: storagePct },
+        { id: "cpu", label: t("common:fields.cpu"), value: Math.round(data.cpuPercent) },
+        { id: "memory", label: t("common:fields.memory"), value: Math.round(data.memoryPercent) },
+        { id: "storage", label: t("pages:overview.utilization.storage"), value: storagePct },
     ];
 
     return (
@@ -101,7 +104,7 @@ export default function Overview() {
 
             <section className="hero hero-media">
                 <h1>{data.cluster}</h1>
-                <p>Your Kubernetes-native private cloud. One console from k3s to production.</p>
+                <p>{t("pages:overview.tagline")}</p>
                 <div className="status">
                     <StatusBadge status={data.health} />
                     <span className="text-ink-3">·</span>
@@ -109,17 +112,17 @@ export default function Overview() {
                 </div>
                 <div className="acts">
                     <Link to="/workloads" className="btn btn-fill btn-lg">
-                        Explore workloads <ArrowRight size={16} />
+                        {t("pages:overview.exploreWorkloads")} <ArrowRight size={16} />
                     </Link>
                     <Link to="/nodes" className="btn btn-line btn-lg">
-                        View nodes
+                        {t("pages:overview.viewNodes")}
                     </Link>
                 </div>
             </section>
 
             <div className="section-h">
-                <h2>At a glance</h2>
-                <p>Everything running on this cluster, right now.</p>
+                <h2>{t("pages:overview.glance.title")}</h2>
+                <p>{t("pages:overview.glance.description")}</p>
             </div>
             <div className="stats">
                 {inventory.map((c) => (
@@ -133,17 +136,17 @@ export default function Overview() {
                 ))}
             </div>
             <p className="text-center text-[13px] text-ink-3 mt-3.5">
-                {data.storageUsedTb} of {data.storageCapacityTb} TB storage provisioned
+                {t("pages:overview.storageProvisioned", { used: data.storageUsedTb, capacity: data.storageCapacityTb })}
             </p>
 
             <div className="divider" />
             <div className="section-h">
-                <h2>Utilization</h2>
-                <p>How hard the cluster has been working against what it can allocate.</p>
+                <h2>{t("pages:overview.utilization.title")}</h2>
+                <p>{t("pages:overview.utilization.description")}</p>
             </div>
             <div className="grid g3">
                 {utilization.map((u) => (
-                    <div className="stat media" key={u.label}>
+                    <div className="stat media" key={u.id}>
                         <b>
                             {u.value}
                             <small>%</small>
@@ -158,16 +161,16 @@ export default function Overview() {
 
             <div className="divider" />
             <div className="section-h">
-                <h2>Trend</h2>
-                <p>CPU and memory over the last observed window.</p>
+                <h2>{t("pages:overview.trend.title")}</h2>
+                <p>{t("pages:overview.trend.description")}</p>
             </div>
             <div className="grid g2">
                 <div className="card media">
-                    <div className="text-[13px] text-ink-2 mb-2">Cluster CPU</div>
+                    <div className="text-[13px] text-ink-2 mb-2">{t("pages:overview.trend.clusterCpu")}</div>
                     <Sparkline data={cpuSeries} color="var(--blue)" height={100} />
                 </div>
                 <div className="card media">
-                    <div className="text-[13px] text-ink-2 mb-2">Cluster Memory</div>
+                    <div className="text-[13px] text-ink-2 mb-2">{t("pages:overview.trend.clusterMemory")}</div>
                     <Sparkline data={memSeries} color="var(--green)" height={100} />
                 </div>
             </div>
@@ -177,27 +180,27 @@ export default function Overview() {
 
             <div className="divider" />
             <div className="section-h">
-                <h2>Stay informed</h2>
-                <p>Warnings, cluster events, and pod streams live on their own pages.</p>
+                <h2>{t("pages:overview.informed.title")}</h2>
+                <p>{t("pages:overview.informed.description")}</p>
             </div>
             <div className="cta-cards">
                 <Link to="/alerts" className="cta-card">
                     <b>
-                        Alerts{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={18} />
+                        {t("pages:overview.cards.alerts")}{alertCount > 0 ? ` · ${alertCount}` : ""} <ArrowRight size={18} />
                     </b>
-                    <span>Warnings and rules that need your attention.</span>
+                    <span>{t("pages:overview.cards.alertsText")}</span>
                 </Link>
                 <Link to="/events" className="cta-card">
                     <b>
-                        Events <ArrowRight size={18} />
+                        {t("pages:overview.cards.events")} <ArrowRight size={18} />
                     </b>
-                    <span>What the cluster has been doing, as it happens.</span>
+                    <span>{t("pages:overview.cards.eventsText")}</span>
                 </Link>
                 <Link to="/logs" className="cta-card">
                     <b>
-                        Pod logs <ArrowRight size={18} />
+                        {t("pages:overview.cards.logs")} <ArrowRight size={18} />
                     </b>
-                    <span>Stream the output of any pod in real time.</span>
+                    <span>{t("pages:overview.cards.logsText")}</span>
                 </Link>
             </div>
         </div>

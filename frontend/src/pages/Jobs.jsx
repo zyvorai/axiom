@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { CalendarClock, PlayCircle, Boxes, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
 import SearchBox from "@/components/SearchBox";
 import NamespaceFilter from "@/components/NamespaceFilter";
@@ -16,6 +17,7 @@ import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
 
 function Section({ title, icon: Icon, rows, columns, empty }) {
+    const { t } = useTranslation();
     return (
         <GlassCard className="overflow-hidden">
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -29,7 +31,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
                         <tr>
                             {columns.map((c) => (
                                 <th key={c.key} style={c.align === "right" ? { textAlign: "right" } : undefined}>
-                                    {c.header || <span className="sr-only">Actions</span>}
+                                    {c.header || <span className="sr-only">{t("common:fields.actions")}</span>}
                                 </th>
                             ))}
                         </tr>
@@ -59,6 +61,7 @@ function Section({ title, icon: Icon, rows, columns, empty }) {
 }
 
 export default function Jobs() {
+    const { t } = useTranslation();
     const confirm = useConfirm();
     const [cronJobs, setCronJobs] = useState(null);
     const [jobs, setJobs] = useState(null);
@@ -77,60 +80,60 @@ export default function Jobs() {
 
     useEffect(() => {
         load();
-        const t = setInterval(load, 10000);
-        return () => clearInterval(t);
+        const timer = setInterval(load, 10000);
+        return () => clearInterval(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const trigger = async (c) => {
         try {
             await api.post(`/cronjobs/${c.namespace}/${encodeURIComponent(c.name)}/trigger`);
-            toast.success(`Triggered ${c.name}`);
+            toast.success(t("toasts:jobs.triggered", { name: c.name }));
             load();
         } catch (e) {
-            toast.error("Trigger failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:jobs.triggerFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const setSuspend = async (c, suspend) => {
         try {
             await api.post(`/cronjobs/${c.namespace}/${encodeURIComponent(c.name)}/suspend`, { suspend });
-            toast.success(suspend ? `Suspended ${c.name}` : `Resumed ${c.name}`);
+            toast.success(suspend ? t("toasts:jobs.suspended", { name: c.name }) : t("toasts:jobs.resumed", { name: c.name }));
             load();
         } catch (e) {
-            toast.error("Update failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:jobs.updateFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const deleteCronJob = async (c) => {
         const ok = await confirm({
-            title: `Delete CronJob ${c.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:jobs.deleteCronJob.title", { name: c.name }),
+            description: t("dialogs:jobs.deleteCronJob.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/cronjobs/${c.namespace}/${encodeURIComponent(c.name)}`);
-            toast.success(`Deleted ${c.name}`);
+            toast.success(t("toasts:jobs.deleted", { name: c.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:jobs.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
     const deleteJob = async (j) => {
         const ok = await confirm({
-            title: `Delete job ${j.name}?`,
-            description: "This cannot be undone.",
-            confirmLabel: "Delete",
+            title: t("dialogs:jobs.deleteJob.title", { name: j.name }),
+            description: t("dialogs:jobs.deleteJob.description"),
+            confirmLabel: t("common:actions.delete"),
         });
         if (!ok) return;
         try {
             await api.delete(`/jobs/${j.namespace}/${encodeURIComponent(j.name)}`);
-            toast.success(`Deleted ${j.name}`);
+            toast.success(t("toasts:jobs.deleted", { name: j.name }));
             load();
         } catch (e) {
-            toast.error("Delete failed", { description: e?.response?.data?.error || e.message });
+            toast.error(t("toasts:jobs.deleteFailed"), { description: e?.response?.data?.error || e.message });
         }
     };
 
@@ -154,11 +157,11 @@ export default function Jobs() {
     return (
         <div className="page">
             <PageHeader
-                title="Jobs & CronJobs"
-                description="Scheduled and one-off batch workloads across all namespaces."
+                title={t("pages:jobs.title")}
+                description={t("pages:jobs.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search job name" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:jobs.searchPlaceholder")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="jobs"
@@ -173,14 +176,14 @@ export default function Jobs() {
             />
 
             <Section
-                title="CronJobs"
+                title={t("pages:jobs.cronJobs.title")}
                 icon={CalendarClock}
                 rows={shownCronJobs}
-                empty={cronJobs.length ? "No CronJobs match the current filters." : "No CronJobs configured."}
+                empty={cronJobs.length ? t("pages:jobs.cronJobs.noMatches") : t("pages:jobs.cronJobs.empty")}
                 columns={[
                     {
                         key: "name",
-                        header: "Name",
+                        header: t("common:fields.name"),
                         className: "name",
                         render: (r) => (
                             <>
@@ -191,21 +194,21 @@ export default function Jobs() {
                             </>
                         ),
                     },
-                    { key: "schedule", header: "Schedule", className: "mono", render: (r) => r.schedule },
-                    { key: "status", header: "Status", render: (r) => <StatusBadge status={r.suspend ? "Paused" : "Running"} /> },
-                    { key: "lastSchedule", header: "Last run", className: "mono", render: (r) => r.lastSchedule || "—" },
-                    { key: "age", header: "Age", className: "mono", render: (r) => r.age },
+                    { key: "schedule", header: t("pages:jobs.columns.schedule"), className: "mono", render: (r) => r.schedule },
+                    { key: "status", header: t("common:fields.status"), render: (r) => <StatusBadge status={r.suspend ? "Paused" : "Running"} /> },
+                    { key: "lastSchedule", header: t("pages:jobs.columns.lastRun"), className: "mono", render: (r) => r.lastSchedule || "—" },
+                    { key: "age", header: t("common:fields.age"), className: "mono", render: (r) => r.age },
                     {
                         key: "actions",
                         header: "",
                         align: "right",
                         render: (r) => (
                             <div className="flex items-center justify-end gap-2">
-                                <button type="button" className="btn btn-line btn-sm" title="Run now" onClick={() => trigger(r)}>
+                                <button type="button" className="btn btn-line btn-sm" title={t("pages:jobs.runNow")} onClick={() => trigger(r)}>
                                     <PlayCircle size={13} />
                                 </button>
-                                <Switch aria-label={`Schedule enabled for ${r.name}`} checked={!r.suspend} onCheckedChange={(v) => setSuspend(r, !v)} />
-                                <button type="button" className="btn btn-line btn-sm" title="Delete" onClick={() => deleteCronJob(r)}>
+                                <Switch aria-label={t("pages:jobs.scheduleEnabledFor", { name: r.name })} checked={!r.suspend} onCheckedChange={(v) => setSuspend(r, !v)} />
+                                <button type="button" className="btn btn-line btn-sm" title={t("common:actions.delete")} onClick={() => deleteCronJob(r)}>
                                     <Trash2 size={13} />
                                 </button>
                             </div>
@@ -217,35 +220,35 @@ export default function Jobs() {
             <div className="h-6" />
 
             <Section
-                title="Jobs"
+                title={t("pages:jobs.jobs.title")}
                 icon={Boxes}
                 rows={shownJobs}
-                empty={(jobs || []).length ? "No Jobs match the current filters." : "No Jobs found."}
+                empty={(jobs || []).length ? t("pages:jobs.jobs.noMatches") : t("pages:jobs.jobs.empty")}
                 columns={[
                     {
                         key: "name",
-                        header: "Name",
+                        header: t("common:fields.name"),
                         className: "name",
                         render: (r) => (
                             <>
                                 <Link to={`/jobs/${encodeURIComponent(r.namespace)}/${encodeURIComponent(r.name)}`} className="hover:underline">
                                     {r.name}
                                 </Link>
-                                <small>{r.namespace}{r.ownerCronJob ? ` · from ${r.ownerCronJob}` : ""}</small>
+                                <small>{r.ownerCronJob ? t("pages:jobs.namespaceFromCronJob", { namespace: r.namespace, cronJob: r.ownerCronJob }) : r.namespace}</small>
                             </>
                         ),
                     },
-                    { key: "status", header: "Status", render: (r) => <StatusBadge status={r.status} /> },
-                    { key: "completions", header: "Completions", className: "mono", render: (r) => r.completions },
-                    { key: "duration", header: "Duration", className: "mono", render: (r) => r.duration || "—" },
-                    { key: "age", header: "Age", className: "mono", render: (r) => r.age },
+                    { key: "status", header: t("common:fields.status"), render: (r) => <StatusBadge status={r.status} /> },
+                    { key: "completions", header: t("pages:jobs.columns.completions"), className: "mono", render: (r) => r.completions },
+                    { key: "duration", header: t("pages:jobs.columns.duration"), className: "mono", render: (r) => r.duration || "—" },
+                    { key: "age", header: t("common:fields.age"), className: "mono", render: (r) => r.age },
                     {
                         key: "actions",
                         header: "",
                         align: "right",
                         render: (r) => (
                             <div className="flex justify-end">
-                                <button type="button" className="btn btn-line btn-sm" title="Delete" onClick={() => deleteJob(r)}>
+                                <button type="button" className="btn btn-line btn-sm" title={t("common:actions.delete")} onClick={() => deleteJob(r)}>
                                     <Trash2 size={13} />
                                 </button>
                             </div>

@@ -1,0 +1,483 @@
+{
+  "confirm": {
+    "title": "Are you sure?",
+    "description": "This action cannot be undone."
+  },
+  "users": {
+    "deleteTitle": "Delete user {{name}}?",
+    "deleteDescription": "This cannot be undone.",
+    "resetMfaTitle": "Reset two-factor for {{name}}?",
+    "resetMfaDescription": "They will be able to sign in with just their password and can set up two-factor again. Use this when someone has lost their device and recovery codes.",
+    "revokeTitle": "Sign {{name}} out everywhere?",
+    "revokeDescription": "Every session this account has open is ended; they must sign in again.",
+    "resetExternalMfaDescription": "This directory account will sign in with just its directory password until it sets up two-factor again."
+  },
+  "settings": {
+    "registerCluster": {
+      "title": "Register remote cluster",
+      "label": "Label",
+      "kubeconfig": "Kubeconfig YAML",
+      "register": "Register",
+      "registering": "Registering…"
+    }
+  },
+  "configMaps": {
+    "create": {
+      "title": "Create ConfigMap",
+      "data": "Data",
+      "keyAria": "Key {{n}}",
+      "valueAria": "Value {{n}}",
+      "removeRow": "Remove row",
+      "addKey": "Add key",
+      "creating": "Creating…"
+    },
+    "delete": {
+      "title": "Delete ConfigMap {{name}}?",
+      "description": "This cannot be undone."
+    }
+  },
+  "secrets": {
+    "create": {
+      "title": "Create secret",
+      "data": "Data",
+      "keyAria": "Key {{n}}",
+      "valueAria": "Value {{n}}",
+      "removeRow": "Remove row",
+      "addKey": "Add key",
+      "creating": "Creating…"
+    },
+    "delete": {
+      "title": "Delete secret {{name}}?",
+      "description": "This also removes all its keys. This cannot be undone."
+    }
+  },
+  "pluginView": {
+    "delete": {
+      "title": "Delete {{name}}?",
+      "description": "This cannot be undone."
+    }
+  },
+  "namespaces": {
+    "delete": {
+      "title": "Delete namespace {{name}}?",
+      "description": "This deletes every resource in this namespace. This cannot be undone."
+    },
+    "create": {
+      "title": "Create namespace",
+      "creating": "Creating…"
+    }
+  },
+  "networking": {
+    "deletePolicy": {
+      "title": "Delete NetworkPolicy {{name}}?",
+      "description": "This may remove traffic restrictions currently enforced by this policy. This cannot be undone."
+    },
+    "createPolicy": {
+      "title": "Create NetworkPolicy"
+    }
+  },
+  "nodeDetail": {
+    "removeTaint": {
+      "title": "Remove taint {{key}}?",
+      "description": "This cannot be undone."
+    }
+  },
+  "ops": {
+    "cannotUndo": "This cannot be undone.",
+    "creating": "Creating…",
+    "uninstall": {
+      "title": "Uninstall {{name}}?",
+      "confirm": "Uninstall"
+    },
+    "installChart": {
+      "title": "Install chart",
+      "releaseName": "Release name",
+      "repoUrl": "Chart repo URL",
+      "chartName": "Chart name",
+      "version": "Version (optional)",
+      "values": "Values YAML (optional)",
+      "note": "Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.",
+      "starting": "Starting…",
+      "install": "Install"
+    },
+    "createRole": {
+      "title": "New Role",
+      "rules": "Rules (JSON array of PolicyRule)"
+    },
+    "createBinding": {
+      "title": "New RoleBinding",
+      "roleName": "Role name",
+      "subjects": "Subjects (JSON array)"
+    },
+    "deleteRole": {
+      "title": "Delete role {{name}}?"
+    },
+    "deleteBinding": {
+      "title": "Delete role binding {{name}}?"
+    }
+  },
+  "applyManifest": {
+    "title": "Apply manifest",
+    "manifestWord": "manifest",
+    "applied": "Applied {{kind}}",
+    "appliedNamed": "Applied {{kind}} {{name}}",
+    "reviewing": "Reviewing…",
+    "reviewAgain": "Review again",
+    "reviewChanges": "Review changes",
+    "applying": "Applying…"
+  },
+  "atlas": {
+    "createVolume": {
+      "title": "Create volume",
+      "policy": "Policy",
+      "size": "Size (GiB)",
+      "requesting": "Requesting…"
+    }
+  },
+  "autoscaling": {
+    "create": {
+      "title": "Create autoscaler",
+      "targetWorkload": "Target workload",
+      "selectWorkload": "Select a workload",
+      "minReplicas": "Min replicas",
+      "maxReplicas": "Max replicas",
+      "targetCpu": "Target CPU % (blank = ignore)",
+      "targetMemory": "Target memory % (optional)",
+      "targetMemoryPlaceholder": "e.g. 75",
+      "stabilization": "Scale-down stabilization, seconds (optional)",
+      "stabilizationPlaceholder": "Kubernetes default is 300",
+      "bothNote": "With both CPU and memory set, the autoscaler scales to whichever needs more replicas.",
+      "creating": "Creating…"
+    },
+    "delete": {
+      "title": "Delete autoscaler {{name}}?",
+      "description": "This cannot be undone."
+    }
+  },
+  "backups": {
+    "requesting": "Requesting…",
+    "creating": "Creating…",
+    "ttl": "TTL (optional)",
+    "createSnapshot": {
+      "title": "Create volume snapshot",
+      "pvc": "PVC",
+      "snapshotClass": "VolumeSnapshotClass (optional)"
+    },
+    "restore": {
+      "title": "Restore from snapshot",
+      "snapshotName": "Snapshot name",
+      "pvcName": "New PVC name",
+      "size": "Size",
+      "accessMode": "Access mode",
+      "storageClass": "StorageClass (optional)",
+      "submit": "Restore"
+    },
+    "schedule": {
+      "title": "New Velero schedule",
+      "cron": "Cron schedule"
+    },
+    "velero": {
+      "title": "Create Velero backup",
+      "included": "Included namespaces (comma-separated or *)"
+    }
+  },
+  "costPanels": {
+    "budget": {
+      "editTitle": "Budget for {{namespace}}",
+      "addTitle": "Add a budget",
+      "description": "Compared with the estimated monthly cost of the namespace's resource requests.",
+      "amount": "Monthly budget (USD)",
+      "warnAt": "Warn at (%)",
+      "save": "Save budget"
+    },
+    "removeBudget": {
+      "title": "Remove the budget for {{namespace}}?",
+      "description": "The namespace's cost is still tracked; it just has no limit."
+    },
+    "apply": {
+      "title": "Apply recommendation",
+      "description": "{{workload}} · container {{container}} · {{namespace}}",
+      "cpuRequest": "CPU request",
+      "memoryRequest": "Memory request",
+      "none": "(none)",
+      "basedOn": "Based on {{source}} data ({{confidence}} confidence).",
+      "applying": "Applying…",
+      "confirm": "Apply and roll out"
+    }
+  },
+  "gitops": {
+    "delete": {
+      "title": "Delete {{name}}?",
+      "createdByAxiom": " · created by Axiom",
+      "cascadeConfirm": "This also removes the application's resources. Type <code>{{name}}</code> to confirm.",
+      "sourceShared": "The source {{source}} is still used by {{users}}, so it stays.",
+      "removeSource": "Also remove the {{kind}} {{name}} (nothing else uses it)",
+      "sourceNotOurs": "The {{kind}} {{name}} was not created by Axiom, so it is left alone.",
+      "deleting": "Deleting…"
+    },
+    "create": {
+      "title": "New GitOps application",
+      "description": "Axiom builds the objects from these fields — you review the exact YAML before anything is created.",
+      "detailsRegion": "Application details",
+      "engine": "Engine",
+      "engines": {
+        "argocd": {
+          "label": "Argo CD application",
+          "hint": "An Application that syncs a Git path or a Helm chart."
+        },
+        "fluxKustomize": {
+          "label": "Flux · Git + Kustomize",
+          "hint": "A GitRepository and a Kustomization that applies a path from it."
+        },
+        "fluxHelm": {
+          "label": "Flux · Helm release",
+          "hint": "A HelmRepository and a HelmRelease that installs a chart."
+        }
+      },
+      "namespaceOf": "Namespace of the {{engine}} objects",
+      "helmRepoUrl": "Helm repository URL",
+      "gitRepoUrl": "Git repository URL",
+      "repoUrlHint": "Credentials never go in the URL; reference a Secret instead.",
+      "sourceType": "Source type",
+      "gitPath": "Git path",
+      "helmChart": "Helm chart",
+      "chart": "Chart",
+      "chartVersion": "Chart version",
+      "path": "Path in the repository",
+      "revision": "Branch, tag or commit",
+      "destNamespace": "Deploy into namespace",
+      "secretRef": "Credentials Secret (optional)",
+      "secretRefHint": "Name of an existing Secret in the Flux namespace.",
+      "interval": "Reconcile interval",
+      "values": "Values YAML (optional)",
+      "sync": "Sync",
+      "automated": "Sync automatically when the repository changes",
+      "prune": "Delete resources removed from Git (prune)",
+      "selfHeal": "Revert manual changes (self-heal)",
+      "createNamespace": "Create the target namespace if it does not exist",
+      "previewTitle": "What will be created",
+      "previewStale": "Out of date — preview again",
+      "generatedYaml": "Generated YAML",
+      "rendering": "Rendering…",
+      "previewAgain": "Preview again",
+      "previewYaml": "Preview YAML",
+      "creating": "Creating…"
+    }
+  },
+  "helmCatalog": {
+    "removeRepo": {
+      "title": "Remove repository {{name}}?",
+      "description": "Charts already installed from it keep running; they just stop appearing in the catalog."
+    },
+    "chart": {
+      "from": "from <code>{{repo}}</code>",
+      "optionsRegion": "Chart install options",
+      "appSuffix": " (app {{version}})",
+      "deprecatedSuffix": " — deprecated",
+      "releaseName": "Release name",
+      "values": "Values (optional)",
+      "reloadDefaults": "Reload defaults",
+      "loadDefaults": "Load default values",
+      "valuesYaml": "Values YAML",
+      "valuesPlaceholder": "# leave empty for the chart defaults",
+      "hideReadme": "Hide README",
+      "showReadme": "Show README",
+      "readme": "Chart README",
+      "permissionsNote": "Runs as a background Job using Axiom's own permissions — the chart can only create resources Axiom itself is allowed to.",
+      "starting": "Starting…",
+      "install": "Install {{version}}"
+    }
+  },
+  "vms": {
+    "creating": "Creating…",
+    "create": {
+      "title": "Create virtual machine",
+      "cpuCores": "CPU cores",
+      "image": "Container disk image"
+    }
+  },
+  "diffReview": {
+    "title": "Review changes",
+    "description": "This is what applying your edit changes on the cluster. Nothing is applied until you press Apply.",
+    "applying": "Applying…"
+  },
+  "jobs": {
+    "deleteCronJob": {
+      "title": "Delete CronJob {{name}}?",
+      "description": "This cannot be undone."
+    },
+    "deleteJob": {
+      "title": "Delete job {{name}}?",
+      "description": "This cannot be undone."
+    }
+  },
+  "podDetail": {
+    "evict": {
+      "title": "Evict pod {{name}}?",
+      "description": "This cannot be undone.",
+      "confirm": "Evict"
+    }
+  },
+  "pods": {
+    "exec": {
+      "title": "Exec · {{name}}",
+      "container": "Container",
+      "running": "Running…",
+      "run": "Run",
+      "outputPlaceholder": "Output will appear here."
+    },
+    "evict": {
+      "title": "Evict pod {{name}}?",
+      "description": "This cannot be undone.",
+      "confirm": "Evict"
+    },
+    "bulkEvict": {
+      "title_one": "Evict {{count}} pod?",
+      "title_other": "Evict {{count}} pods?"
+    }
+  },
+  "workloads": {
+    "rollout": {
+      "title": "Rollout · {{name}}",
+      "notSupported": "Rollout not supported for {{kind}}.",
+      "available": "Available",
+      "updating": "Updating",
+      "pending": "Pending",
+      "revision": "rev {{revision}}",
+      "actions": {
+        "restart": "restart",
+        "pause": "pause",
+        "resume": "resume",
+        "undo": "undo"
+      }
+    },
+    "scale": {
+      "title": "Scale · {{name}}",
+      "scaling": "Scaling…",
+      "submit": "Scale"
+    },
+    "delete": {
+      "title": "Delete {{kind}} {{name}}?",
+      "description": "This cannot be undone. Its pods will be removed too."
+    },
+    "bulkDelete": {
+      "title_one": "Delete {{count}} workload?",
+      "title_other": "Delete {{count}} workloads?",
+      "description": "This cannot be undone."
+    },
+    "launch": {
+      "title": "Run workload",
+      "steps": {
+        "form": "Form",
+        "intent": "Intent",
+        "yaml": "Validate YAML"
+      },
+      "port": "Port",
+      "exposeService": "Expose service",
+      "launching": "Launching…",
+      "launch": "Launch",
+      "preview": "Preview",
+      "placing": "Placing…",
+      "place": "Place",
+      "validKind": "Valid {{kind}}",
+      "validManifest": "Valid manifest",
+      "validate": "Validate",
+      "applyTitle": "Apply workload manifest"
+    }
+  },
+  "autoscalingCreate": {
+    "vpa": {
+      "title": "New VerticalPodAutoscaler",
+      "description": "Recommends CPU and memory requests for a workload. In Off mode it only recommends and never restarts pods.",
+      "region": "VPA settings",
+      "updateMode": "Update mode",
+      "modes": {
+        "off": "Off — recommend only",
+        "initial": "Initial — apply to new pods",
+        "recreate": "Recreate — restart pods to apply"
+      }
+    },
+    "keda": {
+      "title": "New KEDA ScaledObject",
+      "description": "Scale a workload on events. Credentials are never entered here: pick an existing TriggerAuthentication.",
+      "region": "ScaledObject settings",
+      "trigger": "Trigger {{n}}",
+      "removeTrigger": "Remove trigger {{n}}",
+      "credentials": "Credentials (TriggerAuthentication)",
+      "addTrigger": "Add trigger",
+      "triggers": {
+        "cron": "Cron schedule",
+        "prometheus": "Prometheus query",
+        "kafka": "Kafka lag",
+        "redis": "Redis list length",
+        "rabbitmq": "RabbitMQ queue",
+        "awsSqs": "AWS SQS queue"
+      },
+      "fields": {
+        "metricType": "Metric type",
+        "targetValue": "Target value",
+        "timezone": "Timezone",
+        "start": "Start",
+        "end": "End",
+        "replicasInWindow": "Replicas in window",
+        "serverAddress": "Server address",
+        "query": "Query",
+        "threshold": "Threshold",
+        "bootstrapServers": "Bootstrap servers",
+        "consumerGroup": "Consumer group",
+        "topic": "Topic",
+        "lagThreshold": "Lag threshold",
+        "address": "Address",
+        "list": "List",
+        "lengthThreshold": "Length threshold",
+        "queue": "Queue",
+        "mode": "Mode",
+        "queueUrl": "Queue URL",
+        "queueLength": "Queue length",
+        "region": "Region"
+      }
+    }
+  },
+  "gitopsEdit": {
+    "title": "Edit {{name}}",
+    "description": "{{kind}} · {{namespace}}. Only the fields below are changed; everything else on the object is left alone.",
+    "staleHint": " Close this dialog and open it again to start from the current version.",
+    "notEditable": "This application uses settings the form cannot represent, so it is shown read-only:",
+    "region": "Application settings",
+    "valuesYaml": "Values YAML",
+    "automated": "Sync automatically",
+    "prune": "Prune resources removed from Git",
+    "selfHeal": "Self-heal manual changes",
+    "noop": "Nothing would change.",
+    "none": "(none)",
+    "staleChange": "You changed a field after previewing — preview again.",
+    "comparing": "Comparing…",
+    "previewChanges": "Preview changes"
+  },
+  "autoscalingPanels": {
+    "deleteTitle": "Delete {{kind}} {{name}}?",
+    "deleteDescription": "The workload itself is not touched."
+  },
+  "gitopsCredentials": {
+    "title": "Repository credentials",
+    "description": "For private Git and Helm repositories. Axiom stores them as Secrets for Argo CD or Flux to use and never shows them again.",
+    "region": "Credentials",
+    "empty": "No credentials created through Axiom yet.",
+    "deleteTitle": "Delete the credentials {{name}}?",
+    "deleteDescription": "Applications that reference them will stop being able to pull from the repository.",
+    "deleteAria": "Delete credentials {{name}}",
+    "add": "Add credentials",
+    "writeOnly": "Write-only: once saved, the secret cannot be read back — to rotate it, delete and recreate.",
+    "for": "For",
+    "url": "Repository URL",
+    "auth": "Authentication",
+    "authToken": "Access token",
+    "authBasic": "Username and password",
+    "authSsh": "SSH key",
+    "token": "Token",
+    "privateKey": "Private key",
+    "knownHosts": "known_hosts (optional)",
+    "save": "Save credentials",
+    "button": "Credentials"
+  }
+}

@@ -11,8 +11,10 @@ import NamespaceFilter from "@/components/NamespaceFilter";
 import SavedViews from "@/components/SavedViews";
 import { useUrlState } from "@/lib/urlState";
 import { useNamespaceFilter } from "@/lib/namespace";
+import { useTranslation } from "react-i18next";
 
 export default function Ingresses() {
+    const { t } = useTranslation();
     const [data, setData] = useState(null);
     const [gateways, setGateways] = useState(null);
     const [q, setQ] = useUrlState("q", "");
@@ -23,10 +25,10 @@ export default function Ingresses() {
         const load = () => api.get("/ingresses").then((r) => alive && setData(r.data));
         load();
         api.get("/gateways").then((r) => alive && setGateways(r.data || [])).catch(() => alive && setGateways([]));
-        const t = setInterval(load, 15000);
+        const timer = setInterval(load, 15000);
         return () => {
             alive = false;
-            clearInterval(t);
+            clearInterval(timer);
         };
     }, []);
 
@@ -51,11 +53,11 @@ export default function Ingresses() {
     return (
         <div className="page">
             <PageHeader
-                title="Ingresses"
-                description="External routes into cluster services, equivalent to OpenShift Routes."
+                title={t("pages:ingresses.title")}
+                description={t("pages:ingresses.description")}
                 tools={
                     <>
-                        <SearchBox placeholder="Search by name or host" value={q} onChange={setQ} />
+                        <SearchBox placeholder={t("pages:ingresses.search")} value={q} onChange={setQ} />
                         <NamespaceFilter value={ns} onChange={setNs} namespaces={namespaces} />
                         <SavedViews
                             pageKey="ingresses"
@@ -70,17 +72,17 @@ export default function Ingresses() {
             />
 
             <GlassCard className="overflow-hidden p-0">
-                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label="Ingresses">
+                <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:ingresses.title")}>
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Namespace</th>
-                                <th>Class</th>
-                                <th>Hosts</th>
-                                <th>Address</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("pages:ingresses.columns.class")}</th>
+                                <th>{t("pages:ingresses.columns.hosts")}</th>
+                                <th>{t("pages:ingresses.columns.address")}</th>
                                 <th>TLS</th>
-                                <th>Age</th>
+                                <th>{t("common:fields.age")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -116,7 +118,7 @@ export default function Ingresses() {
                             {rows.length === 0 && (
                                 <tr>
                                     <td colSpan={7}>
-                                        <div className="empty">No ingresses match the current filters.</div>
+                                        <div className="empty">{t("pages:ingresses.empty")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -130,7 +132,7 @@ export default function Ingresses() {
                     title="Gateway API"
                     icon={Router}
                     items={gateways}
-                    emptyHint={gateways === null ? "Loading…" : "No Gateway API objects found (GatewayClass/Gateway/HTTPRoute)."}
+                    emptyHint={gateways === null ? t("common:states.loading") : t("pages:ingresses.noGateways")}
                 />
             </div>
         </div>

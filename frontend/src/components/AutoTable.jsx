@@ -2,6 +2,8 @@ import { formatDistanceToNowStrict } from "date-fns";
 import GlassCard from "@/components/GlassCard";
 import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
+import i18n, { dateFnsLocale } from "@/lib/i18n";
 
 const HIDDEN_KEYS = new Set(["id", "cluster_id", "pool_id", "backend_native_id", "connection_ref", "secret_ref"]);
 const STATUS_KEYS = ["state", "status", "health"];
@@ -12,7 +14,7 @@ function pretty(key) {
 
 function formatValue(v) {
     if (v === null || v === undefined) return "—";
-    if (typeof v === "boolean") return v ? "yes" : "no";
+    if (typeof v === "boolean") return v ? i18n.t("pages:autoTable.yes") : i18n.t("pages:autoTable.no");
     if (typeof v === "object") return JSON.stringify(v);
     return String(v);
 }
@@ -33,7 +35,7 @@ function getPath(row, path) {
 function formatAge(raw) {
     if (!raw) return "—";
     const parsed = Date.parse(raw);
-    if (!Number.isNaN(parsed)) return formatDistanceToNowStrict(new Date(parsed), { addSuffix: true });
+    if (!Number.isNaN(parsed)) return formatDistanceToNowStrict(new Date(parsed), { addSuffix: true, locale: dateFnsLocale() });
     return String(raw);
 }
 
@@ -71,6 +73,7 @@ function TableChrome({ title, Icon, count }) {
 }
 
 export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowClick, columns, rowActions }) {
+    const { t } = useTranslation();
     const rows = Array.isArray(items) ? items : null;
 
     if (columns && columns.length > 0) {
@@ -87,14 +90,14 @@ export default function AutoTable({ title, icon: Icon, items, emptyHint, onRowCl
                     {emptyHint}
                 </div>
                 ) : (
-                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={title || "Data table"}>
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={title || t("pages:autoTable.dataTable")}>
                         <table className="tbl">
                             <thead>
                                 <tr>
                                     {columns.map((col) => (
                                         <th key={col.path}>{col.label}</th>
                                     ))}
-                                    {rowActions && <th><span className="sr-only">Actions</span></th>}
+                                    {rowActions && <th><span className="sr-only">{t("common:fields.actions")}</span></th>}
                                 </tr>
                             </thead>
                             <tbody>

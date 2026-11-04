@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bug } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation, Trans } from "react-i18next";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PodTerminal from "@/components/PodTerminal";
@@ -13,6 +14,7 @@ import { DEBUG } from "@/constants/testIds";
  * cannot be removed from a pod; they disappear when the pod is replaced.
  */
 export default function DebugContainerPanel({ namespace, name, containers = [], interactive }) {
+    const { t } = useTranslation();
     const { isViewer } = useAuth();
     const [target, setTarget] = useState("");
     const [busy, setBusy] = useState(false);
@@ -29,11 +31,11 @@ export default function DebugContainerPanel({ namespace, name, containers = [], 
             const { data } = await api.post(`/pods/${namespace}/${encodeURIComponent(name)}/debug`, target ? { target } : {});
             setLast(data);
             setCreated((prev) => [...prev, data.container]);
-            toast.success(`Debug container ${data.container} added`, { description: data.message });
+            toast.success(t("toasts:debugContainer.added", { container: data.container }), { description: data.message });
         } catch (e) {
             const msg = e?.response?.data?.error || e.message;
             setError(msg);
-            toast.error("Could not add a debug container", { description: msg });
+            toast.error(t("toasts:debugContainer.addFailed"), { description: msg });
         } finally {
             setBusy(false);
         }
@@ -42,29 +44,28 @@ export default function DebugContainerPanel({ namespace, name, containers = [], 
     return (
         <GlassCard className="space-y-3 p-5" data-testid={DEBUG.panel}>
             <div className="flex items-center gap-2 text-sm font-medium">
-                <Bug className="h-4 w-4" aria-hidden="true" /> Debug container
+                <Bug className="h-4 w-4" aria-hidden="true" /> {t("pages:debugContainer.title")}
             </div>
             <p className="text-xs text-muted-foreground">
-                Adds a throw-away container with debugging tools to this running pod, sharing its network (and, when a target is chosen, that container&apos;s
-                processes). It cannot be removed until the pod is replaced. The action is audited as <span className="mono">pod.debug</span>.
+                <Trans i18nKey="pages:debugContainer.description" components={{ code: <span className="mono" /> }} />
             </p>
             <div className="flex flex-wrap items-center gap-2">
                 <select
                     data-testid={DEBUG.target}
-                    aria-label="Target container"
+                    aria-label={t("pages:debugContainer.targetLabel")}
                     className="select"
                     value={target}
                     onChange={(e) => setTarget(e.target.value)}
                 >
-                    <option value="">No target process namespace</option>
+                    <option value="">{t("pages:debugContainer.noTarget")}</option>
                     {containers.map((c) => (
                         <option key={c} value={c}>
-                            Target {c}
+                            {t("pages:debugContainer.targetOption", { container: c })}
                         </option>
                     ))}
                 </select>
                 <button type="button" data-testid={DEBUG.start} className="btn btn-fill" onClick={start} disabled={busy}>
-                    {busy ? "Adding…" : "Add debug container"}
+                    {busy ? t("pages:debugContainer.adding") : t("pages:debugContainer.add")}
                 </button>
             </div>
             {error && (
@@ -77,7 +78,7 @@ export default function DebugContainerPanel({ namespace, name, containers = [], 
                     <div>
                         <span className="mono text-tone-link">{last.container}</span>
                         <span className="text-muted-foreground"> · {last.image}</span>
-                        {last.target && <span className="text-muted-foreground"> · target {last.target}</span>}
+                        {last.target && <span className="text-muted-foreground"> · {t("pages:debugContainer.resultTarget", { target: last.target })}</span>}
                     </div>
                     <div className="text-xs text-muted-foreground" data-testid={DEBUG.message}>
                         {last.message}

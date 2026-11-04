@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Lightbulb } from "lucide-react";
 import { api } from "@/lib/api";
 import { SeverityBadge } from "@/components/SeverityBadge";
@@ -52,6 +53,7 @@ export function useClusterHealth(namespace = "", refreshMs = 30000) {
 
 /** One finding: severity, what is wrong, where, and the suggested fix. */
 export function HealthFinding({ finding, testId, compact = false }) {
+    const { t } = useTranslation();
     const href = objectHref(finding.namespace, finding.object);
     return (
         <li data-testid={testId} className="border-b border-border px-4 py-3 last:border-none">
@@ -76,7 +78,7 @@ export function HealthFinding({ finding, testId, compact = false }) {
                         to={timelineHref({ namespace: finding.namespace, object: finding.object })}
                         className="ml-auto text-xs text-tone-link hover:underline"
                     >
-                        What changed
+                        {t("pages:healthFindings.whatChanged")}
                     </Link>
                 )}
             </div>
@@ -85,7 +87,7 @@ export function HealthFinding({ finding, testId, compact = false }) {
                 <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-2">
                     <Lightbulb size={14} className="mt-0.5 flex-none text-ink-3" aria-hidden="true" />
                     <span>
-                        <b className="font-medium text-ink">Suggested fix:</b> {finding.suggestion}
+                        <b className="font-medium text-ink">{t("pages:healthFindings.suggestedFix")}</b> {finding.suggestion}
                     </span>
                 </p>
             )}
