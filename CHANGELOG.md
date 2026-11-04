@@ -4,6 +4,8 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-04
+
 ### Added — cloud bill reconciliation (experimental)
 - Ops → Cost shows the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate, prorated from the current run-rate) and the unallocated difference, with an *Experimental* badge; hidden until configured. `GET /api/v1/cost/invoice` returns `{provider, currency, months:[{month, invoiceTotal, allocated, unallocated, asOf, partial}], experimental:true, error?}` and is readable like budgets (every role except namespace-restricted accounts).
 - Providers, each a small standard-library client: AWS Cost Explorer `GetCostAndUsage` (UnblendedCost, monthly, hand-written SigV4), Azure Cost Management query (ActualCost, subscription scope, client-credentials token) and GCP Cloud Billing through a fixed parameterised BigQuery query over the billing export table (service-account JWT; strictly validated table name). Optional single tag / label filter.
