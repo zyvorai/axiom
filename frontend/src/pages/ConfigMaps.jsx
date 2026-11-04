@@ -72,8 +72,8 @@ function CreateConfigMapDialog({ open, onOpenChange, onCreated }) {
                         <div className="space-y-2" role="group" aria-labelledby="cm-data-label">
                             {pairs.map((p, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder="KEY" aria-label={t("dialogs:configMaps.create.keyAria", { n: i + 1 })} className="bg-muted/30" />
-                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder="value" aria-label={t("dialogs:configMaps.create.valueAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder={t("dialogs:configMaps.create.keyPlaceholder")} aria-label={t("dialogs:configMaps.create.keyAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder={t("dialogs:configMaps.create.valuePlaceholder")} aria-label={t("dialogs:configMaps.create.valueAria", { n: i + 1 })} className="bg-muted/30" />
                                     <button aria-label={t("dialogs:configMaps.create.removeRow")} title={t("dialogs:configMaps.create.removeRow")} onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
                                         <X className="h-4 w-4" />
                                     </button>

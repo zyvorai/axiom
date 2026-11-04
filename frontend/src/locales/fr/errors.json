@@ -43,5 +43,9 @@
   },
   "autoscalingCreate": {
     "generic": "Une erreur s'est produite"
+  },
+  "ai": {
+    "requestFailed": "La requête a échoué",
+    "rateLimited": "{{message}} (limite de débit atteinte)"
   }
 }

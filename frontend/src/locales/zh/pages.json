@@ -92,7 +92,11 @@
     "maskAria": "屏蔽 IP 地址和主机名",
     "maskHint": "推荐。密钥、令牌和环境变量值始终会被移除。",
     "testing": "正在测试…",
-    "testConnection": "测试连接"
+    "testConnection": "测试连接",
+    "providers": {
+      "openaiCompatible": "OpenAI 兼容",
+      "ollama": "Ollama（本地）"
+    }
   },
   "aiAssistant": {
     "explain": "用 AI 解释",
@@ -373,11 +377,15 @@
     "noPods": "此 Namespace 中没有 Pod。",
     "region": "Pod 网络隔离",
     "columns": {
-      "policies": "策略"
+      "policies": "策略",
+      "ingress": "入站",
+      "egress": "出站"
     },
     "showTraffic": "显示 {{pod}} 允许的流量",
     "allowedIngress": "允许的入站",
-    "allowedEgress": "允许的出站"
+    "allowedEgress": "允许的出站",
+    "defaultDenyIngress": "默认拒绝入站",
+    "defaultDenyEgress": "默认拒绝出站"
   },
   "nodes": {
     "title": "Node",
@@ -1374,13 +1382,17 @@
     "lineCount": "{{lines}} 行",
     "hintFollow": "按 <kbd>跟踪</kbd> 以流式查看 <target>{{target}}</target>。",
     "hintLoad": "按 <kbd>加载</kbd> 以读取 <target>{{target}}</target> 的上一次运行。",
-    "aTarget": "目标"
+    "aTarget": "目标",
+    "termTitle": "logs — {{target}}",
+    "termIdle": "logs — 空闲"
   },
   "podDetail": {
     "exec": {
       "running": "正在运行…",
       "run": "运行",
-      "outputPlaceholder": "输出将显示在此处。"
+      "outputPlaceholder": "输出将显示在此处。",
+      "termTitle": "exec — {{command}}",
+      "termTitleEmpty": "exec — 命令"
     },
     "container": {
       "cpu": "CPU 请求/限制",

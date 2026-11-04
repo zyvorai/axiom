@@ -18,7 +18,8 @@
       "label": "Etiqueta",
       "kubeconfig": "YAML de kubeconfig",
       "register": "Registrar",
-      "registering": "Registrando…"
+      "registering": "Registrando…",
+      "labelPlaceholder": "Producción Este"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Valor {{n}}",
       "removeRow": "Quitar fila",
       "addKey": "Añadir clave",
-      "creating": "Creando…"
+      "creating": "Creando…",
+      "keyPlaceholder": "CLAVE",
+      "valuePlaceholder": "valor"
     },
     "delete": {
       "title": "¿Eliminar el ConfigMap {{name}}?",
@@ -44,7 +47,9 @@
       "valueAria": "Valor {{n}}",
       "removeRow": "Quitar fila",
       "addKey": "Añadir clave",
-      "creating": "Creando…"
+      "creating": "Creando…",
+      "keyPlaceholder": "CLAVE",
+      "valuePlaceholder": "valor"
     },
     "delete": {
       "title": "¿Eliminar el Secret {{name}}?",
@@ -324,7 +329,8 @@
       "container": "Contenedor",
       "running": "Ejecutando…",
       "run": "Ejecutar",
-      "outputPlaceholder": "La salida aparecerá aquí."
+      "outputPlaceholder": "La salida aparecerá aquí.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "¿Desalojar el pod {{name}}?",
@@ -382,7 +388,8 @@
       "validKind": "{{kind}} válido",
       "validManifest": "Manifiesto válido",
       "validate": "Validar",
-      "applyTitle": "Aplicar manifiesto de carga de trabajo"
+      "applyTitle": "Aplicar manifiesto de carga de trabajo",
+      "receipt": "comprobante"
     }
   },
   "autoscalingCreate": {

@@ -1,14 +1,22 @@
 import { api } from "@/lib/api";
+import i18n from "@/lib/i18n";
 
 // Client for the opt-in AI assistant (see internal/api/ai.go). The namespace
 // travels in the query string, never the body: that is the value the backend
 // authorizes for namespace-restricted accounts.
 
+// `value` is what the API stores; the display name is translated at render time
+// (`labelKey`), except product names that stay as they are (`label`).
 export const AI_PROVIDERS = [
-    { value: "openai-compatible", label: "OpenAI-compatible", placeholder: "https://api.openai.com/v1" },
+    { value: "openai-compatible", labelKey: "pages:aiSettings.providers.openaiCompatible", placeholder: "https://api.openai.com/v1" },
     { value: "anthropic", label: "Anthropic", placeholder: "https://api.anthropic.com" },
-    { value: "ollama", label: "Ollama (local)", placeholder: "http://localhost:11434" },
+    { value: "ollama", labelKey: "pages:aiSettings.providers.ollama", placeholder: "http://localhost:11434" },
 ];
+
+/** Display name of an AI_PROVIDERS entry in the current language. */
+export function aiProviderLabel(t, p) {
+    return p.labelKey ? t(p.labelKey) : p.label;
+}
 
 export const AI_DISABLED = { enabled: false, configured: false, redact: true };
 
@@ -34,8 +42,8 @@ export async function explainAi({ namespace, kind, name, reason, question, previ
 
 export function aiErrorMessage(e) {
     const status = e?.response?.status;
-    const msg = e?.response?.data?.error || e?.message || "Request failed";
-    if (status === 429) return `${msg} (rate limited)`;
+    const msg = e?.response?.data?.error || e?.message || i18n.t("errors:ai.requestFailed");
+    if (status === 429) return i18n.t("errors:ai.rateLimited", { message: msg });
     return msg;
 }
 

@@ -43,5 +43,9 @@
   },
   "autoscalingCreate": {
     "generic": "Etwas ist schiefgelaufen"
+  },
+  "ai": {
+    "requestFailed": "Anfrage fehlgeschlagen",
+    "rateLimited": "{{message}} (Ratenlimit erreicht)"
   }
 }

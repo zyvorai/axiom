@@ -92,7 +92,11 @@
     "maskAria": "Masquer les adresses IP et les noms d'hôte",
     "maskHint": "Recommandé. Les Secrets, jetons et valeurs d'environnement sont toujours supprimés.",
     "testing": "Test en cours…",
-    "testConnection": "Tester la connexion"
+    "testConnection": "Tester la connexion",
+    "providers": {
+      "openaiCompatible": "Compatible OpenAI",
+      "ollama": "Ollama (local)"
+    }
   },
   "aiAssistant": {
     "explain": "Expliquer avec l'IA",
@@ -379,11 +383,15 @@
     "noPods": "Aucun pod dans ce namespace.",
     "region": "Isolation réseau des pods",
     "columns": {
-      "policies": "Politiques"
+      "policies": "Politiques",
+      "ingress": "Entrant",
+      "egress": "Sortant"
     },
     "showTraffic": "Afficher le trafic autorisé pour {{pod}}",
     "allowedIngress": "Trafic entrant autorisé",
-    "allowedEgress": "Trafic sortant autorisé"
+    "allowedEgress": "Trafic sortant autorisé",
+    "defaultDenyIngress": "refus par défaut en entrée",
+    "defaultDenyEgress": "refus par défaut en sortie"
   },
   "nodes": {
     "title": "Nodes",
@@ -1385,13 +1393,17 @@
     "lineCount": "{{lines}} lignes",
     "hintFollow": "Appuyez sur <kbd>Suivre</kbd> pour diffuser <target>{{target}}</target>.",
     "hintLoad": "Appuyez sur <kbd>Charger</kbd> pour lire l'exécution précédente de <target>{{target}}</target>.",
-    "aTarget": "une cible"
+    "aTarget": "une cible",
+    "termTitle": "logs — {{target}}",
+    "termIdle": "logs — inactif"
   },
   "podDetail": {
     "exec": {
       "running": "Exécution…",
       "run": "Exécuter",
-      "outputPlaceholder": "La sortie apparaîtra ici."
+      "outputPlaceholder": "La sortie apparaîtra ici.",
+      "termTitle": "exec — {{command}}",
+      "termTitleEmpty": "exec — commande"
     },
     "container": {
       "cpu": "CPU req./lim.",

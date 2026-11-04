@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { accountRoleLabel } from "@/lib/auth";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -330,7 +331,7 @@ export default function Users() {
                                     <td>
                                         <span className="pill" style={{ "--c": u.role === "admin" ? "var(--green)" : "var(--ink-3)" }}>
                                             {u.role === "admin" ? <ShieldCheck size={11} /> : <Eye size={11} />}
-                                            {u.role}
+                                            {accountRoleLabel(t, u.role)}
                                         </span>
                                     </td>
                                     <td>

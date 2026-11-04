@@ -1,8 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /** macOS Terminal chrome — traffic lights + title bar around a dark pane. */
 export default function MacTerm({
-    title = "Terminal",
+    title,
     actions,
     children,
     className,
@@ -10,6 +11,8 @@ export default function MacTerm({
     bodyRef,
     bodyProps,
 }) {
+    const { t } = useTranslation();
+    if (title === undefined) title = t("common:terminal.title");
     return (
         <div className={cn("macos-term", className)}>
             <div className="macos-term-chrome flex items-center gap-3 px-3.5 py-2.5">
@@ -30,7 +33,7 @@ export default function MacTerm({
                 className={cn("macos-term-body mono", bodyClassName)}
                 tabIndex={0}
                 role="region"
-                aria-label={typeof title === "string" && title ? title : "Terminal output"}
+                aria-label={typeof title === "string" && title ? title : t("common:terminal.output")}
                 {...bodyProps}
             >
                 {children}

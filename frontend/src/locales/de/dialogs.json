@@ -18,7 +18,8 @@
       "label": "Bezeichnung",
       "kubeconfig": "Kubeconfig-YAML",
       "register": "Registrieren",
-      "registering": "Wird registriert…"
+      "registering": "Wird registriert…",
+      "labelPlaceholder": "Produktion Ost"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Wert {{n}}",
       "removeRow": "Zeile entfernen",
       "addKey": "Schlüssel hinzufügen",
-      "creating": "Wird erstellt…"
+      "creating": "Wird erstellt…",
+      "keyPlaceholder": "SCHLÜSSEL",
+      "valuePlaceholder": "Wert"
     },
     "delete": {
       "title": "ConfigMap {{name}} löschen?",
@@ -44,7 +47,9 @@
       "valueAria": "Wert {{n}}",
       "removeRow": "Zeile entfernen",
       "addKey": "Schlüssel hinzufügen",
-      "creating": "Wird erstellt…"
+      "creating": "Wird erstellt…",
+      "keyPlaceholder": "SCHLÜSSEL",
+      "valuePlaceholder": "Wert"
     },
     "delete": {
       "title": "Secret {{name}} löschen?",
@@ -324,7 +329,8 @@
       "container": "Container",
       "running": "Wird ausgeführt…",
       "run": "Ausführen",
-      "outputPlaceholder": "Die Ausgabe erscheint hier."
+      "outputPlaceholder": "Die Ausgabe erscheint hier.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Pod {{name}} entfernen?",
@@ -382,7 +388,8 @@
       "validKind": "Gültiges {{kind}}",
       "validManifest": "Gültiges Manifest",
       "validate": "Validieren",
-      "applyTitle": "Workload-Manifest anwenden"
+      "applyTitle": "Workload-Manifest anwenden",
+      "receipt": "Beleg"
     }
   },
   "autoscalingCreate": {

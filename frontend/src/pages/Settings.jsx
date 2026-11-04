@@ -373,7 +373,7 @@ export default function Settings() {
                         </DialogHeader>
                         <div className="space-y-3">
                             <Field label={t("common:fields.name")} value={clusterForm.name} onChange={(e) => setClusterForm((f) => ({ ...f, name: e.target.value }))} placeholder="prod-east" />
-                            <Field label={t("dialogs:settings.registerCluster.label")} value={clusterForm.label} onChange={(e) => setClusterForm((f) => ({ ...f, label: e.target.value }))} placeholder="Production East" />
+                            <Field label={t("dialogs:settings.registerCluster.label")} value={clusterForm.label} onChange={(e) => setClusterForm((f) => ({ ...f, label: e.target.value }))} placeholder={t("dialogs:settings.registerCluster.labelPlaceholder")} />
                             <div className="space-y-1.5">
                                 <Label htmlFor="cluster-kubeconfig" className="text-xs text-muted-foreground">{t("dialogs:settings.registerCluster.kubeconfig")}</Label>
                                 <Textarea

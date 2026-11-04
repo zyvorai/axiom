@@ -42,5 +42,9 @@
   },
   "autoscalingCreate": {
     "generic": "出现问题"
+  },
+  "ai": {
+    "requestFailed": "请求失败",
+    "rateLimited": "{{message}}（已限流）"
   }
 }

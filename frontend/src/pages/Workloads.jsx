@@ -299,6 +299,11 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
     );
 }
 
+// The intent parser (internal/platform/intent.go) understands English keywords
+// only ("run", "copies"/"replicas", "image", "port"), so the example stays
+// English in every language rather than suggesting phrasing it cannot parse.
+const INTENT_EXAMPLE = "a small stateless api on 2 replicas running ghcr.io/zyvorai/checkout:v1 exposed on port 8080";
+
 function LaunchWizard({ open, onOpenChange, onLaunched }) {
     const { t } = useTranslation();
     const [form, setForm] = useState({
@@ -449,13 +454,13 @@ function LaunchWizard({ open, onOpenChange, onLaunched }) {
                             <Textarea
                                 value={intent}
                                 onChange={(e) => setIntent(e.target.value)}
-                                placeholder="a small stateless api on 2 replicas running ghcr.io/zyvorai/checkout:v1 exposed on port 8080"
+                                placeholder={INTENT_EXAMPLE}
                                 className="macos-term-body mono min-h-[100px] resize-none rounded-none border-none px-4 py-3 text-xs leading-[1.55] focus-visible:ring-0"
                             />
                         </MacTerm>
                         {intentPreview && (
                             <MacTerm
-                                title="receipt"
+                                title={t("dialogs:workloads.launch.receipt")}
                                 bodyClassName="max-h-40 overflow-auto whitespace-pre-wrap px-4 py-3 text-[11px] leading-[1.55] text-term-punct"
                             >
                                 {intentPreview.receipt}

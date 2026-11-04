@@ -18,7 +18,8 @@
       "label": "Rótulo",
       "kubeconfig": "Kubeconfig YAML",
       "register": "Registrar",
-      "registering": "Registrando…"
+      "registering": "Registrando…",
+      "labelPlaceholder": "Produção Leste"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Valor {{n}}",
       "removeRow": "Remover linha",
       "addKey": "Adicionar chave",
-      "creating": "Criando…"
+      "creating": "Criando…",
+      "keyPlaceholder": "CHAVE",
+      "valuePlaceholder": "valor"
     },
     "delete": {
       "title": "Excluir o ConfigMap {{name}}?",
@@ -44,7 +47,9 @@
       "valueAria": "Valor {{n}}",
       "removeRow": "Remover linha",
       "addKey": "Adicionar chave",
-      "creating": "Criando…"
+      "creating": "Criando…",
+      "keyPlaceholder": "CHAVE",
+      "valuePlaceholder": "valor"
     },
     "delete": {
       "title": "Excluir o Secret {{name}}?",
@@ -324,7 +329,8 @@
       "container": "Contêiner",
       "running": "Executando…",
       "run": "Executar",
-      "outputPlaceholder": "A saída aparecerá aqui."
+      "outputPlaceholder": "A saída aparecerá aqui.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Despejar o Pod {{name}}?",
@@ -382,7 +388,8 @@
       "validKind": "{{kind}} válido",
       "validManifest": "Manifesto válido",
       "validate": "Validar",
-      "applyTitle": "Aplicar manifesto do workload"
+      "applyTitle": "Aplicar manifesto do workload",
+      "receipt": "recibo"
     }
   },
   "autoscalingCreate": {

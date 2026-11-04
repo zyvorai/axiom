@@ -78,6 +78,8 @@ shown exactly as the server sent it.
 | Age | Alter | Antigüedad | Âge | Idade | Età | 経過時間 | 存在时间 |
 | Restarts | Neustarts | Reinicios | Redémarrages | Reinicializações | Riavvii | 再起動回数 | 重启次数 |
 | Replicas | Replikas | Réplicas | Réplicas | Réplicas | Repliche | レプリカ | 副本数 |
+| Ingress / Egress (NetworkPolicy direction, not the Ingress kind) | Eingehend / Ausgehend | Entrada / Salida | Entrant / Sortant | Entrada / Saída | Ingress / Egress | イングレス / エグレス | 入站 / 出站 |
+| Platform Admin (session role) | Plattform-Admin | Administrador de la plataforma | Administrateur de la plateforme | Administrador da plataforma | Amministratore della piattaforma | プラットフォーム管理者 | 平台管理员 |
 | Memory | Arbeitsspeicher | Memoria | Mémoire | Memória | Memoria | メモリー | 内存 |
 | Image (container) | Image | Imagen | Image | Imagem | Immagine | イメージ | 镜像 |
 | Cordon / Uncordon | Sperren / Entsperren | Acordonar / Desacordonar | Isoler / Réintégrer | Isolar / Reintegrar | Cordon / Uncordon | Cordon / Uncordon | 封锁 / 解除封锁 |

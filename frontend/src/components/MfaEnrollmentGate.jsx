@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { KeyRound, LogOut, ShieldAlert } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { sessionRoleLabel, useAuth } from "@/lib/auth";
 import AccountSecurityDialog from "@/components/AccountSecurityDialog";
 import GlassCard from "@/components/GlassCard";
 import { MFA } from "@/constants/testIds";
@@ -32,7 +32,7 @@ export default function MfaEnrollmentGate() {
                     <h1 className="text-lg font-semibold">{t("auth:gate.title")}</h1>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    {user?.role ? t("auth:gate.bodyRole", { role: user.role }) : t("auth:gate.body")}
+                    {user?.role ? t("auth:gate.bodyRole", { role: sessionRoleLabel(t, user.role) }) : t("auth:gate.body")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                     <button type="button" className="btn btn-fill" data-testid={MFA.gateOpen} onClick={() => setOpen(true)}>

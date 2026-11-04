@@ -3,7 +3,7 @@ import { PlugZap, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation, Trans } from "react-i18next";
 import { api } from "@/lib/api";
-import { AI_PROVIDERS } from "@/lib/ai";
+import { AI_PROVIDERS, aiProviderLabel } from "@/lib/ai";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -105,7 +105,7 @@ export default function AiSettingsCard({ data, onSaved }) {
                             className="bg-muted/30 mt-1.5 h-9 w-full rounded-md border border-border px-3 text-sm"
                         >
                             {AI_PROVIDERS.map((p) => (
-                                <option key={p.value} value={p.value}>{p.label}</option>
+                                <option key={p.value} value={p.value}>{aiProviderLabel(t, p)}</option>
                             ))}
                         </select>
                     </div>

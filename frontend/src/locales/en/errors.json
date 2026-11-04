@@ -43,5 +43,9 @@
   },
   "autoscalingCreate": {
     "generic": "Something went wrong"
+  },
+  "ai": {
+    "requestFailed": "Request failed",
+    "rateLimited": "{{message}} (rate limited)"
   }
 }

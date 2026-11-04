@@ -18,7 +18,8 @@
       "label": "ラベル",
       "kubeconfig": "Kubeconfig YAML",
       "register": "登録",
-      "registering": "登録中…"
+      "registering": "登録中…",
+      "labelPlaceholder": "本番（東）"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "値 {{n}}",
       "removeRow": "行を削除",
       "addKey": "キーを追加",
-      "creating": "作成中…"
+      "creating": "作成中…",
+      "keyPlaceholder": "キー",
+      "valuePlaceholder": "値"
     },
     "delete": {
       "title": "ConfigMap {{name}} を削除しますか？",
@@ -44,7 +47,9 @@
       "valueAria": "値 {{n}}",
       "removeRow": "行を削除",
       "addKey": "キーを追加",
-      "creating": "作成中…"
+      "creating": "作成中…",
+      "keyPlaceholder": "キー",
+      "valuePlaceholder": "値"
     },
     "delete": {
       "title": "Secret {{name}} を削除しますか？",
@@ -324,7 +329,8 @@
       "container": "コンテナー",
       "running": "実行中…",
       "run": "実行",
-      "outputPlaceholder": "ここに出力が表示されます。"
+      "outputPlaceholder": "ここに出力が表示されます。",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Pod {{name}} を退避しますか？",
@@ -380,7 +386,8 @@
       "validKind": "有効な {{kind}}",
       "validManifest": "有効なマニフェスト",
       "validate": "検証",
-      "applyTitle": "ワークロードマニフェストを適用"
+      "applyTitle": "ワークロードマニフェストを適用",
+      "receipt": "受領書"
     }
   },
   "autoscalingCreate": {

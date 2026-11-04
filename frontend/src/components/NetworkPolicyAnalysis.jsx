@@ -149,8 +149,8 @@ export default function NetworkPolicyAnalysis() {
                         <span>
                             <Trans i18nKey="pages:networkPolicy.pods" count={data.pods.length} components={{ b: <b /> }} />
                         </span>
-                        {data.defaultDenyIngress && <Pill tone="green">default-deny ingress</Pill>}
-                        {data.defaultDenyEgress && <Pill tone="green">default-deny egress</Pill>}
+                        {data.defaultDenyIngress && <Pill tone="green">{t("pages:networkPolicy.defaultDenyIngress")}</Pill>}
+                        {data.defaultDenyEgress && <Pill tone="green">{t("pages:networkPolicy.defaultDenyEgress")}</Pill>}
                     </div>
                     {data.uncovered.length > 0 && (
                         <div className="notice mx-4 mb-3" role="status" data-testid={NETPOL.uncovered}>
@@ -180,8 +180,8 @@ export default function NetworkPolicyAnalysis() {
                                 <thead>
                                     <tr>
                                         <th>Pod</th>
-                                        <th>Ingress</th>
-                                        <th>Egress</th>
+                                        <th>{t("pages:networkPolicy.columns.ingress")}</th>
+                                        <th>{t("pages:networkPolicy.columns.egress")}</th>
                                         <th>{t("pages:networkPolicy.columns.policies")}</th>
                                     </tr>
                                 </thead>

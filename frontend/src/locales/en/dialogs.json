@@ -18,7 +18,8 @@
       "label": "Label",
       "kubeconfig": "Kubeconfig YAML",
       "register": "Register",
-      "registering": "Registering…"
+      "registering": "Registering…",
+      "labelPlaceholder": "Production East"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Value {{n}}",
       "removeRow": "Remove row",
       "addKey": "Add key",
-      "creating": "Creating…"
+      "creating": "Creating…",
+      "keyPlaceholder": "KEY",
+      "valuePlaceholder": "value"
     },
     "delete": {
       "title": "Delete ConfigMap {{name}}?",
@@ -44,7 +47,9 @@
       "valueAria": "Value {{n}}",
       "removeRow": "Remove row",
       "addKey": "Add key",
-      "creating": "Creating…"
+      "creating": "Creating…",
+      "keyPlaceholder": "KEY",
+      "valuePlaceholder": "value"
     },
     "delete": {
       "title": "Delete secret {{name}}?",
@@ -324,7 +329,8 @@
       "container": "Container",
       "running": "Running…",
       "run": "Run",
-      "outputPlaceholder": "Output will appear here."
+      "outputPlaceholder": "Output will appear here.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Evict pod {{name}}?",
@@ -382,7 +388,8 @@
       "validKind": "Valid {{kind}}",
       "validManifest": "Valid manifest",
       "validate": "Validate",
-      "applyTitle": "Apply workload manifest"
+      "applyTitle": "Apply workload manifest",
+      "receipt": "receipt"
     }
   },
   "autoscalingCreate": {

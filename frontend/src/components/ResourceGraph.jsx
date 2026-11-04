@@ -11,23 +11,21 @@ import { useTranslation } from "react-i18next";
 // replicaset -> pods, plus the autoscaler and the config/secret/volume names it references.
 // Names and short statuses only — the backend never sends Secret or ConfigMap contents.
 
+// Lanes headed by a Kubernetes kind keep it in English (`label`); the others
+// are translated (`labelKey`).
 const LANES = [
     { id: "ingress", label: "Ingress", kinds: ["Ingress"] },
     { id: "service", label: "Service", kinds: ["Service"] },
-    { id: "scale", label: "Autoscaler", kinds: ["HorizontalPodAutoscaler"] },
-    { id: "workload", label: "Workload", kinds: ["Deployment", "StatefulSet", "DaemonSet", "CronJob"] },
-    { id: "revision", label: "Revision", kinds: ["ReplicaSet", "Job"] },
+    { id: "scale", labelKey: "pages:resourceGraph.lanes.scale", kinds: ["HorizontalPodAutoscaler"] },
+    { id: "workload", labelKey: "pages:resourceGraph.lanes.workload", kinds: ["Deployment", "StatefulSet", "DaemonSet", "CronJob"] },
+    { id: "revision", labelKey: "pages:resourceGraph.lanes.revision", kinds: ["ReplicaSet", "Job"] },
     { id: "pod", label: "Pods", kinds: ["Pod"] },
-    { id: "config", label: "Config & storage", kinds: ["ConfigMap", "Secret", "PersistentVolumeClaim"] },
+    { id: "config", labelKey: "pages:resourceGraph.lanes.config", kinds: ["ConfigMap", "Secret", "PersistentVolumeClaim"] },
 ];
 
-/** Translated lane heading; Kubernetes kinds (Ingress, Service, Pods) stay English. */
+/** Lane heading in the current language. */
 function laneLabel(t, lane) {
-    if (lane.id === "scale") return t("pages:resourceGraph.lanes.scale");
-    if (lane.id === "workload") return t("pages:resourceGraph.lanes.workload");
-    if (lane.id === "revision") return t("pages:resourceGraph.lanes.revision");
-    if (lane.id === "config") return t("pages:resourceGraph.lanes.config");
-    return lane.label;
+    return lane.labelKey ? t(lane.labelKey) : lane.label;
 }
 
 const NODE_W = 172;

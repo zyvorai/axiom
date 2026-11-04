@@ -43,5 +43,9 @@
   },
   "autoscalingCreate": {
     "generic": "Si è verificato un errore"
+  },
+  "ai": {
+    "requestFailed": "Richiesta non riuscita",
+    "rateLimited": "{{message}} (limite di richieste raggiunto)"
   }
 }

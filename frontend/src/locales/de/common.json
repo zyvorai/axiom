@@ -122,5 +122,9 @@
   },
   "editor": {
     "readOnly": "Manifest (schreibgeschützt)"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "output": "Terminalausgabe"
   }
 }

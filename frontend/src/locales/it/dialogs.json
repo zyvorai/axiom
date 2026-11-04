@@ -18,7 +18,8 @@
       "label": "Etichetta",
       "kubeconfig": "Kubeconfig YAML",
       "register": "Registra",
-      "registering": "Registrazione…"
+      "registering": "Registrazione…",
+      "labelPlaceholder": "Produzione Est"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Valore {{n}}",
       "removeRow": "Rimuovi riga",
       "addKey": "Aggiungi chiave",
-      "creating": "Creazione…"
+      "creating": "Creazione…",
+      "keyPlaceholder": "CHIAVE",
+      "valuePlaceholder": "valore"
     },
     "delete": {
       "title": "Eliminare la ConfigMap {{name}}?",
@@ -44,7 +47,9 @@
       "valueAria": "Valore {{n}}",
       "removeRow": "Rimuovi riga",
       "addKey": "Aggiungi chiave",
-      "creating": "Creazione…"
+      "creating": "Creazione…",
+      "keyPlaceholder": "CHIAVE",
+      "valuePlaceholder": "valore"
     },
     "delete": {
       "title": "Eliminare il Secret {{name}}?",
@@ -324,7 +329,8 @@
       "container": "Container",
       "running": "Esecuzione…",
       "run": "Esegui",
-      "outputPlaceholder": "L'output verrà visualizzato qui."
+      "outputPlaceholder": "L'output verrà visualizzato qui.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Espellere il Pod {{name}}?",
@@ -382,7 +388,8 @@
       "validKind": "{{kind}} valido",
       "validManifest": "Manifest valido",
       "validate": "Convalida",
-      "applyTitle": "Applica manifest del workload"
+      "applyTitle": "Applica manifest del workload",
+      "receipt": "ricevuta"
     }
   },
   "autoscalingCreate": {

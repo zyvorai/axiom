@@ -156,6 +156,9 @@ const ALLOW = [
     /^[A-Z][A-Za-z]+(Set|Map|Job|Policy|Binding|Role|Claim|Class|Account|Resource|Definition)s?$/, // Kubernetes kinds
     /^(Pod|Node|Namespace|Deployment|Service|Ingress|Secret|ConfigMap|CronJob|HPA|PVC|CRD|RBAC|API|URL|CPU|GPU|TCP|UDP|ICMP|HTTP|HTTPS|TLS|DNS|IP|ID|VM)s?$/,
     /^[a-z0-9]+([-_./:][a-z0-9]+)+$/, // identifiers, paths, labels
+    // kept English by design (GLOSSARY.md): API terms and values, product names, units
+    /^(Auto|TriggerAuthentication|Argo CD|Flux|OCI|Gateway API|StorageClasses|PersistentVolumes|ReadWrite(Once|Many|OncePod)|ReadOnlyMany|(Prefer)?NoSchedule|NoExecute|\/?GiB|vCPU|RAM)$/,
+    /^,\s*\w+:$/, // object-literal fragments after an interpolation (`}, mono:`), not text
 ];
 const SKIP_FILES = /[\\/]components[\\/]ui[\\/]/; // shadcn primitives
 const warnings = [];

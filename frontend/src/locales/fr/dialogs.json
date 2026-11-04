@@ -18,7 +18,8 @@
       "label": "Libellé",
       "kubeconfig": "YAML kubeconfig",
       "register": "Enregistrer",
-      "registering": "Enregistrement…"
+      "registering": "Enregistrement…",
+      "labelPlaceholder": "Production Est"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "Valeur {{n}}",
       "removeRow": "Retirer la ligne",
       "addKey": "Ajouter une clé",
-      "creating": "Création…"
+      "creating": "Création…",
+      "keyPlaceholder": "CLÉ",
+      "valuePlaceholder": "valeur"
     },
     "delete": {
       "title": "Supprimer la ConfigMap {{name}} ?",
@@ -44,7 +47,9 @@
       "valueAria": "Valeur {{n}}",
       "removeRow": "Retirer la ligne",
       "addKey": "Ajouter une clé",
-      "creating": "Création…"
+      "creating": "Création…",
+      "keyPlaceholder": "CLÉ",
+      "valuePlaceholder": "valeur"
     },
     "delete": {
       "title": "Supprimer le Secret {{name}} ?",
@@ -324,7 +329,8 @@
       "container": "Conteneur",
       "running": "Exécution…",
       "run": "Exécuter",
-      "outputPlaceholder": "La sortie apparaîtra ici."
+      "outputPlaceholder": "La sortie apparaîtra ici.",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "Évincer le pod {{name}} ?",
@@ -382,7 +388,8 @@
       "validKind": "{{kind}} valide",
       "validManifest": "Manifeste valide",
       "validate": "Valider",
-      "applyTitle": "Appliquer le manifeste de la charge de travail"
+      "applyTitle": "Appliquer le manifeste de la charge de travail",
+      "receipt": "reçu"
     }
   },
   "autoscalingCreate": {

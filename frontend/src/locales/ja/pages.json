@@ -92,7 +92,11 @@
     "maskAria": "IP アドレスとホスト名をマスク",
     "maskHint": "推奨。シークレット、トークン、環境変数の値は常に削除されます。",
     "testing": "テスト中…",
-    "testConnection": "接続をテスト"
+    "testConnection": "接続をテスト",
+    "providers": {
+      "openaiCompatible": "OpenAI 互換",
+      "ollama": "Ollama（ローカル）"
+    }
   },
   "aiAssistant": {
     "explain": "AI で説明",
@@ -373,11 +377,15 @@
     "noPods": "この Namespace に Pod はありません。",
     "region": "Pod のネットワーク分離",
     "columns": {
-      "policies": "ポリシー"
+      "policies": "ポリシー",
+      "ingress": "イングレス",
+      "egress": "エグレス"
     },
     "showTraffic": "{{pod}} の許可されたトラフィックを表示",
     "allowedIngress": "許可されたイングレス",
-    "allowedEgress": "許可されたエグレス"
+    "allowedEgress": "許可されたエグレス",
+    "defaultDenyIngress": "デフォルト拒否（イングレス）",
+    "defaultDenyEgress": "デフォルト拒否（エグレス）"
   },
   "nodes": {
     "title": "Nodes",
@@ -1374,13 +1382,17 @@
     "lineCount": "{{lines}} 行",
     "hintFollow": "<kbd>Follow</kbd> を押すと <target>{{target}}</target> をストリーミングします。",
     "hintLoad": "<kbd>Load</kbd> を押すと <target>{{target}}</target> の前回の実行を読み込みます。",
-    "aTarget": "ターゲット"
+    "aTarget": "ターゲット",
+    "termTitle": "logs — {{target}}",
+    "termIdle": "logs — 待機中"
   },
   "podDetail": {
     "exec": {
       "running": "実行中…",
       "run": "実行",
-      "outputPlaceholder": "ここに出力が表示されます。"
+      "outputPlaceholder": "ここに出力が表示されます。",
+      "termTitle": "exec — {{command}}",
+      "termTitleEmpty": "exec — コマンド"
     },
     "container": {
       "cpu": "CPU リクエスト/リミット",

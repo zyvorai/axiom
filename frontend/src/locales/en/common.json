@@ -122,5 +122,9 @@
   },
   "editor": {
     "readOnly": "Manifest (read-only)"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "output": "Terminal output"
   }
 }

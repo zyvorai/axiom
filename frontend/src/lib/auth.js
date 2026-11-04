@@ -117,3 +117,20 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+// Display names for roles. The values themselves (`viewer`/`operator`/`admin`
+// from /users, `Viewer`/`Platform Admin` from /session) are what the API sends
+// and stores, and stay untouched; only the label shown is translated. An
+// unknown value is shown as sent.
+const ACCOUNT_ROLE_KEYS = { viewer: "auth:roleNames.viewer", operator: "auth:roleNames.operator", admin: "auth:roleNames.admin" };
+const SESSION_ROLE_KEYS = { Viewer: "auth:sessionRole.viewer", "Platform Admin": "auth:sessionRole.platformAdmin" };
+
+/** Label for a stored account role (`viewer`, `operator`, `admin`). */
+export function accountRoleLabel(t, role) {
+    return ACCOUNT_ROLE_KEYS[role] ? t(ACCOUNT_ROLE_KEYS[role]) : role;
+}
+
+/** Label for the role GET /session reports for the signed-in user. */
+export function sessionRoleLabel(t, role) {
+    return SESSION_ROLE_KEYS[role] ? t(SESSION_ROLE_KEYS[role]) : role;
+}

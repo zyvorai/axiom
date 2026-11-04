@@ -293,7 +293,7 @@ export default function Logs() {
             )}
 
             <MacTerm
-                title={running ? `logs — ${target}` : `logs — idle`}
+                title={running ? t("pages:logs.termTitle", { target }) : t("pages:logs.termIdle")}
                 actions={
                     <span className="mono text-[11px] text-term-dim" data-testid={WLOGS.count}>
                         <span className={`status-dot mr-1.5 inline-block align-middle ${running ? "ok animate-pulse" : "info"}`} />

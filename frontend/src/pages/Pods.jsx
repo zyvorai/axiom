@@ -91,7 +91,7 @@ function ExecDialog({ pod, onOpenChange }) {
                         </Button>
                     </div>
                     <MacTerm
-                        title={`exec — ${pod.name}`}
+                        title={t("dialogs:pods.exec.termTitle", { name: pod.name })}
                         bodyClassName="h-64 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-term-plain"
                     >
                         {output || <span className="text-term-dim">{t("dialogs:pods.exec.outputPlaceholder")}</span>}

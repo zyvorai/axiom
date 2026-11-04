@@ -18,7 +18,8 @@
       "label": "标签",
       "kubeconfig": "Kubeconfig YAML",
       "register": "注册",
-      "registering": "正在注册…"
+      "registering": "正在注册…",
+      "labelPlaceholder": "生产（东区）"
     }
   },
   "configMaps": {
@@ -29,7 +30,9 @@
       "valueAria": "值 {{n}}",
       "removeRow": "删除行",
       "addKey": "添加键",
-      "creating": "正在创建…"
+      "creating": "正在创建…",
+      "keyPlaceholder": "键",
+      "valuePlaceholder": "值"
     },
     "delete": {
       "title": "删除 ConfigMap {{name}}？",
@@ -44,7 +47,9 @@
       "valueAria": "值 {{n}}",
       "removeRow": "删除行",
       "addKey": "添加键",
-      "creating": "正在创建…"
+      "creating": "正在创建…",
+      "keyPlaceholder": "键",
+      "valuePlaceholder": "值"
     },
     "delete": {
       "title": "删除 Secret {{name}}？",
@@ -324,7 +329,8 @@
       "container": "容器",
       "running": "正在运行…",
       "run": "运行",
-      "outputPlaceholder": "输出将显示在此处。"
+      "outputPlaceholder": "输出将显示在此处。",
+      "termTitle": "exec — {{name}}"
     },
     "evict": {
       "title": "驱逐 Pod {{name}}？",
@@ -380,7 +386,8 @@
       "validKind": "有效的 {{kind}}",
       "validManifest": "有效的清单",
       "validate": "验证",
-      "applyTitle": "应用工作负载清单"
+      "applyTitle": "应用工作负载清单",
+      "receipt": "回执"
     }
   },
   "autoscalingCreate": {

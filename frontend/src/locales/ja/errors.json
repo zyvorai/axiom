@@ -42,5 +42,9 @@
   },
   "autoscalingCreate": {
     "generic": "問題が発生しました"
+  },
+  "ai": {
+    "requestFailed": "リクエストに失敗しました",
+    "rateLimited": "{{message}}（レート制限中）"
   }
 }

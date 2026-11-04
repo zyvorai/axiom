@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/lib/auth";
+import { sessionRoleLabel, useAuth } from "@/lib/auth";
 import { USER_MENU, MFA } from "@/constants/testIds";
 import AccountSecurityDialog from "@/components/AccountSecurityDialog";
 import { toast } from "sonner";
@@ -43,7 +43,7 @@ export default function UserMenu() {
             <DropdownMenuContent align="end" className="w-60 rounded-2xl p-2">
                 <DropdownMenuLabel className="px-2 py-1.5">
                     <div className="text-sm font-medium">{user.name}</div>
-                    <div className="text-xs font-normal text-muted-foreground">{user.role}</div>
+                    <div className="text-xs font-normal text-muted-foreground">{sessionRoleLabel(t, user.role)}</div>
                 </DropdownMenuLabel>
                 <div className="mx-2 mb-1 flex items-center gap-1.5 rounded-lg bg-muted px-2 py-1 text-[11px] uppercase tracking-widest text-muted-foreground">
                     <ShieldCheck className="h-3 w-3 text-tone-green" />

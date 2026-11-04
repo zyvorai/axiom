@@ -103,7 +103,7 @@ function ExecPanel({ namespace, name, containers }) {
                 </Button>
             </div>
             <MacTerm
-                title={`exec — ${command || "command"}`}
+                title={command ? t("pages:podDetail.exec.termTitle", { command }) : t("pages:podDetail.exec.termTitleEmpty")}
                 bodyClassName="h-72 overflow-auto whitespace-pre-wrap px-4 py-3 text-[12px] leading-[1.55] text-term-plain"
             >
                 {output || <span className="text-term-dim">{t("pages:podDetail.exec.outputPlaceholder")}</span>}

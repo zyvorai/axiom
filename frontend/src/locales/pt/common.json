@@ -122,5 +122,9 @@
   },
   "editor": {
     "readOnly": "Manifesto (somente leitura)"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "output": "Saída do terminal"
   }
 }
