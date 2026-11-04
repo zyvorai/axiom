@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — VPA & KEDA edit
+- Edit VerticalPodAutoscalers and KEDA ScaledObjects in place instead of deleting and recreating them: `GET /api/v1/vpas/{namespace}/{name}/edit` and `GET /api/v1/scaledobjects/{namespace}/{name}/edit` return the current values in the create body's typed shape plus `resourceVersion`, `editable`, `reasons` and `readOnly`; `POST …/edit/preview` returns a structured diff of the managed fields (`changes[{object,field,from,to}]`, the object's YAML after the change, warnings, `noop`); `PUT …/{namespace}/{name}` applies only the managed fields (VPA update mode and container policies; ScaledObject min/max replicas, polling interval, cooldown and triggers) as a JSON Patch that first tests `metadata.resourceVersion`, so annotations, finalizers, status and unknown spec keys are untouched and a concurrent change is a `409`. Validation is shared with create; namespace, name and target are immutable (`400`). Objects the typed model cannot represent (`advanced`, `fallback`, other trigger types or settings, ClusterTriggerAuthentication, container policy `mode`/`controlledValues`, `recommenders`, …) are `editable:false` with reasons, and credential-looking trigger settings are never returned. Roles and namespaces as for create (GET is a namespaced read); audited as `autoscale.vpa_edit|keda_edit` with changed field names only. The ClusterRole gains `patch` on VPAs and ScaledObjects
+
 ## [0.10.0] - 2026-11-04
 
 ### Added — Languages

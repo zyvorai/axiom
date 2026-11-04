@@ -66,10 +66,10 @@ rules:
   # check); no Secret access is added for them.
   - apiGroups: ["autoscaling.k8s.io"]
     resources: ["verticalpodautoscalers"]
-    verbs: ["get", "list", "watch", "create", "delete"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
   - apiGroups: ["keda.sh"]
     resources: ["scaledobjects"]
-    verbs: ["get", "list", "watch", "create", "delete"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
   - apiGroups: ["keda.sh"]
     resources: ["triggerauthentications"]
     verbs: ["get", "list"]
