@@ -5,6 +5,48 @@ what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
 
+## Shipped in 0.13.2
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| License | Zyvor Production License v1.0: source-available, free for non-production use, commercial license for production | — |
+| Website | Refreshed GitHub Pages site with the full 0.13 feature set, framed screenshots and a new social card | — |
+| Docs | Plans & licensing, the real-world verification checklist and the design system are published alongside the guides | — |
+
+## Shipped in 0.13.1
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Languages | Role names, AI provider names, terminal titles and the remaining labels are translated in all eight languages | — |
+
+## Shipped in 0.13.0 (experimental)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Billing | Ops → Cost compares the actual AWS / Azure / GCP invoice for this and last month with the allocated cost (OpenCost or the estimate); admin-configured with write-only credentials, fixed provider hosts only. Experimental: tested against recorded fixtures only, not real accounts | Kubecost cloud-bill reconciliation, Vantage |
+
+## Shipped in 0.12.1
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Pod proxy | A pod window stays on the cluster it was opened on, whichever replica serves it or the tab is switched to (links from 0.12.0 must be reopened) | — |
+
+## Shipped in 0.12.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Pod proxy | Tickets and sessions are signed and valid on every replica; no session affinity needed | — |
+
+## Shipped in 0.11.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Helm | Private OCI registries: write-only registry logins, per-repository credentials, plain-http registries when explicitly allowed | Harbor/GHCR private charts in Rancher, Portainer |
+| Autoscaling | Edit VPAs and KEDA ScaledObjects in place after previewing the exact change | Lens, Rancher |
+| Fleet | Health history survives restarts and is shared across replicas (ConfigMap-backed) | — |
+| Pod proxy | Per-session hostnames (`https://{id}.pods.example.com`) so each pod window has its own origin | Rancher/OpenShift console proxies |
+| Languages | Português, Italiano, 日本語 and 简体中文 in addition to English, Deutsch, Español and Français | — |
+
 ## Shipped in 0.10.0
 
 | Area | What you get | Comparable to |
@@ -70,28 +112,6 @@ are theirs, not ours.
 | Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views | Rancher/NeuVector, Lens Security Center |
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
-
-## Shipped in 0.13.0 (experimental)
-
-| Area | What you get | Comparable to |
-|------|--------------|---------------|
-| Billing | Ops → Cost compares the actual AWS / Azure / GCP invoice for this and last month with the allocated cost (OpenCost or the estimate); admin-configured with write-only credentials, fixed provider hosts only. Experimental: tested against recorded fixtures only, not real accounts | Kubecost cloud-bill reconciliation, Vantage |
-
-## Shipped in 0.12.0
-
-| Area | What you get | Comparable to |
-|------|--------------|---------------|
-| Pod proxy | Tickets and sessions are signed and valid on every replica; no session affinity needed | — |
-
-## Shipped in 0.11.0
-
-| Area | What you get | Comparable to |
-|------|--------------|---------------|
-| Helm | Private OCI registries: write-only registry logins, per-repository credentials, plain-http registries when explicitly allowed | Harbor/GHCR private charts in Rancher, Portainer |
-| Autoscaling | Edit VPAs and KEDA ScaledObjects in place after previewing the exact change | Lens, Rancher |
-| Fleet | Health history survives restarts and is shared across replicas (ConfigMap-backed) | — |
-| Pod proxy | Per-session hostnames (`https://{id}.pods.example.com`) so each pod window has its own origin | Rancher/OpenShift console proxies |
-| Languages | Português, Italiano, 日本語 and 简体中文 in addition to English, Deutsch, Español and Français | — |
 
 ## Next
 

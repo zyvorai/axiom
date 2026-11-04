@@ -20,6 +20,9 @@ PAGES = [
     ("COMPLIANCE.md", "compliance", "Compliance", "Controls, evidence and audit guidance.", "Operate"),
     ("ROADMAP.md", "roadmap", "Roadmap", "What shipped, what is next, and how Axiom compares.", "Understand"),
     ("GAPS.md", "gaps", "Known limitations", "What is intentionally missing or still open.", "Operate"),
+    ("VERIFICATION.md", "verification", "Verification checklist", "What has been proven on real systems, and what to check on yours.", "Operate"),
+    ("DESIGN-SYSTEM.md", "design-system", "Design system", "Tokens, components, accessibility and translations of the console UI.", "Understand"),
+    ("SUBSCRIPTION-MODEL.md", "plans", "Plans & licensing", "The Zyvor Production License and enterprise subscription plans.", "Start"),
 ]
 SLUG = {p[0]: p[1] for p in PAGES}
 

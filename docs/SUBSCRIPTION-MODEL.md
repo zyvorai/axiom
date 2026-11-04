@@ -2,6 +2,12 @@
 
 Axiom is available under an annual **enterprise subscription** for production use. One subscription covers product access, updates and upgrades, and the stated support level. There is no separate support surcharge.
 
+## License
+
+Axiom is source-available under the [Zyvor Production License v1.0](../LICENSE). Evaluation, development, testing, research and other non-production use are free. Production use needs a commercial license from Zyvor AI Labs Private Limited, which is what the subscription below provides.
+
+## Plans
+
 | Plan | What you get | Coverage |
 |------|--------------|----------|
 | Community | Evaluation and non-production use, where the licence allows it | Community resources |
