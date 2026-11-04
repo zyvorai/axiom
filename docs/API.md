@@ -171,7 +171,7 @@ The URL-credential forms still work but are **deprecated**: a request that authe
 | DELETE | `/api/v1/pods/{namespace}/{name}` | Terminate Pod |
 | POST | `/api/v1/pods/{namespace}/{name}/evict` | Policy-aware eviction |
 | GET | `/api/v1/pods/{namespace}/{name}/window/{port}/` | HTTP window proxy into Pod (reverse-proxies into the pod's container port). **`410 Gone` when the separate pod proxy origin is configured**; use `window-link` |
-| POST | `/api/v1/pods/{namespace}/{name}/window-link` | Only with the [pod proxy origin](#pod-proxy-origin) on (`404` otherwise). Body `{"port":8080,"path":"/"}` (`path` optional, an absolute path, may carry a query) → `{"url":"<origin>/p/<ticket>/","expiresIn":60}`, `Cache-Control: no-store`. Same policy as the window route: operator or admin, namespace-checked (viewers and accounts restricted to other namespaces get `403`). `404` unknown pod, `403` undeclared port or hostNetwork pod, `429` too many outstanding links. Audited as `pod.window` |
+| POST | `/api/v1/pods/{namespace}/{name}/window-link` | Only with the [pod proxy origin](#pod-proxy-origin) on (`404` otherwise). Body `{"port":8080,"path":"/"}` (`path` optional, an absolute path, may carry a query) → `{"url":"<origin>/p/<ticket>/","expiresIn":60}` (in host mode `<origin>` is a fresh `https://<sid>.<base>` per link), `Cache-Control: no-store`. Same policy as the window route: operator or admin, namespace-checked (viewers and accounts restricted to other namespaces get `403`). `404` unknown pod, `403` undeclared port or hostNetwork pod, `429` too many outstanding links. Audited as `pod.window` |
 | GET | `/api/v1/pods/{namespace}/{name}/metrics` | Live CPU/memory for the pod and each container, plus a short in-memory rolling time series (not historical Prometheus data) |
 
 Exec accepts a shell string or argv array:
@@ -188,9 +188,9 @@ Exec accepts a shell string or argv array:
 
 ### Pod proxy origin
 
-Opt-in (`AXIOM_POD_PROXY_ADDR` + `AXIOM_POD_PROXY_ORIGIN`, see `docs/DEPLOYMENT.md`): pod web content is served by a second listener on its own origin instead of the console's, so a malicious pod UI cannot script the console (its session token, cookies or API). `GET /api/v1/realtime/capabilities` reports `"podProxy": true` when it is on; the UI's "Open" button then calls `window-link` and opens the returned URL.
+Opt-in (`AXIOM_POD_PROXY_ADDR` + `AXIOM_POD_PROXY_ORIGIN`, see `docs/DEPLOYMENT.md`): pod web content is served by a second listener on its own origin instead of the console's, so a malicious pod UI cannot script the console (its session token, cookies or API). `GET /api/v1/realtime/capabilities` reports `"podProxy": true` when it is on, plus `"podProxyMode": "path"` (one fixed origin, the default) or `"host"` (one origin per pod session, below); the UI's "Open" button then calls `window-link` and opens the returned URL, which it treats as opaque.
 
-The proxy listener serves only:
+The proxy listener serves only (path mode):
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -198,6 +198,15 @@ The proxy listener serves only:
 | GET, HEAD, POST, PUT, PATCH, DELETE | `/s/<sid>/…` | Proxied to the pod (the path below `/s/<sid>` is forwarded as is; WebSocket upgrades pass through). Needs the session cookie of *that* session id: missing, mismatched or expired is `403`. The session lasts 10 minutes from its last use and 1 hour at most, and dies as soon as the user who created it is revoked (sign out everywhere, password/role/namespace change, deletion) |
 
 Everything else is `404`. The listener has no CORS and never reads the console's `axiom_session` cookie or `Authorization`/API-key credentials; `Authorization`, `Cookie`, `X-Api-Key`, `X-Axiom-Session` and URL tokens are removed before the request reaches the pod. Every response carries `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and `Cross-Origin-Opener-Policy: same-origin`, and proxied content gets `Content-Security-Policy: sandbox allow-scripts allow-forms allow-same-origin allow-popups; frame-ancestors 'none'`. The pod's `Set-Cookie`, `Access-Control-*`, `Service-Worker-Allowed`, `Clear-Site-Data`, HSTS and its own copies of those policy headers are dropped, and service-worker script requests are refused. Request headers are capped at 32 KiB and bodies at 32 MiB.
+
+**Host mode (one origin per pod session).** When `AXIOM_POD_PROXY_ORIGIN` has the placeholder `{id}` as its leftmost host label (`https://{id}.pods.example.com`, or `http://{id}.localhost:5091` in a lab), `window-link` picks the session id up front (128-bit random, 32 lowercase hex characters) and answers `{"url":"https://<sid>.pods.example.com/p/<ticket>/","expiresIn":60}`; the ticket is bound to that id. On the listener, the `Host` header selects the session, and only `<32 hex>.<base domain>` on the configured port is served; any other host, and an unknown or expired id, is an empty `404`.
+
+| Method | Path (on host `<sid>.<base>`) | Purpose |
+|---|---|---|
+| GET | `/p/<ticket>/` | Only while session `<sid>` does not exist yet: redeems the ticket, which must have been minted for `<sid>` (a ticket presented on another session's host is `403` and burnt), sets a host-only session cookie (`Path=/`, no `Domain`, HttpOnly, `SameSite=Lax`; `__Host-axiom_pod_proxy` with `Secure` on https, `axiom_pod_proxy` on http) and answers `302` to the link's base path at the root of the host |
+| GET, HEAD, POST, PUT, PATCH, DELETE | `/…` | Once the session exists: proxied to the pod at the same path, so pod UIs that use absolute paths (`/static/app.js`, `/api/…`) work. `/p/…` is an ordinary pod path from then on. The session cookie is required (`403` otherwise); a cookie from another session never matches, even when replayed against this host |
+
+Session lifetimes, revocation, header stripping, response policy headers (including `allow-same-origin` in the sandbox: the origin belongs to this one session), the service-worker refusal and the limits are the same as in path mode.
 
 ## Autoscaling, disruption budgets, network policies
 

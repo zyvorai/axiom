@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"sync"
@@ -23,6 +25,11 @@ import (
 //     separate random secret that goes in an HttpOnly cookie on the proxy
 //     origin, bound to the user, the pod and the port; 10 minutes sliding, one
 //     hour at most.
+//
+// In per-session-host mode the session id is chosen when the ticket is minted
+// (NewPodProxySessionID), carried in the ticket (PodProxyGrant.SessionID) and
+// put in the link's hostname instead of its path; redeeming creates the session
+// under exactly that id (CreateWithID).
 //
 // Only SHA-256 digests of tickets, session ids and session secrets are kept.
 // These stores are separate from the stream TicketStore on purpose: stream
@@ -65,10 +72,45 @@ type PodProxyGrant struct {
 	// per-user revocation cut-off at or after this moment kills the ticket and
 	// every session made from it.
 	IssuedMs int64
+	// SessionID, set only in per-session-host mode, is the session id the
+	// ticket was minted for: the leftmost label of the host the link points
+	// at. The ticket may only be redeemed on that host, and the session it
+	// becomes gets exactly this id (PodProxySessionStore.CreateWithID).
+	SessionID string
 }
 
 func (g PodProxyGrant) valid() bool {
-	return g.User != "" && g.Namespace != "" && g.Pod != "" && g.Port > 0 && g.Port <= 65535 && ValidPodProxyBasePath(g.Path)
+	return g.User != "" && g.Namespace != "" && g.Pod != "" && g.Port > 0 && g.Port <= 65535 && ValidPodProxyBasePath(g.Path) &&
+		(g.SessionID == "" || ValidPodProxySessionID(g.SessionID))
+}
+
+// podProxySessionIDLen is the length of a per-session-host session id: 128
+// random bits in lowercase hex, a valid DNS label.
+const podProxySessionIDLen = 32
+
+// NewPodProxySessionID returns a fresh per-session-host session id (128-bit
+// random, 32 lowercase hex characters), used as the leftmost host label.
+func NewPodProxySessionID() string {
+	b := make([]byte, podProxySessionIDLen/2)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand: " + err.Error())
+	}
+	return hex.EncodeToString(b)
+}
+
+// ValidPodProxySessionID reports whether id has the shape NewPodProxySessionID
+// produces: exactly 32 lowercase hex characters.
+func ValidPodProxySessionID(id string) bool {
+	if len(id) != podProxySessionIDLen {
+		return false
+	}
+	for i := 0; i < len(id); i++ {
+		c := id[i]
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
 }
 
 // ValidPodProxyBasePath reports whether p may be used as the base path of a
@@ -227,12 +269,37 @@ func NewPodProxySessionStoreWithClock(now func() time.Time, idle, max time.Durat
 // Create starts a session for g and returns its public id (for the URL path)
 // and its secret (for the cookie).
 func (s *PodProxySessionStore) Create(g PodProxyGrant) (id, secret string, err error) {
+	return s.create("", g)
+}
+
+// CreateWithID starts a session for g under a caller-chosen public id (the
+// per-session-host mode, where the id is put in the link's host before the
+// ticket is redeemed) and returns its cookie secret. id must be a
+// ValidPodProxySessionID equal to g.SessionID and must not name a live
+// session.
+func (s *PodProxySessionStore) CreateWithID(id string, g PodProxyGrant) (secret string, err error) {
+	if !ValidPodProxySessionID(id) || g.SessionID != id {
+		return "", errors.New("invalid pod proxy session id")
+	}
+	_, secret, err = s.create(id, g)
+	return secret, err
+}
+
+func (s *PodProxySessionStore) create(fixedID string, g PodProxyGrant) (id, secret string, err error) {
 	if !g.valid() {
 		return "", "", errors.New("invalid pod proxy grant")
 	}
 	now := s.now()
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if fixedID != "" {
+		if e, ok := s.entries[ticketDigest(fixedID)]; ok {
+			if !s.expiredLocked(e, now) {
+				return "", "", errors.New("pod proxy session id already in use")
+			}
+			delete(s.entries, ticketDigest(fixedID))
+		}
+	}
 	if len(s.entries) >= podProxySessionsMax/2 {
 		s.sweepLocked(now)
 	}
@@ -245,7 +312,10 @@ func (s *PodProxySessionStore) Create(g PodProxyGrant) (id, secret string, err e
 			return "", "", ErrPodProxyTableFull
 		}
 	}
-	id, secret = RandomURLToken(32), RandomURLToken(32)
+	id, secret = fixedID, RandomURLToken(32)
+	if id == "" {
+		id = RandomURLToken(32)
+	}
 	s.entries[ticketDigest(id)] = &podProxySession{secret: ticketDigest(secret), grant: g, created: now, lastSeen: now}
 	return id, secret, nil
 }
@@ -273,6 +343,27 @@ func (s *PodProxySessionStore) Lookup(id, secret string) (PodProxyGrant, bool) {
 	}
 	e.lastSeen = now
 	return e.grant, true
+}
+
+// Live reports whether id names a session that has not expired, without
+// sliding it or checking any secret. An expired session is removed.
+func (s *PodProxySessionStore) Live(id string) bool {
+	if id == "" {
+		return false
+	}
+	key := ticketDigest(id)
+	now := s.now()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	e, ok := s.entries[key]
+	if !ok {
+		return false
+	}
+	if s.expiredLocked(e, now) {
+		delete(s.entries, key)
+		return false
+	}
+	return true
 }
 
 // Delete ends session id.

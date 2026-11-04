@@ -363,7 +363,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerSecurityRoutes(mux)
 
 	RegisterSSE(mux)
-	RegisterRealtime(mux, provider, s.podProxyEnabled)
+	RegisterRealtime(mux, provider, s.podProxyMode)
 
 	var authenticator auth.UserAuthenticator
 	if users != nil {

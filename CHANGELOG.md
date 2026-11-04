@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Security — per-session pod origins
+- The pod proxy origin can give every pod session its own hostname, and so its own origin: set `AXIOM_POD_PROXY_ORIGIN` with `{id}` as the leftmost host label (`https://{id}.pods.example.com`, or `http://{id}.localhost:5091` in a lab). `window-link` then returns `https://<sid>.pods.example.com/p/<ticket>/` with a fresh 128-bit session id per link and a ticket bound to it (a ticket presented on another session's host is refused and burnt); after redeeming, the session lives at the root of its host behind a host-only cookie (`__Host-axiom_pod_proxy` on https), so pods opened through the proxy can no longer read each other's `localStorage`, IndexedDB or cookies, and pod UIs with absolute paths (`/static/…`, `/api/…`) work. The listener routes on the `Host` header and answers an empty `404` to any other host or an unknown/expired session. All existing hardening (revocation per request, 10 min sliding / 1 h max, per-user caps, credential stripping, CSP, service-worker refusal, `Set-Cookie` stripping, limits) applies unchanged. Startup refuses a template whose base domain is, contains or sits inside the console's host. Needs wildcard DNS and a wildcard certificate: new optional `AXIOM_POD_PROXY_TLS_CERT` / `AXIOM_POD_PROXY_TLS_KEY` (Helm `podProxy.tlsSecret`, an existing `kubernetes.io/tls` Secret) let the listener serve one separate from the console's. `GET /api/v1/realtime/capabilities` adds `podProxyMode` (`path` or `host`). The fixed-origin form is unchanged
+
 ## [0.10.0] - 2026-11-04
 
 ### Added — Languages

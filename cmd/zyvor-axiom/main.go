@@ -158,10 +158,11 @@ func main() {
 	}()
 	if podProxy != nil {
 		// Stopped with the process: dispatchCtx is cancelled when main returns.
-		if _, err := api.StartPodProxyOrigin(dispatchCtx, podProxy, cfg.TLSCert, cfg.TLSKey); err != nil {
+		ppCert, ppKey := api.PodProxyTLSFiles(cfg.PodProxyTLSCert, cfg.PodProxyTLSKey, cfg.TLSCert, cfg.TLSKey)
+		if _, err := api.StartPodProxyOrigin(dispatchCtx, podProxy, ppCert, ppKey); err != nil {
 			log.Fatalf("pod proxy origin: %v", err)
 		}
-		log.Printf("pod proxy origin listening on %s origin=%s tls=%v", podProxy.Addr(), podProxy.Origin(), tlsEnabled)
+		log.Printf("pod proxy origin listening on %s origin=%s mode=%s tls=%v", podProxy.Addr(), podProxy.Origin(), podProxy.Mode(), ppCert != "" && ppKey != "")
 	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
