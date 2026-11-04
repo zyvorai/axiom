@@ -71,16 +71,23 @@ are theirs, not ours.
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
 
+## Shipped in 0.11.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Helm | Private OCI registries: write-only registry logins, per-repository credentials, plain-http registries when explicitly allowed | Harbor/GHCR private charts in Rancher, Portainer |
+| Autoscaling | Edit VPAs and KEDA ScaledObjects in place after previewing the exact change | Lens, Rancher |
+| Fleet | Health history survives restarts and is shared across replicas (ConfigMap-backed) | — |
+| Pod proxy | Per-session hostnames (`https://{id}.pods.example.com`) so each pod window has its own origin | Rancher/OpenShift console proxies |
+| Languages | Português, Italiano, 日本語 and 简体中文 in addition to English, Deutsch, Español and Français | — |
+
 ## Next
 
 Deliberately left for later, with the reason:
 
 - **Billing:** per-cloud invoice integrations (OpenCost covers allocation, not your actual bill).
-- **Registry credentials:** private OCI chart registries need a credential store and token exchange with secrets.
-- **Editing VPA and KEDA objects in place:** today delete and recreate.
-- **Languages:** more locales, and a few technical screens still show English (see docs/GAPS.md for the exact coverage); translations have not been reviewed by native speakers.
-- **Fleet history across restarts:** history is kept in memory per replica; a durable store would need a time-series backend.
-- **Pod proxy:** per-session origins are available (host mode, `https://{id}.pods.example.com`); remaining: proxy tickets and sessions shared across replicas (today session affinity is needed).
+- **Pod proxy:** proxy tickets and sessions shared across replicas (today session affinity is needed).
+- **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
 
 ## Not planned
 
