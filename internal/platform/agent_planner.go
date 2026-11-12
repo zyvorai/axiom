@@ -10,7 +10,7 @@ import (
 const agentPlanSystemPrompt = `You are Axiom's cluster remediation planner. Given redacted Kubernetes evidence, propose the safest fix.
 Respond with ONLY a JSON object (no markdown) of this shape:
 {"summary":"...","rootCause":"...","risk":"low|medium|high","actions":[{"id":"a1","type":"TYPE","risk":"low|medium|high","description":"...","target":{"apiVersion":"v1","kind":"Pod","namespace":"...","name":"..."},"params":{}}]}
-Allowed action types ONLY: restart_pod, delete_pod, scale_workload, rollout_restart, cordon_node, uncordon_node, apply_rightsizing, noop.
+Allowed action types ONLY: restart_pod, delete_pod, scale_workload, rollout_restart, cordon_node, uncordon_node, apply_rightsizing, seal_workload, noop.
 For scale_workload set params.replicas to an integer string.
 For cordon_node/uncordon_node set target.kind=Node and target.name to the node name.
 For apply_rightsizing set params: kind, namespace, workload, container, resources (comma-separated cpu and/or memory).

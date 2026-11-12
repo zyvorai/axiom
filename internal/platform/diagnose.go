@@ -33,6 +33,9 @@ const (
 	AnalyzerFinalizerGhost  = "finalizer-ghost"
 	AnalyzerImageFloat      = "image-float"
 	AnalyzerHPAThrash       = "hpa-thrash"
+	AnalyzerCertExpiry      = "cert-expiry"
+	AnalyzerSecretAge       = "secret-age"
+	AnalyzerNodeClockSkew   = "node-clock-skew"
 )
 
 // HealthAnalyzers lists every analyzer a report covers, in display order.
@@ -40,6 +43,7 @@ var HealthAnalyzers = []string{
 	AnalyzerPodStatus, AnalyzerServiceEndpoint, AnalyzerPVC,
 	AnalyzerIngress, AnalyzerHPA, AnalyzerNodePressure,
 	AnalyzerFinalizerGhost, AnalyzerImageFloat, AnalyzerHPAThrash,
+	AnalyzerCertExpiry, AnalyzerSecretAge, AnalyzerNodeClockSkew,
 }
 
 // HealthFinding is one problem the health check found.

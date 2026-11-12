@@ -245,7 +245,11 @@
     "columns": {
       "resources": "リソース"
     },
-    "empty": "プラットフォームインテントはまだありません。"
+    "empty": "プラットフォームインテントはまだありません。",
+    "driftTitle": "Intent drift",
+    "drift": "Drift",
+    "placeIntent": "Place intent",
+    "platformIntent": "Platform Intent CR"
   },
   "savedViews": {
     "title": "保存済みビュー",
@@ -696,7 +700,8 @@
       "label": "履歴",
       "last1h": "過去 1 時間",
       "last6h": "過去 6 時間",
-      "last24h": "過去 24 時間"
+      "last24h": "過去 24 時間",
+      "narrative": "Outage narrative: check Timeline for who poked it and Ops → Agents for ProposeOnly runs in this window."
     },
     "historyDurable": " · 履歴は再起動後も保持されます",
     "historyMemory": " · 履歴はメモリ内にのみ保持されます"
@@ -893,7 +898,12 @@
       "used": "Used",
       "noNodes": "No GPU nodes detected.",
       "noPods": "No pods requesting GPUs.",
-      "loadFailed": "Could not load accelerators."
+      "loadFailed": "Could not load accelerators.",
+      "waste": "GPU rightsizing",
+      "request": "Requested",
+      "recommend": "Recommend",
+      "dryRun": "Dry-run",
+      "apply": "Apply"
     }
   },
   "rbac": {

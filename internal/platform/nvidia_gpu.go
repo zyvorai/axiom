@@ -188,9 +188,16 @@ func (d *DemoProvider) ListAccelerators(ctx context.Context) (AcceleratorsReport
 	})
 	rep.DRA = &AcceleratorsDRA{Available: false, Note: "resource.k8s.io DRA not present in demo"}
 	rep.Metrics = &AcceleratorsMetrics{
-		Available: true, GPUUtil: 42,
-		IdleHint: "2 of 8 GPUs requested; demo util ~42% — not idle",
+		Available: true, GPUUtil: 12,
+		IdleHint: "GPU pods scheduled with cluster util ~12% — possible waste",
 		Note:     "Demo DCGM snapshot",
 	}
+	attachGPUWaste(&rep, 12)
+	// Force a clear over-requested demo row for the pending train job.
+	rep.Waste = append([]AcceleratorWaste{{
+		Namespace: "ml", Kind: "Deployment", Name: "inference", Container: "inference",
+		GPURequest: "2", GPURecommend: "1", Util: 12, Verdict: "over-requested",
+		Note: "Demo: inference requests 2 GPUs at ~12% util — recommend 1",
+	}}, rep.Waste...)
 	return rep, nil
 }

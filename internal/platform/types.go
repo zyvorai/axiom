@@ -127,7 +127,40 @@ type AcceleratorsReport struct {
 	Quotas   []AcceleratorQuota   `json:"quotas,omitempty"`
 	DRA      *AcceleratorsDRA     `json:"dra,omitempty"`
 	Metrics  *AcceleratorsMetrics `json:"metrics,omitempty"`
+	Waste    []AcceleratorWaste   `json:"waste,omitempty"` // GPU over-request recommendations
 	Counts   map[string]int       `json:"counts"`
+}
+
+// AcceleratorWaste is a GPU rightsizing hint (requested GPUs barely used).
+type AcceleratorWaste struct {
+	Namespace    string  `json:"namespace"`
+	Kind         string  `json:"kind,omitempty"` // Deployment when known
+	Name         string  `json:"name"`
+	Container    string  `json:"container,omitempty"`
+	GPURequest   string  `json:"gpuRequest"`
+	GPURecommend string  `json:"gpuRecommend"`
+	Util         float64 `json:"util,omitempty"`
+	Verdict      string  `json:"verdict"` // over-requested | ok
+	Note         string  `json:"note,omitempty"`
+}
+
+// GPURightsizingApplyRequest is POST /api/v1/accelerators/rightsizing/apply.
+type GPURightsizingApplyRequest struct {
+	Namespace string `json:"namespace"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Container string `json:"container,omitempty"`
+	DryRun    bool   `json:"dryRun,omitempty"`
+}
+
+// GPURightsizingApplyResult is the apply response.
+type GPURightsizingApplyResult struct {
+	OK      bool   `json:"ok"`
+	DryRun  bool   `json:"dryRun"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Note    string `json:"note,omitempty"`
+	Rollout string `json:"rollout,omitempty"`
 }
 
 type AcceleratorsOperator struct {

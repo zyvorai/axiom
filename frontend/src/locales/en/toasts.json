@@ -117,6 +117,11 @@
       "createBindingFailed": "Create role binding failed",
       "deleted": "Deleted {{name}}",
       "deleteFailed": "Delete failed"
+    },
+    "accelerators": {
+      "dryRun": "Dry-run: {{from}} → {{to}}",
+      "applied": "GPU request {{from}} → {{to}}",
+      "applyFailed": "GPU rightsizing failed"
     }
   },
   "applyManifest": {

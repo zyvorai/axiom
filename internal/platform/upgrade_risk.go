@@ -126,3 +126,66 @@ func AssessUpgradeRisk(ctx context.Context, p Provider) (UpgradeRiskReport, erro
 	}
 	return rep, nil
 }
+
+// EnrichUpgradeRiskPlan maps finding codes to allowlisted prep actions (ProposeOnly).
+func EnrichUpgradeRiskPlan(run AgentRun, rep UpgradeRiskReport) AgentRun {
+	if run.Plan == nil {
+		run.Plan = &AgentPlan{Summary: rep.Summary, Risk: "medium", RequiresApproval: true}
+	}
+	seen := map[string]bool{}
+	for _, a := range run.Plan.Actions {
+		seen[a.Type+"|"+a.Description] = true
+	}
+	id := len(run.Plan.Actions) + 1
+	add := func(a AgentAction) {
+		key := a.Type + "|" + a.Description
+		if seen[key] {
+			return
+		}
+		seen[key] = true
+		if a.ID == "" {
+			a.ID = fmt.Sprintf("u%d", id)
+			id++
+		}
+		run.Plan.Actions = append(run.Plan.Actions, a)
+	}
+	for _, f := range rep.Findings {
+		switch f.Code {
+		case "node-not-ready":
+			// Detail starts with node name.
+			name := strings.Fields(f.Detail)
+			node := ""
+			if len(name) > 0 {
+				node = name[0]
+			}
+			if node != "" && strings.Contains(f.Title, "cordon") {
+				add(AgentAction{
+					Type: AgentActionUncordonNode, Risk: "medium",
+					Description: "Uncordon " + node + " before upgrade",
+					Target:      &AgentObjectRef{Kind: "Node", Name: node, APIVersion: "v1"},
+				})
+			} else if node != "" {
+				add(AgentAction{
+					Type: AgentActionCordonNode, Risk: "medium",
+					Description: "Cordon unhealthy node " + node + " during prep",
+					Target:      &AgentObjectRef{Kind: "Node", Name: node, APIVersion: "v1"},
+				})
+			}
+		case "pdb-blocks-drain":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "low",
+				Description: "Review PDB " + f.Detail + " — raise maxUnavailable before drain",
+			})
+		case "cluster-warnings":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "low",
+				Description: "Clear Warning events / CrashLoops before upgrading",
+			})
+		}
+	}
+	run.Plan = SanitizeAgentPlan(run.Plan)
+	if run.Plan.Summary == "" {
+		run.Plan.Summary = rep.Summary
+	}
+	return run
+}

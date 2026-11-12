@@ -225,5 +225,10 @@ func (k *KubernetesProvider) ListAccelerators(ctx context.Context) (Accelerators
 	}
 	rep.DRA = k.detectDRA(ctx)
 	k.acceleratorsMetrics(ctx, &rep)
+	util := 0.0
+	if rep.Metrics != nil {
+		util = rep.Metrics.GPUUtil
+	}
+	attachGPUWaste(&rep, util)
 	return rep, nil
 }

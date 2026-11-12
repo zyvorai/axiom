@@ -1181,6 +1181,7 @@ function CostTab() {
 function AcceleratorsTab() {
     const { t } = useTranslation();
     const [rep, setRep] = useState(null);
+    const [applyBusy, setApplyBusy] = useState(null);
 
     useEffect(() => {
         let alive = true;
@@ -1197,9 +1198,39 @@ function AcceleratorsTab() {
         };
     }, [t]);
 
+    const applyGPU = async (w, dryRun) => {
+        const key = `${w.namespace}/${w.name}:${dryRun ? "dry" : "apply"}`;
+        setApplyBusy(key);
+        try {
+            const { data } = await api.post("/accelerators/rightsizing/apply", {
+                namespace: w.namespace,
+                kind: w.kind || "Deployment",
+                name: w.name,
+                container: w.container || undefined,
+                dryRun: !!dryRun,
+            });
+            toast.success(
+                dryRun
+                    ? t("toasts:ops.accelerators.dryRun", { from: data.from, to: data.to, defaultValue: `Dry-run: ${data.from} → ${data.to}` })
+                    : t("toasts:ops.accelerators.applied", { from: data.from, to: data.to, defaultValue: `GPU request ${data.from} → ${data.to}` }),
+            );
+            if (!dryRun) {
+                const r = await api.get("/accelerators");
+                setRep(r.data);
+            }
+        } catch (e) {
+            toast.error(t("toasts:ops.accelerators.applyFailed", { defaultValue: "GPU rightsizing failed" }), {
+                description: e?.response?.data?.error || e.message,
+            });
+        } finally {
+            setApplyBusy(null);
+        }
+    };
+
     if (!rep) return <Skeleton className="h-48 rounded-2xl" />;
 
     const op = rep.operator || {};
+    const waste = rep.waste || [];
     return (
         <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-4">
@@ -1303,6 +1334,65 @@ function AcceleratorsTab() {
                     </tbody>
                 </table>
             </div>
+
+            {waste.length > 0 && (
+                <div className="card p-0">
+                    <div className="panel-h">{t("pages:ops.accelerators.waste")}</div>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("pages:ops.accelerators.request")}</th>
+                                <th>{t("pages:ops.accelerators.recommend")}</th>
+                                <th>{t("common:fields.status")}</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {waste.map((w) => {
+                                const dryKey = `${w.namespace}/${w.name}:dry`;
+                                const applyKey = `${w.namespace}/${w.name}:apply`;
+                                const canApply = w.verdict === "over-requested" && w.gpuRecommend && w.gpuRecommend !== w.gpuRequest;
+                                return (
+                                    <tr key={`${w.namespace}/${w.name}`}>
+                                        <td className="mono text-[12px]">{w.namespace}</td>
+                                        <td className="name mono">{w.name}{w.container ? <small>{w.container}</small> : null}</td>
+                                        <td className="mono">{w.gpuRequest}</td>
+                                        <td className="mono">{w.gpuRecommend}</td>
+                                        <td>
+                                            <StatusBadge status={w.verdict} />
+                                            {w.note && <div className="text-[11.5px] text-ink-3">{w.note}</div>}
+                                        </td>
+                                        <td className="text-right whitespace-nowrap">
+                                            {canApply && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-line btn-sm"
+                                                        disabled={!!applyBusy}
+                                                        onClick={() => applyGPU(w, true)}
+                                                    >
+                                                        {applyBusy === dryKey ? "…" : t("pages:ops.accelerators.dryRun")}
+                                                    </button>{" "}
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm"
+                                                        disabled={!!applyBusy}
+                                                        onClick={() => applyGPU(w, false)}
+                                                    >
+                                                        {applyBusy === applyKey ? "…" : t("pages:ops.accelerators.apply")}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {(rep.quotas || []).length > 0 && (
                 <div className="card p-0">

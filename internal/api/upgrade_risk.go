@@ -42,6 +42,7 @@ func (s *Server) upgradeRiskAgentRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	planned, _ := platform.PlanAgentRun(r.Context(), s.provider, s.aiSettings(), s.mode == "demo", run, req.ExtraContext)
+	planned = platform.EnrichUpgradeRiskPlan(planned, rep)
 	if updated, uerr := s.provider.UpdateAgentRun(r.Context(), planned); uerr == nil {
 		run = updated
 	} else {

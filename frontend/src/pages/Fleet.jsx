@@ -108,6 +108,11 @@ function HistoryBlock({ h }) {
                         <li key={`${inc.from}-${i}`} data-testid={H.incident(h.cluster, i)} className={inc.state === "unreachable" ? "text-tone-red" : "text-tone-amber"}>
                             {t(inc.state === "unreachable" ? "pages:fleet.history.unreachableFor" : "pages:fleet.history.degradedFor", { duration: fmtDuration(inc.durationSeconds) })}
                             <span className="text-ink-3"> · {relTime(inc.from)}{inc.reason ? ` · ${inc.reason}` : ""}</span>
+                            <div className="text-[11px] text-ink-3">
+                                {t("pages:fleet.history.narrative", {
+                                    defaultValue: "Outage narrative: check Timeline for who poked it and Ops → Agents for ProposeOnly runs in this window.",
+                                })}
+                            </div>
                         </li>
                     ))}
                 </ul>

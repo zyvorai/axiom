@@ -117,6 +117,11 @@
       "createBindingFailed": "Erstellen des RoleBindings fehlgeschlagen",
       "deleted": "{{name}} gelöscht",
       "deleteFailed": "Löschen fehlgeschlagen"
+    },
+    "accelerators": {
+      "dryRun": "Dry-run: {{from}} → {{to}}",
+      "applied": "GPU request {{from}} → {{to}}",
+      "applyFailed": "GPU rightsizing failed"
     }
   },
   "applyManifest": {

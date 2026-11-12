@@ -394,7 +394,8 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects (`controller`, `provider` e.g. `envoy`, `addresses`). Returns `[]` (not an error) when the Gateway API CRDs aren't installed. Prefer Envoy Gateway (`provider=envoy`) over Ingress NGINX. |
-| GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts and DCGM util snapshot when Prometheus is configured |
+| GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts, DCGM util snapshot, and `waste[]` GPU over-request hints when Prometheus is configured |
+| POST | `/api/v1/accelerators/rightsizing/apply` | Lower `nvidia.com/gpu` requests on a Deployment/StatefulSet (`{namespace,kind,name,container?,dryRun}`). Operator/admin; audited as `accelerators.gpu_rightsizing` |
 | POST | `/api/v1/integrations/probe/matrix` | Data-plane reachability matrix: `{urls[], pods:[{namespace,name,container?}]}` → cells with ok/latency from each pod (or Axiom when pods empty). Cap 8 URLs × 12 pods |
 
 ## Admission webhooks
@@ -684,6 +685,7 @@ Axiom ships a built-in ProposeOnly planner (BYO LLM or deterministic). Runs pers
 | POST | `/api/v1/agent-runs/{namespace}/{name}/approve` | Approve (and execute if Axiom-owned) |
 | POST | `/api/v1/agent-runs/{namespace}/{name}/deny` | Deny run |
 | GET | `/api/v1/platform-intents?namespace=...` | Platform intent CRs |
+| GET | `/api/v1/platform-intents/drift` | Compare place-intent annotations vs Platform Intent CRs vs ready/desired (drift kinds: `annotation-only`, `missing-annotation`, `replicas`) |
 | GET | `/api/v1/mcp` | MCP server info |
 | GET | `/api/v1/mcp/tools` | MCP tool list |
 | POST | `/api/v1/mcp` | MCP JSON-RPC 2.0 (`initialize`, `tools/list`, `tools/call`) |

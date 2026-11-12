@@ -76,6 +76,11 @@ func (s *Server) denyAgentRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, v)
 }
 
+func (s *Server) listPlatformIntentDrift(w http.ResponseWriter, r *http.Request) {
+	v, err := platform.ListIntentDrift(r.Context(), s.provider, r.URL.Query().Get("namespace"))
+	respond(w, v, err)
+}
+
 func (s *Server) listPlatformIntents(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.ListPlatformIntents(r.Context(), r.URL.Query().Get("namespace"))
 	respond(w, v, err)

@@ -30,7 +30,10 @@ var (
 	}
 	demoPlatformIntents = []PlatformIntent{
 		{Namespace: "default", Name: "need-win-builder", WorkloadKind: "VirtualMachine",
-			Replicas: 1, CPU: "4", Memory: "16Gi", Phase: "Pending", Age: "1h"},
+			Replicas: 1, CPU: "4", Memory: "16Gi", Phase: "Pending", Age: "1h",
+			Message: "No place annotation on a matching workload — intent drift"},
+		{Namespace: "payments", Name: "payments-api", WorkloadKind: "Deployment",
+			Replicas: 12, CPU: "500m", Memory: "1Gi", Phase: "Applied", AppliedTo: "payments/payments-api", Age: "3d"},
 	}
 )
 

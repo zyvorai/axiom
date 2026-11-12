@@ -87,6 +87,10 @@ func (d *DemoProvider) ClusterHealth(ctx context.Context, ns string) (HealthRepo
 	}
 
 	findings = append(findings, analyzeWeirdFindings(ctx, d, ns)...)
+	findings = append(findings, analyzeHygieneFindings(ctx, d, ns)...)
+	if all {
+		findings = append(findings, analyzeCertExpiryDemo()...)
+	}
 	// Demo finalizer ghost: pretend a stuck Terminating namespace object via a sealed leftover name.
 	if all || ns == "observability" || ns == "" {
 		findings = append(findings, newFinding(AnalyzerFinalizerGhost, SeverityWarning, "Pod", "observability", "otel-collector-ghost",

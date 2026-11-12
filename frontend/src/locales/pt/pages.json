@@ -248,7 +248,11 @@
     "columns": {
       "resources": "Recursos"
     },
-    "empty": "Nenhuma intenção da plataforma ainda."
+    "empty": "Nenhuma intenção da plataforma ainda.",
+    "driftTitle": "Intent drift",
+    "drift": "Drift",
+    "placeIntent": "Place intent",
+    "platformIntent": "Platform Intent CR"
   },
   "savedViews": {
     "title": "Visualizações salvas",
@@ -704,7 +708,8 @@
       "label": "Histórico",
       "last1h": "Última hora",
       "last6h": "Últimas 6 horas",
-      "last24h": "Últimas 24 horas"
+      "last24h": "Últimas 24 horas",
+      "narrative": "Outage narrative: check Timeline for who poked it and Ops → Agents for ProposeOnly runs in this window."
     },
     "historyDurable": " · o histórico é mantido entre reinicializações",
     "historyMemory": " · o histórico é mantido apenas em memória"
@@ -901,7 +906,12 @@
       "used": "Used",
       "noNodes": "No GPU nodes detected.",
       "noPods": "No pods requesting GPUs.",
-      "loadFailed": "Could not load accelerators."
+      "loadFailed": "Could not load accelerators.",
+      "waste": "GPU rightsizing",
+      "request": "Requested",
+      "recommend": "Recommend",
+      "dryRun": "Dry-run",
+      "apply": "Apply"
     }
   },
   "rbac": {

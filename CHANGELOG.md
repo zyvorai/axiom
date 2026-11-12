@@ -13,6 +13,11 @@ All notable changes to Zyvor Axiom are documented here.
 - Fleet search `sealed:` finds network-isolated twins; twin-diff panel when the same object exists on ≥2 clusters; agent action `seal_workload`; MCP tools `list_accelerators`, `still_preview`, `fleet_search`, `network_guard`.
 - Timeline labels operator presence (`pod.terminal` / `pod.window` / exec) as “who poked it”.
 - Workload detail Network Guard (flows + Seal/Unseal); Settings reachability matrix (`POST /integrations/probe/matrix`).
+- GPU rightsizing: `waste[]` on accelerators report + `POST /api/v1/accelerators/rightsizing/apply` (nvidia.com/gpu); Ops → Accelerators apply/dry-run.
+- Health hygiene: cert expiry, secret age, node clock-skew findings.
+- Upgrade-risk agent runs enriched with allowlisted prep actions (`EnrichUpgradeRiskPlan`).
+- Intent drift: `GET /api/v1/platform-intents/drift` + Platform Intents UI panel.
+- Fleet incident history stitches an outage narrative tip (Timeline / Agents).
 
 ### Added — Envoy Gateway (Gateway API)
 - Helm `expose.type=Gateway` creates Gateway + HTTPRoute for Envoy Gateway (`gatewayClassName` default `eg`).

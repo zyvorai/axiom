@@ -31,6 +31,7 @@ func (k *KubernetesProvider) ClusterHealth(ctx context.Context, ns string) (Heal
 		{AnalyzerIngress, k.analyzeIngresses},
 		{AnalyzerHPA, k.analyzeHPAs},
 		{AnalyzerFinalizerGhost, k.analyzeFinalizerGhosts},
+		{AnalyzerCertExpiry, k.analyzeCertExpiry},
 	}
 	if all {
 		// Nodes are cluster-scoped; a namespaced check does not report them.
@@ -49,6 +50,7 @@ func (k *KubernetesProvider) ClusterHealth(ctx context.Context, ns string) (Heal
 		findings = append(findings, fs...)
 	}
 	findings = append(findings, analyzeWeirdFindings(ctx, k, ns)...)
+	findings = append(findings, analyzeHygieneFindings(ctx, k, ns)...)
 	if len(errs) == len(analyzers) {
 		return HealthReport{}, fmt.Errorf("health check failed: %s", strings.Join(errs, "; "))
 	}

@@ -118,10 +118,12 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
-| Accelerators | NVIDIA GPU inventory, Operator/DCGM health, quotas, scheduling issues, Ops Accelerators + GPU cost | Portainer GPU, OpenShift DCGM overview |
+| Accelerators | NVIDIA GPU inventory, Operator/DCGM health, quotas, scheduling issues, waste hints + GPU rightsizing apply, Ops Accelerators + GPU cost | Portainer GPU, OpenShift DCGM overview |
 | Still theatre | Blast preview with live terminals/windows; hush/seal/sleep/end; PacketWolf seal receipt | — (Axiom-native) |
-| Weird findings | Finalizer ghosts, image-tag float, HPA thrash, Ingress empty backends | Radar/k8sgpt-class, rare in consoles |
+| Weird findings | Finalizer ghosts, image-tag float, HPA thrash, Ingress empty backends, cert expiry / secret age / clock skew | Radar/k8sgpt-class, rare in consoles |
 | Sealed search | Fleet `sealed:` cross-cluster isolated twins | — |
+| Intent drift | Place-intent vs Platform Intent CR vs ready/desired | — |
+| Upgrade prep | Upgrade-risk findings → allowlisted ProposeOnly actions | Lightspeed update-risk (lite+) |
 
 ## Shipped in 0.14.0
 

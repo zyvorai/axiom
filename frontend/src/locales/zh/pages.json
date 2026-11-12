@@ -245,7 +245,11 @@
     "columns": {
       "resources": "资源"
     },
-    "empty": "暂无平台意图。"
+    "empty": "暂无平台意图。",
+    "driftTitle": "Intent drift",
+    "drift": "Drift",
+    "placeIntent": "Place intent",
+    "platformIntent": "Platform Intent CR"
   },
   "savedViews": {
     "title": "已保存视图",
@@ -696,7 +700,8 @@
       "label": "历史",
       "last1h": "最近 1 小时",
       "last6h": "最近 6 小时",
-      "last24h": "最近 24 小时"
+      "last24h": "最近 24 小时",
+      "narrative": "Outage narrative: check Timeline for who poked it and Ops → Agents for ProposeOnly runs in this window."
     },
     "historyDurable": " · 历史记录在重启后保留",
     "historyMemory": " · 历史记录仅保存在内存中"
@@ -893,7 +898,12 @@
       "used": "Used",
       "noNodes": "No GPU nodes detected.",
       "noPods": "No pods requesting GPUs.",
-      "loadFailed": "Could not load accelerators."
+      "loadFailed": "Could not load accelerators.",
+      "waste": "GPU rightsizing",
+      "request": "Requested",
+      "recommend": "Recommend",
+      "dryRun": "Dry-run",
+      "apply": "Apply"
     }
   },
   "rbac": {

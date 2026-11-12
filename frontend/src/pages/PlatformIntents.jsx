@@ -9,10 +9,14 @@ import { useTranslation } from "react-i18next";
 export default function PlatformIntents() {
     const { t } = useTranslation();
     const [items, setItems] = useState(null);
+    const [drift, setDrift] = useState(null);
 
     useEffect(() => {
         let alive = true;
-        const load = () => api.get("/platform-intents").then((r) => alive && setItems(r.data));
+        const load = () => {
+            api.get("/platform-intents").then((r) => alive && setItems(r.data));
+            api.get("/platform-intents/drift").then((r) => alive && setDrift(r.data)).catch(() => {});
+        };
         load();
         const timer = setInterval(load, 10000);
         return () => {
@@ -30,12 +34,42 @@ export default function PlatformIntents() {
         );
     }
 
+    const driftRows = (drift?.rows || []).filter((r) => r.drift && r.drift !== "none");
+
     return (
-        <div className="page">
+        <div className="page space-y-4">
             <PageHeader
                 title={t("pages:platformIntents.title")}
                 description={t("pages:platformIntents.description")}
             />
+
+            {driftRows.length > 0 && (
+                <GlassCard className="overflow-hidden p-0">
+                    <div className="panel-h">{t("pages:platformIntents.driftTitle")}</div>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("pages:platformIntents.drift")}</th>
+                                <th>{t("pages:platformIntents.placeIntent")}</th>
+                                <th>{t("pages:platformIntents.platformIntent")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {driftRows.map((r) => (
+                                <tr key={`${r.namespace}/${r.name}`}>
+                                    <td className="name mono">{r.name}</td>
+                                    <td className="mono">{r.namespace}</td>
+                                    <td><StatusBadge status={r.drift} /></td>
+                                    <td className="mono text-[11.5px]">{r.placeIntent || "—"}</td>
+                                    <td className="mono text-[11.5px]">{r.platformIntent || "—"}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </GlassCard>
+            )}
 
             <GlassCard className="overflow-hidden p-0">
                 <div className="max-h-[65vh] overflow-y-auto scrollbar-thin overflow-x-auto" tabIndex={0} role="region" aria-label={t("pages:platformIntents.tableAria")}>
