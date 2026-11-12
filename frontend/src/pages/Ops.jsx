@@ -329,12 +329,12 @@ function GitOpsTab() {
             });
             toast.success(
                 a.suspended
-                    ? t("toasts:ops.gitops.resumed", { name: a.name, defaultValue: `Resumed ${a.name}` })
-                    : t("toasts:ops.gitops.suspended", { name: a.name, defaultValue: `Suspended ${a.name}` }),
+                    ? t("toasts:ops.gitops.resumed", { name: a.name })
+                    : t("toasts:ops.gitops.suspended", { name: a.name }),
             );
             setRefresh((n) => n + 1);
         } catch (e) {
-            toast.error(t("toasts:ops.gitops.suspendFailed", { defaultValue: "Suspend failed" }), {
+            toast.error(t("toasts:ops.gitops.suspendFailed"), {
                 description: e?.response?.data?.error || e.message,
             });
         } finally {

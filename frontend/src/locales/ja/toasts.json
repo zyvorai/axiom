@@ -101,7 +101,10 @@
     },
     "gitops": {
       "syncRequested": "{{name}}: 同期をリクエストしました",
-      "syncFailed": "同期に失敗しました"
+      "syncFailed": "同期に失敗しました",
+      "resumed": "{{name}} を再開しました",
+      "suspended": "{{name}} を一時停止しました",
+      "suspendFailed": "一時停止に失敗しました"
     },
     "agents": {
       "approved": "{{name}}: 承認しました",

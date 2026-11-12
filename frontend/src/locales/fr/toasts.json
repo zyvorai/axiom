@@ -101,7 +101,10 @@
     },
     "gitops": {
       "syncRequested": "{{name}} : synchronisation demandée",
-      "syncFailed": "Échec de la synchronisation"
+      "syncFailed": "Échec de la synchronisation",
+      "resumed": "{{name}} repris",
+      "suspended": "{{name}} suspendu",
+      "suspendFailed": "Échec de la suspension"
     },
     "agents": {
       "approved": "{{name}} : approuvé",

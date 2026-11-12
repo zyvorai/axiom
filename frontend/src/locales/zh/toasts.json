@@ -101,7 +101,10 @@
     },
     "gitops": {
       "syncRequested": "{{name}}：已请求同步",
-      "syncFailed": "同步失败"
+      "syncFailed": "同步失败",
+      "resumed": "已恢复 {{name}}",
+      "suspended": "已暂停 {{name}}",
+      "suspendFailed": "暂停失败"
     },
     "agents": {
       "approved": "{{name}}：已批准",
