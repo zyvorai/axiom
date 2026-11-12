@@ -4,6 +4,10 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Docs — GitHub Pages refresh
+- ROADMAP / GAPS / VERIFICATION / QUICKSTART / API updated for the residual pack, Velero CRD harness, billing live harness, and Helm RBAC.
+- Marketing site hero pill: New in 0.14 (agents, MCP, GPUs, fleet twins, Seal & Still).
+
 ### Added — Velero CRD / billing live / Helm RBAC
 - Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI (`testdata/velero/`); optional `storageLocation` on backups; `e2e/scripts/validate-velero.sh` + enterprise-writes path when CRDs exist.
 - Cloud invoice AWS: `NextPageToken` pagination, STS session token (`billingAwsSessionToken`), live harness `e2e/scripts/validate-billing-live.sh` / `TestAWSBillingLive`.

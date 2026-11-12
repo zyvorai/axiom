@@ -23,7 +23,7 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
-| Billing | Ops → Cost compares the actual AWS / Azure / GCP invoice for this and last month with the allocated cost (OpenCost or the estimate); admin-configured with write-only credentials, fixed provider hosts only. Experimental: tested against recorded fixtures only, not real accounts | Kubecost cloud-bill reconciliation, Vantage |
+| Billing | Ops → Cost compares the actual AWS / Azure / GCP invoice for this and last month with the allocated cost (OpenCost or the estimate); admin-configured with write-only credentials, fixed provider hosts only. Experimental: fixtures + STS session token / NextPageToken; live harness `e2e/scripts/validate-billing-live.sh` | Kubecost cloud-bill reconciliation, Vantage |
 
 ## Shipped in 0.12.1
 
@@ -163,6 +163,13 @@ are theirs, not ours.
 | VAP browser | `GET /admission-policies` | Lens Admission Policies |
 | Stream tickets HA | Shared ConfigMap for WebSocket/SSE tickets | Affinity-free streams |
 | Seal / blast / users / clusters / Atlas | Kind-scoped Seal NPs, exact blast match, fail-closed roles, SAML auth label, DELETE 404, Atlas token clear | — |
+| Terminal idle | Pod exec + node shell idle out at 10 m (ping/pong), matching pod-proxy | — |
+| Default-creds harden | Non-demo refuses `demo`/`demo` unless `AXIOM_ALLOW_DEFAULT_CREDS` | — |
+| Login throttle HA | Shared ConfigMap `zyvor-axiom-login-throttle` | — |
+| CSI clone ProposeOnly | `sourcePVC` on volumes + agent action `clone_pvc` | — |
+| Policy coverage | `GET /security/policy-coverage` (PolicyReport rollup) | Kyverno / Gatekeeper reports |
+| Velero CRD fidelity | Create Backup/Schedule validated against upstream v1.15.2 OpenAPI; live script when CRDs exist | — |
+| Helm install RBAC | ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions | Ordinary chart installs under Axiom's SA |
 
 ## Next
 

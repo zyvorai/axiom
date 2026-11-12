@@ -20,15 +20,25 @@ Run on the dev k3s cluster (v1.35, Axiom 0.13.1, 2026-11-04); the test operators
 
 - **GitOps with real Argo CD v2.13.3 and Flux v2.4.0 (section 7):** Argo CD create (preview then apply; synced and healthy), edit (one-change preview, stale write -> 409, live `targetRevision` updated), sync, repository credentials (write-only, labelled Secret), delete. Flux Kustomization create (GitRepository + Kustomization Ready, workload deployed), stale edit -> 409, sync, credentials (write-only), cascading delete refused without `confirm=<name>` and then removing the workload. Not yet checked: Flux HelmRelease create/edit, a non-no-op Flux edit, SSH-key credentials, private Git repositories, and the UI dialogs in a browser.
 
-Finding: a Helm install through Axiom fails when the chart creates a ServiceAccount (or other kinds the ClusterRole does not allow), because the install Job runs as Axiom's own ServiceAccount. Widen the ClusterRole for the kinds your charts create, or install such charts with Helm directly.
+Finding (historical): Helm installs used to fail when the chart created a ServiceAccount. The ClusterRole now grants ServiceAccounts, PDBs, Leases, EndpointSlices and ControllerRevisions — re-verify with podinfo (or similar) after applying the updated RBAC. Charts that mint CRDs or ClusterRoles still need a wider Role or an out-of-band install.
 
-## 1. Cloud invoice reconciliation (experimental, 0.13.0)
+## 0. Live harnesses (shipped with the docs)
 
-Tested only against `httptest` fixtures. Use a **read-only** billing identity.
+- [ ] `e2e/scripts/validate-velero.sh` against a cluster with `backups.velero.io` installed.
+  Expected: create Backup + Schedule via the API, `kubectl get` succeeds, cleanup deletes them.
+- [ ] `e2e/scripts/validate-billing-live.sh` with Settings configured, **or**
+  `AXIOM_BILLING_LIVE=1 AWS_ACCESS_KEY_ID=… AWS_SECRET_ACCESS_KEY=…` (optional `AWS_SESSION_TOKEN`).
+  Expected: Cost Explorer returns at least one month; errors never echo the secret.
+- [ ] Helm install of an ordinary chart (e.g. podinfo) through the console after the
+  extended ClusterRole is applied. Expected: release appears; Job Succeeded.
+
+## 1. Cloud invoice reconciliation (experimental, 0.13.0+)
+
+Covered by `httptest` fixtures (incl. NextPageToken + STS). Use a **read-only** billing identity; prefer the live harness above.
 
 For each provider you use (Settings → Integrations → Billing):
 
-- [ ] **AWS**: IAM user with `ce:GetCostAndUsage` only. Region `us-east-1`. Press *Test*.
+- [ ] **AWS**: IAM user (or STS) with `ce:GetCostAndUsage` only. Region `us-east-1`. Optional session token field. Press *Test*.
   Expected: success with a currency and a non-error latency. A wrong secret gives an error
   that does **not** contain the key.
 - [ ] **Azure**: app registration with *Cost Management Reader* on the subscription.

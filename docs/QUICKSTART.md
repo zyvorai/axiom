@@ -16,13 +16,15 @@ no Go toolchain, no Node, no building from source.
 ```bash
 helm install axiom deploy/helm/axiom \
   --set auth.username=admin \
-  --set auth.password='replace-with-a-strong-password'
+  --set auth.password='replace-with-a-strong-password' \
+  --set auth.allowDefaultCreds=false
 ```
 
 This creates namespace `axiom-system` (configurable via `--set namespace=...`;
 pass `--set createNamespace=false` if it already exists),
 Axiom's ServiceAccount and RBAC, a self-signed TLS certificate, and exposes
-the UI on NodePort `30590` by default.
+the UI on NodePort `30590` by default. Outside demo mode Axiom refuses to start
+on username/password `demo`/`demo` unless `auth.allowDefaultCreds=true` (lab only).
 
 Watch it come up:
 

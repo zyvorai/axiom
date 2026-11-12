@@ -93,11 +93,15 @@ Other known gaps found by the functional test pass (see `e2e/README.md`) — **c
 - `/api/v1/session` reports `Operator` and `auth: "saml"` for SAML sessions
 - `DELETE /api/v1/clusters/{unknown}` returns 404
 
+Closed in the residual / Velero-billing-Helm pack (see CHANGELOG Unreleased):
+
+- Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI; live: `e2e/scripts/validate-velero.sh`
+- Cloud invoice AWS pagination + STS session tokens; live: `e2e/scripts/validate-billing-live.sh` / `AXIOM_BILLING_LIVE=1` (still experimental until you run it against your account)
+- Helm ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions for ordinary chart installs
+
 Still thinner than a full private-cloud suite (**deliberate** — see ROADMAP Not planned):
 
 - ClusterRole write UI
 - SOC2 / pen-test packaging as a SKU
 - Run:ai / KAI fairshare editors and model-catalog MLOps
-- On-demand Velero backup/schedule objects are validated against upstream Velero v1.15.2 CRD OpenAPI in unit tests (`testdata/velero/`); live create/list: `e2e/scripts/validate-velero.sh` (and `validate-enterprise-writes.sh` when the CRD is installed)
-- Cloud invoice: AWS Cost Explorer now paginates `NextPageToken` and accepts STS session tokens; live check via `e2e/scripts/validate-billing-live.sh` / `AXIOM_BILLING_LIVE=1`. Still experimental until you run that against your account
-- **Helm installs run with Axiom's ClusterRole.** The role now includes ServiceAccounts, PDBs, Leases, EndpointSlices, and ControllerRevisions (common chart kinds). Charts that create CRDs or ClusterRoles still need you to extend RBAC or install outside Axiom
+- Charts that mint CRDs or ClusterRoles still need wider RBAC or an out-of-band `helm` install
