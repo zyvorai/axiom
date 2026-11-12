@@ -116,39 +116,6 @@ function OutageNarrativeTip({ cluster, from, state }) {
     );
 }
 
-function OutageNarrativeTip({ cluster, from, state }) {
-    const { t } = useTranslation();
-    const [n, setN] = useState(null);
-    useEffect(() => {
-        let alive = true;
-        api
-            .get("/fleet/outage-narrative", { params: { cluster, from, state } })
-            .then((r) => alive && setN(r.data))
-            .catch(() => {});
-        return () => {
-            alive = false;
-        };
-    }, [cluster, from, state]);
-    if (!n?.summary) {
-        return (
-            <div className="text-[11px] text-ink-3">
-                {t("pages:fleet.history.narrative")}
-            </div>
-        );
-    }
-    return (
-        <div className="mt-0.5 space-y-0.5 text-[11px] text-ink-3" data-testid={`fleet-outage-narrative-${cluster}`}>
-            <div>{n.summary}</div>
-            {(n.whoPoked || []).slice(0, 3).map((w) => (
-                <div key={w} className="mono">who: {w}</div>
-            ))}
-            {(n.agentRuns || []).slice(0, 2).map((a) => (
-                <div key={a} className="mono">agent: {a}</div>
-            ))}
-        </div>
-    );
-}
-
 function HistoryBlock({ h }) {
     const { t } = useTranslation();
     if (!h) return null;
