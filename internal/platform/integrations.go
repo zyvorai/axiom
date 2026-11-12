@@ -53,6 +53,8 @@ type Integrations struct {
 	BillingAWSRegion           string `json:"billingAwsRegion"`
 	BillingAWSAccessKeyID      string `json:"billingAwsAccessKeyId,omitempty"`
 	BillingAWSSecretAccessKey  string `json:"billingAwsSecretAccessKey,omitempty"`
+	// BillingAWSSessionToken is an optional STS session token for temporary keys.
+	BillingAWSSessionToken string `json:"billingAwsSessionToken,omitempty"`
 	BillingAzureTenantID       string `json:"billingAzureTenantId"`
 	BillingAzureClientID       string `json:"billingAzureClientId"`
 	BillingAzureSubscriptionID string `json:"billingAzureSubscriptionId"`
@@ -107,6 +109,7 @@ type IntegrationsView struct {
 	BillingAWSRegion               string `json:"billingAwsRegion"`
 	BillingAWSAccessKeyIDSet       bool   `json:"billingAwsAccessKeyIdSet"`
 	BillingAWSSecretAccessKeySet   bool   `json:"billingAwsSecretAccessKeySet"`
+	BillingAWSSessionTokenSet      bool   `json:"billingAwsSessionTokenSet"`
 	BillingAzureTenantID           string `json:"billingAzureTenantId"`
 	BillingAzureClientID           string `json:"billingAzureClientId"`
 	BillingAzureSubscriptionID     string `json:"billingAzureSubscriptionId"`
@@ -235,6 +238,8 @@ type IntegrationsPatch struct {
 	BillingAWSAccessKeyIDClear       bool    `json:"billingAwsAccessKeyIdClear"`
 	BillingAWSSecretAccessKey        *string `json:"billingAwsSecretAccessKey"`
 	BillingAWSSecretAccessKeyClear   bool    `json:"billingAwsSecretAccessKeyClear"`
+	BillingAWSSessionToken           *string `json:"billingAwsSessionToken"`
+	BillingAWSSessionTokenClear      bool    `json:"billingAwsSessionTokenClear"`
 	BillingAzureTenantID             *string `json:"billingAzureTenantId"`
 	BillingAzureClientID             *string `json:"billingAzureClientId"`
 	BillingAzureSubscriptionID       *string `json:"billingAzureSubscriptionId"`

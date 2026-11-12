@@ -33,7 +33,8 @@
     "webhookTestFailed": "Webhook test failed",
     "clusterRegistered": "Cluster {{name}} registered",
     "registerFailed": "Register failed",
-    "notifyCleared": "Notification webhook cleared"
+    "notifyCleared": "Notification webhook cleared",
+    "atlasCleared": "Atlas token cleared"
   },
   "aiSettings": {
     "saved": "AI assistant settings saved",

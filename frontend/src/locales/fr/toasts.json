@@ -33,7 +33,8 @@
     "webhookTestFailed": "Échec du test du webhook",
     "clusterRegistered": "Cluster {{name}} enregistré",
     "registerFailed": "Échec de l'enregistrement du cluster",
-    "notifyCleared": "Webhook de notification effacé"
+    "notifyCleared": "Webhook de notification effacé",
+    "atlasCleared": "Atlas token cleared"
   },
   "aiSettings": {
     "saved": "Paramètres de l'assistant IA enregistrés",

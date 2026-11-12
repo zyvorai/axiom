@@ -33,7 +33,8 @@
     "webhookTestFailed": "Webhook-Test fehlgeschlagen",
     "clusterRegistered": "Cluster {{name}} registriert",
     "registerFailed": "Registrierung fehlgeschlagen",
-    "notifyCleared": "Benachrichtigungs-Webhook gelöscht"
+    "notifyCleared": "Benachrichtigungs-Webhook gelöscht",
+    "atlasCleared": "Atlas token cleared"
   },
   "aiSettings": {
     "saved": "Einstellungen des KI-Assistenten gespeichert",

@@ -339,6 +339,9 @@ func (k *KubernetesProvider) CreateVeleroBackup(ctx context.Context, req CreateV
 	if req.TTL != "" {
 		spec["ttl"] = req.TTL
 	}
+	if loc := strings.TrimSpace(req.StorageLocation); loc != "" {
+		spec["storageLocation"] = loc
+	}
 	obj := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "velero.io/v1",
 		"kind":       "Backup",

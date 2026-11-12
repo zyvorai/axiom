@@ -46,7 +46,8 @@
       "url": "Atlas URL",
       "consoleUrl": "コンソール URL",
       "token": "API token",
-      "tokenSet": "API token (set — leave blank to keep)"
+      "tokenSet": "API token (set — leave blank to keep)",
+      "clearToken": "Clear token"
     },
     "postgres": {
       "host": "ホスト",
@@ -903,7 +904,8 @@
       "request": "Requested",
       "recommend": "Recommend",
       "dryRun": "Dry-run",
-      "apply": "Apply"
+      "apply": "Apply",
+      "dra": "DRA resources"
     }
   },
   "rbac": {
@@ -1655,7 +1657,8 @@
       "gcpProjectId": "クエリ用プロジェクト（任意）",
       "gcpServiceAccountKey": "サービスアカウントキー（JSON）",
       "secretSet": "設定済み — 空欄のままで保持",
-      "permissions": "読み取り専用の認証情報を使用してください: AWS は ce:GetCostAndUsage、Azure はサブスクリプションの Cost Management Reader、GCP はエクスポートデータセットの BigQuery Job User と Data Viewer。"
+      "permissions": "読み取り専用の認証情報を使用してください: AWS は ce:GetCostAndUsage、Azure はサブスクリプションの Cost Management Reader、GCP はエクスポートデータセットの BigQuery Job User と Data Viewer。",
+      "awsSessionToken": "Session token (optional)"
     }
   },
   "metrics": {

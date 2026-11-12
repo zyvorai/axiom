@@ -33,7 +33,8 @@
     "webhookTestFailed": "Webhook のテストに失敗しました",
     "clusterRegistered": "クラスター {{name}} を登録しました",
     "registerFailed": "登録に失敗しました",
-    "notifyCleared": "通知 Webhook を削除しました"
+    "notifyCleared": "通知 Webhook を削除しました",
+    "atlasCleared": "Atlas token cleared"
   },
   "aiSettings": {
     "saved": "AI アシスタント設定を保存しました",

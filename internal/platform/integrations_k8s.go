@@ -138,6 +138,7 @@ func (s *K8sIntegrationStore) Load(ctx context.Context) (Integrations, bool, err
 		// Cloud billing credentials: Secret only, never the ConfigMap.
 		out.BillingAWSAccessKeyID = string(sec.Data["billingAwsAccessKeyId"])
 		out.BillingAWSSecretAccessKey = string(sec.Data["billingAwsSecretAccessKey"])
+		out.BillingAWSSessionToken = string(sec.Data["billingAwsSessionToken"])
 		out.BillingAzureClientSecret = string(sec.Data["billingAzureClientSecret"])
 		out.BillingGCPServiceAccountKey = string(sec.Data["billingGcpServiceAccountKey"])
 	} else if !apierrors.IsNotFound(err) {
@@ -181,6 +182,7 @@ func (s *K8sIntegrationStore) Save(ctx context.Context, in Integrations) error {
 
 			"billingAwsAccessKeyId":       []byte(in.BillingAWSAccessKeyID),
 			"billingAwsSecretAccessKey":   []byte(in.BillingAWSSecretAccessKey),
+			"billingAwsSessionToken":      []byte(in.BillingAWSSessionToken),
 			"billingAzureClientSecret":    []byte(in.BillingAzureClientSecret),
 			"billingGcpServiceAccountKey": []byte(in.BillingGCPServiceAccountKey),
 		},

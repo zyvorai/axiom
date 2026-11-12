@@ -15,16 +15,18 @@ import (
 	"time"
 )
 
-// AWS Cost Explorer GetCostAndUsage (EXPERIMENTAL; only tested against
-// httptest fixtures). One POST to the partition's fixed endpoint, signed with
-// Signature Version 4 implemented here, asking for UnblendedCost per month,
-// optionally filtered by one cost-allocation tag.
+// AWS Cost Explorer GetCostAndUsage (EXPERIMENTAL). POSTs to the partition's
+// fixed endpoint, signed with Signature Version 4, asking for UnblendedCost
+// per month (paginated via NextPageToken), optionally filtered by one
+// cost-allocation tag. Supports STS session tokens via X-Amz-Security-Token.
+// Live accounts: e2e/scripts/validate-billing-live.sh.
 
 type awsBillingClient struct {
-	t                 billingTransport
-	host, region      string
-	accessKey, secret string
-	tagKey, tagValue  string
+	t                    billingTransport
+	host, region         string
+	accessKey, secret    string
+	sessionToken         string
+	tagKey, tagValue     string
 }
 
 func newAWSBillingClient(cfg Integrations, t *billingTransport) (*awsBillingClient, error) {
@@ -43,6 +45,7 @@ func newAWSBillingClient(cfg Integrations, t *billingTransport) (*awsBillingClie
 	return &awsBillingClient{
 		t: tr, host: host, region: cfg.BillingAWSRegion,
 		accessKey: cfg.BillingAWSAccessKeyID, secret: cfg.BillingAWSSecretAccessKey,
+		sessionToken: strings.TrimSpace(cfg.BillingAWSSessionToken),
 		tagKey: cfg.BillingTagKey, tagValue: cfg.BillingTagValue,
 	}, nil
 }
@@ -52,6 +55,7 @@ type awsCERequest struct {
 	Granularity string                      `json:"Granularity"`
 	Metrics     []string                    `json:"Metrics"`
 	Filter      *awsCEFilter                `json:"Filter,omitempty"`
+	NextPageToken string                    `json:"NextPageToken,omitempty"`
 }
 
 type awsCEFilter struct {
@@ -72,6 +76,7 @@ type awsCEResponse struct {
 			Unit   string `json:"Unit"`
 		} `json:"Total"`
 	} `json:"ResultsByTime"`
+	NextPageToken string `json:"NextPageToken,omitempty"`
 }
 
 func (c *awsBillingClient) fetch(ctx context.Context, periods []billingPeriod, now time.Time) ([]billingMonthTotal, error) {
@@ -83,45 +88,71 @@ func (c *awsBillingClient) fetch(ctx context.Context, periods []billingPeriod, n
 	if c.tagKey != "" {
 		body.Filter = &awsCEFilter{Tags: awsCETags{Key: c.tagKey, Values: []string{c.tagValue}, MatchOptions: []string{"EQUALS"}}}
 	}
-	raw, err := json.Marshal(body)
-	if err != nil {
-		return nil, billingErrorf("could not build the Cost Explorer request")
-	}
-	ctx, cancel := context.WithTimeout(ctx, billingRequestTimeout)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.t.baseURL(c.host)+"/", bytes.NewReader(raw))
-	if err != nil {
-		return nil, billingErrorf("could not build the Cost Explorer request")
-	}
-	req.Header.Set("Content-Type", "application/x-amz-json-1.1")
-	req.Header.Set("X-Amz-Target", "AWSInsightsIndexService.GetCostAndUsage")
-	req.Header.Set("Accept", "application/json")
-	// Sign for the fixed host even when a test reroutes the connection.
-	req.Host = c.host
-	sigV4Sign(req, raw, c.accessKey, c.secret, c.region, "ce", now)
-	resp, err := c.t.do(req, "AWS Cost Explorer")
-	if err != nil {
-		return nil, err
-	}
-	var out awsCEResponse
-	if err := readBillingJSON(resp, "AWS Cost Explorer", &out, awsErrorCode); err != nil {
-		return nil, err
-	}
-	var totals []billingMonthTotal
-	for _, r := range out.ResultsByTime {
-		if len(r.TimePeriod.Start) < 7 {
-			continue
-		}
-		m, ok := r.Total["UnblendedCost"]
-		if !ok {
-			continue
-		}
-		amt, err := strconv.ParseFloat(strings.TrimSpace(m.Amount), 64)
+	byMonth := map[string]billingMonthTotal{}
+	token := ""
+	for page := 0; page < 20; page++ {
+		body.NextPageToken = token
+		raw, err := json.Marshal(body)
 		if err != nil {
-			return nil, billingErrorf("AWS Cost Explorer returned an amount that is not a number")
+			return nil, billingErrorf("could not build the Cost Explorer request")
 		}
-		totals = append(totals, billingMonthTotal{Month: r.TimePeriod.Start[:7], Amount: amt, Currency: m.Unit})
+		pageCtx, cancel := context.WithTimeout(ctx, billingRequestTimeout)
+		req, err := http.NewRequestWithContext(pageCtx, http.MethodPost, c.t.baseURL(c.host)+"/", bytes.NewReader(raw))
+		if err != nil {
+			cancel()
+			return nil, billingErrorf("could not build the Cost Explorer request")
+		}
+		req.Header.Set("Content-Type", "application/x-amz-json-1.1")
+		req.Header.Set("X-Amz-Target", "AWSInsightsIndexService.GetCostAndUsage")
+		req.Header.Set("Accept", "application/json")
+		if c.sessionToken != "" {
+			req.Header.Set("X-Amz-Security-Token", c.sessionToken)
+		}
+		// Sign for the fixed host even when a test reroutes the connection.
+		req.Host = c.host
+		sigV4Sign(req, raw, c.accessKey, c.secret, c.region, "ce", now)
+		resp, err := c.t.do(req, "AWS Cost Explorer")
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		var out awsCEResponse
+		err = readBillingJSON(resp, "AWS Cost Explorer", &out, awsErrorCode)
+		cancel() // after body read — cancelling early aborts an in-flight LimitReader
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range out.ResultsByTime {
+			if len(r.TimePeriod.Start) < 7 {
+				continue
+			}
+			m, ok := r.Total["UnblendedCost"]
+			if !ok {
+				continue
+			}
+			amt, err := strconv.ParseFloat(strings.TrimSpace(m.Amount), 64)
+			if err != nil {
+				return nil, billingErrorf("AWS Cost Explorer returned an amount that is not a number")
+			}
+			month := r.TimePeriod.Start[:7]
+			cur := byMonth[month]
+			cur.Month = month
+			cur.Amount += amt
+			if cur.Currency == "" {
+				cur.Currency = m.Unit
+			}
+			byMonth[month] = cur
+		}
+		token = strings.TrimSpace(out.NextPageToken)
+		if token == "" {
+			break
+		}
 	}
+	totals := make([]billingMonthTotal, 0, len(byMonth))
+	for _, m := range byMonth {
+		totals = append(totals, m)
+	}
+	sort.Slice(totals, func(i, j int) bool { return totals[i].Month < totals[j].Month })
 	return totals, nil
 }
 

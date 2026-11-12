@@ -97,9 +97,21 @@ r=$(req POST "/api/v1/helm/releases/$NS/e2e-podinfo/uninstall"); check "helm uni
 sleep 10
 
 echo "== velero =="
-r=$(req GET "/api/v1/velero/backups?namespace=$NS")
-code=$(echo "$r" | tail -1)
-echo "INFO  velero backups list -> HTTP $code (Velero CRDs not installed on this cluster; endpoint correctness can't be validated here)"
+if sudo k3s kubectl get crd backups.velero.io >/dev/null 2>&1; then
+  VNS=$(sudo k3s kubectl get ns velero -o name 2>/dev/null | head -1 | sed 's#namespace/##' || true)
+  VNS=${VNS:-velero}
+  VNAME="axiom-e2e-velero-$(date +%s)"
+  r=$(req POST /api/v1/velero/backups "{\"namespace\":\"$VNS\",\"name\":\"$VNAME\",\"includedNamespaces\":[\"$NS\"],\"ttl\":\"24h0m0s\"}")
+  check "create velero backup" '^(200|201)$' "$r"
+  r=$(req GET "/api/v1/velero/backups?namespace=$VNS")
+  check "list velero backups" '^200$' "$r"
+  echo "$r" | sed '$d' | grep -q "$VNAME" && echo "PASS  velero backup visible" && PASS=$((PASS+1)) || { echo "FAIL  velero backup NOT visible"; FAIL=$((FAIL+1)); }
+  sudo k3s kubectl -n "$VNS" delete backup.velero.io "$VNAME" --wait=false >/dev/null 2>&1 || true
+else
+  r=$(req GET "/api/v1/velero/backups?namespace=$NS")
+  code=$(echo "$r" | tail -1)
+  echo "INFO  velero backups list -> HTTP $code (CRDs absent — run e2e/scripts/validate-velero.sh after installing Velero)"
+fi
 
 echo "== cleanup =="
 sudo k3s kubectl delete ns "$NS" --wait=false >/dev/null 2>&1

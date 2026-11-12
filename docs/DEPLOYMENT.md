@@ -68,7 +68,7 @@ kubectl apply -f deploy/k8s/deployment.yaml
 kubectl apply -f deploy/k8s/nodeport.yaml   # lab NodePort 30590
 ```
 
-`deploy/k8s/rbac.yaml` grants: core resources (Pods, Services, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, ...), `apps` Deployments/StatefulSets, `batch` Jobs/CronJobs, `networking.k8s.io` NetworkPolicies/Ingresses, plus the KubeVirt/Helm/Velero/GitOps/Haven CRD groups Axiom optionally reads. If you narrow this ClusterRole, keep `secrets` write access in Axiom's own namespace — both the Integrations hub and local Users store (`zyvor-axiom-users` Secret) depend on it.
+`deploy/k8s/rbac.yaml` grants: core resources (Pods, Services, ServiceAccounts, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, ...), `apps` Deployments/StatefulSets (+ read ReplicaSets/ControllerRevisions for Helm), `policy` PodDisruptionBudgets, `coordination.k8s.io` Leases, `discovery.k8s.io` EndpointSlices, `batch` Jobs/CronJobs, `networking.k8s.io` NetworkPolicies/Ingresses, plus the KubeVirt/Helm/Velero/GitOps/Haven CRD groups Axiom optionally reads. Those extras exist so console Helm installs of ordinary charts (ServiceAccount + Deployment + Service + PDB + Lease) succeed under Axiom's own ServiceAccount. Charts that mint CRDs or ClusterRoles still need a wider Role or an out-of-band `helm` install. If you narrow this ClusterRole, keep `secrets` write access in Axiom's own namespace — both the Integrations hub and local Users store (`zyvor-axiom-users` Secret) depend on it.
 
 For least privilege, replace the ClusterRole with namespace-scoped Roles where your operating model permits it.
 
@@ -319,13 +319,13 @@ Controls and guarantees:
 
 ## Cloud bill reconciliation (experimental)
 
-Ops → Cost can show the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate), with the difference as *unallocated*. It is **experimental**: The three clients have been tested **only against httptest fixtures** shaped after the providers' documented requests and responses (and the SigV4 signer against AWS's published example); they have **not been verified against real AWS, Azure or Google Cloud accounts**. Check its numbers against your invoice before relying on them.
+Ops → Cost can show the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate), with the difference as *unallocated*. It is **experimental**: clients are covered by httptest fixtures (including AWS `NextPageToken` merge and STS session tokens) plus an opt-in live harness — `e2e/scripts/validate-billing-live.sh` or `AXIOM_BILLING_LIVE=1` with `AWS_*` for Cost Explorer. Check its numbers against your invoice before relying on them.
 
 An admin configures it under Settings → Cloud bill reconciliation; there are no environment variables or Helm values, and nothing extra is needed in the ClusterRole (the settings use the existing `zyvor-axiom-integrations` ConfigMap and Secret). Use read-only credentials:
 
 | Provider | Settings | Grant |
 |---|---|---|
-| AWS Cost Explorer | Access key ID + secret access key, region `us-east-1` (or `cn-northwest-1` for China) | IAM `ce:GetCostAndUsage` on the payer or member account. Cost Explorer must be enabled; tag filters need the tag activated as a cost-allocation tag |
+| AWS Cost Explorer | Access key ID + secret access key, optional session token (STS), region `us-east-1` (or `cn-northwest-1` for China) | IAM `ce:GetCostAndUsage` on the payer or member account. Cost Explorer must be enabled; tag filters need the tag activated as a cost-allocation tag |
 | Azure Cost Management | Tenant ID, client (application) ID, client secret, subscription ID | *Cost Management Reader* on the subscription for the app registration |
 | Google Cloud Billing | Billing export table `project.dataset.table`, optional query project, service-account key JSON | Cloud Billing export to BigQuery enabled; *BigQuery Job User* on the query project and *BigQuery Data Viewer* on the export dataset |
 

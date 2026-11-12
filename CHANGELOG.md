@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Velero CRD / billing live / Helm RBAC
+- Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI (`testdata/velero/`); optional `storageLocation` on backups; `e2e/scripts/validate-velero.sh` + enterprise-writes path when CRDs exist.
+- Cloud invoice AWS: `NextPageToken` pagination, STS session token (`billingAwsSessionToken`), live harness `e2e/scripts/validate-billing-live.sh` / `TestAWSBillingLive`.
+- Helm ClusterRole: ServiceAccounts, PDBs (write), Leases, EndpointSlices, ControllerRevisions — so ordinary chart installs succeed under Axiom's SA.
+
 ### Added — residual GAPS pack
 - Pod exec + node shell idle timeout (10 m websocket ping/pong), same window as pod-proxy.
 - Non-demo mode refuses default `demo`/`demo` unless `AXIOM_ALLOW_DEFAULT_CREDS=true` (Helm `auth.allowDefaultCreds`).

@@ -46,7 +46,8 @@
       "url": "Atlas URL",
       "consoleUrl": "控制台 URL",
       "token": "API token",
-      "tokenSet": "API token (set — leave blank to keep)"
+      "tokenSet": "API token (set — leave blank to keep)",
+      "clearToken": "Clear token"
     },
     "postgres": {
       "host": "主机",
@@ -903,7 +904,8 @@
       "request": "Requested",
       "recommend": "Recommend",
       "dryRun": "Dry-run",
-      "apply": "Apply"
+      "apply": "Apply",
+      "dra": "DRA resources"
     }
   },
   "rbac": {
@@ -1655,7 +1657,8 @@
       "gcpProjectId": "查询项目（可选）",
       "gcpServiceAccountKey": "服务账号密钥（JSON）",
       "secretSet": "已设置 — 留空则保留",
-      "permissions": "请使用只读凭据：AWS 需要 ce:GetCostAndUsage；Azure 需要订阅上的 Cost Management Reader；GCP 需要导出数据集上的 BigQuery Job User 和 Data Viewer。"
+      "permissions": "请使用只读凭据：AWS 需要 ce:GetCostAndUsage；Azure 需要订阅上的 Cost Management Reader；GCP 需要导出数据集上的 BigQuery Job User 和 Data Viewer。",
+      "awsSessionToken": "Session token (optional)"
     }
   },
   "metrics": {

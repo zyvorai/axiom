@@ -21,6 +21,7 @@ export const BILLING_SETTINGS = {
     awsRegion: 'billing-settings-aws-region',
     awsAccessKeyId: 'billing-settings-aws-access-key-id',
     awsSecretAccessKey: 'billing-settings-aws-secret-access-key',
+    awsSessionToken: 'billing-settings-aws-session-token',
     azureTenantId: 'billing-settings-azure-tenant-id',
     azureClientId: 'billing-settings-azure-client-id',
     azureSubscriptionId: 'billing-settings-azure-subscription-id',

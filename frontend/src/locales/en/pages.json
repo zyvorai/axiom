@@ -46,7 +46,8 @@
       "url": "Atlas URL",
       "consoleUrl": "Console URL",
       "token": "API token",
-      "tokenSet": "API token (set — leave blank to keep)"
+      "tokenSet": "API token (set — leave blank to keep)",
+      "clearToken": "Clear token"
     },
     "postgres": {
       "host": "Host",
@@ -911,7 +912,8 @@
       "request": "Requested",
       "recommend": "Recommend",
       "dryRun": "Dry-run",
-      "apply": "Apply"
+      "apply": "Apply",
+      "dra": "DRA resources"
     }
   },
   "rbac": {
@@ -1666,7 +1668,8 @@
       "gcpProjectId": "Query project (optional)",
       "gcpServiceAccountKey": "Service-account key (JSON)",
       "secretSet": "Set — leave blank to keep",
-      "permissions": "Use read-only credentials: AWS ce:GetCostAndUsage; Azure Cost Management Reader on the subscription; GCP BigQuery Job User plus Data Viewer on the export dataset."
+      "permissions": "Use read-only credentials: AWS ce:GetCostAndUsage; Azure Cost Management Reader on the subscription; GCP BigQuery Job User plus Data Viewer on the export dataset.",
+      "awsSessionToken": "Session token (optional)"
     }
   },
   "metrics": {

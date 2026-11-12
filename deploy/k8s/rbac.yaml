@@ -10,7 +10,11 @@ metadata:
   name: zyvor-axiom
 rules:
   - apiGroups: [""]
-    resources: ["pods", "pods/log", "pods/exec", "services", "events", "nodes", "namespaces", "endpoints", "persistentvolumeclaims", "persistentvolumes", "secrets", "configmaps", "resourcequotas", "limitranges"]
+    resources: ["pods", "pods/log", "pods/exec", "services", "events", "nodes", "namespaces", "endpoints", "persistentvolumeclaims", "persistentvolumes", "secrets", "configmaps", "serviceaccounts", "resourcequotas", "limitranges"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # EndpointSlices (discovery.k8s.io) — Helm charts / Services often manage these.
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # The Eviction API needs its own rule on the pods/eviction subresource —
   # a real gap found by testing the Pods page's evict action end-to-end
@@ -39,8 +43,12 @@ rules:
   # ReplicaSets during `helm install` (confirmed against a real cluster —
   # installs fail without it, even with --wait removed).
   - apiGroups: ["apps"]
-    resources: ["replicasets"]
+    resources: ["replicasets", "controllerrevisions"]
     verbs: ["get", "list", "watch"]
+  # Leader-election Leases that many charts create alongside Deployments.
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["networkpolicies", "ingresses"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -75,7 +83,7 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: ["policy"]
     resources: ["poddisruptionbudgets"]
-    verbs: ["get", "list", "watch"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["batch"]
     resources: ["jobs", "cronjobs"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

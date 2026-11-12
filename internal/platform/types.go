@@ -536,6 +536,8 @@ type CreateVeleroBackupRequest struct {
 	Name               string   `json:"name"`
 	IncludedNamespaces []string `json:"includedNamespaces,omitempty"`
 	TTL                string   `json:"ttl,omitempty"`
+	// StorageLocation names a Velero BackupStorageLocation (optional; Velero default applies).
+	StorageLocation string `json:"storageLocation,omitempty"`
 }
 
 type ResourceQuotaSummary struct {

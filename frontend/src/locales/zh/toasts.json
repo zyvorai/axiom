@@ -33,7 +33,8 @@
     "webhookTestFailed": "Webhook 测试失败",
     "clusterRegistered": "已注册集群 {{name}}",
     "registerFailed": "注册失败",
-    "notifyCleared": "已清除通知 webhook"
+    "notifyCleared": "已清除通知 webhook",
+    "atlasCleared": "Atlas token cleared"
   },
   "aiSettings": {
     "saved": "AI 助手设置已保存",

@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -127,6 +128,95 @@ func TestAWSBillingClientFixture(t *testing.T) {
 	if _, ok := gotBody["Filter"]; ok {
 		t.Fatalf("unexpected filter %+v", gotBody)
 	}
+}
+
+func TestAWSBillingClientPaginatesAndSessionToken(t *testing.T) {
+	var pages int
+	var sawToken bool
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pages++
+		if r.Header.Get("X-Amz-Security-Token") != "session-token-material" {
+			t.Errorf("missing session token header")
+		}
+		if !strings.Contains(r.Header.Get("Authorization"), "x-amz-security-token") {
+			t.Errorf("session token not in SignedHeaders: %s", r.Header.Get("Authorization"))
+		}
+		b, _ := io.ReadAll(r.Body)
+		var req map[string]any
+		_ = json.Unmarshal(b, &req)
+		if pages == 1 {
+			if _, ok := req["NextPageToken"]; ok {
+				t.Errorf("first page should omit NextPageToken: %+v", req)
+			}
+			_, _ = io.WriteString(w, `{"ResultsByTime":[
+				{"TimePeriod":{"Start":"2026-10-01","End":"2026-11-01"},"Total":{"UnblendedCost":{"Amount":"100","Unit":"USD"}}}],
+				"NextPageToken":"page-2"}`)
+			return
+		}
+		if req["NextPageToken"] != "page-2" {
+			t.Errorf("expected NextPageToken page-2, got %+v", req)
+		}
+		sawToken = true
+		_, _ = io.WriteString(w, `{"ResultsByTime":[
+			{"TimePeriod":{"Start":"2026-10-01","End":"2026-11-01"},"Total":{"UnblendedCost":{"Amount":"50.5","Unit":"USD"}}},
+			{"TimePeriod":{"Start":"2026-11-01","End":"2026-11-05"},"Total":{"UnblendedCost":{"Amount":"10","Unit":"USD"}}}]}`)
+	}))
+	defer srv.Close()
+	cfg := awsCfg()
+	cfg.BillingAWSSessionToken = "session-token-material"
+	c, err := newAWSBillingClient(cfg, billingTestTransport(srv.Client(), srv.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	totals, err := c.fetch(context.Background(), billingPeriods(billingNow), billingNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pages != 2 || !sawToken {
+		t.Fatalf("pages=%d sawToken=%v", pages, sawToken)
+	}
+	if len(totals) != 2 || totals[0].Amount != 150.5 || totals[1].Amount != 10 {
+		t.Fatalf("merged totals %+v", totals)
+	}
+}
+
+// TestAWSBillingLive hits real Cost Explorer when AXIOM_BILLING_LIVE=1 and
+// AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are set (optional AWS_SESSION_TOKEN).
+func TestAWSBillingLive(t *testing.T) {
+	if os.Getenv("AXIOM_BILLING_LIVE") != "1" {
+		t.Skip("set AXIOM_BILLING_LIVE=1 to call a real AWS account")
+	}
+	id := strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID"))
+	secret := strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY"))
+	if id == "" || secret == "" {
+		t.Skip("AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY required")
+	}
+	cfg := Integrations{
+		BillingProvider: "aws",
+		BillingAWSRegion: envOr("AWS_REGION", "us-east-1"),
+		BillingAWSAccessKeyID: id, BillingAWSSecretAccessKey: secret,
+		BillingAWSSessionToken: os.Getenv("AWS_SESSION_TOKEN"),
+		BillingTagKey: os.Getenv("BILLING_TAG_KEY"), BillingTagValue: os.Getenv("BILLING_TAG_VALUE"),
+	}.Normalize()
+	c, err := newAWSBillingClient(cfg, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	totals, err := c.fetch(context.Background(), billingPeriods(time.Now().UTC()), time.Now().UTC())
+	if err != nil {
+		t.Fatalf("live Cost Explorer: %v", err)
+	}
+	if len(totals) == 0 {
+		t.Fatal("expected at least one month total from live Cost Explorer")
+	}
+	t.Logf("live months: %d first=%+v", len(totals), totals[0])
+}
+
+func envOr(k, fallback string) string {
+	if v := strings.TrimSpace(os.Getenv(k)); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func TestAWSBillingErrorsAreSafe(t *testing.T) {

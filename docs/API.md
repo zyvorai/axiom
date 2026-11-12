@@ -472,6 +472,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | POST | `/api/v1/backups/restore` | Restore PVC from snapshot |
 | GET | `/api/v1/velero/backups?namespace=...` | Velero backups |
 | GET | `/api/v1/velero/schedules?namespace=...` | Velero schedules |
+| POST | `/api/v1/velero/backups` | Create a Velero Backup: `{"namespace","name","includedNamespaces","ttl","storageLocation"}` (`includedNamespaces` defaults to `["*"]`; `ttl` / `storageLocation` optional). Object validated against upstream Velero CRD OpenAPI in unit tests |
 | POST | `/api/v1/velero/schedules` | Create a schedule: `{"namespace","name","schedule","ttl"}` (`schedule` is a cron string, `ttl` is optional, e.g. `"720h0m0s"`) — builds the Velero `Schedule` object directly via the dynamic client, same as the other Velero/Flux/Argo access in this API |
 
 ## Helm, GitOps, ops

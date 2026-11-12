@@ -25,6 +25,7 @@ export default function BillingSettingsCard({ data, onSaved }) {
         awsRegion: data.billingAwsRegion || "us-east-1",
         awsAccessKeyId: "",
         awsSecretAccessKey: "",
+        awsSessionToken: "",
         azureTenantId: data.billingAzureTenantId || "",
         azureClientId: data.billingAzureClientId || "",
         azureSubscriptionId: data.billingAzureSubscriptionId || "",
@@ -52,11 +53,12 @@ export default function BillingSettingsCard({ data, onSaved }) {
                 billingGcpTable: form.gcpTable,
                 ...secret("billingAwsAccessKeyId", form.awsAccessKeyId),
                 ...secret("billingAwsSecretAccessKey", form.awsSecretAccessKey),
+                ...secret("billingAwsSessionToken", form.awsSessionToken),
                 ...secret("billingAzureClientSecret", form.azureClientSecret),
                 ...secret("billingGcpServiceAccountKey", form.gcpServiceAccountKey),
             });
             onSaved?.(v);
-            set({ awsAccessKeyId: "", awsSecretAccessKey: "", azureClientSecret: "", gcpServiceAccountKey: "" });
+            set({ awsAccessKeyId: "", awsSecretAccessKey: "", awsSessionToken: "", azureClientSecret: "", gcpServiceAccountKey: "" });
             toast.success(t("toasts:billing.saved"));
         } catch (e) {
             toast.error(t("toasts:billing.saveFailed"), { description: e?.response?.data?.error || e.message });
@@ -128,6 +130,7 @@ export default function BillingSettingsCard({ data, onSaved }) {
                         </div>
                         {secretField("awsAccessKeyId", data.billingAwsAccessKeyIdSet, "pages:billing.settings.awsAccessKeyId", T.awsAccessKeyId)}
                         {secretField("awsSecretAccessKey", data.billingAwsSecretAccessKeySet, "pages:billing.settings.awsSecretAccessKey", T.awsSecretAccessKey)}
+                        {secretField("awsSessionToken", data.billingAwsSessionTokenSet, "pages:billing.settings.awsSessionToken", T.awsSessionToken)}
                     </div>
                 )}
 

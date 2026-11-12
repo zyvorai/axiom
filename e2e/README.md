@@ -73,6 +73,14 @@ and UI behaviour, not the Kubernetes implementation. That is covered by the fake
 `internal/platform/*_kubernetes_test.go` (`go test -modfile=go.production.mod -tags kubernetes ./internal/...`).
 Real IdPs (Keycloak, Okta, AD), real cluster behaviour and real Slack / Atlas are not exercised.
 
+## Live cluster / account harnesses
+
+| Script | What |
+| --- | --- |
+| `scripts/validate-enterprise-writes.sh` | Real-cluster writes (incl. Velero create when CRDs exist) |
+| `scripts/validate-velero.sh` | Velero Backup/Schedule create+kubectl get against live CRDs |
+| `scripts/validate-billing-live.sh` | Cloud invoice live call (`AXIOM_BILLING_LIVE=1` + `AWS_*`, or `AXIOM_BASE` + Settings) |
+
 ## Why `workers: 1`
 
 Axiom's login rate limiter (`internal/auth/ratelimit.go`) counts every

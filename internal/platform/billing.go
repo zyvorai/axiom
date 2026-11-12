@@ -104,6 +104,7 @@ func (i Integrations) normalizeBilling() Integrations {
 	}
 	i.BillingAWSAccessKeyID = strings.TrimSpace(i.BillingAWSAccessKeyID)
 	i.BillingAWSSecretAccessKey = strings.TrimSpace(i.BillingAWSSecretAccessKey)
+	i.BillingAWSSessionToken = strings.TrimSpace(i.BillingAWSSessionToken)
 	i.BillingAzureTenantID = strings.TrimSpace(i.BillingAzureTenantID)
 	i.BillingAzureClientID = strings.TrimSpace(i.BillingAzureClientID)
 	i.BillingAzureSubscriptionID = strings.TrimSpace(i.BillingAzureSubscriptionID)
@@ -139,6 +140,7 @@ func (i Integrations) billingView(v IntegrationsView) IntegrationsView {
 	}
 	v.BillingAWSAccessKeyIDSet = strings.TrimSpace(i.BillingAWSAccessKeyID) != ""
 	v.BillingAWSSecretAccessKeySet = strings.TrimSpace(i.BillingAWSSecretAccessKey) != ""
+	v.BillingAWSSessionTokenSet = strings.TrimSpace(i.BillingAWSSessionToken) != ""
 	v.BillingAzureTenantID = i.BillingAzureTenantID
 	v.BillingAzureClientID = i.BillingAzureClientID
 	v.BillingAzureSubscriptionID = i.BillingAzureSubscriptionID
@@ -177,6 +179,7 @@ func (i Integrations) applyBillingPatch(p IntegrationsPatch) Integrations {
 	set(&i.BillingGCPTable, p.BillingGCPTable)
 	i.BillingAWSAccessKeyID = applyBillingSecret(i.BillingAWSAccessKeyID, p.BillingAWSAccessKeyID, p.BillingAWSAccessKeyIDClear)
 	i.BillingAWSSecretAccessKey = applyBillingSecret(i.BillingAWSSecretAccessKey, p.BillingAWSSecretAccessKey, p.BillingAWSSecretAccessKeyClear)
+	i.BillingAWSSessionToken = applyBillingSecret(i.BillingAWSSessionToken, p.BillingAWSSessionToken, p.BillingAWSSessionTokenClear)
 	i.BillingAzureClientSecret = applyBillingSecret(i.BillingAzureClientSecret, p.BillingAzureClientSecret, p.BillingAzureClientSecretClear)
 	i.BillingGCPServiceAccountKey = applyBillingSecret(i.BillingGCPServiceAccountKey, p.BillingGCPServiceAccountKey, p.BillingGCPServiceAccountKeyClear)
 	return i
@@ -386,7 +389,7 @@ func billingFingerprint(cfg Integrations, month string) string {
 	h := sha256.New()
 	for _, s := range []string{
 		cfg.BillingProvider, cfg.BillingTagKey, cfg.BillingTagValue, cfg.BillingAWSRegion,
-		cfg.BillingAWSAccessKeyID, cfg.BillingAWSSecretAccessKey,
+		cfg.BillingAWSAccessKeyID, cfg.BillingAWSSecretAccessKey, cfg.BillingAWSSessionToken,
 		cfg.BillingAzureTenantID, cfg.BillingAzureClientID, cfg.BillingAzureSubscriptionID, cfg.BillingAzureClientSecret,
 		cfg.BillingGCPProjectID, cfg.BillingGCPTable, cfg.BillingGCPServiceAccountKey, month,
 	} {
