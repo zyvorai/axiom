@@ -62,7 +62,13 @@
       "podNamespace": "Pod の Namespace",
       "podName": "Pod 名",
       "container": "コンテナー",
-      "url": "プローブ URL"
+      "url": "プローブ URL",
+      "matrixTitle": "Reachability matrix",
+      "matrixHint": "Probe URLs from tenant pods (ns/name[/container] per line). Empty pods = from the Axiom pod.",
+      "matrixUrlsPlaceholder": "https://atlas…/version\nhttps://keycloak…/health",
+      "matrixPodsPlaceholder": "payments/payments-api-0\nml/inference-1",
+      "runMatrix": "Run matrix",
+      "from": "From"
     },
     "notifications": {
       "title": "通知",
@@ -661,7 +667,10 @@
         "match": "一致"
       },
       "truncated": "{{total}} 件中最初の {{shown}} 件を表示しています — 検索条件を絞り込んでください。",
-      "pods": "Pods"
+      "pods": "Pods",
+      "hintSealed": "Tip: prefix sealed: to find network-isolated twins across clusters.",
+      "twins": "Twins across clusters",
+      "placeholderSealed": "payments-api or sealed:checkout"
     },
     "summary": {
       "clusters": "クラスター",
@@ -1547,7 +1556,12 @@
     "noAnnotations": "アノテーションはありません。",
     "containerPorts": "コンテナーポート",
     "noPods": "このワークロードの Pod が見つかりません。",
-    "noEvents": "関連するイベントはありません。"
+    "noEvents": "関連するイベントはありません。",
+    "networkGuard": {
+      "title": "Network guard",
+      "flows": "{{n}} recent flows",
+      "notConfigured": "PacketWolf not configured"
+    }
   },
   "workloads": {
     "title": "ワークロード",
@@ -1561,7 +1575,9 @@
       "rollout": "ロールアウト…",
       "seal": "シール",
       "unseal": "シール解除",
-      "sleep": "Sleep"
+      "sleep": "Sleep",
+      "hush": "Hush",
+      "end": "End"
     },
     "runWorkload": "ワークロードを実行",
     "searchPlaceholder": "名前またはイメージを検索",
@@ -1583,7 +1599,10 @@
       "title": "Seal {{name}}?",
       "description": "{{sessions}} live terminal(s) and {{windows}} pod window(s) are open on {{replicas}} replica(s); {{atlas}} Atlas volume(s) survive isolation.",
       "sleepTitle": "Sleep {{name}}?",
-      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s)."
+      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s).",
+      "hushTitle": "Hush {{name}}?",
+      "endTitle": "End {{name}}?",
+      "endDescription": "Delete the workload. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s); {{atlas}} Atlas volume(s) are listed in the preview."
     }
   },
   "billing": {

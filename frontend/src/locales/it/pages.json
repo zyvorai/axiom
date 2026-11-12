@@ -62,7 +62,13 @@
       "podNamespace": "Namespace del Pod",
       "podName": "Nome del Pod",
       "container": "Container",
-      "url": "URL della sonda"
+      "url": "URL della sonda",
+      "matrixTitle": "Reachability matrix",
+      "matrixHint": "Probe URLs from tenant pods (ns/name[/container] per line). Empty pods = from the Axiom pod.",
+      "matrixUrlsPlaceholder": "https://atlas…/version\nhttps://keycloak…/health",
+      "matrixPodsPlaceholder": "payments/payments-api-0\nml/inference-1",
+      "runMatrix": "Run matrix",
+      "from": "From"
     },
     "notifications": {
       "title": "Notifiche",
@@ -669,7 +675,10 @@
         "match": "Corrispondenza"
       },
       "truncated": "Visualizzati i primi {{shown}} di {{total}} risultati — restringere la ricerca.",
-      "pods": "Pods"
+      "pods": "Pods",
+      "hintSealed": "Tip: prefix sealed: to find network-isolated twins across clusters.",
+      "twins": "Twins across clusters",
+      "placeholderSealed": "payments-api or sealed:checkout"
     },
     "summary": {
       "clusters": "Cluster",
@@ -1558,7 +1567,12 @@
     "noAnnotations": "Nessuna annotation.",
     "containerPorts": "Porte dei container",
     "noPods": "Nessun pod trovato per questo workload.",
-    "noEvents": "Nessun evento correlato."
+    "noEvents": "Nessun evento correlato.",
+    "networkGuard": {
+      "title": "Network guard",
+      "flows": "{{n}} recent flows",
+      "notConfigured": "PacketWolf not configured"
+    }
   },
   "workloads": {
     "title": "Workload",
@@ -1572,7 +1586,9 @@
       "rollout": "Rollout…",
       "seal": "Sigilla",
       "unseal": "Rimuovi sigillo",
-      "sleep": "Sleep"
+      "sleep": "Sleep",
+      "hush": "Hush",
+      "end": "End"
     },
     "runWorkload": "Esegui workload",
     "searchPlaceholder": "Cerca nome o immagine",
@@ -1594,7 +1610,10 @@
       "title": "Seal {{name}}?",
       "description": "{{sessions}} live terminal(s) and {{windows}} pod window(s) are open on {{replicas}} replica(s); {{atlas}} Atlas volume(s) survive isolation.",
       "sleepTitle": "Sleep {{name}}?",
-      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s)."
+      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s).",
+      "hushTitle": "Hush {{name}}?",
+      "endTitle": "End {{name}}?",
+      "endDescription": "Delete the workload. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s); {{atlas}} Atlas volume(s) are listed in the preview."
     }
   },
   "billing": {

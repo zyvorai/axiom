@@ -241,6 +241,18 @@ function FleetSearch({ currentName }) {
 
     const skipped = res?.clusters?.skipped || [];
     const errors = res?.clusters?.errors || [];
+    // Twin groups: same kind+namespace+name across ≥2 clusters.
+    const twins = (() => {
+        if (!res?.results?.length) return [];
+        const map = new Map();
+        for (const h of res.results) {
+            if (h.kind === "Namespace") continue;
+            const key = `${h.kind}|${h.workloadKind || ""}|${h.namespace}|${h.name}`;
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(h);
+        }
+        return [...map.values()].filter((g) => g.length >= 2);
+    })();
     return (
         <GlassCard className="space-y-3 p-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -251,7 +263,7 @@ function FleetSearch({ currentName }) {
                         data-testid={FLEET.search}
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        placeholder={t("pages:fleet.search.placeholder")}
+                        placeholder={t("pages:fleet.search.placeholderSealed", { defaultValue: t("pages:fleet.search.placeholder") })}
                         className="bg-muted/30 pl-9"
                     />
                 </div>
@@ -263,12 +275,40 @@ function FleetSearch({ currentName }) {
                     <option value="Namespace">{t("pages:fleet.search.namespaces")}</option>
                 </select>
             </div>
+            <p className="text-[11.5px] text-ink-3">{t("pages:fleet.search.hintSealed")}</p>
             {error ? <div className="notice danger" role="alert">{error}</div> : null}
             {res && (
                 <>
                     {(skipped.length > 0 || errors.length > 0) && (
                         <div className="notice" role="status" data-testid={FLEET.searchSkipped}>
                             {t("pages:fleet.search.notSearched", { list: [...skipped.map((s) => `${s.cluster} (${s.reason})`), ...errors.map((e) => `${e.cluster} (${e.error})`)].join("; ") })}
+                        </div>
+                    )}
+                    {twins.length > 0 && (
+                        <div className="space-y-2" data-testid="fleet-search-twins">
+                            <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:fleet.search.twins")}</div>
+                            {twins.map((group) => (
+                                <div key={`${group[0].kind}/${group[0].namespace}/${group[0].name}`} className="rounded-xl border border-border p-3">
+                                    <div className="mb-2 text-[13px]">
+                                        <b>{group[0].name}</b>
+                                        <span className="ml-2 text-ink-3">{group[0].namespace} · {group[0].kind === "Workload" ? group[0].workloadKind : group[0].kind}</span>
+                                    </div>
+                                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                        {group.map((h) => (
+                                            <button
+                                                key={h.cluster}
+                                                type="button"
+                                                className="rounded-lg border border-border bg-muted/20 p-2 text-left hover:bg-muted/40"
+                                                onClick={() => open(h)}
+                                            >
+                                                <div className="mono text-[12px]">{h.clusterLabel || h.cluster}</div>
+                                                <div className="text-[12px]">{h.status}</div>
+                                                <div className="text-[11px] text-ink-3">{h.detail || h.clusterState}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                     {res.results.length === 0 ? (

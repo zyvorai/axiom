@@ -81,7 +81,39 @@ func (s *Server) testProbe(w http.ResponseWriter, r *http.Request) {
 		s.writeConnectionTest(w, platform.ConnectionTestResult{Service: "probe", Error: "integrations not available"})
 		return
 	}
-	s.writeConnectionTest(w, platform.TestPodProbe(r.Context(), s.provider, s.hub.Get()))
+	in := s.hub.Get()
+	// Optional one-shot overrides (Settings matrix / ad-hoc) without saving.
+	var body struct {
+		ProbeURL          string `json:"probeUrl"`
+		ProbePodNamespace string `json:"probePodNamespace"`
+		ProbePodName      string `json:"probePodName"`
+		ProbePodContainer string `json:"probePodContainer"`
+	}
+	if r.Body != nil {
+		_ = decode(r, &body)
+		if body.ProbeURL != "" {
+			in.ProbeURL = body.ProbeURL
+		}
+		if body.ProbePodNamespace != "" || body.ProbePodName != "" {
+			in.ProbePodNamespace = body.ProbePodNamespace
+			in.ProbePodName = body.ProbePodName
+			in.ProbePodContainer = body.ProbePodContainer
+		}
+	}
+	s.writeConnectionTest(w, platform.TestPodProbe(r.Context(), s.provider, in))
+}
+
+func (s *Server) probeMatrix(w http.ResponseWriter, r *http.Request) {
+	if s.hub == nil {
+		fail(w, 503, errSSO("integrations not available"))
+		return
+	}
+	var req platform.ProbeMatrixRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, 400, err)
+		return
+	}
+	writeJSON(w, 200, platform.RunProbeMatrix(r.Context(), s.provider, s.hub.Get(), req))
 }
 
 func (s *Server) testSlackNotify(w http.ResponseWriter, r *http.Request) {

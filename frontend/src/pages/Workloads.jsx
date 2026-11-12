@@ -233,6 +233,50 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
         }
     };
 
+    const stillAct = async (action) => {
+        setBusy(action);
+        try {
+            const { data: preview } = await api.get(
+                `/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`,
+                { params: { action } },
+            );
+            const titleKey =
+                action === "sleep"
+                    ? "pages:workloads.still.sleepTitle"
+                    : action === "end"
+                      ? "pages:workloads.still.endTitle"
+                      : action === "hush"
+                        ? "pages:workloads.still.hushTitle"
+                        : "pages:workloads.still.title";
+            const descKey =
+                action === "sleep"
+                    ? "pages:workloads.still.sleepDescription"
+                    : action === "end"
+                      ? "pages:workloads.still.endDescription"
+                      : "pages:workloads.still.description";
+            const ok = await confirm({
+                title: t(titleKey, { name: w.name }),
+                description: t(descKey, {
+                    sessions: preview.sessions || 0,
+                    windows: preview.windows || 0,
+                    replicas: preview.replicas || 0,
+                    atlas: (preview.atlas || []).length,
+                }),
+                confirmLabel: t(`pages:workloads.menu.${action}`, { defaultValue: action }),
+            });
+            if (!ok) return;
+            await api.post(`/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`, { action });
+            toast.success(t("toasts:workloads.workloadActionRequested", { name: w.name, action }));
+            onChanged();
+        } catch (e) {
+            toast.error(t("toasts:workloads.actionFailed", { action }), {
+                description: e?.response?.data?.error || e.message,
+            });
+        } finally {
+            setBusy("");
+        }
+    };
+
     const remove = async () => {
         const ok = await confirm({
             title: t("dialogs:workloads.delete.title", { kind: w.kind, name: w.name }),
@@ -282,70 +326,17 @@ function WorkloadActions({ w, onChanged, onScale, onRollout }) {
                             <Rocket className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.rollout")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onClick={async () => {
-                                try {
-                                    const { data: preview } = await api.get(
-                                        `/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`,
-                                        { params: { action: "seal" } },
-                                    );
-                                    const ok = await confirm({
-                                        title: t("pages:workloads.still.title", { name: w.name }),
-                                        description: t("pages:workloads.still.description", {
-                                            sessions: preview.sessions || 0,
-                                            windows: preview.windows || 0,
-                                            replicas: preview.replicas || 0,
-                                            atlas: (preview.atlas || []).length,
-                                        }),
-                                        confirmLabel: t("pages:workloads.menu.seal"),
-                                    });
-                                    if (!ok) return;
-                                    await api.post(
-                                        `/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`,
-                                        { action: "seal" },
-                                    );
-                                    toast.success(t("toasts:workloads.workloadActionRequested", { name: w.name, action: "seal" }));
-                                    onChanged();
-                                } catch (e) {
-                                    toast.error(t("toasts:workloads.actionFailed", { action: "seal" }), {
-                                        description: e?.response?.data?.error || e.message,
-                                    });
-                                }
-                            }}
-                        >
+                        <DropdownMenuItem onClick={() => stillAct("hush")}>
+                            <Lock className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.hush")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => stillAct("seal")}>
                             <Lock className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.seal")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={async () => {
-                                try {
-                                    const { data: preview } = await api.get(
-                                        `/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`,
-                                        { params: { action: "sleep" } },
-                                    );
-                                    const ok = await confirm({
-                                        title: t("pages:workloads.still.sleepTitle", { name: w.name }),
-                                        description: t("pages:workloads.still.sleepDescription", {
-                                            sessions: preview.sessions || 0,
-                                            windows: preview.windows || 0,
-                                            replicas: preview.replicas || 0,
-                                        }),
-                                        confirmLabel: t("pages:workloads.menu.sleep", { defaultValue: "Sleep" }),
-                                    });
-                                    if (!ok) return;
-                                    await api.post(
-                                        `/workloads/${w.namespace}/${w.kind}/${encodeURIComponent(w.name)}/still`,
-                                        { action: "sleep" },
-                                    );
-                                    toast.success(t("toasts:workloads.workloadActionRequested", { name: w.name, action: "sleep" }));
-                                    onChanged();
-                                } catch (e) {
-                                    toast.error(t("toasts:workloads.actionFailed", { action: "sleep" }), {
-                                        description: e?.response?.data?.error || e.message,
-                                    });
-                                }
-                            }}
-                        >
-                            <Square className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.sleep", { defaultValue: "Sleep" })}
+                        <DropdownMenuItem onClick={() => stillAct("sleep")}>
+                            <Square className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.sleep")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => stillAct("end")} className="text-tone-red focus:text-tone-red">
+                            <Trash2 className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.end")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => act("unseal")}>
                             <Unlock className="mr-2 h-3.5 w-3.5" /> {t("pages:workloads.menu.unseal")}

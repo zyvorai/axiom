@@ -8,10 +8,11 @@ All notable changes to Zyvor Axiom are documented here.
 - `GET /api/v1/accelerators`: GPU nodes/pods, Operator/device-plugin/DCGM, GFD sharing/MIG labels, GPU ResourceQuotas, FailedScheduling issues, optional DRA counts and DCGM util snapshot.
 - Ops → Accelerators tab; GPU columns on Nodes / Node detail / Pod detail; Cost shows `gpuUsd` + `otherUsd`.
 - Node metrics history can include DCGM GPU util (classic + `_RATIO` families).
-- Still ladder execute: `POST …/still` (hush/seal/sleep/end) with live terminal/window blast preview; Seal writes PacketWolf flow receipt to audit/Timeline.
+- Still ladder execute: `POST …/still` (hush/seal/sleep/end) with live terminal/window blast preview; Seal writes PacketWolf flow receipt to audit/Timeline; Workloads menu offers hush/seal/sleep/end.
 - Health analyzers: finalizer ghosts, mutable image tags, HPA thrash, Ingress with zero ready endpoints.
-- Fleet search `sealed:` finds network-isolated twins; agent action `seal_workload`; MCP tools `list_accelerators`, `still_preview`, `fleet_search`, `network_guard`.
+- Fleet search `sealed:` finds network-isolated twins; twin-diff panel when the same object exists on ≥2 clusters; agent action `seal_workload`; MCP tools `list_accelerators`, `still_preview`, `fleet_search`, `network_guard`.
 - Timeline labels operator presence (`pod.terminal` / `pod.window` / exec) as “who poked it”.
+- Workload detail Network Guard (flows + Seal/Unseal); Settings reachability matrix (`POST /integrations/probe/matrix`).
 
 ### Added — Envoy Gateway (Gateway API)
 - Helm `expose.type=Gateway` creates Gateway + HTTPRoute for Envoy Gateway (`gatewayClassName` default `eg`).

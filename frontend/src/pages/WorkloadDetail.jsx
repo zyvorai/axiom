@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History, Activity } from "lucide-react";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History, Activity, Lock, Unlock } from "lucide-react";
 import WorkloadTimeline from "@/components/WorkloadTimeline";
 import { TIMELINE } from "@/constants/testIds";
 import CodeEditor from "@/components/CodeEditor";
@@ -19,6 +19,7 @@ import DiffReviewDialog from "@/components/DiffReviewDialog";
 import ResourceGraph from "@/components/ResourceGraph";
 import MetricHistoryChart from "@/components/MetricHistoryChart";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 export default function WorkloadDetail() {
     const { t } = useTranslation();
@@ -29,6 +30,8 @@ export default function WorkloadDetail() {
     const [manifestText, setManifestText] = useState("");
     const [reviewOpen, setReviewOpen] = useState(false);
     const [summary, setSummary] = useState(null);
+    const [guard, setGuard] = useState(null);
+    const [guardBusy, setGuardBusy] = useState(false);
 
     // Replica/status summary comes from the workloads list (the detail
     // endpoint only returns the manifest). Best-effort: the page works without it.
@@ -57,10 +60,30 @@ export default function WorkloadDetail() {
                 setManifestText(JSON.stringify(r.data.manifest, null, 2));
             })
             .catch((e) => alive && setError(e?.response?.data?.error || e.message));
+        api
+            .get(`/workloads/${namespace}/${kind}/${encodeURIComponent(name)}/network/guard`)
+            .then((r) => alive && setGuard(r.data))
+            .catch(() => alive && setGuard(null));
         return () => {
             alive = false;
         };
     }, [namespace, kind, name]);
+
+    const sealToggle = async (seal) => {
+        setGuardBusy(true);
+        try {
+            await api.post(`/workloads/${namespace}/${kind}/${encodeURIComponent(name)}/${seal ? "seal" : "unseal"}`);
+            toast.success(t("toasts:workloads.workloadActionRequested", { name, action: seal ? "seal" : "unseal" }));
+            const { data } = await api.get(`/workloads/${namespace}/${kind}/${encodeURIComponent(name)}/network/guard`);
+            setGuard(data);
+        } catch (e) {
+            toast.error(t("toasts:workloads.actionFailed", { action: seal ? "seal" : "unseal" }), {
+                description: e?.response?.data?.error || e.message,
+            });
+        } finally {
+            setGuardBusy(false);
+        }
+    };
 
     const load = () => {
         api.get(`/resources/${namespace}/${kind}/${encodeURIComponent(name)}`).then((r) => {
@@ -149,6 +172,25 @@ export default function WorkloadDetail() {
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4 space-y-4">
+                    {guard && (
+                        <GlassCard className="flex flex-wrap items-center justify-between gap-3 p-5">
+                            <div>
+                                <div className="text-sm font-medium">{t("pages:workloadDetail.networkGuard.title")}</div>
+                                <div className="mt-1 text-[12.5px] text-ink-3">
+                                    {guard.message || t("pages:workloadDetail.networkGuard.flows", { n: guard.flowsCount || 0 })}
+                                    {guard.configured === false ? ` · ${t("pages:workloadDetail.networkGuard.notConfigured")}` : null}
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="outline" disabled={guardBusy} onClick={() => sealToggle(true)}>
+                                    <Lock className="mr-1.5 h-3.5 w-3.5" /> {t("pages:workloads.menu.seal")}
+                                </Button>
+                                <Button size="sm" variant="outline" disabled={guardBusy} onClick={() => sealToggle(false)}>
+                                    <Unlock className="mr-1.5 h-3.5 w-3.5" /> {t("pages:workloads.menu.unseal")}
+                                </Button>
+                            </div>
+                        </GlassCard>
+                    )}
                     <GlassCard className="p-5">
                         <div className="mb-3 text-sm font-medium">{t("common:fields.labels")}</div>
                         <div className="flex flex-wrap gap-1.5">

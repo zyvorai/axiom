@@ -37,6 +37,85 @@ function Field({ label, id, ...props }) {
     );
 }
 
+/** Data-plane reachability: can these tenant pods reach these URLs? */
+function ProbeMatrixPanel({ defaultUrl }) {
+    const { t } = useTranslation();
+    const [urls, setUrls] = useState("");
+    const [pods, setPods] = useState("");
+    const [cells, setCells] = useState(null);
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        if (defaultUrl && !urls) setUrls(defaultUrl);
+    }, [defaultUrl, urls]);
+
+    const run = async () => {
+        setBusy(true);
+        try {
+            const urlList = urls.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+            const podList = pods
+                .split(/[\n,]/)
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .map((line) => {
+                    const [ns, name, container] = line.split("/");
+                    return { namespace: ns || "", name: name || "", container: container || "" };
+                })
+                .filter((p) => p.namespace && p.name);
+            const { data } = await api.post("/integrations/probe/matrix", { urls: urlList, pods: podList });
+            setCells(data.cells || []);
+        } catch (e) {
+            toast.error(t("toasts:settings.testFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className="mt-4 space-y-2 rounded-xl border border-border p-3">
+            <div className="text-[12px] font-medium">{t("pages:settings.probe.matrixTitle")}</div>
+            <p className="text-[11.5px] text-ink-3">{t("pages:settings.probe.matrixHint")}</p>
+            <Textarea
+                className="bg-muted/30 min-h-[56px] text-[12px]"
+                placeholder={t("pages:settings.probe.matrixUrlsPlaceholder")}
+                value={urls}
+                onChange={(e) => setUrls(e.target.value)}
+            />
+            <Textarea
+                className="bg-muted/30 min-h-[56px] text-[12px]"
+                placeholder={t("pages:settings.probe.matrixPodsPlaceholder")}
+                value={pods}
+                onChange={(e) => setPods(e.target.value)}
+            />
+            <button type="button" className="btn btn-line btn-sm" disabled={busy} onClick={run}>
+                <Activity size={14} /> {busy ? t("pages:settings.testing") : t("pages:settings.probe.runMatrix")}
+            </button>
+            {cells && (
+                <table className="tbl mt-2">
+                    <thead>
+                        <tr>
+                            <th>{t("pages:settings.probe.from")}</th>
+                            <th>URL</th>
+                            <th>{t("common:fields.status")}</th>
+                            <th>ms</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {cells.map((c, i) => (
+                            <tr key={i}>
+                                <td className="mono text-[11.5px]">{c.from}</td>
+                                <td className="mono text-[11px] max-w-[14rem] truncate">{c.url}</td>
+                                <td className={c.ok ? "text-tone-green" : "text-tone-red"}>{c.ok ? "ok" : c.error || "fail"}</td>
+                                <td className="mono">{c.latencyMs}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
+}
+
 function Pill({ on, onLabel, offLabel }) {
     return (
         <span className="pill" style={{ "--c": on ? "var(--green)" : "var(--ink-3)" }}>
@@ -528,6 +607,7 @@ export default function Settings() {
                     <Field label={t("pages:settings.probe.podName")} value={form.probePodName || ""} onChange={(e) => set({ probePodName: e.target.value })} />
                     <Field label={t("pages:settings.probe.container")} value={form.probePodContainer || ""} onChange={(e) => set({ probePodContainer: e.target.value })} />
                     <Field label={t("pages:settings.probe.url")} value={form.probeUrl || ""} onChange={(e) => set({ probeUrl: e.target.value })} placeholder="http://localhost:8080/healthz" />
+                    <ProbeMatrixPanel defaultUrl={form.probeUrl} />
                 </IntegrationCard>
 
                 <div className="card">

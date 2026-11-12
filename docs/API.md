@@ -395,6 +395,7 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 |---|---|---|
 | GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects (`controller`, `provider` e.g. `envoy`, `addresses`). Returns `[]` (not an error) when the Gateway API CRDs aren't installed. Prefer Envoy Gateway (`provider=envoy`) over Ingress NGINX. |
 | GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts and DCGM util snapshot when Prometheus is configured |
+| POST | `/api/v1/integrations/probe/matrix` | Data-plane reachability matrix: `{urls[], pods:[{namespace,name,container?}]}` → cells with ok/latency from each pod (or Axiom when pods empty). Cap 8 URLs × 12 pods |
 
 ## Admission webhooks
 
