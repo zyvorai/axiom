@@ -958,19 +958,22 @@ test.describe("read-only resource pages", () => {
     await go(page, "/ingresses", "Ingresses");
     const ing = (await apiGet(page, "/ingresses")).data;
     expect(ing.length).toBeGreaterThan(1);
+    // Scope to the legacy Ingresses table — Gateway API rows also mention checkout/commerce.
+    const ingressTable = page.getByRole("region", { name: "Ingresses" });
+    const ingressRow = (name, ns) => ingressTable.getByRole("row").filter({ hasText: name }).filter({ hasText: ns });
     for (const i of ing) {
-      const r = row(page, i.name).filter({ hasText: i.namespace });
+      const r = ingressRow(i.name, i.namespace);
       await expect(r).toBeVisible();
       for (const h of i.hosts || []) await expect(r).toContainText(h);
     }
     const search = page.getByPlaceholder("Search by name or host");
     await search.fill(ing[0].hosts[0]); // filter by host
-    await expect(row(page, ing[0].name).filter({ hasText: ing[0].namespace })).toBeVisible();
-    await expect(row(page, ing[1].hosts[0])).toHaveCount(0);
+    await expect(ingressRow(ing[0].name, ing[0].namespace)).toBeVisible();
+    await expect(ingressRow(ing[1].name, ing[1].namespace)).toHaveCount(0);
     await search.fill(`nothing-${uid()}`);
     await expect(page.getByText("No ingresses match the current filters.")).toBeVisible(); // usable empty state
     await search.fill("");
-    await expect(row(page, ing[1].hosts[0])).toBeVisible();
+    await expect(ingressRow(ing[1].name, ing[1].namespace)).toBeVisible();
     expect(t.calls).toHaveLength(0);
     expect(t.errors).toEqual([]);
   });

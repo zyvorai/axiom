@@ -41,8 +41,8 @@ function NoVncEmbed({ wsPath, ready }) {
     // Public noVNC web client; path is the Axiom VNC websocket proxy.
     const src = `https://novnc.com/noVNC/vnc_lite.html?path=${encodeURIComponent(path.replace(/^\//, ""))}&host=${encodeURIComponent(window.location.hostname)}&port=${encodeURIComponent(window.location.port || (window.location.protocol === "https:" ? "443" : "80"))}&encrypt=${window.location.protocol === "https:" ? "1" : "0"}`;
     return (
-        <div className="overflow-hidden rounded-xl border border-border bg-black" data-testid={VMS.consoleCanvas}>
-            <iframe title={t("pages:vms.console.novncTitle")} src={src} className="h-72 w-full bg-black" referrerPolicy="no-referrer" />
+        <div className="overflow-hidden rounded-xl border border-border bg-[var(--terminal-bg)]" data-testid={VMS.consoleCanvas}>
+            <iframe title={t("pages:vms.console.novncTitle")} src={src} className="h-72 w-full bg-[var(--terminal-bg)]" referrerPolicy="no-referrer" />
             <div className="truncate border-t border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">{url}</div>
         </div>
     );

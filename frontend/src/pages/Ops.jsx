@@ -371,6 +371,9 @@ function GitOpsTab() {
                             {rows.map((a) => {
                                 const canSync = a.canSync !== false && a.kind !== "ApplicationSet";
                                 const canEdit = a.canEdit !== false && a.kind !== "ApplicationSet";
+                                const healthRaw = a.health || a.status || "Unknown";
+                                // Flux Ready / Argo Synced both mean healthy in the Ops badge.
+                                const healthBadge = healthRaw === "Ready" || healthRaw === "Synced" ? "Healthy" : healthRaw;
                                 return (
                                 <tr key={`${a.namespace}/${a.name}`}>
                                     <td className="name">
@@ -379,7 +382,7 @@ function GitOpsTab() {
                                     </td>
                                     <td className="mono text-[12.5px] text-ink-3">{a.source}</td>
                                     <td><StatusBadge status={a.sync || a.status || "Unknown"} /></td>
-                                    <td><StatusBadge status={a.health || a.status || "Unknown"} /></td>
+                                    <td><StatusBadge status={healthBadge} /></td>
                                     <td className="mono text-[12px] text-ink-3">{a.revision || "—"}</td>
                                     <td className="num">{a.age}</td>
                                     <td>

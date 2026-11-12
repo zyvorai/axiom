@@ -48,14 +48,14 @@
   flex-direction: column;
   color: var(--text-primary);
   /* Deep night-ops canvas — ink + ember + cyan mesh (not flat page fill). */
-  --login-ink: color-mix(in srgb, var(--bg-page) 55%, #070b12 45%);
-  --login-ember: color-mix(in srgb, var(--brand, #e85d04) 70%, #ffb347 30%);
-  --login-cyan: color-mix(in srgb, var(--apple-blue, #0a84ff) 55%, #2dd4bf 45%);
+  --login-ink: color-mix(in srgb, var(--bg-page) 55%, var(--login-ink-deep) 45%);
+  --login-ember: color-mix(in srgb, var(--brand) 70%, var(--login-ember-hot) 30%);
+  --login-cyan: color-mix(in srgb, var(--apple-blue) 55%, var(--login-cyan-bright) 45%);
   background:
     radial-gradient(120% 80% at 12% -10%, color-mix(in srgb, var(--login-ember) 28%, transparent), transparent 55%),
     radial-gradient(90% 70% at 92% 8%, color-mix(in srgb, var(--login-cyan) 22%, transparent), transparent 50%),
     radial-gradient(70% 55% at 50% 110%, color-mix(in srgb, var(--login-ember) 14%, transparent), transparent 60%),
-    linear-gradient(165deg, var(--login-ink) 0%, var(--bg-page) 48%, color-mix(in srgb, var(--bg-page) 70%, #0c1220 30%) 100%);
+    linear-gradient(165deg, var(--login-ink) 0%, var(--bg-page) 48%, color-mix(in srgb, var(--bg-page) 70%, var(--login-ink-mid) 30%) 100%);
   font-family: var(--font-hero);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
@@ -73,8 +73,8 @@
     linear-gradient(color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, var(--login-mask-opaque) 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, var(--login-mask-opaque) 20%, transparent 75%);
 }
 
 .login-page::after {

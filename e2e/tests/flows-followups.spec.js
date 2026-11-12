@@ -122,9 +122,9 @@ test.describe("cross-cluster search", () => {
       await page.waitForURL(/\/workloads\/payments\/deployment\/payments-api/);
       await expect(page.locator('a.cluster[data-testid="cluster-switcher"]')).toContainText("zyvor-demo-us");
 
-      // Bad input is refused.
+      // Bad input is refused (Pod is a valid kind; use an unknown kind for the 400).
       expect((await page.request.get("/api/v1/fleet/search?q=a", { headers: ADMIN })).status()).toBe(400);
-      expect((await page.request.get("/api/v1/fleet/search?q=ok&kind=Pod", { headers: ADMIN })).status()).toBe(400);
+      expect((await page.request.get("/api/v1/fleet/search?q=ok&kind=Banana", { headers: ADMIN })).status()).toBe(400);
     });
   });
 });

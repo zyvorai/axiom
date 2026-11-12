@@ -557,8 +557,10 @@ test.describe("settings integrations", () => {
       expect(r.ok).toBe(false);
       expect(r.error).toMatch(/connect|refused/i);
 
-      // Token: not editable from the UI (no field), but stored + masked when set through the API.
-      await expect(card(page, "Atlas").getByLabel(/token/i)).toHaveCount(0);
+      // Token: editable in the UI as a password field; API never echoes the secret.
+      const tokenField = card(page, "Atlas").getByLabel(/token/i);
+      await expect(tokenField).toHaveCount(1);
+      await expect(tokenField).toHaveAttribute("type", "password");
       const withTok = await apiSend(page, "PUT", "/integrations", { atlasToken: "tok-SECRET-123" });
       expect(withTok.status).toBe(200);
       expect(withTok.data.atlasTokenSet).toBe(true);

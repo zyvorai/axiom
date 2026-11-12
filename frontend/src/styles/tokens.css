@@ -91,6 +91,14 @@
   /* brand mark (Zyvor orange) — fixed identity colour, same in both themes */
   --brand-mark-a: hsl(28 96% 56%);
   --brand-mark-b: hsl(20 92% 50%);
+  --brand: #e85d04;
+
+  /* login mesh (axiom-login.css) — night-ops ink / ember / cyan, mask stop */
+  --login-ink-deep: #070b12;
+  --login-ink-mid: #0c1220;
+  --login-ember-hot: #ffb347;
+  --login-cyan-bright: #2dd4bf;
+  --login-mask-opaque: #000000;
 
   /* terminal window chrome (dark in both themes) */
   --terminal-ring: rgba(255, 255, 255, 0.08);
