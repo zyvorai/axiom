@@ -463,7 +463,12 @@ test("start/stop/restart/seal/unseal from the row menu hit the API and change st
   await menu("Restart", "restart");
   expect(await findPods(page, name)).toHaveLength(3);
 
-  await menu("Seal", "seal");
+  // Seal goes through Still: preview GET, confirm dialog, then POST /still.
+  const sealPosted = waitMutation(page, "POST", new RegExp(`/workloads/default/Deployment/${name}/still$`));
+  await openWorkloadMenu(page, name, "Seal");
+  await confirmDialog(page, "Seal");
+  expect((await sealPosted).status()).toBeLessThan(300);
+  await toastText(page, new RegExp(`${name}: seal requested`));
   expect((await findPods(page, name)).every((p) => p.status === "Sealed")).toBe(true);
   await menu("Unseal", "unseal");
   expect((await findPods(page, name)).every((p) => p.status === "Running")).toBe(true);

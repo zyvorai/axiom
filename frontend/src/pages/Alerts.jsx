@@ -224,7 +224,7 @@ export default function Alerts() {
                                     <th>{t("pages:alerts.columns.matchers")}</th>
                                     <th>{t("common:fields.status")}</th>
                                     <th>{t("pages:alerts.columns.ends")}</th>
-                                    <th />
+                                    <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                                 </tr>
                             </thead>
                             <tbody>

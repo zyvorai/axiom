@@ -1,5 +1,5 @@
 import { usePageTitle } from "@/lib/pageTitle";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
@@ -549,6 +549,7 @@ function AgentRunRow({ r, onChanged }) {
 function AgentsTab() {
     const { t } = useTranslation();
     const { namespace: ns } = useNamespace();
+    const id = useId();
     const [reload, setReload] = useState(0);
     const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -600,21 +601,21 @@ function AgentsTab() {
                     </DialogHeader>
                     <div className="stack gap-3 py-2">
                         <div>
-                            <Label>{t("pages:ops.agents.goal")}</Label>
-                            <Textarea className="mt-1.5" rows={3} value={form.goal} onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))} placeholder={t("pages:ops.agents.goalPlaceholder")} />
+                            <Label htmlFor={`${id}-goal`}>{t("pages:ops.agents.goal")}</Label>
+                            <Textarea id={`${id}-goal`} className="mt-1.5" rows={3} value={form.goal} onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))} placeholder={t("pages:ops.agents.goalPlaceholder")} />
                         </div>
                         <div className="form-row">
                             <div>
-                                <Label>{t("pages:ops.agents.namespace")}</Label>
-                                <Input className="mt-1.5" value={form.namespace} onChange={(e) => setForm((f) => ({ ...f, namespace: e.target.value }))} placeholder={ns || "default"} />
+                                <Label htmlFor={`${id}-ns`}>{t("pages:ops.agents.namespace")}</Label>
+                                <Input id={`${id}-ns`} className="mt-1.5" value={form.namespace} onChange={(e) => setForm((f) => ({ ...f, namespace: e.target.value }))} placeholder={ns || "default"} />
                             </div>
                             <div>
-                                <Label>{t("pages:ops.agents.targetKind")}</Label>
-                                <Input className="mt-1.5" value={form.kind} onChange={(e) => setForm((f) => ({ ...f, kind: e.target.value }))} />
+                                <Label htmlFor={`${id}-kind`}>{t("pages:ops.agents.targetKind")}</Label>
+                                <Input id={`${id}-kind`} className="mt-1.5" value={form.kind} onChange={(e) => setForm((f) => ({ ...f, kind: e.target.value }))} />
                             </div>
                             <div>
-                                <Label>{t("pages:ops.agents.targetName")}</Label>
-                                <Input className="mt-1.5" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+                                <Label htmlFor={`${id}-name`}>{t("pages:ops.agents.targetName")}</Label>
+                                <Input id={`${id}-name`} className="mt-1.5" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
                             </div>
                         </div>
                         <label className="flex items-center gap-2 text-[13px]">
@@ -1485,7 +1486,7 @@ function AcceleratorsTab() {
                                 <th>{t("pages:ops.accelerators.request")}</th>
                                 <th>{t("pages:ops.accelerators.recommend")}</th>
                                 <th>{t("common:fields.status")}</th>
-                                <th />
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
