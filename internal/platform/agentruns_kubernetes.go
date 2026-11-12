@@ -4,6 +4,7 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -29,21 +30,30 @@ const (
 	agentAnnotationDenied   = "platform.example.com/denied"
 )
 
-func (k *KubernetesProvider) ListAgentRuns(ctx context.Context, ns string) ([]AgentRun, error) {
-	if k.dynamic == nil {
-		return []AgentRun{}, nil
+func (k *KubernetesProvider) agentCM() *K8sAgentRunStore {
+	if k == nil || k.client == nil {
+		return nil
 	}
-	list, err := k.dynamic.Resource(agentRunGVR).Namespace(nsSelector(ns)).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		if isMissingCRD(err) {
-			return []AgentRun{}, nil
-		}
+	return NewK8sAgentRunStore(k.client, "")
+}
+
+func (k *KubernetesProvider) ListAgentRuns(ctx context.Context, ns string) ([]AgentRun, error) {
+	crd, err := k.listAgentRunsCRD(ctx, ns)
+	if err != nil && !isMissingCRD(err) {
 		return nil, err
 	}
-	out := make([]AgentRun, 0, len(list.Items))
-	for i := range list.Items {
-		out = append(out, agentRunFromUnstructured(&list.Items[i]))
+	var cm []AgentRun
+	if store := k.agentCM(); store != nil {
+		var cmErr error
+		cm, cmErr = store.List(ctx, ns)
+		if cmErr != nil {
+			if len(crd) == 0 {
+				return nil, cmErr
+			}
+			cm = nil
+		}
 	}
+	out := append(crd, cm...)
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace == out[j].Namespace {
 			return out[i].Name < out[j].Name
@@ -53,81 +63,206 @@ func (k *KubernetesProvider) ListAgentRuns(ctx context.Context, ns string) ([]Ag
 	return out, nil
 }
 
-func (k *KubernetesProvider) GetAgentRun(ctx context.Context, ns, name string) (AgentRun, error) {
+func (k *KubernetesProvider) listAgentRunsCRD(ctx context.Context, ns string) ([]AgentRun, error) {
 	if k.dynamic == nil {
-		return AgentRun{}, fmt.Errorf("dynamic client unavailable")
+		return []AgentRun{}, nil
 	}
-	obj, err := k.dynamic.Resource(agentRunGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
+	list, err := k.dynamic.Resource(agentRunGVR).Namespace(nsSelector(ns)).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return AgentRun{}, err
+		return nil, err
 	}
-	return agentRunFromUnstructured(obj), nil
+	out := make([]AgentRun, 0, len(list.Items))
+	for i := range list.Items {
+		out = append(out, agentRunFromUnstructured(&list.Items[i]))
+	}
+	return out, nil
+}
+
+func (k *KubernetesProvider) GetAgentRun(ctx context.Context, ns, name string) (AgentRun, error) {
+	if k.dynamic != nil {
+		obj, err := k.dynamic.Resource(agentRunGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{})
+		if err == nil {
+			return agentRunFromUnstructured(obj), nil
+		}
+		if !isMissingCRD(err) && !isNotFound(err) {
+			return AgentRun{}, err
+		}
+	}
+	if store := k.agentCM(); store != nil {
+		return store.Get(ctx, ns, name)
+	}
+	return AgentRun{}, fmt.Errorf("agent run %s/%s not found", ns, name)
 }
 
 func (k *KubernetesProvider) CreateAgentRun(ctx context.Context, req CreateAgentRunRequest) (AgentRun, error) {
-	if k.dynamic == nil {
-		return AgentRun{}, fmt.Errorf("dynamic client unavailable")
-	}
-	ns := strings.TrimSpace(req.Namespace)
-	if ns == "" {
-		ns = "default"
-	}
 	goal := strings.TrimSpace(req.Goal)
 	if goal == "" {
 		return AgentRun{}, fmt.Errorf("goal is required")
 	}
-	name := strings.TrimSpace(req.Name)
-	if name == "" {
-		name = fmt.Sprintf("run-%d", time.Now().Unix()%1000000)
-	}
-	dryRun := true
-	if req.DryRun != nil {
-		dryRun = *req.DryRun
-	}
-	obj := &unstructured.Unstructured{Object: map[string]any{
-		"apiVersion": "platform.example.com/v1",
-		"kind":       "AgentRun",
-		"metadata": map[string]any{
-			"name":      name,
-			"namespace": ns,
-		},
-		"spec": map[string]any{
-			"goal":     goal,
-			"autonomy": "ProposeOnly",
-			"dryRun":   dryRun,
-		},
-	}}
-	if req.ExtraContext != "" {
-		_ = unstructured.SetNestedField(obj.Object, req.ExtraContext, "spec", "extraContext")
-	}
-	if req.Target != nil && req.Target.Name != "" && req.Target.Kind != "" {
-		target := map[string]any{
-			"kind": req.Target.Kind,
-			"name": req.Target.Name,
+	run := newStoredAgentRun(req)
+
+	if k.dynamic != nil {
+		obj := agentRunToUnstructured(run, req.ExtraContext)
+		created, err := k.dynamic.Resource(agentRunGVR).Namespace(run.Namespace).Create(ctx, obj, metav1.CreateOptions{})
+		if err == nil {
+			out := agentRunFromUnstructured(created)
+			out.OwnedByAxiom = true
+			out.Source = run.Source
+			return out, nil
 		}
-		if req.Target.APIVersion != "" {
-			target["apiVersion"] = req.Target.APIVersion
+		if !isMissingCRD(err) {
+			return AgentRun{}, err
 		}
-		tns := req.Target.Namespace
-		if tns == "" {
-			tns = ns
-		}
-		target["namespace"] = tns
-		_ = unstructured.SetNestedMap(obj.Object, target, "spec", "target")
 	}
-	created, err := k.dynamic.Resource(agentRunGVR).Namespace(ns).Create(ctx, obj, metav1.CreateOptions{})
+	if store := k.agentCM(); store != nil {
+		return store.Create(ctx, run)
+	}
+	return AgentRun{}, fmt.Errorf("dynamic client unavailable")
+}
+
+func (k *KubernetesProvider) UpdateAgentRun(ctx context.Context, run AgentRun) (AgentRun, error) {
+	if k.dynamic != nil {
+		obj, err := k.dynamic.Resource(agentRunGVR).Namespace(run.Namespace).Get(ctx, run.Name, metav1.GetOptions{})
+		if err == nil {
+			return k.patchAgentRunCRD(ctx, obj, run)
+		}
+		if !isMissingCRD(err) && !isNotFound(err) {
+			return AgentRun{}, err
+		}
+	}
+	if store := k.agentCM(); store != nil {
+		return store.Update(ctx, run)
+	}
+	return AgentRun{}, fmt.Errorf("agent run %s/%s not found", run.Namespace, run.Name)
+}
+
+func (k *KubernetesProvider) patchAgentRunCRD(ctx context.Context, obj *unstructured.Unstructured, run AgentRun) (AgentRun, error) {
+	status := map[string]any{
+		"phase":    run.Phase,
+		"approval": run.Approval,
+		"message":  run.Message,
+	}
+	if run.Plan != nil {
+		plan := map[string]any{
+			"summary":          run.Plan.Summary,
+			"rootCause":        run.Plan.RootCause,
+			"risk":             run.Plan.Risk,
+			"requiresApproval": true,
+		}
+		actions := make([]any, 0, len(run.Plan.Actions))
+		for _, a := range run.Plan.Actions {
+			am := map[string]any{
+				"id": a.ID, "type": a.Type, "risk": a.Risk, "description": a.Description,
+			}
+			if a.Target != nil {
+				am["target"] = map[string]any{
+					"apiVersion": a.Target.APIVersion, "kind": a.Target.Kind,
+					"namespace": a.Target.Namespace, "name": a.Target.Name,
+				}
+			}
+			if len(a.Params) > 0 {
+				am["params"] = a.Params
+			}
+			actions = append(actions, am)
+		}
+		plan["actions"] = actions
+		status["plan"] = plan
+	}
+	if len(run.Executed) > 0 {
+		ex := make([]any, 0, len(run.Executed))
+		for _, e := range run.Executed {
+			ex = append(ex, map[string]any{"id": e.ID, "type": e.Type, "ok": e.OK, "message": e.Message})
+		}
+		status["executed"] = ex
+	}
+	anns := obj.GetAnnotations()
+	if anns == nil {
+		anns = map[string]string{}
+	}
+	if run.OwnedByAxiom {
+		anns[AgentOwnedAnnotation] = "true"
+	}
+	if run.Source != "" {
+		anns["axiom.zyvor.dev/source"] = run.Source
+	}
+	patch := map[string]any{
+		"metadata": map[string]any{"annotations": anns},
+		"status":   status,
+	}
+	raw, err := json.Marshal(patch)
 	if err != nil {
 		return AgentRun{}, err
 	}
-	return agentRunFromUnstructured(created), nil
+	updated, err := k.dynamic.Resource(agentRunGVR).Namespace(run.Namespace).Patch(
+		ctx, run.Name, types.MergePatchType, raw, metav1.PatchOptions{}, "status",
+	)
+	if err != nil {
+		// Some CRDs lack a status subresource — fall back to full object merge.
+		updated, err = k.dynamic.Resource(agentRunGVR).Namespace(run.Namespace).Patch(
+			ctx, run.Name, types.MergePatchType, raw, metav1.PatchOptions{},
+		)
+		if err != nil {
+			return AgentRun{}, err
+		}
+	}
+	out := agentRunFromUnstructured(updated)
+	out.OwnedByAxiom = run.OwnedByAxiom
+	out.Source = run.Source
+	return out, nil
 }
 
 func (k *KubernetesProvider) ApproveAgentRun(ctx context.Context, ns, name string) (AgentRun, error) {
-	return k.annotateAgentRun(ctx, ns, name, agentAnnotationApproved, "true")
+	run, err := k.GetAgentRun(ctx, ns, name)
+	if err != nil {
+		return AgentRun{}, err
+	}
+	if !agentRunCanDecide(run) {
+		return AgentRun{}, errAgentRunNotPending()
+	}
+	// Axiom-owned runs (ConfigMap or annotated CR): execute allowlisted actions.
+	if run.OwnedByAxiom {
+		executed, err := ExecuteAgentRun(ctx, k, run)
+		if err != nil {
+			return AgentRun{}, err
+		}
+		return k.UpdateAgentRun(ctx, executed)
+	}
+	// External Hermes controller path: annotate only.
+	if k.dynamic != nil {
+		if _, err := k.dynamic.Resource(agentRunGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{}); err == nil {
+			return k.annotateAgentRun(ctx, ns, name, agentAnnotationApproved, "true")
+		}
+	}
+	if store := k.agentCM(); store != nil {
+		run.Approval = "Approved"
+		run.Phase = "Succeeded"
+		agentRunDecideFlags(&run)
+		return store.Update(ctx, run)
+	}
+	return AgentRun{}, fmt.Errorf("agent run %s/%s not found", ns, name)
 }
 
 func (k *KubernetesProvider) DenyAgentRun(ctx context.Context, ns, name string) (AgentRun, error) {
-	return k.annotateAgentRun(ctx, ns, name, agentAnnotationDenied, "true")
+	run, err := k.GetAgentRun(ctx, ns, name)
+	if err != nil {
+		return AgentRun{}, err
+	}
+	if !agentRunCanDecide(run) {
+		return AgentRun{}, errAgentRunNotPending()
+	}
+	if k.dynamic != nil {
+		if obj, err := k.dynamic.Resource(agentRunGVR).Namespace(ns).Get(ctx, name, metav1.GetOptions{}); err == nil {
+			_ = obj
+			return k.annotateAgentRun(ctx, ns, name, agentAnnotationDenied, "true")
+		} else if !isMissingCRD(err) && !isNotFound(err) {
+			return AgentRun{}, err
+		}
+	}
+	run.Approval = "Denied"
+	run.Phase = "Denied"
+	run.Message = "denied by operator"
+	agentRunDecideFlags(&run)
+	return k.UpdateAgentRun(ctx, run)
 }
 
 func (k *KubernetesProvider) annotateAgentRun(ctx context.Context, ns, name, key, value string) (AgentRun, error) {
@@ -141,7 +276,16 @@ func (k *KubernetesProvider) annotateAgentRun(ctx context.Context, ns, name, key
 	if err != nil {
 		return AgentRun{}, err
 	}
-	return agentRunFromUnstructured(obj), nil
+	out := agentRunFromUnstructured(obj)
+	if key == agentAnnotationApproved {
+		out.Approval = "Approved"
+	}
+	if key == agentAnnotationDenied {
+		out.Approval = "Denied"
+		out.Phase = "Denied"
+	}
+	agentRunDecideFlags(&out)
+	return out, nil
 }
 
 func (k *KubernetesProvider) ListPlatformIntents(ctx context.Context, ns string) ([]PlatformIntent, error) {
@@ -189,6 +333,45 @@ func (k *KubernetesProvider) ListPlatformIntents(ctx context.Context, ns string)
 		return out[i].Namespace < out[j].Namespace
 	})
 	return out, nil
+}
+
+func agentRunToUnstructured(run AgentRun, extra string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "platform.example.com/v1",
+		"kind":       "AgentRun",
+		"metadata": map[string]any{
+			"name":      run.Name,
+			"namespace": run.Namespace,
+			"annotations": map[string]any{
+				AgentOwnedAnnotation:     "true",
+				"axiom.zyvor.dev/source": run.Source,
+			},
+		},
+		"spec": map[string]any{
+			"goal":     run.Goal,
+			"autonomy": "ProposeOnly",
+			"dryRun":   run.DryRun,
+		},
+	}}
+	if extra != "" {
+		_ = unstructured.SetNestedField(obj.Object, extra, "spec", "extraContext")
+	}
+	if run.Target != nil && run.Target.Name != "" && run.Target.Kind != "" {
+		target := map[string]any{
+			"kind": run.Target.Kind,
+			"name": run.Target.Name,
+		}
+		if run.Target.APIVersion != "" {
+			target["apiVersion"] = run.Target.APIVersion
+		}
+		tns := run.Target.Namespace
+		if tns == "" {
+			tns = run.Namespace
+		}
+		target["namespace"] = tns
+		_ = unstructured.SetNestedMap(obj.Object, target, "spec", "target")
+	}
+	return obj
 }
 
 func agentRunFromUnstructured(obj *unstructured.Unstructured) AgentRun {
@@ -280,6 +463,14 @@ func agentRunFromUnstructured(obj *unstructured.Unstructured) AgentRun {
 					}
 					act.Target = t
 				}
+				if pm, ok := am["params"].(map[string]any); ok {
+					act.Params = map[string]string{}
+					for k, v := range pm {
+						if s, ok := v.(string); ok {
+							act.Params[k] = s
+						}
+					}
+				}
 				p.Actions = append(p.Actions, act)
 			}
 		}
@@ -310,19 +501,36 @@ func agentRunFromUnstructured(obj *unstructured.Unstructured) AgentRun {
 		}
 	}
 
-	canAct := strings.EqualFold(phase, "Proposed") &&
-		(strings.EqualFold(approval, "Pending") || approval == "")
 	anns := obj.GetAnnotations()
-	if anns[agentAnnotationApproved] == "true" || anns[agentAnnotationDenied] == "true" {
-		canAct = false
+	owned := anns[AgentOwnedAnnotation] == "true"
+	src := anns["axiom.zyvor.dev/source"]
+	if anns[agentAnnotationApproved] == "true" {
+		approval = "Approved"
+	}
+	if anns[agentAnnotationDenied] == "true" {
+		approval = "Denied"
+		if phase == "Pending" || phase == "Proposed" {
+			phase = "Denied"
+		}
 	}
 
-	return AgentRun{
+	run := AgentRun{
 		Namespace: obj.GetNamespace(), Name: obj.GetName(),
 		Goal: goal, Autonomy: autonomy, DryRun: dryRun, Target: target,
 		Phase: phase, Approval: approval, Message: message, Risk: risk,
 		Plan: plan, Executed: executed,
 		Age: age(obj.GetCreationTimestamp().Time),
-		CanApprove: canAct, CanDeny: canAct,
+		OwnedByAxiom: owned, Source: src,
+		CreatedAt: obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
 	}
+	agentRunDecideFlags(&run)
+	return run
+}
+
+func isNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "not found")
 }

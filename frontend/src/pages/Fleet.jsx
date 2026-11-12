@@ -180,15 +180,16 @@ function ClusterCard({ c, onSwitch, history }) {
     );
 }
 
-const KIND_PILL = { Workload: "var(--blue)", Service: "var(--green)", Namespace: "var(--amber)" };
+const KIND_PILL = { Workload: "var(--blue)", Pod: "var(--purple)", Service: "var(--green)", Namespace: "var(--amber)" };
 
 function hitHref(h) {
     if (h.kind === "Workload") return resourceHref(h.namespace, `${h.workloadKind}/${h.name}`);
+    if (h.kind === "Pod") return resourceHref(h.namespace, `Pod/${h.name}`);
     if (h.kind === "Service") return resourceHref(h.namespace, `Service/${h.name}`);
     return resourceHref("", `Namespace/${h.name}`);
 }
 
-/** Search workloads, services and namespaces across every registered cluster. */
+/** Search workloads, pods (incl. labels), services and namespaces across every registered cluster. */
 function FleetSearch({ currentName }) {
     const { t } = useTranslation();
     const [q, setQ] = useState("");
@@ -257,6 +258,7 @@ function FleetSearch({ currentName }) {
                 <select aria-label={t("common:fields.kind")} data-testid={FLEET.searchKind} className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
                     <option value="">{t("pages:fleet.search.everything")}</option>
                     <option value="Workload">{t("pages:fleet.search.workloads")}</option>
+                    <option value="Pod">{t("pages:fleet.search.pods")}</option>
                     <option value="Service">{t("pages:fleet.search.services")}</option>
                     <option value="Namespace">{t("pages:fleet.search.namespaces")}</option>
                 </select>

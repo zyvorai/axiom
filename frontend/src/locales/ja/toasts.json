@@ -32,7 +32,8 @@
     "webhookDelivered": "Webhook を配信しました",
     "webhookTestFailed": "Webhook のテストに失敗しました",
     "clusterRegistered": "クラスター {{name}} を登録しました",
-    "registerFailed": "登録に失敗しました"
+    "registerFailed": "登録に失敗しました",
+    "notifyCleared": "通知 Webhook を削除しました"
   },
   "aiSettings": {
     "saved": "AI アシスタント設定を保存しました",
@@ -105,7 +106,9 @@
       "approved": "{{name}}: 承認しました",
       "denied": "{{name}}: 拒否しました",
       "approveFailed": "承認に失敗しました",
-      "denyFailed": "拒否に失敗しました"
+      "denyFailed": "拒否に失敗しました",
+      "created": "エージェント実行を作成しました",
+      "createFailed": "エージェント実行を作成できませんでした"
     },
     "rbac": {
       "roleCreated": "Role {{name}} を作成しました",

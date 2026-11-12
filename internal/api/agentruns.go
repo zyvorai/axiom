@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/zyvorai/axiom/internal/platform"
 )
@@ -26,10 +27,22 @@ func (s *Server) createAgentRun(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
+	if strings.TrimSpace(req.Source) == "" {
+		req.Source = platform.AgentSourceManual
+	}
 	v, err := s.provider.CreateAgentRun(r.Context(), req)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
+	}
+	// Built-in planner: fill plan after create (works without Hermes CRD).
+	planned, err := platform.PlanAgentRun(r.Context(), s.provider, s.aiSettings(), s.mode == "demo", v, req.ExtraContext)
+	if err == nil {
+		if updated, uerr := s.provider.UpdateAgentRun(r.Context(), planned); uerr == nil {
+			v = updated
+		} else {
+			v = planned
+		}
 	}
 	platform.RecordAxiomAudit("agentrun.create", req.Namespace+"/"+v.Name, req.Goal, s.auditUser(r))
 	EmitStateChanged("agentrun", "create")
@@ -44,6 +57,9 @@ func (s *Server) approveAgentRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	platform.RecordAxiomAudit("agentrun.approve", ns+"/"+name, v.Phase, s.auditUser(r))
+	if len(v.Executed) > 0 {
+		platform.RecordAxiomAudit("agentrun.execute", ns+"/"+name, v.Message, s.auditUser(r))
+	}
 	EmitStateChanged("agentrun", "approve")
 	writeJSON(w, http.StatusOK, v)
 }

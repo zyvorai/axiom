@@ -113,16 +113,29 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
             }
         };
 
+        const IDLE_MS = 10 * 60 * 1000;
+        let idleTimer = null;
+        const bumpIdle = () => {
+            if (idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                term.writeln(`\r\n\x1b[33m${t("pages:podTerminal.idleTimeout")}\x1b[0m`);
+                ws.close();
+            }, IDLE_MS);
+        };
+
         ws.onopen = () => {
             sawOpen = true;
             setStatus("connected");
+            bumpIdle();
             const { cols, rows } = term;
             ws.send(`__resize__:${cols}x${rows}`);
             dataDispRef.current = term.onData((data) => {
+                bumpIdle();
                 if (ws.readyState === WebSocket.OPEN) ws.send(data);
             });
         };
         ws.onmessage = (e) => {
+            bumpIdle();
             if (e.data instanceof ArrayBuffer) {
                 const bytes = new Uint8Array(e.data);
                 try {
@@ -146,6 +159,7 @@ export default function PodTerminal({ namespace, name, containers, wsPath, label
             );
         };
         ws.onclose = (ev) => {
+            if (idleTimer) clearTimeout(idleTimer);
             setStatus("closed");
             dataDispRef.current?.dispose();
             dataDispRef.current = null;

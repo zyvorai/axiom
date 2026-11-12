@@ -102,6 +102,9 @@ func (i Integrations) applyAIPatch(p IntegrationsPatch) Integrations {
 	if p.AIRedact != nil {
 		i.AIRedactOff = !*p.AIRedact
 	}
+	if p.AgentAutoRuns != nil {
+		i.AgentAutoRuns = *p.AgentAutoRuns
+	}
 	return i
 }
 

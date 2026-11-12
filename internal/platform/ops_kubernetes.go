@@ -1136,7 +1136,7 @@ func (k *KubernetesProvider) ListGateways(ctx context.Context, ns string) ([]Gat
 	return out, nil
 }
 
-type gatewayStatusFn func(unstructured.Unstructured) (class, status string, hosts []string)
+type gatewayStatusFn func(unstructured.Unstructured) (class, controller, status string, hosts, addresses []string)
 
 func (k *KubernetesProvider) listGatewayGVR(ctx context.Context, gvrs []schema.GroupVersionResource, kind, ns string, statusFn gatewayStatusFn) []GatewaySummary {
 	for _, gvr := range gvrs {
@@ -1155,10 +1155,11 @@ func (k *KubernetesProvider) listGatewayGVR(ctx context.Context, gvrs []schema.G
 		}
 		out := make([]GatewaySummary, 0, len(list.Items))
 		for _, item := range list.Items {
-			class, status, hosts := statusFn(item)
+			class, controller, status, hosts, addresses := statusFn(item)
 			out = append(out, GatewaySummary{
 				Kind: kind, Namespace: item.GetNamespace(), Name: item.GetName(),
-				Class: class, Hosts: hosts, Status: status, Age: age(item.GetCreationTimestamp().Time),
+				Class: class, Controller: controller, Provider: gatewayProvider(controller, class),
+				Hosts: hosts, Addresses: addresses, Status: status, Age: age(item.GetCreationTimestamp().Time),
 			})
 		}
 		return out
@@ -1166,12 +1167,13 @@ func (k *KubernetesProvider) listGatewayGVR(ctx context.Context, gvrs []schema.G
 	return nil
 }
 
-func gatewayClassStatus(item unstructured.Unstructured) (string, string, []string) {
+func gatewayClassStatus(item unstructured.Unstructured) (string, string, string, []string, []string) {
+	controller, _, _ := unstructured.NestedString(item.Object, "spec", "controllerName")
 	conditions, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
-	return "", conditionStatus(conditions, "Accepted"), nil
+	return "", controller, conditionStatus(conditions, "Accepted"), nil, nil
 }
 
-func gatewayStatus(item unstructured.Unstructured) (string, string, []string) {
+func gatewayStatus(item unstructured.Unstructured) (string, string, string, []string, []string) {
 	className, _, _ := unstructured.NestedString(item.Object, "spec", "gatewayClassName")
 	listeners, _, _ := unstructured.NestedSlice(item.Object, "spec", "listeners")
 	hosts := make([]string, 0, len(listeners))
@@ -1182,11 +1184,12 @@ func gatewayStatus(item unstructured.Unstructured) (string, string, []string) {
 			}
 		}
 	}
+	addresses := gatewayAddresses(item)
 	conditions, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
-	return className, conditionStatus(conditions, "Programmed"), hosts
+	return className, "", conditionStatus(conditions, "Programmed"), hosts, addresses
 }
 
-func httpRouteStatus(item unstructured.Unstructured) (string, string, []string) {
+func httpRouteStatus(item unstructured.Unstructured) (string, string, string, []string, []string) {
 	hostnames, _, _ := unstructured.NestedStringSlice(item.Object, "spec", "hostnames")
 	parents, _, _ := unstructured.NestedSlice(item.Object, "status", "parents")
 	status := "Unknown"
@@ -1197,7 +1200,24 @@ func httpRouteStatus(item unstructured.Unstructured) (string, string, []string) 
 			}
 		}
 	}
-	return "", status, hostnames
+	return "", "", status, hostnames, nil
+}
+
+func gatewayAddresses(item unstructured.Unstructured) []string {
+	raw, _, _ := unstructured.NestedSlice(item.Object, "status", "addresses")
+	out := make([]string, 0, len(raw))
+	for _, a := range raw {
+		am, ok := a.(map[string]any)
+		if !ok {
+			continue
+		}
+		v, _ := am["value"].(string)
+		if v == "" {
+			continue
+		}
+		out = append(out, v)
+	}
+	return out
 }
 
 func conditionStatus(conditions []any, wantType string) string {

@@ -32,7 +32,8 @@
     "webhookDelivered": "Webhook zugestellt",
     "webhookTestFailed": "Webhook-Test fehlgeschlagen",
     "clusterRegistered": "Cluster {{name}} registriert",
-    "registerFailed": "Registrierung fehlgeschlagen"
+    "registerFailed": "Registrierung fehlgeschlagen",
+    "notifyCleared": "Benachrichtigungs-Webhook gelöscht"
   },
   "aiSettings": {
     "saved": "Einstellungen des KI-Assistenten gespeichert",
@@ -105,7 +106,9 @@
       "approved": "{{name}}: genehmigt",
       "denied": "{{name}}: abgelehnt",
       "approveFailed": "Genehmigen fehlgeschlagen",
-      "denyFailed": "Ablehnen fehlgeschlagen"
+      "denyFailed": "Ablehnen fehlgeschlagen",
+      "created": "Agentenlauf erstellt",
+      "createFailed": "Agentenlauf konnte nicht erstellt werden"
     },
     "rbac": {
       "roleCreated": "Role {{name}} erstellt",

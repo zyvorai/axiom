@@ -30,6 +30,7 @@ func (k *KubernetesProvider) ClusterHealth(ctx context.Context, ns string) (Heal
 		{AnalyzerPVC, k.analyzePVCs},
 		{AnalyzerIngress, k.analyzeIngresses},
 		{AnalyzerHPA, k.analyzeHPAs},
+		{AnalyzerFinalizerGhost, k.analyzeFinalizerGhosts},
 	}
 	if all {
 		// Nodes are cluster-scoped; a namespaced check does not report them.
@@ -47,6 +48,7 @@ func (k *KubernetesProvider) ClusterHealth(ctx context.Context, ns string) (Heal
 		}
 		findings = append(findings, fs...)
 	}
+	findings = append(findings, analyzeWeirdFindings(ctx, k, ns)...)
 	if len(errs) == len(analyzers) {
 		return HealthReport{}, fmt.Errorf("health check failed: %s", strings.Join(errs, "; "))
 	}
@@ -226,6 +228,16 @@ func (k *KubernetesProvider) analyzeIngresses(ctx context.Context, ns string) ([
 				}
 			}
 		}
+		epsReady := map[string]int{}
+		if eps, err := k.client.CoreV1().Endpoints(ing.Namespace).List(ctx, metav1.ListOptions{}); err == nil {
+			for _, e := range eps.Items {
+				n := 0
+				for _, s := range e.Subsets {
+					n += len(s.Addresses)
+				}
+				epsReady[e.Name] = n
+			}
+		}
 		for _, b := range backends {
 			svc, ok := svcByKey[ing.Namespace+"/"+b.Name]
 			if !ok {
@@ -243,6 +255,14 @@ func (k *KubernetesProvider) analyzeIngresses(ctx context.Context, ns string) ([
 					fmt.Sprintf("Ingress %s/%s routes to port %s of Service %q, which the Service does not expose.", ing.Namespace, ing.Name, ingressPortLabel(b.Port), b.Name),
 					"Use one of the Service's declared ports (name or number) in the Ingress backend.")
 				f.ID += "/" + b.Name
+				out = append(out, f)
+			}
+			if len(svc.Spec.Selector) > 0 && epsReady[b.Name] == 0 {
+				f := newFinding(AnalyzerIngress, SeverityCritical, "Ingress", ing.Namespace, ing.Name,
+					"Ingress backend has zero ready endpoints",
+					fmt.Sprintf("Ingress %s/%s points at Service %q which has no ready endpoints — north-south traffic fails even if the Ingress object looks fine.", ing.Namespace, ing.Name, b.Name),
+					"Fix the Service selector / pod readiness; this is a silent outage class.")
+				f.ID += "/" + b.Name + "/empty"
 				out = append(out, f)
 			}
 		}
@@ -343,6 +363,31 @@ func (k *KubernetesProvider) analyzeNodes(ctx context.Context) ([]HealthFinding,
 			conds = append(conds, NodeCondition{Type: string(c.Type), Status: string(c.Status), Reason: c.Reason, Message: c.Message})
 		}
 		out = append(out, nodeFindings(Node{Name: n.Name, Conditions: conds})...)
+	}
+	return out, nil
+}
+
+func (k *KubernetesProvider) analyzeFinalizerGhosts(ctx context.Context, ns string) ([]HealthFinding, error) {
+	pods, err := k.client.CoreV1().Pods(nsSelector(ns)).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var out []HealthFinding
+	cutoff := time.Now().Add(-15 * time.Minute)
+	for _, p := range pods.Items {
+		if p.DeletionTimestamp == nil || p.DeletionTimestamp.IsZero() {
+			continue
+		}
+		if p.DeletionTimestamp.After(cutoff) {
+			continue
+		}
+		if len(p.Finalizers) == 0 {
+			continue
+		}
+		out = append(out, newFinding(AnalyzerFinalizerGhost, SeverityWarning, "Pod", p.Namespace, p.Name,
+			"Finalizer ghost",
+			fmt.Sprintf("Pod %s/%s has been Terminating since %s with finalizers %v.", p.Namespace, p.Name, p.DeletionTimestamp.Format(time.RFC3339), p.Finalizers),
+			"Confirm the owning controller is healthy; only then clear stuck finalizers."))
 	}
 	return out, nil
 }

@@ -41,6 +41,8 @@ type Integrations struct {
 	AIModel     string `json:"aiModel"`
 	AIAPIKey    string `json:"aiApiKey,omitempty"`
 	AIRedactOff bool   `json:"aiRedactOff"`
+	// AgentAutoRuns creates ProposeOnly agent runs from Warning/CrashLoop signals (off by default).
+	AgentAutoRuns bool `json:"agentAutoRuns"`
 
 	// Actual-bill reconciliation (EXPERIMENTAL, see billing.go). Credentials
 	// (AWS access key pair, Azure client secret, GCP service-account key) live
@@ -90,13 +92,14 @@ type IntegrationsView struct {
 	NotifyOnWarnings   bool `json:"notifyOnWarnings"`
 	NotifyConfigured   bool `json:"notifyConfigured"`
 
-	AIEnabled    bool   `json:"aiEnabled"`
-	AIProvider   string `json:"aiProvider"`
-	AIBaseURL    string `json:"aiBaseUrl"`
-	AIModel      string `json:"aiModel"`
-	AIAPIKeySet  bool   `json:"aiApiKeySet"`
-	AIRedact     bool   `json:"aiRedact"`
-	AIConfigured bool   `json:"aiConfigured"`
+	AIEnabled     bool   `json:"aiEnabled"`
+	AIProvider    string `json:"aiProvider"`
+	AIBaseURL     string `json:"aiBaseUrl"`
+	AIModel       string `json:"aiModel"`
+	AIAPIKeySet   bool   `json:"aiApiKeySet"`
+	AIRedact      bool   `json:"aiRedact"`
+	AIConfigured  bool   `json:"aiConfigured"`
+	AgentAutoRuns bool   `json:"agentAutoRuns"`
 
 	BillingProvider                string `json:"billingProvider"`
 	BillingTagKey                  string `json:"billingTagKey"`
@@ -144,13 +147,14 @@ func (i Integrations) View() IntegrationsView {
 		NotifyOnWarnings:   i.NotifyOnWarnings,
 		NotifyConfigured:   strings.TrimSpace(i.SlackWebhookURL) != "" || strings.TrimSpace(i.AlertWebhookURL) != "",
 
-		AIEnabled:    i.AIEnabled,
-		AIProvider:   i.aiProviderOrDefault(),
-		AIBaseURL:    i.AIBaseURL,
-		AIModel:      i.AIModel,
-		AIAPIKeySet:  strings.TrimSpace(i.AIAPIKey) != "",
-		AIRedact:     !i.AIRedactOff,
-		AIConfigured: i.aiConfigured(),
+		AIEnabled:     i.AIEnabled,
+		AIProvider:    i.aiProviderOrDefault(),
+		AIBaseURL:     i.AIBaseURL,
+		AIModel:       i.AIModel,
+		AIAPIKeySet:   strings.TrimSpace(i.AIAPIKey) != "",
+		AIRedact:      !i.AIRedactOff,
+		AIConfigured:  i.aiConfigured(),
+		AgentAutoRuns: i.AgentAutoRuns,
 	})
 }
 
@@ -214,13 +218,14 @@ type IntegrationsPatch struct {
 	AlertWebhookURLClear bool    `json:"alertWebhookUrlClear"`
 	NotifyOnWarnings     *bool   `json:"notifyOnWarnings"`
 
-	AIEnabled     *bool   `json:"aiEnabled"`
-	AIProvider    *string `json:"aiProvider"`
-	AIBaseURL     *string `json:"aiBaseUrl"`
-	AIModel       *string `json:"aiModel"`
-	AIAPIKey      *string `json:"aiApiKey"`
-	AIAPIKeyClear bool    `json:"aiApiKeyClear"`
-	AIRedact      *bool   `json:"aiRedact"`
+	AIEnabled      *bool   `json:"aiEnabled"`
+	AIProvider     *string `json:"aiProvider"`
+	AIBaseURL      *string `json:"aiBaseUrl"`
+	AIModel        *string `json:"aiModel"`
+	AIAPIKey       *string `json:"aiApiKey"`
+	AIAPIKeyClear  bool    `json:"aiApiKeyClear"`
+	AIRedact       *bool   `json:"aiRedact"`
+	AgentAutoRuns  *bool   `json:"agentAutoRuns"`
 
 	BillingProvider                  *string `json:"billingProvider"`
 	BillingTagKey                    *string `json:"billingTagKey"`

@@ -30,12 +30,16 @@ const (
 	AnalyzerIngress         = "ingress-backend"
 	AnalyzerHPA             = "hpa"
 	AnalyzerNodePressure    = "node-pressure"
+	AnalyzerFinalizerGhost  = "finalizer-ghost"
+	AnalyzerImageFloat      = "image-float"
+	AnalyzerHPAThrash       = "hpa-thrash"
 )
 
 // HealthAnalyzers lists every analyzer a report covers, in display order.
 var HealthAnalyzers = []string{
 	AnalyzerPodStatus, AnalyzerServiceEndpoint, AnalyzerPVC,
 	AnalyzerIngress, AnalyzerHPA, AnalyzerNodePressure,
+	AnalyzerFinalizerGhost, AnalyzerImageFloat, AnalyzerHPAThrash,
 }
 
 // HealthFinding is one problem the health check found.

@@ -107,10 +107,28 @@ func TimelineFromAudit(a AuditEntry) TimelineEntry {
 		sev = SeverityWarning
 	}
 	summary := a.Action
-	if a.Target != "" {
-		summary += " " + a.Target
+	// Operator presence (“who poked it”): keep stable action prefixes tests/UI match on.
+	switch a.Action {
+	case "pod.terminal":
+		summary = "pod.terminal " + a.Target + " — operator opened terminal"
+		sev = SeverityInfo
+	case "pod.window":
+		summary = "pod.window " + a.Target + " — operator opened pod window"
+		sev = SeverityInfo
+	case "pod.exec":
+		// Detail (command) is intentionally omitted from the summary elsewhere;
+		// keep the "pod.exec " prefix and never append Detail for this action.
+		summary = "pod.exec " + a.Target
+	case "workload.seal.receipt":
+		summary = "workload.seal.receipt " + a.Target
+	case "node.shell":
+		summary = "node.shell " + a.Target + " — operator opened node shell"
+	default:
+		if a.Target != "" {
+			summary += " " + a.Target
+		}
 	}
-	if a.Detail != "" {
+	if a.Detail != "" && a.Action != "pod.exec" {
 		summary += " (" + a.Detail + ")"
 	}
 	return TimelineEntry{Time: a.Time, Source: TimelineAudit, Severity: sev, Namespace: ns, Object: object, Summary: summary, Actor: a.User}

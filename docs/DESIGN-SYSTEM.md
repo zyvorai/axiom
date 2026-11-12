@@ -96,7 +96,7 @@ Sidebar order:
 | Platform Intents | `/platform-intents` | Read-only, populated by the Intent launch flow |
 | Networking · Cilium | `/networking` | Service graph + live PacketWolf panel |
 | Services | `/services` | |
-| Ingresses | `/ingresses` | Hosts, class, TLS, address — OpenShift-Route equivalent, plus a Gateway API section |
+| Ingresses | `/ingresses` | Legacy Ingress + Gateway API (Envoy Gateway preferred; Ingress NGINX retiring) |
 | Namespaces | `/namespaces` | Create/delete |
 | Virtual Machines | `/vms` | KubeVirt lifecycle + data-protection tabs |
 | Storage | `/storage` | PVCs grouped by StorageClass |

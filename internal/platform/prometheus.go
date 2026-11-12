@@ -321,3 +321,114 @@ func (p promUsageSource) usage(ctx context.Context, namespace, window string) ([
 	}
 	return out, nil
 }
+
+// MetricHistoryPoint is one sample in a range query series.
+type MetricHistoryPoint struct {
+	T float64 `json:"t"`
+	V float64 `json:"v"`
+}
+
+// MetricHistorySeries is one named series from Prometheus.
+type MetricHistorySeries struct {
+	Name   string               `json:"name"`
+	Points []MetricHistoryPoint `json:"points"`
+}
+
+// MetricHistory is GET /api/v1/metrics/history.
+type MetricHistory struct {
+	Available bool                  `json:"available"`
+	Window    string                `json:"window,omitempty"`
+	Series    []MetricHistorySeries `json:"series,omitempty"`
+	Note      string                `json:"note,omitempty"`
+}
+
+// QueryRange runs a Prometheus range query. Step defaults to 60s.
+func (c *PrometheusClient) QueryRange(ctx context.Context, promql string, start, end time.Time, step time.Duration) ([]MetricHistorySeries, error) {
+	if c == nil {
+		return nil, promErrorf("Prometheus is not configured")
+	}
+	if step <= 0 {
+		step = 60 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+	u := *c.base
+	u.Path = c.base.Path + "/api/v1/query_range"
+	u.RawQuery = url.Values{
+		"query": {promql},
+		"start": {strconv.FormatInt(start.Unix(), 10)},
+		"end":   {strconv.FormatInt(end.Unix(), 10)},
+		"step":  {strconv.FormatInt(int64(step.Seconds()), 10)},
+	}.Encode()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, promErrorf("could not build the Prometheus request")
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "zyvor-axiom")
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, promErrorf("Prometheus is unreachable")
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBytes+1))
+	if err != nil {
+		return nil, promErrorf("reading the Prometheus response failed")
+	}
+	if int64(len(body)) > c.maxBytes {
+		return nil, promErrorf("Prometheus response exceeds %d MiB", c.maxBytes>>20)
+	}
+	var parsed struct {
+		Status string `json:"status"`
+		Data   struct {
+			ResultType string `json:"resultType"`
+			Result     []struct {
+				Metric map[string]string `json:"metric"`
+				Values [][]any           `json:"values"`
+			} `json:"result"`
+		} `json:"data"`
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, promErrorf("Prometheus returned HTTP %d", resp.StatusCode)
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil || parsed.Status != "success" {
+		return nil, promErrorf("Prometheus returned a malformed response")
+	}
+	out := make([]MetricHistorySeries, 0, len(parsed.Data.Result))
+	for _, r := range parsed.Data.Result {
+		name := r.Metric["pod"]
+		if c := r.Metric["container"]; c != "" {
+			name = name + "/" + c
+		}
+		if name == "" {
+			name = r.Metric["__name__"]
+		}
+		pts := make([]MetricHistoryPoint, 0, len(r.Values))
+		for _, pair := range r.Values {
+			if len(pair) != 2 {
+				continue
+			}
+			var ts float64
+			switch t := pair[0].(type) {
+			case float64:
+				ts = t
+			case json.Number:
+				ts, _ = t.Float64()
+			}
+			s, ok := pair[1].(string)
+			if !ok {
+				continue
+			}
+			v, err := strconv.ParseFloat(s, 64)
+			if err != nil || math.IsNaN(v) || math.IsInf(v, 0) {
+				continue
+			}
+			pts = append(pts, MetricHistoryPoint{T: ts, V: v})
+		}
+		out = append(out, MetricHistorySeries{Name: name, Points: pts})
+	}
+	return out, nil
+}

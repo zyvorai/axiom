@@ -86,6 +86,15 @@ func (d *DemoProvider) ClusterHealth(ctx context.Context, ns string) (HealthRepo
 		}
 	}
 
+	findings = append(findings, analyzeWeirdFindings(ctx, d, ns)...)
+	// Demo finalizer ghost: pretend a stuck Terminating namespace object via a sealed leftover name.
+	if all || ns == "observability" || ns == "" {
+		findings = append(findings, newFinding(AnalyzerFinalizerGhost, SeverityWarning, "Pod", "observability", "otel-collector-ghost",
+			"Finalizer ghost",
+			"Demo object observability/otel-collector-ghost has been Terminating with finalizers for >15m.",
+			"Inspect finalizers on the object; remove stuck finalizers only after confirming the owning controller is gone."))
+	}
+
 	return NewHealthReport(ns, findings, nil, time.Now()), nil
 }
 

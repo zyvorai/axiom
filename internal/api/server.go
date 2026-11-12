@@ -220,6 +220,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/intent/parse", s.parseIntent)
 	mux.HandleFunc("POST /api/v1/intent/place", s.placeIntent)
 	mux.HandleFunc("GET /api/v1/workloads/{namespace}/{kind}/{name}/still", s.stillPreview)
+	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/still", s.stillExecute)
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/seal", s.sealWorkload)
 	mux.HandleFunc("POST /api/v1/workloads/{namespace}/{kind}/{name}/unseal", s.unsealWorkload)
 	mux.HandleFunc("GET /api/v1/pods/{namespace}/{name}/window/{port}/", s.podWindow)
@@ -295,6 +296,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/priorityclasses", s.listPriorityClasses)
 	mux.HandleFunc("GET /api/v1/persistentvolumes", s.listPersistentVolumes)
 	mux.HandleFunc("GET /api/v1/gateways", s.listGateways)
+	mux.HandleFunc("GET /api/v1/accelerators", s.listAccelerators)
 	mux.HandleFunc("GET /api/v1/backups", s.listBackups)
 	mux.HandleFunc("POST /api/v1/backups", s.createBackup)
 	mux.HandleFunc("POST /api/v1/backups/restore", s.restoreBackup)
@@ -328,6 +330,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/rbac/rolebindings", s.createRoleBinding)
 	mux.HandleFunc("DELETE /api/v1/rbac/rolebindings/{namespace}/{name}", s.deleteRoleBinding)
 	mux.HandleFunc("GET /api/v1/cost", s.cost)
+	mux.HandleFunc("GET /api/v1/metrics/history", s.metricsHistory)
+	s.registerAlertmanager(mux)
+	s.registerUpgradeRisk(mux)
 	mux.HandleFunc("POST /api/v1/validate", s.validateManifest)
 	mux.HandleFunc("GET /api/v1/vms/{namespace}/{name}/console", s.vmConsole)
 	mux.HandleFunc("GET /api/v1/vms/{namespace}/{name}/vnc", s.vmVNC)
@@ -338,6 +343,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/agent-runs/{namespace}/{name}/approve", s.approveAgentRun)
 	mux.HandleFunc("POST /api/v1/agent-runs/{namespace}/{name}/deny", s.denyAgentRun)
 	mux.HandleFunc("GET /api/v1/platform-intents", s.listPlatformIntents)
+	s.registerMCP(mux)
 	mux.HandleFunc("GET /api/v1/haven/identity", s.havenIdentity)
 	mux.HandleFunc("GET /api/v1/haven/planes", s.listIdentityPlanes)
 	mux.HandleFunc("GET /api/v1/haven/admin", s.havenAdmin)
@@ -824,12 +830,41 @@ func (s *Server) stillPreview(w http.ResponseWriter, r *http.Request) {
 	respond(w, v, err)
 }
 
+func (s *Server) stillExecute(w http.ResponseWriter, r *http.Request) {
+	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	action := platform.StillAction(r.URL.Query().Get("action"))
+	if action == "" {
+		var body struct {
+			Action string `json:"action"`
+		}
+		_ = decode(r, &body)
+		action = platform.StillAction(body.Action)
+	}
+	if action == "" {
+		fail(w, 400, fmt.Errorf("action is required (hush, sleep, seal, end)"))
+		return
+	}
+	preview, _ := platform.StillPreview(r.Context(), s.provider, ns, kind, name, action, "")
+	err := platform.StillExecute(r.Context(), s.provider, ns, kind, name, action)
+	if err == nil {
+		detail := fmt.Sprintf("sessions=%d windows=%d replicas=%d atlas=%d", preview.Sessions, preview.Windows, preview.Replicas, len(preview.Atlas))
+		platform.RecordAxiomAudit("workload.still."+string(action), ns+"/"+kind+"/"+name, detail, s.auditUser(r))
+		EmitStateChanged("workload", "still")
+		if action == platform.StillSeal || action == platform.StillHush {
+			s.recordSealReceipt(r, ns, kind, name, "still:"+string(action))
+		}
+	}
+	respondAction(w, err)
+}
+
 func (s *Server) sealWorkload(w http.ResponseWriter, r *http.Request) {
 	ns, kind, name := r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name")
+	before := s.networkGuardFlows(r.Context(), ns, kind, name)
 	err := s.provider.SealWorkload(r.Context(), ns, kind, name)
 	if err == nil {
-		platform.RecordAxiomAudit("workload.seal", ns+"/"+kind+"/"+name, "", s.auditUser(r))
+		platform.RecordAxiomAudit("workload.seal", ns+"/"+kind+"/"+name, fmt.Sprintf("flowsBefore=%d", before), s.auditUser(r))
 		EmitStateChanged("workload", "seal")
+		s.recordSealReceipt(r, ns, kind, name, "seal")
 	}
 	respondAction(w, err)
 }

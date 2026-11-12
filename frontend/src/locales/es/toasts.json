@@ -32,7 +32,8 @@
     "webhookDelivered": "Webhook entregado",
     "webhookTestFailed": "Error en la prueba del webhook",
     "clusterRegistered": "Clúster {{name}} registrado",
-    "registerFailed": "Error al registrar"
+    "registerFailed": "Error al registrar",
+    "notifyCleared": "Webhook de notificación borrado"
   },
   "aiSettings": {
     "saved": "Ajustes del asistente de IA guardados",
@@ -105,7 +106,9 @@
       "approved": "{{name}}: aprobado",
       "denied": "{{name}}: rechazado",
       "approveFailed": "Error al aprobar",
-      "denyFailed": "Error al rechazar"
+      "denyFailed": "Error al rechazar",
+      "created": "Ejecución de agente creada",
+      "createFailed": "No se pudo crear la ejecución"
     },
     "rbac": {
       "roleCreated": "Role {{name}} creado",

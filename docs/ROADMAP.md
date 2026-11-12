@@ -108,15 +108,39 @@ are theirs, not ours.
 | UX | Global namespace selector, URL-synced and saved filters, keyboard shortcuts (`?` for help), system theme, in-app notification inbox | Headlamp, k9s, Lens |
 | Change safety | Review a YAML diff (dry-run server-side apply) before Apply, with a warning when another tool (Argo CD, Flux, Helm) owns fields | Argo CD diff, Lens |
 | Understanding | Resource relationship graph per workload (owner chain, Services, Ingress, HPA, volumes) | Octant, Headlamp map, k9s xray |
+| North-south | Envoy Gateway via Gateway API (`expose.type=Gateway`, Ingresses UI provider=envoy) | Ingress NGINX → Envoy migration |
 | Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
 | Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views | Rancher/NeuVector, Lens Security Center |
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
 
+## Shipped in 0.14.x (Unreleased pack)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Accelerators | NVIDIA GPU inventory, Operator/DCGM health, quotas, scheduling issues, Ops Accelerators + GPU cost | Portainer GPU, OpenShift DCGM overview |
+| Still theatre | Blast preview with live terminals/windows; hush/seal/sleep/end; PacketWolf seal receipt | — (Axiom-native) |
+| Weird findings | Finalizer ghosts, image-tag float, HPA thrash, Ingress empty backends | Radar/k8sgpt-class, rare in consoles |
+| Sealed search | Fleet `sealed:` cross-cluster isolated twins | — |
+
+## Shipped in 0.14.0
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Agentic ops | Built-in investigate → ProposeOnly plan → approve/deny → allowlisted apply; ConfigMap store when AgentRun CRD is absent; CR path when present | OpenShift Lightspeed agentic runs (TP) |
+| Agent UI | Create run in Ops → Agents; Run agent from Pod, health findings and Warning events; plan/actions/executed detail | OpenShift Agentic Runs UI |
+| Auto runs | Optional Warning/CrashLoop → ProposeOnly run (Settings → AI, off by default) | Lightspeed alert-triggered investigation |
+| MCP | Authenticated JSON-RPC MCP at `/api/v1/mcp` (list/diagnose/health/create_agent_run + nodes/workloads/alerts/upgrade_risk) | OpenShift MCP gateway (read-only + ProposeOnly) |
+| Metrics | Prometheus history charts on Pod, Node, Workload detail (`AXIOM_PROMETHEUS_URL`) | OpenShift/Lens charts |
+| Alertmanager | Firing alerts + silence CRUD (`AXIOM_ALERTMANAGER_URL`); Run agent from Alerts | OpenShift alerting / silences |
+| Upgrade risk | Lite readiness report on Health check + ProposeOnly agent run | Lightspeed update-risk (lite) |
+| VM console | Embedded noVNC against the existing VNC websocket proxy | OpenShift/KubeVirt console |
+| Notifications | Clear Slack / alert webhook URLs from Settings | — |
+
 ## Next
 
-Deliberately left for later, with the reason:
-
+- **MCP write tools / ephemeral RBAC sandbox** for agent execution (OpenShift-style short-lived privileges)
+- **Deeper agentic cluster-upgrade planner** (beyond the lite assessor)
 - **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
 
 ## Not planned

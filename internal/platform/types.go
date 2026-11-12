@@ -108,10 +108,86 @@ type Pod struct {
 	Floor         string               `json:"floor,omitempty"`
 	CPULimit      string               `json:"cpuLimit,omitempty"`
 	MemLimit      string               `json:"memLimit,omitempty"`
+	GPU           string               `json:"gpu,omitempty"` // nvidia.com/gpu request (or MIG)
 	QOS           string               `json:"qos,omitempty"`
 	Image         string               `json:"image,omitempty"`
 	Intent        string               `json:"intent,omitempty"`
 	Sealed        bool                 `json:"sealed,omitempty"`
+	Message       string               `json:"message,omitempty"` // e.g. FailedScheduling reason
+}
+
+// AcceleratorsReport is GET /api/v1/accelerators — NVIDIA GPU inventory.
+type AcceleratorsReport struct {
+	Provider string               `json:"provider"` // nvidia | none
+	Status   string               `json:"status"`   // ready | degraded | missing
+	Summary  string               `json:"summary"`
+	Operator AcceleratorsOperator `json:"operator"`
+	Nodes    []AcceleratorNode    `json:"nodes"`
+	Pods     []AcceleratorPod     `json:"pods"`
+	Quotas   []AcceleratorQuota   `json:"quotas,omitempty"`
+	DRA      *AcceleratorsDRA     `json:"dra,omitempty"`
+	Metrics  *AcceleratorsMetrics `json:"metrics,omitempty"`
+	Counts   map[string]int       `json:"counts"`
+}
+
+type AcceleratorsOperator struct {
+	GPUOperator   bool   `json:"gpuOperator"`
+	DevicePlugin  bool   `json:"devicePlugin"`
+	DCGMExporter  bool   `json:"dcgmExporter"`
+	ClusterPolicy string `json:"clusterPolicy,omitempty"`
+	GPUCluster    string `json:"gpuCluster,omitempty"` // DRA path (v26.7+); mutually exclusive with ClusterPolicy
+	State         string `json:"state,omitempty"`      // ClusterPolicy/GPUCluster status.state when known
+	Note          string `json:"note,omitempty"`
+}
+
+type AcceleratorNode struct {
+	Name             string            `json:"name"`
+	Status           string            `json:"status"`
+	GPU              string            `json:"gpu,omitempty"`
+	AllocatableGPU   string            `json:"allocatableGpu,omitempty"`
+	Product          string            `json:"product,omitempty"`
+	Driver           string            `json:"driver,omitempty"`
+	SharingStrategy  string            `json:"sharingStrategy,omitempty"` // none | time-slicing | mps
+	Replicas         string            `json:"replicas,omitempty"`        // GFD nvidia.com/gpu.replicas
+	MIGConfig        string            `json:"migConfig,omitempty"`
+	MIGConfigState   string            `json:"migConfigState,omitempty"`
+	MIG              map[string]string `json:"mig,omitempty"`
+	Unschedulable    bool              `json:"unschedulable,omitempty"`
+}
+
+type AcceleratorPod struct {
+	Namespace       string `json:"namespace"`
+	Name            string `json:"name"`
+	Node            string `json:"node,omitempty"`
+	GPU             string `json:"gpu,omitempty"`
+	Status          string `json:"status"`
+	Image           string `json:"image,omitempty"`
+	SchedulingIssue string `json:"schedulingIssue,omitempty"`
+}
+
+// AcceleratorQuota is a ResourceQuota slice limited to nvidia.com GPU keys.
+type AcceleratorQuota struct {
+	Namespace string            `json:"namespace"`
+	Name      string            `json:"name"`
+	Hard      map[string]string `json:"hard"`
+	Used      map[string]string `json:"used"`
+}
+
+// AcceleratorsDRA is a read-only inventory of resource.k8s.io objects when present.
+type AcceleratorsDRA struct {
+	Available      bool   `json:"available"`
+	DeviceClasses  int    `json:"deviceClasses"`
+	ResourceSlices int    `json:"resourceSlices"`
+	ResourceClaims int    `json:"resourceClaims"`
+	Note           string `json:"note,omitempty"`
+}
+
+// AcceleratorsMetrics is an optional DCGM snapshot (when Prometheus is configured).
+type AcceleratorsMetrics struct {
+	Available bool    `json:"available"`
+	GPUUtil   float64 `json:"gpuUtil,omitempty"`   // 0–100 average when known
+	IdleHint  string  `json:"idleHint,omitempty"` // requested-vs-util note
+	Note      string  `json:"note,omitempty"`
 }
 
 type PodPort struct {
@@ -197,13 +273,23 @@ type Node struct {
 	AllocatableCPU    string          `json:"allocatableCpu,omitempty"`
 	AllocatableMemory string          `json:"allocatableMemory,omitempty"`
 	AllocatablePods   string          `json:"allocatablePods,omitempty"`
-	OSImage           string          `json:"osImage,omitempty"`
-	KernelVersion     string          `json:"kernelVersion,omitempty"`
-	ContainerRuntime  string          `json:"containerRuntime,omitempty"`
-	Conditions        []NodeCondition `json:"conditions,omitempty"`
-	Taints            []TaintSummary  `json:"taints,omitempty"`
-	Unschedulable     bool            `json:"unschedulable,omitempty"`
-	Age               string          `json:"age"`
+	// GPU / AllocatableGPU are nvidia.com/gpu Capacity / Allocatable (e.g. "4").
+	GPU              string            `json:"gpu,omitempty"`
+	AllocatableGPU   string            `json:"allocatableGpu,omitempty"`
+	GPUProduct       string            `json:"gpuProduct,omitempty"` // nvidia.com/gpu.product
+	GPUDriver        string            `json:"gpuDriver,omitempty"`
+	SharingStrategy  string            `json:"sharingStrategy,omitempty"` // none | time-slicing | mps
+	GPUReplicas      string            `json:"gpuReplicas,omitempty"`     // GFD nvidia.com/gpu.replicas
+	MIGConfig        string            `json:"migConfig,omitempty"`
+	MIGConfigState   string            `json:"migConfigState,omitempty"`
+	MIG              map[string]string `json:"mig,omitempty"` // nvidia.com/mig-* → quantity
+	OSImage          string            `json:"osImage,omitempty"`
+	KernelVersion    string            `json:"kernelVersion,omitempty"`
+	ContainerRuntime string            `json:"containerRuntime,omitempty"`
+	Conditions       []NodeCondition   `json:"conditions,omitempty"`
+	Taints           []TaintSummary    `json:"taints,omitempty"`
+	Unschedulable    bool              `json:"unschedulable,omitempty"`
+	Age              string            `json:"age"`
 }
 
 type RolloutRevision struct {
@@ -678,7 +764,10 @@ type CostBreakdown struct {
 	MemoryUSD  *float64 `json:"memoryUsd,omitempty"`
 	StorageUSD *float64 `json:"storageUsd,omitempty"`
 	NetworkUSD *float64 `json:"networkUsd,omitempty"`
-	// OtherUSD is GPU, load balancer, shared and external cost.
+	// GPUUSD is OpenCost gpuCost (+ adjustment), when present.
+	GPUUSD *float64 `json:"gpuUsd,omitempty"`
+	// OtherUSD is residual cost (load balancer, shared, external, and anything
+	// else in totalCost beyond cpu/memory/storage/network/gpu).
 	OtherUSD *float64 `json:"otherUsd,omitempty"`
 }
 
@@ -977,13 +1066,16 @@ type PodDiagnosis struct {
 }
 
 type GatewaySummary struct {
-	Kind      string   `json:"kind"`
-	Namespace string   `json:"namespace,omitempty"`
-	Name      string   `json:"name"`
-	Class     string   `json:"class,omitempty"`
-	Hosts     []string `json:"hosts,omitempty"`
-	Status    string   `json:"status,omitempty"`
-	Age       string   `json:"age"`
+	Kind       string   `json:"kind"`
+	Namespace  string   `json:"namespace,omitempty"`
+	Name       string   `json:"name"`
+	Class      string   `json:"class,omitempty"`
+	Controller string   `json:"controller,omitempty"` // GatewayClass.spec.controllerName
+	Provider   string   `json:"provider,omitempty"`   // envoy | nginx | istio | other | ""
+	Hosts      []string `json:"hosts,omitempty"`
+	Addresses  []string `json:"addresses,omitempty"`
+	Status     string   `json:"status,omitempty"`
+	Age        string   `json:"age"`
 }
 
 type NodeMetricPoint struct {

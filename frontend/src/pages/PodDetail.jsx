@@ -53,6 +53,8 @@ import KvChip, { toneForKey } from "@/components/KvChip";
 import { maskEnvDisplay } from "@/lib/sensitive";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { RunAgentButton } from "@/components/RunAgentButton";
+import MetricHistoryChart from "@/components/MetricHistoryChart";
 import { AI } from "@/constants/testIds";
 
 function ExecPanel({ namespace, name, containers }) {
@@ -474,7 +476,10 @@ export default function PodDetail() {
                         <div className="text-sm font-medium">{t("pages:podDetail.notScheduled")}</div>
                         <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
                     </div>
-                    <ExplainWithAiButton testId={AI.explainPod} className="ml-auto" target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
+                    <div className="ml-auto flex items-center gap-2">
+                        <ExplainWithAiButton testId={AI.explainPod} target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
+                        <RunAgentButton target={{ namespace, kind: "pod", name, reason: diagnosis.diagnosis }} />
+                    </div>
                 </GlassCard>
             )}
             {diagnosis && diagnosis.scheduled && diagnosis.phase !== "Running" && diagnosis.phase !== "Succeeded" && (
@@ -484,9 +489,17 @@ export default function PodDetail() {
                         <div className="text-sm font-medium">{diagnosis.phase}</div>
                         <div className="mt-0.5 text-sm text-muted-foreground">{diagnosis.diagnosis}</div>
                     </div>
-                    <ExplainWithAiButton testId={AI.explainPod} className="ml-auto" target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
+                    <div className="ml-auto flex items-center gap-2">
+                        <ExplainWithAiButton testId={AI.explainPod} target={{ namespace, kind: "pod", name, label: `Pod ${namespace}/${name}` }} />
+                        <RunAgentButton target={{ namespace, kind: "pod", name, reason: diagnosis.diagnosis }} />
+                    </div>
                 </div>
             )}
+
+            <div className="card p-4">
+                <div className="mb-2 text-[11px] uppercase tracking-widest text-ink-3">{t("pages:metrics.title")}</div>
+                <MetricHistoryChart namespace={namespace} name={name} window="1h" />
+            </div>
 
             <div className="stats">
                 <FeatureTile size="compact" mono label={t("common:fields.ready")} value={pod.ready} />
@@ -498,6 +511,7 @@ export default function PodDetail() {
                 />
                 <FeatureTile size="compact" mono icon={Cpu} label={t("pages:podDetail.stats.cpuLimit")} value={pod.cpuLimit || "—"} />
                 <FeatureTile size="compact" mono icon={MemoryStick} label={t("pages:podDetail.stats.memoryLimit")} value={pod.memLimit || "—"} />
+                {pod.gpu && <FeatureTile size="compact" mono label="GPU" value={pod.gpu} />}
             </div>
 
             <Tabs defaultValue="overview">

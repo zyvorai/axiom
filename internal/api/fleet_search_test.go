@@ -49,7 +49,7 @@ func TestFleetSearchValidation(t *testing.T) {
 		{"q=" + strings.Repeat("x", 65), 400},
 		{"q=" + strings.Repeat("x", 64), 200},
 		{"q=pa", 200},
-		{"q=pay&kind=Pod", 400},
+		{"q=pay&kind=Pod", 200},
 		{"q=pay&kind=service", 200},
 		{"q=pay&kind=Workload,Namespace", 200},
 		{"q=pay&limit=0", 400},

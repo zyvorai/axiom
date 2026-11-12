@@ -4,6 +4,50 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — NVIDIA Accelerators + weird k8s feats
+- `GET /api/v1/accelerators`: GPU nodes/pods, Operator/device-plugin/DCGM, GFD sharing/MIG labels, GPU ResourceQuotas, FailedScheduling issues, optional DRA counts and DCGM util snapshot.
+- Ops → Accelerators tab; GPU columns on Nodes / Node detail / Pod detail; Cost shows `gpuUsd` + `otherUsd`.
+- Node metrics history can include DCGM GPU util (classic + `_RATIO` families).
+- Still ladder execute: `POST …/still` (hush/seal/sleep/end) with live terminal/window blast preview; Seal writes PacketWolf flow receipt to audit/Timeline.
+- Health analyzers: finalizer ghosts, mutable image tags, HPA thrash, Ingress with zero ready endpoints.
+- Fleet search `sealed:` finds network-isolated twins; agent action `seal_workload`; MCP tools `list_accelerators`, `still_preview`, `fleet_search`, `network_guard`.
+- Timeline labels operator presence (`pod.terminal` / `pod.window` / exec) as “who poked it”.
+
+### Added — Envoy Gateway (Gateway API)
+- Helm `expose.type=Gateway` creates Gateway + HTTPRoute for Envoy Gateway (`gatewayClassName` default `eg`).
+- Example manifest `deploy/k8s/envoy-gateway-example.yaml`; QUICKSTART prefers Envoy over Ingress NGINX.
+- `GET /api/v1/gateways` includes `controller`, `provider` (envoy/nginx/…), and Gateway `addresses`; Ingresses page highlights Envoy and Ingress NGINX retirement.
+
+### Changed — login, auth defaults, mTLS
+- Login page: fuller night-ops mesh background (ember/cyan aurora + grid).
+- Remote deploy defaults to `admin` / `Admin@321` (existing Secret still reused).
+- HTTPS mutual TLS by default: `AXIOM_TLS_CLIENT_CA` + `AXIOM_TLS_MTLS=require`; deploy mints `.run/mtls/admin.p12` (password `axiom`).
+
+### Added — competitive ops pack
+- Alertmanager firing alerts + silence CRUD (`/api/v1/alertmanager/*`) with Run agent from Alerts.
+- Upgrade-risk lite on Health check (`GET /api/v1/upgrade-risk`, ProposeOnly agent run).
+- MCP tools: `list_nodes`, `list_workloads`, `upgrade_risk`, `list_firing_alerts`.
+- Agent actions: `cordon_node`, `uncordon_node`, `apply_rightsizing`.
+- Prometheus history charts on Node and Workload detail (`kind=node|workload|pod`).
+- Fleet search: Pods (name/image/labels); Atlas API token field in Settings; terminal idle disconnect (10m).
+
+## [0.14.0] - 2026-11-12
+
+### Added — agentic ops (Lightspeed-class)
+- Built-in agent planner: investigate (diagnosis, events, health) → structured ProposeOnly plan → human approve/deny → allowlisted apply (`restart_pod`, `delete_pod`, `scale_workload`, `rollout_restart`, `noop`). Uses BYO LLM when AI is enabled; otherwise a deterministic plan from CrashLoop/ImagePull/scale signals.
+- Dual-path storage: AgentRun CRD when present (Axiom-owned annotation); ConfigMap `zyvor-axiom-agent-runs` when the CRD is missing so Agents works on plain k3s.
+- Ops → Agents create dialog, plan/actions/executed detail; **Run agent** from Pod detail, health findings and Warning events.
+- Optional auto runs from Warning/CrashLoop (Settings → AI → Auto agent runs, off by default).
+- Approve/Deny refuse when the run is not pending. Axiom-owned approve executes (respecting dry-run) and audits `agentrun.execute`.
+
+### Added — MCP
+- Authenticated JSON-RPC MCP at `POST /api/v1/mcp` (`GET /api/v1/mcp`, `/api/v1/mcp/tools`): `list_pods`, `list_events`, `diagnose_pod`, `cluster_health`, `list_agent_runs`, `create_agent_run`, `get_workload`.
+
+### Added — competitive GAPS batch
+- Prometheus history charts on Pod detail (`GET /api/v1/metrics/history`, needs `AXIOM_PROMETHEUS_URL`).
+- Embedded noVNC iframe for VMs when the VNC websocket proxy path is ready.
+- Clear Slack / alert webhook from Settings (`slackWebhookUrlClear` / `alertWebhookUrlClear`).
+
 ## [0.13.2] - 2026-11-05
 
 ### Changed — Website

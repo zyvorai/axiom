@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { objectHref, timelineHref } from "@/lib/troubleshoot";
 import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { RunAgentButton } from "@/components/RunAgentButton";
 import { AI } from "@/constants/testIds";
 
 // The assistant explains a Pod (kind "pod") or any other object through its
@@ -71,7 +72,10 @@ export function HealthFinding({ finding, testId, compact = false }) {
                     )}
                 </span>
                 {!compact && explainTarget(finding) && (
-                    <ExplainWithAiButton testId={AI.explainFinding} target={explainTarget(finding)} />
+                    <>
+                        <ExplainWithAiButton testId={AI.explainFinding} target={explainTarget(finding)} />
+                        <RunAgentButton target={{ ...explainTarget(finding), goal: finding.title, reason: finding.message }} />
+                    </>
                 )}
                 {!compact && (
                     <Link

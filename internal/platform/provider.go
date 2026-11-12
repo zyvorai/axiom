@@ -82,6 +82,7 @@ type Provider interface {
 	ListAgentRuns(context.Context, string) ([]AgentRun, error)
 	GetAgentRun(context.Context, string, string) (AgentRun, error)
 	CreateAgentRun(context.Context, CreateAgentRunRequest) (AgentRun, error)
+	UpdateAgentRun(context.Context, AgentRun) (AgentRun, error)
 	ApproveAgentRun(context.Context, string, string) (AgentRun, error)
 	DenyAgentRun(context.Context, string, string) (AgentRun, error)
 	ListPlatformIntents(context.Context, string) ([]PlatformIntent, error)
@@ -167,6 +168,8 @@ type Provider interface {
 	RemoveTaint(context.Context, string, string, string) error
 
 	ListGateways(context.Context, string) ([]GatewaySummary, error)
+	// ListAccelerators returns NVIDIA GPU inventory (nodes, GPU pods, operator signals).
+	ListAccelerators(context.Context) (AcceleratorsReport, error)
 
 	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
 	CreateVeleroBackup(context.Context, CreateVeleroBackupRequest) (VeleroBackup, error)

@@ -70,7 +70,7 @@ Axiom is deliberately small to run: a single Go binary with the React UI embedde
 |---|---|
 | **Run** | Deployments, StatefulSets, DaemonSets, CronJobs and Jobs. A *Run workload* wizard (form, natural-language intent, or YAML validate-and-apply), bulk restart/delete, a diff review before any Apply. |
 | **Operate** | Pods with exec, logs, evict; Nodes with cordon, uncordon, drain and taints; Autoscaling (HPA, VPA, KEDA); Quotas, Limits and PDBs. |
-| **Network** | Services, Ingresses and Gateway API, NetworkPolicy list/create/delete, and a live [PacketWolf](docs/ARCHITECTURE.md) eBPF/Cilium flow panel when configured. |
+| **Network** | Services, Ingresses and Gateway API (Envoy Gateway preferred), NetworkPolicy list/create/delete, and a live [PacketWolf](docs/ARCHITECTURE.md) eBPF/Cilium flow panel when configured. |
 | **Storage** | PVCs by StorageClass, PersistentVolumes, Backups (VolumeSnapshots and Velero), and the optional Atlas control plane. |
 | **Virtual machines** | KubeVirt lifecycle (start, stop, migrate), snapshots, clones, exports, restores. |
 | **Understand** | Health check, Timeline, Security reports, a resource graph per workload, an Access review ("who can delete Secrets here?"), and opt-in *Explain with AI* with redacted, previewed payloads. |

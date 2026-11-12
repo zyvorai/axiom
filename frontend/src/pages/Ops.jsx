@@ -9,7 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
-import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +34,7 @@ import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import GitOpsEditDialog from "@/components/GitOpsEditDialog";
 import GitOpsCredentials, { CredentialsButton } from "@/components/GitOpsRepoCreds";
 import { useAuth } from "@/lib/auth";
+import { useNamespace } from "@/lib/namespace";
 
 const TABS = [
     { key: "helm", labelKey: "pages:ops.tabs.helm", icon: Anchor },
@@ -42,6 +44,7 @@ const TABS = [
     { key: "audit", labelKey: "pages:ops.tabs.audit", icon: ScrollText },
     { key: "access", labelKey: "pages:ops.tabs.access", icon: ShieldCheck },
     { key: "webhooks", labelKey: "pages:ops.tabs.webhooks", icon: Webhook },
+    { key: "accelerators", labelKey: "pages:ops.tabs.accelerators", icon: CircuitBoard },
     { key: "cost", labelKey: "pages:ops.tabs.cost", icon: DollarSign },
 ];
 
@@ -402,7 +405,8 @@ function GitOpsTab() {
 function AgentRunRow({ r, onChanged }) {
     const { t } = useTranslation();
     const [busy, setBusy] = useState("");
-    const pending = r.approval === "Pending";
+    const [open, setOpen] = useState(false);
+    const pending = r.canApprove || r.approval === "Pending";
 
     const decide = async (action) => {
         setBusy(action);
@@ -420,10 +424,10 @@ function AgentRunRow({ r, onChanged }) {
     return (
         <div className="list-row">
             <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
+                <button type="button" className="min-w-0 text-left" onClick={() => setOpen((v) => !v)}>
                     <div className="mono text-[13.5px]">{r.name}</div>
                     <div className="mt-0.5 text-[12.5px] text-ink-3">{r.goal}</div>
-                </div>
+                </button>
                 <div className="flex shrink-0 items-center gap-2">
                     <StatusBadge status={r.phase === "Proposed" ? "Pending" : r.phase} />
                     {pending && (
@@ -457,28 +461,124 @@ function AgentRunRow({ r, onChanged }) {
                     {r.plan.summary}
                 </div>
             )}
-            <div className="mt-2 flex items-center gap-2 text-[11.5px] text-ink-3">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px] text-ink-3">
                 <span>{t("pages:ops.agents.autonomy", { value: r.autonomy })}</span>
                 <span>·</span>
-                <span>{t("pages:ops.agents.risk", { value: r.risk })}</span>
+                <span>{t("pages:ops.agents.risk", { value: r.risk || r.plan?.risk || "—" })}</span>
                 <span>·</span>
                 <span>{t("pages:ops.agents.approval", { value: r.approval })}</span>
+                {r.source && (<><span>·</span><span>{t("pages:ops.agents.source", { value: r.source })}</span></>)}
+                {r.ownedByAxiom && (<><span>·</span><span>{t("pages:ops.agents.owned")}</span></>)}
             </div>
+            {open && (
+                <div className="mt-3 space-y-2 rounded-xl border border-line bg-muted/30 p-3 text-[12.5px]">
+                    {r.plan?.rootCause && <div><span className="text-ink-3">{t("pages:ops.agents.rootCause")}: </span>{r.plan.rootCause}</div>}
+                    {(r.plan?.actions || []).map((a) => (
+                        <div key={a.id} className="flex gap-2">
+                            <code className="mono text-[11px] text-tone-link">{a.type}</code>
+                            <span>{a.description}</span>
+                        </div>
+                    ))}
+                    {(r.executed || []).length > 0 && (
+                        <div className="border-t border-line pt-2">
+                            <div className="mb-1 text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.agents.executed")}</div>
+                            {r.executed.map((e) => (
+                                <div key={e.id} className={e.ok ? "text-tone-green" : "text-tone-danger"}>
+                                    {e.type}: {e.message || (e.ok ? "ok" : "failed")}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
 
 function AgentsTab() {
     const { t } = useTranslation();
+    const { namespace: ns } = useNamespace();
     const [reload, setReload] = useState(0);
+    const [open, setOpen] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [form, setForm] = useState({ goal: "", namespace: "", kind: "Pod", name: "", dryRun: true });
     const runs = useEndpoint("/agent-runs", [reload]);
+
+    const create = async () => {
+        setBusy(true);
+        try {
+            const body = {
+                goal: form.goal,
+                namespace: form.namespace || ns || "default",
+                dryRun: !!form.dryRun,
+                source: "manual",
+            };
+            if (form.name) {
+                body.target = { kind: form.kind || "Pod", name: form.name, namespace: body.namespace, apiVersion: "v1" };
+            }
+            await api.post("/agent-runs", body);
+            toast.success(t("toasts:ops.agents.created"));
+            setOpen(false);
+            setForm({ goal: "", namespace: "", kind: "Pod", name: "", dryRun: true });
+            setReload((n) => n + 1);
+        } catch (e) {
+            toast.error(t("toasts:ops.agents.createFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
     return (
-        <div className="card p-0">
-            <Rows
-                items={runs}
-                empty={t("pages:ops.agents.empty")}
-                render={(r) => <AgentRunRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
-            />
+        <div className="stack">
+            <div className="flex justify-end">
+                <button type="button" className="btn btn-fill btn-sm" onClick={() => setOpen(true)}>
+                    <Plus size={14} /> {t("pages:ops.agents.create")}
+                </button>
+            </div>
+            <div className="card p-0">
+                <Rows
+                    items={runs}
+                    empty={t("pages:ops.agents.empty")}
+                    render={(r) => <AgentRunRow key={`${r.namespace}/${r.name}`} r={r} onChanged={() => setReload((n) => n + 1)} />}
+                />
+            </div>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="max-w-lg border-border bg-card p-4">
+                    <DialogHeader>
+                        <DialogTitle>{t("pages:ops.agents.createTitle")}</DialogTitle>
+                    </DialogHeader>
+                    <div className="stack gap-3 py-2">
+                        <div>
+                            <Label>{t("pages:ops.agents.goal")}</Label>
+                            <Textarea className="mt-1.5" rows={3} value={form.goal} onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))} placeholder={t("pages:ops.agents.goalPlaceholder")} />
+                        </div>
+                        <div className="form-row">
+                            <div>
+                                <Label>{t("pages:ops.agents.namespace")}</Label>
+                                <Input className="mt-1.5" value={form.namespace} onChange={(e) => setForm((f) => ({ ...f, namespace: e.target.value }))} placeholder={ns || "default"} />
+                            </div>
+                            <div>
+                                <Label>{t("pages:ops.agents.targetKind")}</Label>
+                                <Input className="mt-1.5" value={form.kind} onChange={(e) => setForm((f) => ({ ...f, kind: e.target.value }))} />
+                            </div>
+                            <div>
+                                <Label>{t("pages:ops.agents.targetName")}</Label>
+                                <Input className="mt-1.5" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+                            </div>
+                        </div>
+                        <label className="flex items-center gap-2 text-[13px]">
+                            <input type="checkbox" checked={form.dryRun} onChange={(e) => setForm((f) => ({ ...f, dryRun: e.target.checked }))} />
+                            {t("pages:ops.agents.dryRun")}
+                        </label>
+                    </div>
+                    <DialogFooter>
+                        <button type="button" className="btn btn-line btn-sm" onClick={() => setOpen(false)}>{t("common:actions.cancel")}</button>
+                        <button type="button" className="btn btn-fill btn-sm" disabled={busy || !form.goal.trim()} onClick={create}>
+                            {busy ? t("common:actions.saving") : t("pages:ops.agents.create")}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
@@ -1029,6 +1129,9 @@ function CostTab() {
                                         {actual && (
                                             <td className="mono text-[11.5px] text-ink-3" data-testid={OPENCOST.breakdown(n.namespace)}>
                                                 cpu ${n.cpuUsd ?? 0} · mem ${n.memoryUsd ?? 0} · storage ${n.storageUsd ?? 0} · net ${n.networkUsd ?? 0}
+                                                {(n.gpuUsd != null || n.otherUsd != null) && (
+                                                    <> · gpu ${n.gpuUsd ?? 0} · other ${n.otherUsd ?? 0}</>
+                                                )}
                                             </td>
                                         )}
                                         <td className="mono num">${n.monthlyUsd}</td>
@@ -1075,6 +1178,161 @@ function CostTab() {
     );
 }
 
+function AcceleratorsTab() {
+    const { t } = useTranslation();
+    const [rep, setRep] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        const load = () =>
+            api
+                .get("/accelerators")
+                .then((r) => alive && setRep(r.data))
+                .catch(() => alive && setRep({ status: "missing", summary: t("pages:ops.accelerators.loadFailed"), nodes: [], pods: [], operator: {} }));
+        load();
+        const timer = setInterval(load, 15000);
+        return () => {
+            alive = false;
+            clearInterval(timer);
+        };
+    }, [t]);
+
+    if (!rep) return <Skeleton className="h-48 rounded-2xl" />;
+
+    const op = rep.operator || {};
+    return (
+        <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-4">
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.status")}</div>
+                    <div className="mt-1 flex items-center gap-2">
+                        <StatusBadge status={rep.status || "missing"} />
+                        <span className="mono text-[12.5px]">{rep.provider || "none"}</span>
+                    </div>
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.gpus")}</div>
+                    <div className="mt-1 mono text-lg">{rep.counts?.gpus ?? 0}</div>
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.nodes")}</div>
+                    <div className="mt-1 mono text-lg">{rep.counts?.nodes ?? 0}</div>
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.util")}</div>
+                    <div className="mt-1 mono text-lg">{rep.metrics?.available ? `${Math.round(rep.metrics.gpuUtil || 0)}%` : "—"}</div>
+                    {rep.metrics?.idleHint && <div className="mt-1 text-[11.5px] text-tone-amber">{rep.metrics.idleHint}</div>}
+                </div>
+            </div>
+
+            <div className="card p-4 text-[13px] text-ink-2">
+                <div>{rep.summary}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
+                    <span className={op.gpuOperator ? "text-tone-green" : "text-ink-3"}>GPU Operator {op.gpuOperator ? "✓" : "—"}</span>
+                    <span className={op.devicePlugin ? "text-tone-green" : "text-ink-3"}>device plugin {op.devicePlugin ? "✓" : "—"}</span>
+                    <span className={op.dcgmExporter ? "text-tone-green" : "text-ink-3"}>DCGM {op.dcgmExporter ? "✓" : "—"}</span>
+                    {op.clusterPolicy && <span className="mono">ClusterPolicy/{op.clusterPolicy}{op.state ? ` (${op.state})` : ""}</span>}
+                    {op.gpuCluster && <span className="mono">GPUCluster/{op.gpuCluster}</span>}
+                </div>
+                {op.note && <div className="mt-2 text-[12px] text-ink-3">{op.note}</div>}
+                {rep.dra?.available && (
+                    <div className="mt-2 text-[12px] text-ink-3">
+                        DRA: {rep.dra.deviceClasses} DeviceClasses · {rep.dra.resourceSlices} ResourceSlices · {rep.dra.resourceClaims} ResourceClaims
+                    </div>
+                )}
+            </div>
+
+            <div className="card p-0">
+                <div className="panel-h">{t("pages:ops.accelerators.gpuNodes")}</div>
+                <table className="tbl">
+                    <thead>
+                        <tr>
+                            <th>{t("common:fields.name")}</th>
+                            <th>{t("common:fields.status")}</th>
+                            <th>GPU</th>
+                            <th>{t("pages:ops.accelerators.product")}</th>
+                            <th>{t("pages:ops.accelerators.sharing")}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(rep.nodes || []).length === 0 && (
+                            <tr><td colSpan={5} className="text-ink-3">{t("pages:ops.accelerators.noNodes")}</td></tr>
+                        )}
+                        {(rep.nodes || []).map((n) => (
+                            <tr key={n.name}>
+                                <td className="name">
+                                    <Link to={`/nodes/${encodeURIComponent(n.name)}`} className="hover:underline">{n.name}</Link>
+                                </td>
+                                <td><StatusBadge status={n.status} /></td>
+                                <td className="mono">{n.allocatableGpu || n.gpu || "—"}{n.gpu ? ` / ${n.gpu}` : ""}</td>
+                                <td className="mono text-[12px]">{n.product || "—"}</td>
+                                <td className="mono text-[12px]">{n.sharingStrategy || "—"}{n.replicas ? ` ×${n.replicas}` : ""}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="card p-0">
+                <div className="panel-h">{t("pages:ops.accelerators.gpuWorkloads")}</div>
+                <table className="tbl">
+                    <thead>
+                        <tr>
+                            <th>{t("common:fields.namespace")}</th>
+                            <th>{t("common:fields.name")}</th>
+                            <th>GPU</th>
+                            <th>{t("common:fields.status")}</th>
+                            <th>{t("pages:ops.accelerators.scheduling")}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(rep.pods || []).length === 0 && (
+                            <tr><td colSpan={5} className="text-ink-3">{t("pages:ops.accelerators.noPods")}</td></tr>
+                        )}
+                        {(rep.pods || []).map((p) => (
+                            <tr key={`${p.namespace}/${p.name}`}>
+                                <td className="mono text-[12px]">{p.namespace}</td>
+                                <td className="name">
+                                    <Link to={`/pods/${encodeURIComponent(p.namespace)}/${encodeURIComponent(p.name)}`} className="hover:underline">{p.name}</Link>
+                                </td>
+                                <td className="mono">{p.gpu}</td>
+                                <td><StatusBadge status={p.status} /></td>
+                                <td className="text-[12px] text-tone-amber">{p.schedulingIssue || "—"}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {(rep.quotas || []).length > 0 && (
+                <div className="card p-0">
+                    <div className="panel-h">{t("pages:ops.accelerators.quotas")}</div>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("pages:ops.accelerators.hard")}</th>
+                                <th>{t("pages:ops.accelerators.used")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rep.quotas.map((q) => (
+                                <tr key={`${q.namespace}/${q.name}`}>
+                                    <td className="mono text-[12px]">{q.namespace}</td>
+                                    <td>{q.name}</td>
+                                    <td className="mono text-[11.5px]">{Object.entries(q.hard || {}).map(([k, v]) => `${k}=${v}`).join(", ")}</td>
+                                    <td className="mono text-[11.5px]">{Object.entries(q.used || {}).map(([k, v]) => `${k}=${v}`).join(", ")}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+}
+
 const PANELS = {
     helm: HelmTab,
     gitops: GitOpsTab,
@@ -1083,6 +1341,7 @@ const PANELS = {
     audit: AuditTab,
     access: RbacTab,
     webhooks: WebhooksTab,
+    accelerators: AcceleratorsTab,
     cost: CostTab,
 };
 

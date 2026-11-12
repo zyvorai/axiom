@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"log"
 	"net/http"
@@ -70,6 +71,9 @@ func main() {
 	// store is in memory, so two instances would not see each other's writes).
 	costBudgets := platform.OpenCostBudgetStore(cfg.Mode, provider)
 	platform.StartBudgetWatcher(dispatchCtx, cfg.BudgetCheckInterval, provider, costBudgets, notifier)
+	autoAgents := &platform.AgentAutoRunner{Provider: provider, Hub: hub, Demo: cfg.Mode == "demo"}
+	autoAgents.Start()
+	defer autoAgents.Stop()
 
 	auth.SetSessionTTL(cfg.SessionTTL)
 
@@ -77,6 +81,12 @@ func main() {
 		log.Printf("rightsizing: Prometheus disabled: %v", err)
 	} else if prom != nil && platform.ConfigurePrometheus(provider, prom) {
 		log.Printf("rightsizing: Prometheus usage history enabled")
+	}
+	if am, err := platform.NewAlertmanagerClient(cfg.AlertmanagerURL, cfg.AlertmanagerToken); err != nil {
+		log.Printf("alertmanager: disabled: %v", err)
+	} else if am != nil {
+		platform.ConfigureAlertmanager(am)
+		log.Printf("alertmanager: silences and firing alerts enabled")
 	}
 	if oc, err := platform.NewOpenCostClient(cfg.OpenCostURL, cfg.OpenCostToken); err != nil {
 		log.Printf("cost: OpenCost disabled: %v", err)
@@ -146,20 +156,24 @@ func main() {
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some
 	// browsers mishandle wss against an h2-advertising self-signed endpoint.
+	tlsCfg, err := buildServerTLS(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	srv := &http.Server{
 		Addr:              cfg.Addr,
 		Handler:           mux,
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 		TLSNextProto:      map[string]func(*http.Server, *tls.Conn, http.Handler){},
-		TLSConfig:         &tls.Config{MinVersion: tls.VersionTLS12},
+		TLSConfig:         tlsCfg,
 	}
 	if cfg.Mode != "demo" && cfg.Username == "demo" && cfg.Password == "demo" {
 		log.Printf("WARNING: running in %q mode with the default demo/demo credentials — set AXIOM_USERNAME/AXIOM_PASSWORD (Helm: auth.username/auth.password) to something strong before exposing this console", cfg.Mode)
 	}
 	tlsEnabled := cfg.TLSCert != "" && cfg.TLSKey != ""
 	go func() {
-		log.Printf("Zyvor Axiom listening on %s mode=%s tls=%v", cfg.Addr, cfg.Mode, tlsEnabled)
+		log.Printf("Zyvor Axiom listening on %s mode=%s tls=%v mtls=%s", cfg.Addr, cfg.Mode, tlsEnabled, mtlsModeLabel(cfg, tlsCfg))
 		var err error
 		if tlsEnabled {
 			err = srv.ListenAndServeTLS(cfg.TLSCert, cfg.TLSKey)
@@ -198,4 +212,51 @@ func firstNonEmpty(a, b string) string {
 		return a
 	}
 	return b
+}
+
+// buildServerTLS returns the listener TLS config. When AXIOM_TLS_CLIENT_CA is
+// set, mutual TLS is enabled (default require; AXIOM_TLS_MTLS=request|off).
+func buildServerTLS(cfg config.Config) (*tls.Config, error) {
+	tc := &tls.Config{MinVersion: tls.VersionTLS12}
+	if cfg.TLSClientCA == "" {
+		return tc, nil
+	}
+	pem, err := os.ReadFile(cfg.TLSClientCA)
+	if err != nil {
+		return nil, err
+	}
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM(pem) {
+		return nil, errors.New("AXIOM_TLS_CLIENT_CA did not contain any certificates")
+	}
+	tc.ClientCAs = pool
+	mode := cfg.TLSMTLS
+	if mode == "" {
+		mode = "require"
+	}
+	switch mode {
+	case "require":
+		tc.ClientAuth = tls.RequireAndVerifyClientCert
+	case "request":
+		tc.ClientAuth = tls.VerifyClientCertIfGiven
+	case "off":
+		tc.ClientAuth = tls.NoClientCert
+	default:
+		return nil, errors.New(`AXIOM_TLS_MTLS must be "require", "request", or "off"`)
+	}
+	return tc, nil
+}
+
+func mtlsModeLabel(cfg config.Config, tc *tls.Config) string {
+	if cfg.TLSClientCA == "" || tc == nil {
+		return "off"
+	}
+	switch tc.ClientAuth {
+	case tls.RequireAndVerifyClientCert:
+		return "require"
+	case tls.VerifyClientCertIfGiven:
+		return "request"
+	default:
+		return "off"
+	}
 }

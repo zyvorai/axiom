@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Cpu, MemoryStick, Boxes, Server, Ban, CheckCircle2, LogOut } from "lucide-react";
+import { Cpu, MemoryStick, Boxes, Server, Ban, CheckCircle2, LogOut, CircuitBoard } from "lucide-react";
 import { NODES } from "@/constants/testIds";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -108,6 +108,15 @@ export default function Nodes() {
                                     {n.version}
                                 </b>
                             </div>
+                            {(n.gpu || n.allocatableGpu) && (
+                                <div>
+                                    <CircuitBoard size={13} /> GPU
+                                    <b>
+                                        {n.allocatableGpu || n.gpu}
+                                        {n.gpuProduct ? <small className="block truncate font-normal text-ink-3">{n.gpuProduct}</small> : null}
+                                    </b>
+                                </div>
+                            )}
                         </div>
 
                         <div className="tile-facts">

@@ -50,4 +50,54 @@ spec:
                 name: zyvor-axiom
                 port:
                   name: https
+{{- else if eq .Values.expose.type "Gateway" }}
+{{- $host := required "expose.gateway.host is required when expose.type=Gateway" .Values.expose.gateway.host }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  {{- with .Values.expose.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.expose.gateway.className | default "eg" }}
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: {{ .Values.expose.gateway.port | default 443 }}
+      hostname: {{ $host | quote }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "axiom.tlsSecretName" . }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: zyvor-axiom
+      kind: Gateway
+  hostnames:
+    - {{ $host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: zyvor-axiom
+          port: 443
 {{- end }}

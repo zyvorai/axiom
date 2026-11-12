@@ -44,7 +44,9 @@
     },
     "atlas": {
       "url": "Atlas URL",
-      "consoleUrl": "コンソール URL"
+      "consoleUrl": "コンソール URL",
+      "token": "API token",
+      "tokenSet": "API token (set — leave blank to keep)"
     },
     "postgres": {
       "host": "ホスト",
@@ -71,7 +73,10 @@
       "forwardWarnings": "Warning イベントを自動転送",
       "forwardWarningsHint": "60 秒ごとにポーリングし、新しいクラスターの Warning イベントを上記のチャネルに送信します。",
       "testSlack": "Slack をテスト",
-      "testWebhook": "Webhook をテスト"
+      "testWebhook": "Webhook をテスト",
+      "clearSlack": "Slack Webhook を削除",
+      "clearWebhook": "アラート Webhook を削除",
+      "silenceHint": "Alertmanager を Webhook に向けてください。Axiom は URL を書き込み専用で保存します。"
     },
     "apiKeyNote": "API キーによるサインインは、Axiom プロセスの <mono>AXIOM_API_KEY</mono> 環境変数で設定します。"
   },
@@ -96,7 +101,10 @@
     "providers": {
       "openaiCompatible": "OpenAI 互換",
       "ollama": "Ollama（ローカル）"
-    }
+    },
+    "agentAutoRuns": "自動エージェント実行",
+    "agentAutoRunsHint": "オンにすると Warning/CrashLoop から ProposeOnly 実行を作成し承認待ちにします。",
+    "mcpHint": "MCP <mono>/api/v1/mcp</mono> — 調査と create_agent_run 用の JSON-RPC ツール。"
   },
   "aiAssistant": {
     "explain": "AI で説明",
@@ -547,10 +555,20 @@
     "columns": {
       "class": "クラス",
       "hosts": "ホスト",
-      "address": "アドレス"
+      "address": "アドレス",
+      "provider": "Provider"
     },
     "empty": "現在のフィルターに一致する Ingress はありません。",
-    "noGateways": "Gateway API オブジェクト（GatewayClass/Gateway/HTTPRoute）が見つかりません。"
+    "noGateways": "Gateway API オブジェクト（GatewayClass/Gateway/HTTPRoute）が見つかりません。",
+    "legacyTitle": "Ingress resources",
+    "gatewayTitle": "Gateway API",
+    "envoy": {
+      "title": "Envoy Gateway",
+      "detected": "detected",
+      "notDetected": "not installed",
+      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Envoy (deep observability, gRPC/HTTP3-capable data plane). Use this instead of Ingress NGINX when migrating.",
+      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Envoy Gateway (Gateway + HTTPRoute)."
+    }
   },
   "autoTable": {
     "yes": "はい",
@@ -580,12 +598,30 @@
     "columns": {
       "warning": "警告",
       "resource": "リソース",
-      "groups": "グループ"
+      "groups": "グループ",
+      "alert": "Alert",
+      "severity": "Severity",
+      "matchers": "Matchers",
+      "ends": "Ends"
     },
     "noWarnings": "アクティブな警告はありません。",
     "ruleGroups": "アラートルールグループ",
     "groupsCount": "{{n}} 個のグループ",
-    "noRules": "アラートルールが設定されていません。"
+    "noRules": "アラートルールが設定されていません。",
+    "firingTitle": "Firing alerts",
+    "amNotConfigured": "Set AXIOM_ALERTMANAGER_URL to list firing alerts and manage silences.",
+    "noFiring": "No firing alerts.",
+    "silencesTitle": "Silences",
+    "silenceMatchers": "Matchers",
+    "silenceHours": "Hours",
+    "silenceComment": "Comment",
+    "createSilence": "Create silence",
+    "expireSilence": "Expire",
+    "noSilences": "No active silences.",
+    "silenceCreated": "Silence created",
+    "silenceExpired": "Silence expired",
+    "silenceFailed": "Silence action failed",
+    "silenceBadMatchers": "Enter matchers like alertname=\"HighCPU\""
   },
   "fleet": {
     "title": "フリート",
@@ -624,7 +660,8 @@
         "cluster": "クラスター",
         "match": "一致"
       },
-      "truncated": "{{total}} 件中最初の {{shown}} 件を表示しています — 検索条件を絞り込んでください。"
+      "truncated": "{{total}} 件中最初の {{shown}} 件を表示しています — 検索条件を絞り込んでください。",
+      "pods": "Pods"
     },
     "summary": {
       "clusters": "クラスター",
@@ -676,7 +713,10 @@
     "analyzerErrors": "一部のアナライザーを実行できなかったため、このレポートは不完全な可能性があります: {{errors}}",
     "noProblems": "問題は見つかりませんでした。",
     "noFindingsAtSeverity": "この重大度の検出結果はありません。",
-    "checkedBy": "{{n}} 個のアナライザー（{{list}}）で確認 · {{time}}"
+    "checkedBy": "{{n}} 個のアナライザー（{{list}}）で確認 · {{time}}",
+    "upgradeRisk": {
+      "title": "Upgrade readiness"
+    }
   },
   "notifications": {
     "title": "通知",
@@ -692,7 +732,7 @@
   },
   "ops": {
     "title": "運用",
-    "description": "Helm、GitOps、エージェント、ID、監査、アクセス、コスト。",
+    "description": "Helm、GitOps、エージェント、ID、監査、アクセス、コスト。, accelerators.",
     "tabs": {
       "helm": "Helm",
       "gitops": "GitOps",
@@ -701,7 +741,8 @@
       "audit": "監査",
       "access": "アクセス",
       "webhooks": "Webhook",
-      "cost": "コスト"
+      "cost": "コスト",
+      "accelerators": "Accelerators"
     },
     "results": "結果",
     "noneFound": "見つかりません。",
@@ -738,7 +779,20 @@
       "autonomy": "自律性: {{value}}",
       "risk": "リスク: {{value}}",
       "approval": "承認: {{value}}",
-      "empty": "エージェントの実行はありません。"
+      "empty": "エージェントの実行はありません。",
+      "create": "実行を作成",
+      "createTitle": "エージェント実行を作成",
+      "goal": "目標",
+      "goalPlaceholder": "Diagnose CrashLoopBackOff and propose the safest fix",
+      "namespace": "Namespace",
+      "targetKind": "対象の種類",
+      "targetName": "対象名",
+      "dryRun": "ドライラン（プレビューのみ — 承認が必要）",
+      "source": "source: {{value}}",
+      "owned": "Axiom 管理",
+      "rootCause": "根本原因",
+      "executed": "実行済み",
+      "runAgent": "エージェント実行"
     },
     "identity": {
       "planes": "ID プレーン",
@@ -814,6 +868,23 @@
       "last14d": "過去 14 日間",
       "last30d": "過去 30 日間",
       "idle": "アイドル（割り当て済み・未使用）"
+    },
+    "accelerators": {
+      "status": "Status",
+      "gpus": "GPUs",
+      "nodes": "GPU nodes",
+      "util": "GPU util",
+      "gpuNodes": "GPU nodes",
+      "gpuWorkloads": "GPU workloads",
+      "product": "Product",
+      "sharing": "Sharing",
+      "scheduling": "Scheduling",
+      "quotas": "GPU quotas",
+      "hard": "Hard",
+      "used": "Used",
+      "noNodes": "No GPU nodes detected.",
+      "noPods": "No pods requesting GPUs.",
+      "loadFailed": "Could not load accelerators."
     }
   },
   "rbac": {
@@ -1223,7 +1294,9 @@
       "hint": "ローカルで virtctl を使用するか、以下のプロキシ経由の WebSocket パスに VNC クライアントを接続してください。",
       "wsProxy": "ブラウザー WebSocket プロキシ",
       "runLocally": "ローカルで実行（kubeconfig が必要）",
-      "subresource": "Kubernetes API サブリソース"
+      "subresource": "Kubernetes API サブリソース",
+      "novncTitle": "埋め込みコンソール",
+      "novncWaiting": "VM コンソール待機中…"
     },
     "protection": {
       "new": "新規",
@@ -1284,7 +1357,8 @@
     "disconnect": "切断",
     "connecting": "接続中…",
     "connect": "接続",
-    "axiomDistroless": "Axiom コンソールのイメージは distroless のため、<code>/bin/sh</code> がありません。対話型シェルには別の Pod（例: redis/nginx）を開いてください。"
+    "axiomDistroless": "Axiom コンソールのイメージは distroless のため、<code>/bin/sh</code> がありません。対話型シェルには別の Pod（例: redis/nginx）を開いてください。",
+    "idleTimeout": "Disconnected after 10 minutes of idle time."
   },
   "nodeShell": {
     "title": "Node シェル",
@@ -1486,7 +1560,8 @@
       "scale": "スケール…",
       "rollout": "ロールアウト…",
       "seal": "シール",
-      "unseal": "シール解除"
+      "unseal": "シール解除",
+      "sleep": "Sleep"
     },
     "runWorkload": "ワークロードを実行",
     "searchPlaceholder": "名前またはイメージを検索",
@@ -1503,7 +1578,13 @@
       "description": "Deployment、StatefulSet、DaemonSet、CronJob を起動すると、ここに表示されます。",
       "action": "最初のワークロードを実行"
     },
-    "noMatches": "現在のフィルターに一致するワークロードはありません。"
+    "noMatches": "現在のフィルターに一致するワークロードはありません。",
+    "still": {
+      "title": "Seal {{name}}?",
+      "description": "{{sessions}} live terminal(s) and {{windows}} pod window(s) are open on {{replicas}} replica(s); {{atlas}} Atlas volume(s) survive isolation.",
+      "sleepTitle": "Sleep {{name}}?",
+      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s)."
+    }
   },
   "billing": {
     "experimental": "試験的",
@@ -1547,5 +1628,12 @@
       "secretSet": "設定済み — 空欄のままで保持",
       "permissions": "読み取り専用の認証情報を使用してください: AWS は ce:GetCostAndUsage、Azure はサブスクリプションの Cost Management Reader、GCP はエクスポートデータセットの BigQuery Job User と Data Viewer。"
     }
+  },
+  "metrics": {
+    "title": "メトリクス履歴",
+    "cpu": "CPU",
+    "memory": "メモリ",
+    "unavailable": "Prometheus が未設定です (AXIOM_PROMETHEUS_URL)。",
+    "gpu": "GPU util"
   }
 }

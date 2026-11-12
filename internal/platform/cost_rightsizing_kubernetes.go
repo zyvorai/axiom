@@ -28,6 +28,16 @@ func ConfigurePrometheus(provider Provider, c *PrometheusClient) bool {
 	return true
 }
 
+// PrometheusFromProvider returns the Prometheus client attached to the active
+// Kubernetes provider, or nil when unset / demo.
+func PrometheusFromProvider(provider Provider) *PrometheusClient {
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
+	if !ok || k == nil {
+		return nil
+	}
+	return k.prometheus
+}
+
 // podMetricsListFetcher reads metrics.k8s.io PodMetrics for one namespace
 // ("" = all). A variable so tests can replace the REST call.
 var podMetricsListFetcher = func(ctx context.Context, k *KubernetesProvider, namespace string) ([]byte, error) {

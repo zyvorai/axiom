@@ -32,7 +32,8 @@
     "webhookDelivered": "Webhook 已送达",
     "webhookTestFailed": "Webhook 测试失败",
     "clusterRegistered": "已注册集群 {{name}}",
-    "registerFailed": "注册失败"
+    "registerFailed": "注册失败",
+    "notifyCleared": "已清除通知 webhook"
   },
   "aiSettings": {
     "saved": "AI 助手设置已保存",
@@ -105,7 +106,9 @@
       "approved": "{{name}}：已批准",
       "denied": "{{name}}：已拒绝",
       "approveFailed": "批准失败",
-      "denyFailed": "拒绝失败"
+      "denyFailed": "拒绝失败",
+      "created": "已创建代理运行",
+      "createFailed": "无法创建代理运行"
     },
     "rbac": {
       "roleCreated": "已创建 Role {{name}}",

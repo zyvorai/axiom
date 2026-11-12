@@ -44,7 +44,9 @@
     },
     "atlas": {
       "url": "URL de Atlas",
-      "consoleUrl": "URL de la consola"
+      "consoleUrl": "URL de la consola",
+      "token": "API token",
+      "tokenSet": "API token (set — leave blank to keep)"
     },
     "postgres": {
       "host": "Host",
@@ -71,7 +73,10 @@
       "forwardWarnings": "Reenviar eventos Warning automáticamente",
       "forwardWarningsHint": "Consulta cada 60 s y envía los nuevos eventos Warning del clúster a los canales anteriores.",
       "testSlack": "Probar Slack",
-      "testWebhook": "Probar webhook"
+      "testWebhook": "Probar webhook",
+      "clearSlack": "Borrar webhook de Slack",
+      "clearWebhook": "Borrar webhook de alertas",
+      "silenceHint": "Apunte Alertmanager a su webhook; Axiom guarda la URL solo en escritura."
     },
     "apiKeyNote": "El inicio de sesión con clave de API se configura mediante la variable de entorno <mono>AXIOM_API_KEY</mono> del proceso de Axiom."
   },
@@ -96,7 +101,10 @@
     "providers": {
       "openaiCompatible": "Compatible con OpenAI",
       "ollama": "Ollama (local)"
-    }
+    },
+    "agentAutoRuns": "Ejecuciones automáticas",
+    "agentAutoRunsHint": "Si está activo, Warning/CrashLoop crean ejecuciones ProposeOnly para aprobar.",
+    "mcpHint": "MCP en <mono>/api/v1/mcp</mono> — herramientas JSON-RPC para investigar y create_agent_run."
   },
   "aiAssistant": {
     "explain": "Explicar con IA",
@@ -554,10 +562,20 @@
     "columns": {
       "class": "Clase",
       "hosts": "Hosts",
-      "address": "Dirección"
+      "address": "Dirección",
+      "provider": "Provider"
     },
     "empty": "Ningún ingress coincide con los filtros actuales.",
-    "noGateways": "No se encontraron objetos de Gateway API (GatewayClass/Gateway/HTTPRoute)."
+    "noGateways": "No se encontraron objetos de Gateway API (GatewayClass/Gateway/HTTPRoute).",
+    "legacyTitle": "Ingress resources",
+    "gatewayTitle": "Gateway API",
+    "envoy": {
+      "title": "Envoy Gateway",
+      "detected": "detected",
+      "notDetected": "not installed",
+      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Envoy (deep observability, gRPC/HTTP3-capable data plane). Use this instead of Ingress NGINX when migrating.",
+      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Envoy Gateway (Gateway + HTTPRoute)."
+    }
   },
   "autoTable": {
     "yes": "sí",
@@ -587,12 +605,30 @@
     "columns": {
       "warning": "Advertencia",
       "resource": "Recurso",
-      "groups": "Grupos"
+      "groups": "Grupos",
+      "alert": "Alert",
+      "severity": "Severity",
+      "matchers": "Matchers",
+      "ends": "Ends"
     },
     "noWarnings": "No hay advertencias activas.",
     "ruleGroups": "Grupos de reglas de alertas",
     "groupsCount": "{{n}} grupos",
-    "noRules": "No hay reglas de alertas configuradas."
+    "noRules": "No hay reglas de alertas configuradas.",
+    "firingTitle": "Firing alerts",
+    "amNotConfigured": "Set AXIOM_ALERTMANAGER_URL to list firing alerts and manage silences.",
+    "noFiring": "No firing alerts.",
+    "silencesTitle": "Silences",
+    "silenceMatchers": "Matchers",
+    "silenceHours": "Hours",
+    "silenceComment": "Comment",
+    "createSilence": "Create silence",
+    "expireSilence": "Expire",
+    "noSilences": "No active silences.",
+    "silenceCreated": "Silence created",
+    "silenceExpired": "Silence expired",
+    "silenceFailed": "Silence action failed",
+    "silenceBadMatchers": "Enter matchers like alertname=\"HighCPU\""
   },
   "fleet": {
     "title": "Flota",
@@ -632,7 +668,8 @@
         "cluster": "Clúster",
         "match": "Coincidencia"
       },
-      "truncated": "Se muestran las primeras {{shown}} de {{total}} coincidencias: acote la búsqueda."
+      "truncated": "Se muestran las primeras {{shown}} de {{total}} coincidencias: acote la búsqueda.",
+      "pods": "Pods"
     },
     "summary": {
       "clusters": "Clústeres",
@@ -684,7 +721,10 @@
     "analyzerErrors": "Algunos analizadores no se pudieron ejecutar, por lo que este informe puede estar incompleto: {{errors}}",
     "noProblems": "No se encontraron problemas.",
     "noFindingsAtSeverity": "No hay hallazgos con esta gravedad.",
-    "checkedBy": "Comprobado por {{n}} analizadores ({{list}}) · {{time}}"
+    "checkedBy": "Comprobado por {{n}} analizadores ({{list}}) · {{time}}",
+    "upgradeRisk": {
+      "title": "Upgrade readiness"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -700,7 +740,7 @@
   },
   "ops": {
     "title": "Ops",
-    "description": "Helm, GitOps, agentes, identidad, auditoría, acceso y coste.",
+    "description": "Helm, GitOps, agentes, identidad, auditoría, acceso y coste, accelerators.",
     "tabs": {
       "helm": "Helm",
       "gitops": "GitOps",
@@ -709,7 +749,8 @@
       "audit": "Auditoría",
       "access": "Acceso",
       "webhooks": "Webhooks",
-      "cost": "Coste"
+      "cost": "Coste",
+      "accelerators": "Accelerators"
     },
     "results": "Resultados",
     "noneFound": "No se encontró ninguno.",
@@ -746,7 +787,20 @@
       "autonomy": "autonomía: {{value}}",
       "risk": "riesgo: {{value}}",
       "approval": "aprobación: {{value}}",
-      "empty": "No hay ejecuciones de agentes."
+      "empty": "No hay ejecuciones de agentes.",
+      "create": "Crear ejecución",
+      "createTitle": "Crear ejecución de agente",
+      "goal": "Objetivo",
+      "goalPlaceholder": "Diagnose CrashLoopBackOff and propose the safest fix",
+      "namespace": "Namespace",
+      "targetKind": "Tipo de destino",
+      "targetName": "Nombre de destino",
+      "dryRun": "Dry run (solo vista previa — requiere aprobación)",
+      "source": "source: {{value}}",
+      "owned": "Propiedad de Axiom",
+      "rootCause": "Causa raíz",
+      "executed": "Ejecutado",
+      "runAgent": "Ejecutar agente"
     },
     "identity": {
       "planes": "Planos de identidad",
@@ -822,6 +876,23 @@
       "last14d": "Últimos 14 días",
       "last30d": "Últimos 30 días",
       "idle": "Inactivo (asignado pero sin usar)"
+    },
+    "accelerators": {
+      "status": "Status",
+      "gpus": "GPUs",
+      "nodes": "GPU nodes",
+      "util": "GPU util",
+      "gpuNodes": "GPU nodes",
+      "gpuWorkloads": "GPU workloads",
+      "product": "Product",
+      "sharing": "Sharing",
+      "scheduling": "Scheduling",
+      "quotas": "GPU quotas",
+      "hard": "Hard",
+      "used": "Used",
+      "noNodes": "No GPU nodes detected.",
+      "noPods": "No pods requesting GPUs.",
+      "loadFailed": "Could not load accelerators."
     }
   },
   "rbac": {
@@ -1233,7 +1304,9 @@
       "hint": "Use virtctl localmente o conecte un cliente VNC a la ruta WebSocket con proxy que aparece abajo.",
       "wsProxy": "Proxy WebSocket del navegador",
       "runLocally": "Ejecutar localmente (requiere kubeconfig)",
-      "subresource": "Subrecurso de la API de Kubernetes"
+      "subresource": "Subrecurso de la API de Kubernetes",
+      "novncTitle": "Consola integrada",
+      "novncWaiting": "Esperando la consola de la VM…"
     },
     "protection": {
       "new": "Nuevo",
@@ -1294,7 +1367,8 @@
     "disconnect": "Desconectar",
     "connecting": "Conectando…",
     "connect": "Conectar",
-    "axiomDistroless": "La imagen de la consola de Axiom es distroless: no tiene <code>/bin/sh</code>. Abra otro pod (p. ej., redis/nginx) para obtener un shell interactivo."
+    "axiomDistroless": "La imagen de la consola de Axiom es distroless: no tiene <code>/bin/sh</code>. Abra otro pod (p. ej., redis/nginx) para obtener un shell interactivo.",
+    "idleTimeout": "Disconnected after 10 minutes of idle time."
   },
   "nodeShell": {
     "title": "Shell del nodo",
@@ -1497,7 +1571,8 @@
       "scale": "Escalar…",
       "rollout": "Despliegue…",
       "seal": "Sellar",
-      "unseal": "Quitar sello"
+      "unseal": "Quitar sello",
+      "sleep": "Sleep"
     },
     "runWorkload": "Ejecutar carga de trabajo",
     "searchPlaceholder": "Buscar por nombre o imagen",
@@ -1514,7 +1589,13 @@
       "description": "Los Deployments, StatefulSets, DaemonSets y CronJobs aparecerán aquí una vez lanzados.",
       "action": "Ejecutar la primera carga de trabajo"
     },
-    "noMatches": "Ninguna carga de trabajo coincide con los filtros actuales."
+    "noMatches": "Ninguna carga de trabajo coincide con los filtros actuales.",
+    "still": {
+      "title": "Seal {{name}}?",
+      "description": "{{sessions}} live terminal(s) and {{windows}} pod window(s) are open on {{replicas}} replica(s); {{atlas}} Atlas volume(s) survive isolation.",
+      "sleepTitle": "Sleep {{name}}?",
+      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s)."
+    }
   },
   "billing": {
     "experimental": "Experimental",
@@ -1558,5 +1639,12 @@
       "secretSet": "Configurado: déjelo en blanco para conservarlo",
       "permissions": "Use credenciales de solo lectura: AWS ce:GetCostAndUsage; Cost Management Reader de Azure en la suscripción; BigQuery Job User y Data Viewer de GCP en el conjunto de datos de exportación."
     }
+  },
+  "metrics": {
+    "title": "Historial de métricas",
+    "cpu": "CPU",
+    "memory": "Memoria",
+    "unavailable": "Prometheus no está configurado (AXIOM_PROMETHEUS_URL).",
+    "gpu": "GPU util"
   }
 }

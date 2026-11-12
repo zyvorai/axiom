@@ -23,10 +23,11 @@ const (
 	FleetSearchWorkload  = "Workload"
 	FleetSearchService   = "Service"
 	FleetSearchNamespace = "Namespace"
+	FleetSearchPod       = "Pod"
 )
 
 // FleetSearchKinds are the valid kinds, in their default order.
-var FleetSearchKinds = []string{FleetSearchWorkload, FleetSearchService, FleetSearchNamespace}
+var FleetSearchKinds = []string{FleetSearchWorkload, FleetSearchService, FleetSearchNamespace, FleetSearchPod}
 
 const (
 	// FleetSearchMinQuery and FleetSearchMaxQuery bound the trimmed query length (in characters).
@@ -155,7 +156,13 @@ func (sp *SwitchableProvider) SearchFleet(ctx context.Context, q string, kinds [
 	for _, k := range kinds {
 		want[k] = true
 	}
+	sealedOnly := false
 	needle := strings.ToLower(q)
+	if strings.HasPrefix(needle, "sealed:") {
+		sealedOnly = true
+		needle = strings.TrimSpace(strings.TrimPrefix(needle, "sealed:"))
+		out.Query = q
+	}
 
 	targets := sp.searchTargets()
 	// A cluster that has never been probed has no state to go by; probe it
@@ -198,6 +205,9 @@ func (sp *SwitchableProvider) SearchFleet(ctx context.Context, q string, kinds [
 			defer wg.Done()
 			defer func() { <-sem }()
 			hits, err := searchCluster(ctx, t, states[t.name], needle, want)
+			if err == nil && sealedOnly {
+				hits = filterSealedHits(ctx, t.p, hits)
+			}
 			results[i] = outcome{t: t, hits: hits, err: err}
 		}(i, t)
 	}
@@ -319,6 +329,29 @@ func listClusterMatches(ctx context.Context, t fleetSearchTarget, state, needle 
 			hits = append(hits, h)
 		}
 	}
+	if want[FleetSearchPod] {
+		pods, err := t.p.ListPods(ctx, "all")
+		if err != nil {
+			return nil, fmt.Errorf("listing pods: %w", err)
+		}
+		for _, pod := range pods {
+			labelBlob := ""
+			for k, v := range pod.Labels {
+				labelBlob += " " + k + "=" + v
+			}
+			rank, ok := matchRank(needle, pod.Name, pod.Namespace, pod.Image, labelBlob)
+			if !ok {
+				continue
+			}
+			h := base
+			h.Kind, h.Namespace, h.Name, h.Status, h.rank = FleetSearchPod, pod.Namespace, pod.Name, pod.Status, rank
+			h.Detail = fmt.Sprintf("%s · %s", pod.Ready, pod.Node)
+			if pod.Image != "" {
+				h.Detail += " · " + pod.Image
+			}
+			hits = append(hits, h)
+		}
+	}
 	return hits, nil
 }
 
@@ -344,10 +377,64 @@ func serviceDetail(s Service) string {
 	return strings.Join(parts, " · ")
 }
 
+// filterSealedHits keeps workloads/pods that are network-isolated (Seal).
+// Empty needle with sealed: matches every sealed object.
+func filterSealedHits(ctx context.Context, p Provider, hits []FleetSearchHit) []FleetSearchHit {
+	if p == nil || len(hits) == 0 {
+		return hits
+	}
+	sealedWL := map[string]bool{}
+	if sw, ok := p.(SealedWorkloadsInNamespace); ok {
+		if m, err := sw.SealedWorkloads(ctx, "all"); err == nil {
+			for k, v := range m {
+				if v {
+					sealedWL[k] = true
+					// also allow ns/name lookups
+					if i := strings.LastIndex(k, "/"); i > 0 {
+						sealedWL[k[:i]] = true // may collide; preferred keys are ns/kind/name from providers
+					}
+				}
+			}
+		}
+	}
+	sealedPod := map[string]bool{}
+	if pods, err := p.ListPods(ctx, "all"); err == nil {
+		for _, pod := range pods {
+			if pod.Sealed || strings.EqualFold(pod.Status, "Sealed") {
+				sealedPod[pod.Namespace+"/"+pod.Name] = true
+				if pod.WorkloadID != "" {
+					sealedWL[pod.Namespace+"/"+pod.WorkloadID] = true
+				}
+			}
+		}
+	}
+	var out []FleetSearchHit
+	for _, h := range hits {
+		switch h.Kind {
+		case FleetSearchWorkload:
+			key := h.Namespace + "/" + h.Name
+			keyKind := h.Namespace + "/" + strings.ToLower(h.WorkloadKind) + "/" + h.Name
+			if sealedWL[key] || sealedWL[keyKind] || strings.EqualFold(h.Status, "Sealed") {
+				h.Detail = "sealed · " + h.Detail
+				out = append(out, h)
+			}
+		case FleetSearchPod:
+			if sealedPod[h.Namespace+"/"+h.Name] || strings.EqualFold(h.Status, "Sealed") {
+				h.Detail = "sealed · " + h.Detail
+				out = append(out, h)
+			}
+		}
+	}
+	return out
+}
+
 // matchRank reports whether needle (lower-case) matches name or any of the
 // other fields, and how well: 0 exact name, 1 name prefix, 2 name contains,
 // 3 another field contains.
 func matchRank(needle, name string, others ...string) (int, bool) {
+	if needle == "" {
+		return 3, true // sealed: alone lists all sealed hits
+	}
 	n := strings.ToLower(name)
 	switch {
 	case n == needle:
@@ -365,7 +452,7 @@ func matchRank(needle, name string, others ...string) (int, bool) {
 	return 0, false
 }
 
-var fleetKindOrder = map[string]int{FleetSearchWorkload: 0, FleetSearchService: 1, FleetSearchNamespace: 2}
+var fleetKindOrder = map[string]int{FleetSearchWorkload: 0, FleetSearchPod: 1, FleetSearchService: 2, FleetSearchNamespace: 3}
 
 func sortFleetHits(h []FleetSearchHit) {
 	sort.SliceStable(h, func(i, j int) bool {

@@ -107,8 +107,9 @@ The URL-credential forms still work but are **deprecated**: a request that authe
 | POST | `/api/v1/workloads/{namespace}/{kind}/{name}/stop` | Scale to zero (save replicas) |
 | POST | `/api/v1/workloads/{namespace}/{kind}/{name}/restart` | Rollout via template annotation |
 | DELETE | `/api/v1/workloads/{namespace}/{kind}/{name}` | Delete controller + Axiom-owned Service |
-| GET | `/api/v1/workloads/{namespace}/{kind}/{name}/still?action=` | Preview Still actions (hush/sleep/seal/end) |
-| POST | `/api/v1/workloads/{namespace}/{kind}/{name}/seal` | Apply deny-all NetworkPolicy isolation |
+| GET | `/api/v1/workloads/{namespace}/{kind}/{name}/still?action=` | Preview Still actions (hush/sleep/seal/end), including live terminal/window counts and Atlas volumes |
+| POST | `/api/v1/workloads/{namespace}/{kind}/{name}/still` | Execute Still (`?action=` or JSON `{"action"}`): hush/seal → isolate, sleep → scale to zero, end → delete; audits blast counts; seal writes a PacketWolf flow receipt |
+| POST | `/api/v1/workloads/{namespace}/{kind}/{name}/seal` | Apply deny-all NetworkPolicy isolation (also records PacketWolf seal receipt when configured) |
 | POST | `/api/v1/workloads/{namespace}/{kind}/{name}/unseal` | Remove Axiom isolation policy |
 | GET | `/api/v1/workloads/{namespace}/{kind}/{name}/rollout` | Rollout status and revision history |
 | POST | `/api/v1/workloads/{namespace}/{kind}/{name}/rollout/{action}` | Rollout action (pause/resume/restart) |
@@ -392,7 +393,8 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects. Returns `[]` (not an error) when the Gateway API CRDs aren't installed |
+| GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects (`controller`, `provider` e.g. `envoy`, `addresses`). Returns `[]` (not an error) when the Gateway API CRDs aren't installed. Prefer Envoy Gateway (`provider=envoy`) over Ingress NGINX. |
+| GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts and DCGM util snapshot when Prometheus is configured |
 
 ## Admission webhooks
 
@@ -671,14 +673,27 @@ Read-only aggregation of Trivy Operator `VulnerabilityReport` / `ConfigAuditRepo
 
 ## Agent runs and platform intents
 
+Axiom ships a built-in ProposeOnly planner (BYO LLM or deterministic). Runs persist in the `platform.example.com` AgentRun CRD when installed, otherwise in ConfigMap `zyvor-axiom-agent-runs`. Approve of an Axiom-owned run executes allowlisted actions; approve/deny refuse when the run is not pending.
+
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/agent-runs?namespace=...` | List agent runs |
-| POST | `/api/v1/agent-runs` | Create diagnostic agent run |
+| POST | `/api/v1/agent-runs` | Create ProposeOnly agent run (body: `goal`, optional `namespace`, `name`, `target`, `dryRun`, `source`, `extraContext`) then plan |
 | GET | `/api/v1/agent-runs/{namespace}/{name}` | Agent run detail |
-| POST | `/api/v1/agent-runs/{namespace}/{name}/approve` | Approve run |
+| POST | `/api/v1/agent-runs/{namespace}/{name}/approve` | Approve (and execute if Axiom-owned) |
 | POST | `/api/v1/agent-runs/{namespace}/{name}/deny` | Deny run |
 | GET | `/api/v1/platform-intents?namespace=...` | Platform intent CRs |
+| GET | `/api/v1/mcp` | MCP server info |
+| GET | `/api/v1/mcp/tools` | MCP tool list |
+| POST | `/api/v1/mcp` | MCP JSON-RPC 2.0 (`initialize`, `tools/list`, `tools/call`) |
+| GET | `/api/v1/metrics/history` | Prometheus CPU/memory history (`?namespace=&name=&kind=pod\|node\|workload&window=1h\|6h\|24h`) |
+| GET | `/api/v1/alertmanager/status` | Whether Alertmanager is configured |
+| GET | `/api/v1/alertmanager/alerts` | Firing Alertmanager alerts |
+| GET | `/api/v1/alertmanager/silences` | List silences |
+| POST | `/api/v1/alertmanager/silences` | Create a silence |
+| DELETE | `/api/v1/alertmanager/silences/{id}` | Expire a silence |
+| GET | `/api/v1/upgrade-risk` | Lite cluster upgrade readiness report |
+| POST | `/api/v1/upgrade-risk/agent-run` | Create a ProposeOnly agent run from the upgrade-risk report |
 
 ## Haven identity
 

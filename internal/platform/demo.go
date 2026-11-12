@@ -40,6 +40,7 @@ func NewDemoProvider() *DemoProvider {
 		{Namespace: "data", Name: "redis", Kind: "StatefulSet", Image: "redis:7.4", Desired: 3, Ready: 3, Available: 3, Status: "Healthy", Age: "28d"},
 		{Namespace: "observability", Name: "otel-collector", Kind: "Deployment", Image: "otel/opentelemetry-collector:0.120.0", Desired: 4, Ready: 3, Available: 3, Status: "Degraded", Age: "19d"},
 		{Namespace: "observability", Name: "log-shipper", Kind: "DaemonSet", Image: "fluent/fluent-bit:3.1", Desired: 4, Ready: 4, Available: 4, Status: "Healthy", Age: "45d"},
+		{Namespace: "ml", Name: "inference", Kind: "Deployment", Image: "nvcr.io/nvidia/tritonserver:24.08-py3", Desired: 2, Ready: 2, Available: 2, Status: "Healthy", Age: "5d"},
 	}
 	for _, w := range seed {
 		d.workloads[key(w.Namespace, w.Kind, w.Name)] = w
@@ -260,7 +261,31 @@ func (d *DemoProvider) UnsealWorkload(ctx context.Context, ns, kind, name string
 	return nil
 }
 
+func (d *DemoProvider) SealedWorkloads(ctx context.Context, ns string) (map[string]bool, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	out := map[string]bool{}
+	for k, v := range d.sealed {
+		if !v {
+			continue
+		}
+		// key is ns/kind/name — also index ns/name for fleet filter
+		parts := strings.Split(k, "/")
+		if len(parts) >= 3 {
+			if ns != "" && ns != "all" && parts[0] != ns {
+				continue
+			}
+			out[parts[0]+"/"+parts[2]] = true
+			out[k] = true
+		}
+	}
+	return out, nil
+}
+
 func (d *DemoProvider) WorkloadVolumes(ctx context.Context, ns, workload string) ([]string, error) {
+	if workload == "inference" || ns == "ml" {
+		return []string{"atlas://ml/model-weights", "atlas://ml/checkpoints"}, nil
+	}
 	return []string{}, nil
 }
 
@@ -344,7 +369,7 @@ func demoBaseNodes() []Node {
 		{Name: "axiom-01", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.11", Pods: 18, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-02", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.12", Pods: 21, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
 		{Name: "axiom-03", Status: "Ready", Role: "server", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.13", Pods: 17, CPU: "16", Memory: "64Gi", AllocatableCPU: "16", AllocatableMemory: "64Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "41d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}},
-		{Name: "gpu-01", Status: "Ready", Role: "agent", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.21", Pods: 11, CPU: "32", Memory: "256Gi", AllocatableCPU: "32", AllocatableMemory: "256Gi", AllocatablePods: "110", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "17d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}, Taints: []TaintSummary{{Key: "nvidia.com/gpu", Value: "true", Effect: "NoSchedule"}}},
+		{Name: "gpu-01", Status: "Ready", Role: "agent", Version: "v1.32.4+k3s1", InternalIP: "10.20.0.21", Pods: 11, CPU: "32", Memory: "256Gi", AllocatableCPU: "32", AllocatableMemory: "256Gi", AllocatablePods: "110", GPU: "8", AllocatableGPU: "8", GPUProduct: "NVIDIA-H100-80GB-HBM3", GPUDriver: "550.90.07", OSImage: "Ubuntu 22.04", KernelVersion: "5.15.0", ContainerRuntime: "containerd://1.7", Age: "17d", Conditions: []NodeCondition{{Type: "Ready", Status: "True"}}, Taints: []TaintSummary{{Key: "nvidia.com/gpu", Value: "true", Effect: "NoSchedule"}}},
 	}
 }
 
@@ -511,8 +536,14 @@ func (d *DemoProvider) rebuildPodsLocked(w Workload) {
 				{Name: w.Name, Ready: false, State: "Waiting"},
 			}
 		}
+		node := fmt.Sprintf("axiom-%02d", (i%3)+1)
+		gpu := ""
+		if w.Namespace == "ml" {
+			node = "gpu-01"
+			gpu = "1"
+		}
 		ps = append(ps, Pod{
-			Namespace: w.Namespace, Name: name, Node: fmt.Sprintf("axiom-%02d", (i%3)+1),
+			Namespace: w.Namespace, Name: name, Node: node,
 			Status: status, Ready: ready,
 			Restarts: func() int32 {
 				if status == "CrashLoopBackOff" {
@@ -525,7 +556,7 @@ func (d *DemoProvider) rebuildPodsLocked(w Workload) {
 			Ports:      []PodPort{{Container: w.Name, ContainerPort: 8080, Protocol: "TCP"}},
 			Labels:     map[string]string{"app": w.Name, "app.kubernetes.io/name": w.Name},
 			WorkloadID: w.Name, Replica: i + 1, Replicas: w.Desired, Floor: string(FloorForNamespace(w.Namespace)),
-			CPULimit: "500m", MemLimit: "512Mi", QOS: "Burstable", Image: w.Image, Sealed: sealed,
+			CPULimit: "500m", MemLimit: "512Mi", GPU: gpu, QOS: "Burstable", Image: w.Image, Sealed: sealed,
 		})
 	}
 	d.pods[w.Namespace+"/"+w.Name] = ps

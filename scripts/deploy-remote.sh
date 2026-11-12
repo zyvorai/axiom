@@ -31,8 +31,9 @@
 #   AXIOM_NODE_PORT            default: 30590
 #   ATLAS_REPO                 path to the atlas checkout (default: ../atlas next to this repo)
 #   ATLAS_NODE_PORT            default: 30510 (must match ../atlas/deploy/k8s/atlas-gateway.yaml)
-#   AXIOM_USERNAME             default: existing Secret if present, else demo
-#   AXIOM_PASSWORD             default: existing Secret if present, else demo
+#   AXIOM_USERNAME             default: existing Secret if present, else admin
+#   AXIOM_PASSWORD             default: existing Secret if present, else Admin@321
+#   AXIOM_TLS_MTLS             require|request|off (default require; client CA always minted)
 #
 # Remote deploy is HTTPS-only (self-signed). Plain HTTP is not supported.
 # ============================================================================
@@ -85,12 +86,13 @@ AXIOM_IMAGE_TAG="${AXIOM_IMAGE_TAG:-dev}"
 NODE_PORT="${AXIOM_NODE_PORT:-30590}"
 # Explicit credentials always win; otherwise an existing zyvor-axiom-auth Secret
 # on the target is reused (so a redeploy never resets a rotated password);
-# only a fresh install falls back to demo/demo.
+# only a fresh install falls back to admin/Admin@321.
 AUTH_EXPLICIT=false
 if [ -n "${AXIOM_USERNAME:-}" ] || [ -n "${AXIOM_PASSWORD:-}" ]; then AUTH_EXPLICIT=true; fi
 AUTH_REUSED=false
-AXIOM_USERNAME="${AXIOM_USERNAME:-demo}"
-AXIOM_PASSWORD="${AXIOM_PASSWORD:-demo}"
+AXIOM_USERNAME="${AXIOM_USERNAME:-admin}"
+AXIOM_PASSWORD="${AXIOM_PASSWORD:-Admin@321}"
+AXIOM_TLS_MTLS="${AXIOM_TLS_MTLS:-require}"
 
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 [ -f "$REPO_DIR/Dockerfile" ] || error "Not in axiom repo: $REPO_DIR"
@@ -190,10 +192,10 @@ else
   info "Synced to ${REMOTE_DIR}"
 fi
 
-# ── TLS (self-signed, reused across redeploys) ──
-step 3 7 "Self-signed TLS certificate"
+# ── TLS + mTLS client CA (self-signed, reused across redeploys) ──
+step 3 7 "Self-signed TLS + mTLS client CA"
 _ssh "export AXIOM_TLS_HOST='${HOST}'; ${REMOTE_SH_PREFIX}; \
-mkdir -p .run/tls
+mkdir -p .run/tls .run/mtls
 if [ ! -f .run/tls/tls.crt ] || [ ! -f .run/tls/tls.key ]; then
   openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
     -keyout .run/tls/tls.key -out .run/tls/tls.crt \
@@ -204,11 +206,38 @@ if [ ! -f .run/tls/tls.crt ] || [ ! -f .run/tls/tls.key ]; then
 else
   echo 'Reusing existing TLS cert (.run/tls/tls.crt)'
 fi
+if [ ! -f .run/mtls/ca.crt ] || [ ! -f .run/mtls/ca.key ]; then
+  openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+    -keyout .run/mtls/ca.key -out .run/mtls/ca.crt \
+    -subj '/CN=Axiom mTLS CA/O=Zyvor Axiom' \
+    2>&1 | grep -v '^writing\|^Generating' || true
+  echo 'Generated mTLS client CA (.run/mtls/ca.crt)'
+else
+  echo 'Reusing existing mTLS client CA (.run/mtls/ca.crt)'
+fi
+if [ ! -f .run/mtls/admin.crt ] || [ ! -f .run/mtls/admin.key ]; then
+  openssl req -newkey rsa:2048 -nodes -keyout .run/mtls/admin.key -out .run/mtls/admin.csr \
+    -subj '/CN=axiom-admin/O=Zyvor Axiom' 2>/dev/null
+  openssl x509 -req -in .run/mtls/admin.csr -CA .run/mtls/ca.crt -CAkey .run/mtls/ca.key \
+    -CAcreateserial -out .run/mtls/admin.crt -days 3650 -sha256 2>/dev/null
+  rm -f .run/mtls/admin.csr
+  openssl pkcs12 -export -out .run/mtls/admin.p12 -inkey .run/mtls/admin.key -in .run/mtls/admin.crt \
+    -certfile .run/mtls/ca.crt -passout pass:axiom 2>/dev/null || true
+  chmod 600 .run/mtls/admin.key .run/mtls/ca.key .run/mtls/admin.p12 2>/dev/null || true
+  echo 'Generated mTLS admin client cert (.run/mtls/admin.crt + admin.p12, PKCS12 password: axiom)'
+else
+  echo 'Reusing existing mTLS admin client cert (.run/mtls/admin.crt)'
+fi
 kubectl create namespace axiom-system --dry-run=client -o yaml | kubectl apply -f -
 kubectl -n axiom-system create secret tls zyvor-axiom-tls \
   --cert=.run/tls/tls.crt --key=.run/tls/tls.key \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n axiom-system create secret generic zyvor-axiom-mtls \
+  --from-file=ca.crt=.run/mtls/ca.crt \
+  --from-file=tls.crt=.run/mtls/admin.crt \
+  --from-file=tls.key=.run/mtls/admin.key \
   --dry-run=client -o yaml | kubectl apply -f -"
-info "TLS secret zyvor-axiom-tls applied"
+info "TLS secret zyvor-axiom-tls + mTLS secret zyvor-axiom-mtls applied"
 
 # ── Auth secret ──
 step 4 7 "Configure auth secret"
@@ -304,9 +333,27 @@ _ssh "sudo ufw allow ${NODE_PORT}/tcp comment zyvor-axiom 2>/dev/null || true; \
 step 7 7 "Verify HTTPS health"
 sleep 3
 BASE_URL="https://${HOST}:${NODE_PORT}"
-if curl -fsSk --connect-timeout 10 "${BASE_URL}/api/v1/health" >/dev/null; then
-  info "Health OK: ${BASE_URL}/api/v1/health"
-else
+# Prefer hostNetwork :5090 on lab hosts where Cilium/NodePort is down.
+ALT_URL="https://${HOST}:5090"
+_MTLS_CURL=()
+if _ssh "test -f .run/mtls/admin.crt -a -f .run/mtls/admin.key"; then
+  # Pull client certs for the verify curl (mTLS require rejects bare HTTPS).
+  mkdir -p "${REPO_DIR}/.run/mtls"
+  _ssh "cat .run/mtls/admin.crt" > "${REPO_DIR}/.run/mtls/admin.crt"
+  _ssh "cat .run/mtls/admin.key" > "${REPO_DIR}/.run/mtls/admin.key"
+  chmod 600 "${REPO_DIR}/.run/mtls/admin.key" 2>/dev/null || true
+  _MTLS_CURL=(--cert "${REPO_DIR}/.run/mtls/admin.crt" --key "${REPO_DIR}/.run/mtls/admin.key")
+fi
+HEALTH_OK=false
+for u in "$BASE_URL" "$ALT_URL"; do
+  if curl -fsSk --connect-timeout 10 "${_MTLS_CURL[@]}" "${u}/api/v1/health" >/dev/null; then
+    info "Health OK: ${u}/api/v1/health"
+    BASE_URL="$u"
+    HEALTH_OK=true
+    break
+  fi
+done
+if ! $HEALTH_OK; then
   warn "Health check failed at ${BASE_URL}/api/v1/health — check: kubectl -n axiom-system get pods,svc"
   _ssh 'kubectl -n axiom-system get pods,svc -o wide; kubectl -n axiom-system describe pods -l app=zyvor-axiom 2>/dev/null | tail -40' || true
 fi
@@ -420,14 +467,15 @@ PANEL_LINES=(
   "UI:      ${BASE_URL}"
   "Health:  ${BASE_URL}/api/v1/health"
   "Login:   ${AXIOM_USERNAME} / $($AUTH_REUSED && echo '(existing secret)' || echo "${AXIOM_PASSWORD}")"
-  "curl:    curl -k ${BASE_URL}/api/v1/health"
+  "mTLS:    ${AXIOM_TLS_MTLS} — import ~/.deployment/axiom/.run/mtls/admin.p12 (password: axiom)"
+  "curl:    curl -k --cert .run/mtls/admin.crt --key .run/mtls/admin.key ${BASE_URL}/api/v1/health"
 )
 if [ "${ATLAS_WIRED:-0}" = "1" ]; then
   PANEL_LINES+=("Atlas:   ${ATLAS_URL} (wired into Settings → Integrations)")
 fi
 PANEL_LINES+=(
   ""
-  "Accept the browser certificate warning once."
+  "Accept the browser certificate warning once; install the mTLS client cert when mode is require."
   "Redeploy fast: ./scripts/deploy-remote.sh ${HOST} ${USER} --quick"
 )
-axiom_ui_panel "Access (HTTPS only, self-signed)" "${PANEL_LINES[@]}"
+axiom_ui_panel "Access (HTTPS + mTLS)" "${PANEL_LINES[@]}"

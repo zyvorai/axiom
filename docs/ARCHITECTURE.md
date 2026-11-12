@@ -136,7 +136,7 @@ Registry credentials (`internal/platform/helm_registrycreds*.go`) are a write-on
 
 ## Gateway API and admission webhooks
 
-`ListGateways` mirrors `ListGitOps`'s CRD-missing-tolerant dynamic-client pattern: it tries `gateway.networking.k8s.io/v1` first, falls back to `v1beta1`, and returns an empty list (not an error) if neither CRD is installed — most clusters don't have Gateway API yet. `ListAdmissionWebhooks` is simpler: `admissionregistration.k8s.io/v1` is a stable built-in API, so it uses the typed clientset directly (`k.client.AdmissionregistrationV1()`), the same shape as `ListRBAC`, with no CRD-missing handling needed.
+`ListGateways` mirrors `ListGitOps`'s CRD-missing-tolerant dynamic-client pattern: it tries `gateway.networking.k8s.io/v1` first, falls back to `v1beta1`, and returns an empty list (not an error) if neither CRD is installed — most clusters don't have Gateway API yet. Each row includes `controller` / `provider` (Envoy Gateway is classified as `envoy` via `gateway.envoyproxy.io/…` or GatewayClass `eg`) and Gateway `addresses`. Axiom recommends Envoy Gateway for north-south traffic (Helm `expose.type=Gateway`) as Ingress NGINX retires. `ListAdmissionWebhooks` is simpler: `admissionregistration.k8s.io/v1` is a stable built-in API, so it uses the typed clientset directly (`k.client.AdmissionregistrationV1()`), the same shape as `ListRBAC`, with no CRD-missing handling needed.
 
 ## Change safety, graph, timeline and health check
 

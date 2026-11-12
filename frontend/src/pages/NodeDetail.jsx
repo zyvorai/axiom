@@ -20,10 +20,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import MetricHistoryChart from "@/components/MetricHistoryChart";
 import {
     ArrowLeft,
     Cpu,
     MemoryStick,
+    CircuitBoard,
     Ban,
     CheckCircle2,
     LogOut,
@@ -301,6 +303,15 @@ export default function NodeDetail() {
                 <FeatureTile size="compact" mono label={t("pages:nodes.specs.pods")} value={`${node.pods}/${node.allocatablePods}`} />
                 <FeatureTile size="compact" mono icon={Cpu} label={t("pages:nodeDetail.allocatableCpu")} value={node.allocatableCpu} />
                 <FeatureTile size="compact" mono icon={MemoryStick} label={t("pages:nodeDetail.allocatableMemory")} value={node.allocatableMemory} />
+                {(node.gpu || node.allocatableGpu) && (
+                    <FeatureTile
+                        size="compact"
+                        mono
+                        icon={CircuitBoard}
+                        label="GPU"
+                        value={`${node.allocatableGpu || node.gpu}${node.gpuProduct ? ` · ${node.gpuProduct}` : ""}`}
+                    />
+                )}
                 <FeatureTile size="compact" mono label={t("common:fields.version")} value={<span className="truncate">{node.version}</span>} />
             </div>
 
@@ -345,7 +356,11 @@ export default function NodeDetail() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="metrics" className="mt-4">
+                <TabsContent value="metrics" className="mt-4 space-y-4">
+                    <GlassCard className="p-4">
+                        <div className="mb-2 text-[11px] uppercase tracking-widest text-ink-3">{t("pages:metrics.title")}</div>
+                        <MetricHistoryChart name={node.name} kind="node" window="1h" />
+                    </GlassCard>
                     <MetricsPanel name={node.name} />
                 </TabsContent>
 

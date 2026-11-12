@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Ingress and Gateway API exposure inventory.
+Ingress (legacy) and Gateway API exposure inventory. **Envoy Gateway** is the preferred north-south path (Gateway API + Envoy) as Ingress NGINX retires.
 
 ## When to use it
 
-- Operate **Ingresses** when your job matches this page
+- Prefer **Gateway API / Envoy Gateway** for new exposures (gRPC/HTTP observability, HTTP/3-capable data plane)
+- Use legacy **Ingress** rows only while migrating off Ingress NGINX
 - Prefer **Overview** after login if you are unsure where to start
-- Confirm auth and activated cluster if inventories look empty
 
 ## How to get there
 
@@ -18,9 +18,10 @@ Ingress and Gateway API exposure inventory.
 ## Operate from the console (UX)
 
 1. Open `/ingresses`.
-2. Review host/path rules and Gateway API section when present.
-3. **Empty / fail:** No ingresses → install ingress controller / apply manifests.
-4. **Success:** Hosts listed match customer DNS expectations.
+2. Check the **Envoy Gateway** banner (detected / not installed).
+3. Review **Gateway API** (GatewayClass / Gateway / HTTPRoute) and legacy Ingress tables.
+4. **Empty Gateway API:** install Envoy Gateway and apply `deploy/k8s/envoy-gateway-example.yaml` (or Helm `expose.type=Gateway`).
+5. **Success:** Envoy provider shows on GatewayClass/Gateway; hosts match DNS.
 
 Console: `https://<host>:30590/` (NodePort HTTPS; override with `AXIOM_NODE_PORT`). Local demo: `http://<host>:5090` when `AXIOM_MODE=demo`. Never publish lab IPs — use `<host>`.
 

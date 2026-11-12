@@ -24,6 +24,7 @@ export default function AiSettingsCard({ data, onSaved }) {
         model: data.aiModel || "",
         apiKey: "",
         redact: data.aiRedact !== false,
+        agentAutoRuns: !!data.agentAutoRuns,
     }));
     const [busy, setBusy] = useState("");
     const set = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -38,6 +39,7 @@ export default function AiSettingsCard({ data, onSaved }) {
                 aiBaseUrl: form.baseUrl,
                 aiModel: form.model,
                 aiRedact: form.redact,
+                agentAutoRuns: form.agentAutoRuns,
                 ...(form.apiKey ? { aiApiKey: form.apiKey } : {}),
             });
             onSaved?.(v);
@@ -159,6 +161,22 @@ export default function AiSettingsCard({ data, onSaved }) {
                         onCheckedChange={(v) => set({ redact: v })}
                     />
                 </div>
+
+                <div className="rule-row mb-4">
+                    <div>
+                        <div className="text-[14px]">{t("pages:aiSettings.agentAutoRuns")}</div>
+                        <div className="text-[12.5px] text-ink-3">{t("pages:aiSettings.agentAutoRunsHint")}</div>
+                    </div>
+                    <Switch
+                        aria-label={t("pages:aiSettings.agentAutoRuns")}
+                        checked={form.agentAutoRuns}
+                        onCheckedChange={(v) => set({ agentAutoRuns: v })}
+                    />
+                </div>
+
+                <p className="mb-4 text-[12.5px] text-ink-3">
+                    <Trans i18nKey="pages:aiSettings.mcpHint" components={{ mono: <span className="mono" /> }} />
+                </p>
 
                 <div className="flex flex-wrap gap-2.5">
                     <button type="button" data-testid={AI_SETTINGS.save} className="btn btn-fill btn-sm" onClick={save} disabled={busy === "save"}>

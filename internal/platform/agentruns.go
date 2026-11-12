@@ -32,7 +32,9 @@ type AgentExecuted struct {
 	Message string `json:"message,omitempty"`
 }
 
-// AgentRun is the Axiom-facing view of platform.example.com/v1 AgentRun.
+// AgentRun is the Axiom-facing view of an agentic remediation run.
+// When the platform.example.com AgentRun CRD is present, runs live there;
+// otherwise Axiom persists them in ConfigMap zyvor-axiom-agent-runs.
 type AgentRun struct {
 	Namespace    string           `json:"namespace"`
 	Name         string           `json:"name"`
@@ -49,6 +51,9 @@ type AgentRun struct {
 	Age          string           `json:"age"`
 	CanApprove   bool             `json:"canApprove"`
 	CanDeny      bool             `json:"canDeny"`
+	OwnedByAxiom bool             `json:"ownedByAxiom,omitempty"`
+	Source       string           `json:"source,omitempty"`
+	CreatedAt    string           `json:"createdAt,omitempty"`
 }
 
 type CreateAgentRunRequest struct {
@@ -58,6 +63,7 @@ type CreateAgentRunRequest struct {
 	ExtraContext string          `json:"extraContext,omitempty"`
 	DryRun       *bool           `json:"dryRun,omitempty"`
 	Target       *AgentObjectRef `json:"target,omitempty"`
+	Source       string          `json:"source,omitempty"`
 }
 
 // PlatformIntent is a read-only view of platform.example.com/v1 Intent
@@ -74,4 +80,10 @@ type PlatformIntent struct {
 	Message      string `json:"message,omitempty"`
 	AppliedTo    string `json:"appliedTo,omitempty"`
 	Age          string `json:"age"`
+}
+
+func agentRunDecideFlags(r *AgentRun) {
+	can := agentRunCanDecide(*r)
+	r.CanApprove = can
+	r.CanDeny = can
 }

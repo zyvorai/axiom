@@ -15,6 +15,7 @@ type searchFake struct {
 	workloads []Workload
 	services  []Service
 	nss       []Namespace
+	pods      []Pod
 	err       error
 	delay     time.Duration
 	ignoreCtx bool // sleep through the delay even when the context is done
@@ -72,6 +73,14 @@ func (f *searchFake) ListNamespaces(ctx context.Context) ([]Namespace, error) {
 	return f.nss, nil
 }
 
+func (f *searchFake) ListPods(ctx context.Context, ns string) ([]Pod, error) {
+	f.listCalls.Add(1)
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.pods, nil
+}
+
 func stdSearchFake() *searchFake {
 	return &searchFake{
 		workloads: []Workload{
@@ -86,6 +95,10 @@ func stdSearchFake() *searchFake {
 			{Namespace: "web", Name: "frontend", Type: "LoadBalancer"},
 		},
 		nss: []Namespace{{Name: "payments", Status: "Active", Pods: 15}, {Name: "shop", Status: "Active"}, {Name: "web", Status: "Active"}},
+		pods: []Pod{
+			{Namespace: "payments", Name: "payments-api-01", Status: "Running", Ready: "1/1", Node: "n1", Image: "ghcr.io/zyvorai/payments:v2.8.4", Labels: map[string]string{"app": "payments", "tier": "api"}},
+			{Namespace: "shop", Name: "pay-abc", Status: "Running", Ready: "1/1", Node: "n2", Image: "nginx", Labels: map[string]string{"app": "pay"}},
+		},
 	}
 }
 
@@ -124,12 +137,13 @@ func TestSearchFleetRankingAndFilters(t *testing.T) {
 			"b/Workload/payments/ledger", "b/Workload/shop/checkout",
 		}, 8, false},
 		{"name contains ranks before namespace", "ments-a", nil, 0, []string{
-			"a/Workload/payments/payments-api", "a/Service/payments/payments-api",
-			"b/Workload/payments/payments-api", "b/Service/payments/payments-api",
-		}, 4, false},
+			"a/Workload/payments/payments-api", "a/Service/payments/payments-api", "a/Pod/payments/payments-api-01",
+			"b/Workload/payments/payments-api", "b/Service/payments/payments-api", "b/Pod/payments/payments-api-01",
+		}, 6, false},
 		{"case-insensitive, trimmed", "  FRONTEND ", []string{FleetSearchService}, 0, []string{"a/Service/web/frontend", "b/Service/web/frontend"}, 2, false},
 		{"namespace kind", "pay", []string{FleetSearchNamespace}, 0, []string{"a/Namespace/payments/payments", "b/Namespace/payments/payments"}, 2, false},
-		{"limit truncates after sorting", "pay", nil, 3, []string{"a/Workload/shop/pay", "b/Workload/shop/pay", "a/Namespace/payments/payments"}, 12, true},
+		{"pod kind matches labels", "tier=api", []string{FleetSearchPod}, 0, []string{"a/Pod/payments/payments-api-01", "b/Pod/payments/payments-api-01"}, 2, false},
+		{"limit truncates after sorting", "pay", nil, 3, []string{"a/Workload/shop/pay", "b/Workload/shop/pay", "a/Namespace/payments/payments"}, 16, true},
 		{"no match", "zzz", nil, 0, []string{}, 0, false},
 	}
 	for _, c := range cases {
@@ -151,7 +165,7 @@ func TestSearchFleetRankingAndFilters(t *testing.T) {
 
 func TestSearchFleetHitFields(t *testing.T) {
 	sp := newSearchFleet(t, map[string]*searchFake{"eu": stdSearchFake()}, "eu")
-	r := sp.SearchFleet(context.Background(), "payments-api", nil, 0)
+	r := sp.SearchFleet(context.Background(), "payments-api", []string{FleetSearchWorkload, FleetSearchService}, 0)
 	if len(r.Results) != 2 {
 		t.Fatalf("results: %+v", r.Results)
 	}
@@ -186,11 +200,11 @@ func TestParseFleetSearchKinds(t *testing.T) {
 		want string
 		err  bool
 	}{
-		{"", "Workload,Service,Namespace", false},
+		{"", "Workload,Service,Namespace,Pod", false},
 		{"Workload", "Workload", false},
 		{"service", "Service", false},
 		{"Namespace,workload,Namespace", "Namespace,Workload", false},
-		{"Pod", "", true},
+		{"Pod", "Pod", false},
 		{"Workload,", "", true},
 	}
 	for _, c := range cases {

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History } from "lucide-react";
+import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History, Activity } from "lucide-react";
 import WorkloadTimeline from "@/components/WorkloadTimeline";
 import { TIMELINE } from "@/constants/testIds";
 import CodeEditor from "@/components/CodeEditor";
@@ -17,6 +17,7 @@ import KvChip, { toneForKey } from "@/components/KvChip";
 import FeatureTile from "@/components/FeatureTile";
 import DiffReviewDialog from "@/components/DiffReviewDialog";
 import ResourceGraph from "@/components/ResourceGraph";
+import MetricHistoryChart from "@/components/MetricHistoryChart";
 import { useTranslation } from "react-i18next";
 
 export default function WorkloadDetail() {
@@ -133,6 +134,9 @@ export default function WorkloadDetail() {
                     <TabsTrigger value="pods" className="gap-1.5">
                         <Boxes className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.pods", { n: (detail.pods || []).length })}
                     </TabsTrigger>
+                    <TabsTrigger value="metrics" className="gap-1.5">
+                        <Activity className="h-3.5 w-3.5" /> {t("pages:metrics.title")}
+                    </TabsTrigger>
                     <TabsTrigger value="events" className="gap-1.5">
                         <BellRing className="h-3.5 w-3.5" /> {t("pages:workloadDetail.tabs.events", { n: (detail.relatedEvents || []).length })}
                     </TabsTrigger>
@@ -216,6 +220,12 @@ export default function WorkloadDetail() {
                                 <div className="col-span-2 text-right text-xs text-muted-foreground">{p.age}</div>
                             </Link>
                         ))}
+                    </GlassCard>
+                </TabsContent>
+
+                <TabsContent value="metrics" className="mt-4">
+                    <GlassCard className="p-4">
+                        <MetricHistoryChart namespace={namespace} name={name} kind="workload" window="1h" />
                     </GlassCard>
                 </TabsContent>
 

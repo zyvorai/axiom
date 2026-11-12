@@ -28,10 +28,16 @@ For k3s lab hosts, use `./scripts/deploy-remote.sh` to build locally with podman
 
 ## 3. Configure credentials and TLS
 
-The Deployment expects **HTTPS only** via `AXIOM_TLS_CERT` / `AXIOM_TLS_KEY` mounted from Secret `zyvor-axiom-tls`.
+The Deployment expects **HTTPS + mTLS** by default:
+
+- Server cert: `AXIOM_TLS_CERT` / `AXIOM_TLS_KEY` (Secret `zyvor-axiom-tls`)
+- Client CA: `AXIOM_TLS_CLIENT_CA` (Secret `zyvor-axiom-mtls`, key `ca.crt`)
+- Mode: `AXIOM_TLS_MTLS=require` (or `request` / `off`)
+
+Browsers must import the admin PKCS#12 (`.run/mtls/admin.p12`, password `axiom`) from a remote deploy; API clients use `curl --cert admin.crt --key admin.key`.
 
 ```bash
-# Auth
+# Auth (remote deploy defaults to admin / Admin@321)
 kubectl -n axiom-system create secret generic zyvor-axiom-auth \
   --from-literal=username=admin \
   --from-literal=password='replace-with-strong-secret' \
@@ -44,6 +50,13 @@ openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
   -addext "subjectAltName=DNS:axiom.local,IP:127.0.0.1"
 kubectl -n axiom-system create secret tls zyvor-axiom-tls \
   --cert=tls.crt --key=tls.key \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# mTLS client CA + admin client cert (minted automatically by deploy-remote.sh)
+kubectl -n axiom-system create secret generic zyvor-axiom-mtls \
+  --from-file=ca.crt=mtls/ca.crt \
+  --from-file=tls.crt=mtls/admin.crt \
+  --from-file=tls.key=mtls/admin.key \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 

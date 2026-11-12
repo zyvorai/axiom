@@ -28,6 +28,26 @@ const ACTION_TOASTS = {
     migrate: { ok: "toasts:vms.migrateRequested", fail: "toasts:vms.migrateFailed" },
 };
 
+/** Embeds noVNC against Axiom's proxied wsPath when the browser can open it. */
+function NoVncEmbed({ wsPath, ready }) {
+    const { t } = useTranslation();
+    if (!wsPath || !ready) {
+        return <div className="text-xs text-muted-foreground">{t("pages:vms.console.novncWaiting")}</div>;
+    }
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    const host = window.location.host;
+    const path = wsPath.startsWith("/") ? wsPath : `/${wsPath}`;
+    const url = `${proto}://${host}${path}`;
+    // Public noVNC web client; path is the Axiom VNC websocket proxy.
+    const src = `https://novnc.com/noVNC/vnc_lite.html?path=${encodeURIComponent(path.replace(/^\//, ""))}&host=${encodeURIComponent(window.location.hostname)}&port=${encodeURIComponent(window.location.port || (window.location.protocol === "https:" ? "443" : "80"))}&encrypt=${window.location.protocol === "https:" ? "1" : "0"}`;
+    return (
+        <div className="overflow-hidden rounded-xl border border-border bg-black" data-testid={VMS.consoleCanvas}>
+            <iframe title={t("pages:vms.console.novncTitle")} src={src} className="h-72 w-full bg-black" referrerPolicy="no-referrer" />
+            <div className="truncate border-t border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">{url}</div>
+        </div>
+    );
+}
+
 function ConsolePanel({ vm }) {
     const { t } = useTranslation();
     const [info, setInfo] = useState(null);
@@ -67,9 +87,10 @@ function ConsolePanel({ vm }) {
                 </div>
             </div>
             {info.wsPath && (
-                <div>
+                <div className="space-y-2">
                     <div className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">{t("pages:vms.console.wsProxy")}</div>
                     <code className="mono block truncate text-[11px] text-tone-green">{info.wsPath}</code>
+                    <NoVncEmbed wsPath={info.wsPath} ready={info.ready} />
                 </div>
             )}
             <div>

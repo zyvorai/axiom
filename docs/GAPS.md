@@ -86,20 +86,22 @@ Known platform limitations (reviewed, not yet fixed):
 - **Blast-radius preview and resource detail match pods by name substring** (`web` also matches `web-api-*`), and the preview's Atlas volume list can never populate (`WorkloadVolumes` is not in the Provider interface).
 - **`ListSecrets` still reads every Secret with its data**, and no list call is paginated (`Limit`/`Continue`), so very large clusters are slow.
 - **Interactive terminals have no idle timeout or ping/pong**; a client that vanishes without closing leaves its PTY until the pod exits. (Concurrent sessions are now capped at 64 and frames at 1 MiB.)
-- **Seal NetworkPolicy names omit the workload kind**, so a Deployment and StatefulSet with the same name collide; `Approve/DenyAgentRun` do not check the current state; `GetCRDInstance`/`DeleteCRDInstance` accept built-in groups (apps, batch, rbac).
+- **Seal NetworkPolicy names omit the workload kind**, so a Deployment and StatefulSet with the same name collide; `GetCRDInstance`/`DeleteCRDInstance` accept built-in groups (apps, batch, rbac). (`Approve/DenyAgentRun` now refuse when the run is not pending.)
 
 Other known gaps found by the functional test pass (see `e2e/README.md`):
 
 - `POST /api/v1/users` maps an unknown role to `admin` (`NormalizeRole`, documented as intentional; consider fail-closed)
-- A saved Slack / webhook URL cannot be cleared from the UI (the API's `*Clear` flags have no control), and the Atlas token has no UI field
+- Atlas token clear-from-UI (token can be set in Settings; Slack / alert webhook URLs can be cleared)
 - `/api/v1/session` reports `role: "Platform Admin"` for operators and `auth: "oidc"` for SAML sessions (sessions from the local sign-in now correctly report `local`)
 - `DELETE /api/v1/clusters/{unknown}` returns 400 rather than 404
 
 Still thinner than a full private-cloud suite (intentionally or next):
 
-- Embedded noVNC UI (proxy path is ready; virtctl remains supported)
-- Historical Prometheus charts in the UI / alert silence (Prometheus history is used for rightsizing only)
 - ClusterRole write UI (deliberate security boundary)
 - SOC2 / pen-test packaging
+- MCP ephemeral execution sandbox / deeper Lightspeed-style upgrade planner (lite assessor ships; see ROADMAP Next)
+- GPU rightsizing apply (inventory + DCGM util ship; apply stays CPU/memory-only)
+- Run:ai / KAI fairshare editors and model-catalog MLOps (out of scope for Axiom console)
+- Full Still ladder UX for hush/end in the Workloads menu (seal + sleep ship; hush/end via API)
 - On-demand Velero backup (`POST /api/v1/velero/backups`) is unit-tested against a fake clientset only — no cluster in this session's environment had the Velero CRDs installed to validate it against a real one
 - **Helm installs run with Axiom's own permissions.** A chart that creates resources the ClusterRole does not allow (for example ServiceAccounts, which `helm create` charts include) fails with "forbidden". Extend the ClusterRole for the kinds your charts need, or install those charts with Helm directly.

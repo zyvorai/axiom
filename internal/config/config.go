@@ -28,6 +28,11 @@ type Config struct {
 	AllowOrigin        string
 	TLSCert            string
 	TLSKey             string
+	// TLSClientCA (AXIOM_TLS_CLIENT_CA) enables mutual TLS: the PEM CA that
+	// signs browser/API client certificates. TLSMTLS (AXIOM_TLS_MTLS) is
+	// require|request|off; when the CA is set and TLSMTLS is empty, require.
+	TLSClientCA string
+	TLSMTLS     string
 	APIKey             string
 	OIDCLogin          string
 	OIDCIssuer         string
@@ -88,6 +93,10 @@ type Config struct {
 	// bearer token for it. Never logged.
 	PrometheusURL   string
 	PrometheusToken string
+	// AlertmanagerURL (AXIOM_ALERTMANAGER_URL) enables firing-alert list and
+	// silence CRUD; AlertmanagerToken is an optional bearer token.
+	AlertmanagerURL   string
+	AlertmanagerToken string
 	// PodProxyAddr (AXIOM_POD_PROXY_ADDR, e.g. ":5091") and PodProxyOrigin
 	// (AXIOM_POD_PROXY_ORIGIN, e.g. "https://pods.example.com") serve pod
 	// windows from a separate origin. Both must be set; off by default.
@@ -117,6 +126,8 @@ func FromEnv() Config {
 		AllowOrigin:        env("AXIOM_ALLOW_ORIGIN", "http://localhost:5173"),
 		TLSCert:            os.Getenv("AXIOM_TLS_CERT"),
 		TLSKey:             os.Getenv("AXIOM_TLS_KEY"),
+		TLSClientCA:        strings.TrimSpace(os.Getenv("AXIOM_TLS_CLIENT_CA")),
+		TLSMTLS:            strings.ToLower(strings.TrimSpace(os.Getenv("AXIOM_TLS_MTLS"))),
 		APIKey:             strings.TrimSpace(os.Getenv("AXIOM_API_KEY")),
 		OIDCLogin:          strings.TrimSpace(os.Getenv("AXIOM_OIDC_LOGIN_URL")),
 		OIDCIssuer:         strings.TrimSpace(os.Getenv("AXIOM_OIDC_ISSUER")),
@@ -157,6 +168,8 @@ func FromEnv() Config {
 
 		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
 		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
+		AlertmanagerURL:   strings.TrimSpace(os.Getenv("AXIOM_ALERTMANAGER_URL")),
+		AlertmanagerToken: strings.TrimSpace(os.Getenv("AXIOM_ALERTMANAGER_TOKEN")),
 
 		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
 		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),

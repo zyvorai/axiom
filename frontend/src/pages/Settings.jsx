@@ -146,9 +146,10 @@ export default function Settings() {
             const { data: v } = await api.put("/integrations", {
                 atlasUrl: form.atlasUrl,
                 atlasConsoleUrl: form.atlasConsoleUrl,
+                ...(form.atlasToken ? { atlasToken: form.atlasToken } : {}),
             });
             setData(v);
-            setForm(v);
+            setForm({ ...v, atlasToken: "" });
             toast.success(t("toasts:settings.atlasSaved"));
         } catch (e) {
             toast.error(t("toasts:settings.saveFailed"), { description: e?.response?.data?.error || e.message });
@@ -244,6 +245,23 @@ export default function Settings() {
             setData(v);
             setForm({ ...v, slackWebhookUrl: "", alertWebhookUrl: "" });
             toast.success(t("toasts:settings.notifySaved"));
+        } catch (e) {
+            toast.error(t("toasts:settings.saveFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const clearNotify = async (which) => {
+        setBusy("notify-clear");
+        try {
+            const patch = which === "slack"
+                ? { slackWebhookUrlClear: true }
+                : { alertWebhookUrlClear: true };
+            const { data: v } = await api.put("/integrations", patch);
+            setData(v);
+            setForm({ ...v, slackWebhookUrl: "", alertWebhookUrl: "" });
+            toast.success(t("toasts:settings.notifyCleared"));
         } catch (e) {
             toast.error(t("toasts:settings.saveFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
@@ -466,6 +484,13 @@ export default function Settings() {
                 >
                     <Field label={t("pages:settings.atlas.url")} value={form.atlasUrl || ""} onChange={(e) => set({ atlasUrl: e.target.value })} placeholder="https://atlas.internal" />
                     <Field label={t("pages:settings.atlas.consoleUrl")} value={form.atlasConsoleUrl || ""} onChange={(e) => set({ atlasConsoleUrl: e.target.value })} />
+                    <Field
+                        label={data.atlasTokenSet ? t("pages:settings.atlas.tokenSet") : t("pages:settings.atlas.token")}
+                        type="password"
+                        value={form.atlasToken || ""}
+                        onChange={(e) => set({ atlasToken: e.target.value })}
+                        autoComplete="off"
+                    />
                 </IntegrationCard>
 
                 <IntegrationCard
@@ -547,7 +572,22 @@ export default function Settings() {
                             <button type="button" className="btn btn-line btn-sm" onClick={testWebhook} disabled={busy === "webhook-test"}>
                                 <PlugZap size={14} /> {busy === "webhook-test" ? t("pages:settings.testing") : t("pages:settings.notifications.testWebhook")}
                             </button>
+                            {data.slackWebhookUrlSet && (
+                                <button type="button" className="btn btn-danger btn-sm" onClick={() => clearNotify("slack")} disabled={busy === "notify-clear"}>
+                                    {t("pages:settings.notifications.clearSlack")}
+                                </button>
+                            )}
+                            {data.alertWebhookUrlSet && (
+                                <button type="button" className="btn btn-danger btn-sm" onClick={() => clearNotify("alert")} disabled={busy === "notify-clear"}>
+                                    {t("pages:settings.notifications.clearWebhook")}
+                                </button>
+                            )}
                         </div>
+                        {data.alertWebhookUrlSet && (
+                            <p className="mt-3 text-[12.5px] text-ink-3">
+                                <Trans i18nKey="pages:settings.notifications.silenceHint" components={{ mono: <span className="mono" /> }} />
+                            </p>
+                        )}
                     </div>
                 </div>
 

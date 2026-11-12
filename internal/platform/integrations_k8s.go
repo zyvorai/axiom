@@ -71,6 +71,7 @@ func integrationsFromCM(cm *corev1.ConfigMap) Integrations {
 		AIBaseURL:         d["aiBaseUrl"],
 		AIModel:           d["aiModel"],
 		AIRedactOff:       d["aiRedact"] == "false", // absent => redaction stays on
+		AgentAutoRuns:     d["agentAutoRuns"] == "true",
 		BillingProvider:            d["billingProvider"],
 		BillingTagKey:              d["billingTagKey"],
 		BillingTagValue:            d["billingTagValue"],
@@ -105,6 +106,7 @@ func integrationsToCMData(in Integrations) map[string]string {
 		"aiBaseUrl":          in.AIBaseURL,
 		"aiModel":            in.AIModel,
 		"aiRedact":           strconv.FormatBool(!in.AIRedactOff),
+		"agentAutoRuns":      strconv.FormatBool(in.AgentAutoRuns),
 		"billingProvider":            in.BillingProvider,
 		"billingTagKey":              in.BillingTagKey,
 		"billingTagValue":            in.BillingTagValue,

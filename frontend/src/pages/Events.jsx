@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNowStrict } from "date-fns";
 import { EVENTS, TIMELINE, AI } from "@/constants/testIds";
 import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
+import { RunAgentButton } from "@/components/RunAgentButton";
 import { canExplainEvent } from "@/lib/ai";
 import { resourceHref } from "@/lib/resourceHref";
 import SearchBox from "@/components/SearchBox";
@@ -153,10 +154,13 @@ export default function Events() {
                                         <td className="mono num">{relTime(e.time)}</td>
                                         <td>
                                             {canExplainEvent(e) && (
-                                                <ExplainWithAiButton
-                                                    testId={AI.explainEvent(i)}
-                                                    target={{ namespace: e.namespace, kind: "event", name: e.object, reason: e.reason, label: `${e.reason}: ${e.namespace}/${e.object}` }}
-                                                />
+                                                <div className="flex flex-wrap gap-1">
+                                                    <ExplainWithAiButton
+                                                        testId={AI.explainEvent(i)}
+                                                        target={{ namespace: e.namespace, kind: "event", name: e.object, reason: e.reason, label: `${e.reason}: ${e.namespace}/${e.object}` }}
+                                                    />
+                                                    <RunAgentButton target={{ namespace: e.namespace, kind: "event", name: e.object, reason: e.reason, label: `${e.reason}: ${e.namespace}/${e.object}` }} />
+                                                </div>
                                             )}
                                         </td>
                                     </tr>

@@ -152,13 +152,23 @@ podProxy:
     # With expose.type=NodePort, the node port for the pod proxy (empty: none).
     nodePort: ""
 
-# How the Service is exposed. One of: ClusterIP, NodePort, Ingress.
+# How the Service is exposed. One of: ClusterIP, NodePort, Ingress, Gateway.
+# Prefer Gateway (Envoy Gateway) over Ingress NGINX — the Ingress NGINX
+# controller is retiring; Gateway API + Envoy is the cloud-native path
+# (HTTP/gRPC observability, HTTP/3-capable data plane).
 expose:
   type: NodePort
   nodePort: 30590
   ingress:
     className: ""
     host: ""
+    annotations: {}
+  gateway:
+    # GatewayClass created by Envoy Gateway (helm: eg / controller
+    # gateway.envoyproxy.io/gatewayclass-controller).
+    className: eg
+    host: ""
+    port: 443
     annotations: {}
 
 # Optional OIDC wiring (can also be configured later via Settings -> Integrations).

@@ -44,7 +44,9 @@
     },
     "atlas": {
       "url": "Atlas URL",
-      "consoleUrl": "控制台 URL"
+      "consoleUrl": "控制台 URL",
+      "token": "API token",
+      "tokenSet": "API token (set — leave blank to keep)"
     },
     "postgres": {
       "host": "主机",
@@ -71,7 +73,10 @@
       "forwardWarnings": "自动转发 Warning 事件",
       "forwardWarningsHint": "每 60 秒轮询一次，并将新的集群 Warning 事件推送到上述渠道。",
       "testSlack": "测试 Slack",
-      "testWebhook": "测试 Webhook"
+      "testWebhook": "测试 Webhook",
+      "clearSlack": "清除 Slack webhook",
+      "clearWebhook": "清除告警 webhook",
+      "silenceHint": "将 Alertmanager 指向您的 webhook；Axiom 只写存储该 URL。"
     },
     "apiKeyNote": "API 密钥登录通过 Axiom 进程上的 <mono>AXIOM_API_KEY</mono> 环境变量配置。"
   },
@@ -96,7 +101,10 @@
     "providers": {
       "openaiCompatible": "OpenAI 兼容",
       "ollama": "Ollama（本地）"
-    }
+    },
+    "agentAutoRuns": "自动代理运行",
+    "agentAutoRunsHint": "开启后，Warning/CrashLoop 会创建待批准的 ProposeOnly 代理运行。",
+    "mcpHint": "MCP：<mono>/api/v1/mcp</mono> — 用于集群排查与 create_agent_run 的 JSON-RPC 工具。"
   },
   "aiAssistant": {
     "explain": "用 AI 解释",
@@ -547,10 +555,20 @@
     "columns": {
       "class": "类",
       "hosts": "主机",
-      "address": "地址"
+      "address": "地址",
+      "provider": "Provider"
     },
     "empty": "没有符合当前筛选条件的 Ingress。",
-    "noGateways": "未找到 Gateway API 对象（GatewayClass/Gateway/HTTPRoute）。"
+    "noGateways": "未找到 Gateway API 对象（GatewayClass/Gateway/HTTPRoute）。",
+    "legacyTitle": "Ingress resources",
+    "gatewayTitle": "Gateway API",
+    "envoy": {
+      "title": "Envoy Gateway",
+      "detected": "detected",
+      "notDetected": "not installed",
+      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Envoy (deep observability, gRPC/HTTP3-capable data plane). Use this instead of Ingress NGINX when migrating.",
+      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Envoy Gateway (Gateway + HTTPRoute)."
+    }
   },
   "autoTable": {
     "yes": "是",
@@ -580,12 +598,30 @@
     "columns": {
       "warning": "警告",
       "resource": "资源",
-      "groups": "组"
+      "groups": "组",
+      "alert": "Alert",
+      "severity": "Severity",
+      "matchers": "Matchers",
+      "ends": "Ends"
     },
     "noWarnings": "没有活动警告。",
     "ruleGroups": "告警规则组",
     "groupsCount": "{{n}} 个组",
-    "noRules": "未配置告警规则。"
+    "noRules": "未配置告警规则。",
+    "firingTitle": "Firing alerts",
+    "amNotConfigured": "Set AXIOM_ALERTMANAGER_URL to list firing alerts and manage silences.",
+    "noFiring": "No firing alerts.",
+    "silencesTitle": "Silences",
+    "silenceMatchers": "Matchers",
+    "silenceHours": "Hours",
+    "silenceComment": "Comment",
+    "createSilence": "Create silence",
+    "expireSilence": "Expire",
+    "noSilences": "No active silences.",
+    "silenceCreated": "Silence created",
+    "silenceExpired": "Silence expired",
+    "silenceFailed": "Silence action failed",
+    "silenceBadMatchers": "Enter matchers like alertname=\"HighCPU\""
   },
   "fleet": {
     "title": "集群群组",
@@ -624,7 +660,8 @@
         "cluster": "集群",
         "match": "匹配项"
       },
-      "truncated": "显示 {{total}} 个匹配项中的前 {{shown}} 个 — 请缩小搜索范围。"
+      "truncated": "显示 {{total}} 个匹配项中的前 {{shown}} 个 — 请缩小搜索范围。",
+      "pods": "Pods"
     },
     "summary": {
       "clusters": "集群",
@@ -676,7 +713,10 @@
     "analyzerErrors": "部分分析器无法运行，因此此报告可能不完整：{{errors}}",
     "noProblems": "未发现问题。",
     "noFindingsAtSeverity": "此严重程度下没有发现。",
-    "checkedBy": "由 {{n}} 个分析器检查（{{list}}）· {{time}}"
+    "checkedBy": "由 {{n}} 个分析器检查（{{list}}）· {{time}}",
+    "upgradeRisk": {
+      "title": "Upgrade readiness"
+    }
   },
   "notifications": {
     "title": "通知",
@@ -692,7 +732,7 @@
   },
   "ops": {
     "title": "运维",
-    "description": "Helm、GitOps、代理、身份、审计、访问控制和成本。",
+    "description": "Helm、GitOps、代理、身份、审计、访问控制和成本。, accelerators.",
     "tabs": {
       "helm": "Helm",
       "gitops": "GitOps",
@@ -701,7 +741,8 @@
       "audit": "审计",
       "access": "访问控制",
       "webhooks": "Webhook",
-      "cost": "成本"
+      "cost": "成本",
+      "accelerators": "Accelerators"
     },
     "results": "结果",
     "noneFound": "未找到。",
@@ -738,7 +779,20 @@
       "autonomy": "自主级别：{{value}}",
       "risk": "风险：{{value}}",
       "approval": "审批：{{value}}",
-      "empty": "没有代理运行记录。"
+      "empty": "没有代理运行记录。",
+      "create": "创建运行",
+      "createTitle": "创建代理运行",
+      "goal": "目标",
+      "goalPlaceholder": "Diagnose CrashLoopBackOff and propose the safest fix",
+      "namespace": "命名空间",
+      "targetKind": "目标类型",
+      "targetName": "目标名称",
+      "dryRun": "试运行（仅预览 — 仍需批准）",
+      "source": "source: {{value}}",
+      "owned": "Axiom 托管",
+      "rootCause": "根因",
+      "executed": "已执行",
+      "runAgent": "运行代理"
     },
     "identity": {
       "planes": "身份平面",
@@ -814,6 +868,23 @@
       "last14d": "最近 14 天",
       "last30d": "最近 30 天",
       "idle": "闲置（已分配但未使用）"
+    },
+    "accelerators": {
+      "status": "Status",
+      "gpus": "GPUs",
+      "nodes": "GPU nodes",
+      "util": "GPU util",
+      "gpuNodes": "GPU nodes",
+      "gpuWorkloads": "GPU workloads",
+      "product": "Product",
+      "sharing": "Sharing",
+      "scheduling": "Scheduling",
+      "quotas": "GPU quotas",
+      "hard": "Hard",
+      "used": "Used",
+      "noNodes": "No GPU nodes detected.",
+      "noPods": "No pods requesting GPUs.",
+      "loadFailed": "Could not load accelerators."
     }
   },
   "rbac": {
@@ -1223,7 +1294,9 @@
       "hint": "在本地使用 virtctl，或将 VNC 客户端连接到下方的代理 WebSocket 路径。",
       "wsProxy": "浏览器 WebSocket 代理",
       "runLocally": "在本地运行（需要 kubeconfig）",
-      "subresource": "Kubernetes API 子资源"
+      "subresource": "Kubernetes API 子资源",
+      "novncTitle": "嵌入式控制台",
+      "novncWaiting": "正在等待虚拟机控制台…"
     },
     "protection": {
       "new": "新建",
@@ -1284,7 +1357,8 @@
     "disconnect": "断开连接",
     "connecting": "正在连接…",
     "connect": "连接",
-    "axiomDistroless": "Axiom 控制台镜像是 distroless 镜像 — 不包含 <code>/bin/sh</code>。请打开其他 Pod（例如 redis/nginx）以使用交互式 shell。"
+    "axiomDistroless": "Axiom 控制台镜像是 distroless 镜像 — 不包含 <code>/bin/sh</code>。请打开其他 Pod（例如 redis/nginx）以使用交互式 shell。",
+    "idleTimeout": "Disconnected after 10 minutes of idle time."
   },
   "nodeShell": {
     "title": "节点 shell",
@@ -1486,7 +1560,8 @@
       "scale": "扩缩…",
       "rollout": "发布…",
       "seal": "封存",
-      "unseal": "解除封存"
+      "unseal": "解除封存",
+      "sleep": "Sleep"
     },
     "runWorkload": "运行工作负载",
     "searchPlaceholder": "搜索名称或镜像",
@@ -1503,7 +1578,13 @@
       "description": "Deployment、StatefulSet、DaemonSet 和 CronJob 启动后将显示在此处。",
       "action": "运行您的第一个工作负载"
     },
-    "noMatches": "没有符合当前筛选条件的工作负载。"
+    "noMatches": "没有符合当前筛选条件的工作负载。",
+    "still": {
+      "title": "Seal {{name}}?",
+      "description": "{{sessions}} live terminal(s) and {{windows}} pod window(s) are open on {{replicas}} replica(s); {{atlas}} Atlas volume(s) survive isolation.",
+      "sleepTitle": "Sleep {{name}}?",
+      "sleepDescription": "Scale to zero. {{sessions}} terminal(s) and {{windows}} window(s) touch {{replicas}} replica(s)."
+    }
   },
   "billing": {
     "experimental": "实验性",
@@ -1547,5 +1628,12 @@
       "secretSet": "已设置 — 留空则保留",
       "permissions": "请使用只读凭据：AWS 需要 ce:GetCostAndUsage；Azure 需要订阅上的 Cost Management Reader；GCP 需要导出数据集上的 BigQuery Job User 和 Data Viewer。"
     }
+  },
+  "metrics": {
+    "title": "指标历史",
+    "cpu": "CPU",
+    "memory": "内存",
+    "unavailable": "未配置 Prometheus（AXIOM_PROMETHEUS_URL）。",
+    "gpu": "GPU util"
   }
 }

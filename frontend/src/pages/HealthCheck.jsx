@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, RefreshCw } from "lucide-react";
+import { CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
@@ -10,6 +10,7 @@ import { HEALTH } from "@/constants/testIds";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
+import { toast } from "sonner";
 
 function relTime(iso) {
     try {
@@ -31,7 +32,13 @@ export default function HealthCheck() {
     const [namespace, setNamespace] = useState("");
     const [namespaces, setNamespaces] = useState([]);
     const [sev, setSev] = useState("");
+    const [upgrade, setUpgrade] = useState(null);
+    const [upgradeBusy, setUpgradeBusy] = useState(false);
     const { report, error, loading, reload } = useClusterHealth(namespace, 30000);
+
+    const loadUpgrade = () => {
+        api.get("/upgrade-risk").then((r) => setUpgrade(r.data)).catch(() => setUpgrade(null));
+    };
 
     useEffect(() => {
         let alive = true;
@@ -39,10 +46,23 @@ export default function HealthCheck() {
             .get("/namespaces")
             .then((r) => alive && setNamespaces((r.data || []).map((n) => n.name)))
             .catch(() => {});
+        loadUpgrade();
         return () => {
             alive = false;
         };
     }, []);
+
+    const runUpgradeAgent = async () => {
+        setUpgradeBusy(true);
+        try {
+            await api.post("/upgrade-risk/agent-run");
+            toast.success(t("toasts:ops.agents.created"));
+        } catch (e) {
+            toast.error(t("toasts:ops.agents.createFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setUpgradeBusy(false);
+        }
+    };
 
     const all = report?.findings || [];
     const shown = sev ? all.filter((f) => f.severity === sev) : all;
@@ -79,6 +99,41 @@ export default function HealthCheck() {
                 <div className="notice danger" role="alert">
                     {error}
                 </div>
+            )}
+
+            {upgrade && (
+                <GlassCard className="space-y-3 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <ShieldAlert size={15} /> {t("pages:healthCheck.upgradeRisk.title")}
+                            <span className="pill" style={{ "--c": upgrade.status === "ready" ? "var(--green)" : upgrade.status === "blocked" ? "var(--red)" : "var(--amber)" }}>
+                                <i aria-hidden="true" />
+                                {upgrade.status}
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="button" className="btn btn-line btn-sm" onClick={loadUpgrade}>{t("pages:healthCheck.runAgain")}</button>
+                            <button type="button" className="btn btn-line btn-sm" disabled={upgradeBusy} onClick={runUpgradeAgent}>
+                                {upgradeBusy ? t("common:actions.saving") : t("pages:ops.agents.runAgent")}
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-[13px] text-ink-3">{upgrade.summary}</p>
+                    <div className="text-[12px] text-ink-3 mono">
+                        {upgrade.cluster?.kubernetesVersion || "—"} · {upgrade.cluster?.nodesReady}/{upgrade.cluster?.nodeCount} nodes ready
+                    </div>
+                    {(upgrade.findings || []).length > 0 && (
+                        <ul className="space-y-2">
+                            {upgrade.findings.slice(0, 8).map((f, i) => (
+                                <li key={`${f.code}-${i}`} className="rounded-xl border border-border px-3 py-2 text-[13px]">
+                                    <span className="mono text-tone-link">{f.severity}</span> · {f.title}
+                                    <div className="text-[12px] text-ink-3">{f.detail}</div>
+                                    {f.hint ? <div className="text-[12px] text-ink-3">{f.hint}</div> : null}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </GlassCard>
             )}
 
             {!report && !error && <Skeleton className="h-64 rounded-2xl bg-muted" />}

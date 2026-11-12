@@ -47,11 +47,60 @@
   display: flex;
   flex-direction: column;
   color: var(--text-primary);
-  background: var(--bg-page);
+  /* Deep night-ops canvas — ink + ember + cyan mesh (not flat page fill). */
+  --login-ink: color-mix(in srgb, var(--bg-page) 55%, #070b12 45%);
+  --login-ember: color-mix(in srgb, var(--brand, #e85d04) 70%, #ffb347 30%);
+  --login-cyan: color-mix(in srgb, var(--apple-blue, #0a84ff) 55%, #2dd4bf 45%);
+  background:
+    radial-gradient(120% 80% at 12% -10%, color-mix(in srgb, var(--login-ember) 28%, transparent), transparent 55%),
+    radial-gradient(90% 70% at 92% 8%, color-mix(in srgb, var(--login-cyan) 22%, transparent), transparent 50%),
+    radial-gradient(70% 55% at 50% 110%, color-mix(in srgb, var(--login-ember) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, var(--login-ink) 0%, var(--bg-page) 48%, color-mix(in srgb, var(--bg-page) 70%, #0c1220 30%) 100%);
   font-family: var(--font-hero);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 20%, transparent 75%);
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--login-ember) 35%, transparent) 0%, transparent 28%),
+    radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--login-cyan) 30%, transparent) 0%, transparent 26%),
+    radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--login-ember) 18%, transparent) 0%, transparent 32%);
+  filter: blur(40px);
+  animation: login-aurora 18s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+@keyframes login-aurora {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+
+.login-store-scroll,
+.login-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Full-viewport snap scroll between hero + sign-in chapters */
@@ -94,7 +143,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: var(--bg-page);
+  background: transparent;
   text-align: center;
   animation: login-fade-in-up 0.55s var(--ease-apple) both;
 }
@@ -102,19 +151,22 @@
 .login-chapter-hero::before {
   content: '';
   position: absolute;
-  inset: -20%;
+  inset: -25%;
   z-index: -1;
   background:
-    radial-gradient(ellipse at 18% 22%, var(--hero-glow-a), transparent 55%),
-    radial-gradient(ellipse at 85% 78%, var(--hero-glow-b), transparent 55%),
+    radial-gradient(ellipse at 18% 22%, color-mix(in srgb, var(--login-ember) 40%, transparent), transparent 58%),
+    radial-gradient(ellipse at 85% 78%, color-mix(in srgb, var(--login-cyan) 32%, transparent), transparent 55%),
     radial-gradient(55% 70% at 50% 8%, var(--tone-glow, var(--tone-sky-glow)), transparent 70%);
-  opacity: 0.85;
+  opacity: 0.95;
   pointer-events: none;
+  animation: login-aurora 22s ease-in-out infinite alternate-reverse;
 }
 
 .login-chapter-sign-in {
-  background: var(--bg-page);
-  border-top: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-page) 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-hairline) 70%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   justify-content: center;
 }
 
@@ -518,7 +570,9 @@ button.login-cta-secondary:active {
 
 @media (prefers-reduced-motion: reduce) {
   .login-apple-step,
-  .login-chapter-hero {
+  .login-chapter-hero,
+  .login-page::after,
+  .login-chapter-hero::before {
     animation: none !important;
   }
   .login-shake {

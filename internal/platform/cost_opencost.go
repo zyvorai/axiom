@@ -231,7 +231,7 @@ func (c *OpenCostClient) fetch(ctx context.Context, window string) (openCostAllo
 type openCostRow struct {
 	Namespace, Kind, Controller string
 	CPU, Memory, Storage        float64
-	Network, Other, Total       float64
+	Network, GPU, Other, Total  float64
 	Minutes                     float64
 }
 
@@ -403,15 +403,15 @@ func openCostRowFrom(a openCostAllocation) openCostRow {
 	r.Memory = float64(a.RAMCost + a.RAMCostAdjustment)
 	r.Storage = float64(a.PVCost + a.PVCostAdjustment)
 	r.Network = float64(a.NetworkCost + a.NetworkCostAdjust)
-	other := float64(a.GPUCost + a.GPUCostAdjustment + a.LoadBalancerCost + a.LoadBalancerCostAdj + a.SharedCost + a.ExternalCost)
-	sum := r.CPU + r.Memory + r.Storage + r.Network + other
+	r.GPU = float64(a.GPUCost + a.GPUCostAdjustment)
+	sum := r.CPU + r.Memory + r.Storage + r.Network + r.GPU +
+		float64(a.LoadBalancerCost+a.LoadBalancerCostAdj+a.SharedCost+a.ExternalCost)
 	r.Total = float64(a.TotalCost)
 	if r.Total <= 0 {
 		r.Total = sum
 	}
-	// Whatever totalCost carries beyond the named parts (OpenCost adds new
-	// cost kinds from time to time) is "other".
-	r.Other = r.Total - (r.CPU + r.Memory + r.Storage + r.Network)
+	// Residual beyond named parts (LB, shared, external, future OpenCost kinds).
+	r.Other = r.Total - (r.CPU + r.Memory + r.Storage + r.Network + r.GPU)
 	if r.Other < 0 {
 		r.Other = 0
 	}
@@ -464,13 +464,14 @@ func costUSD(v, scale float64) float64 {
 
 func usdPtr(v float64) *float64 { return &v }
 
-type costParts struct{ cpu, mem, storage, network, other, total float64 }
+type costParts struct{ cpu, mem, storage, network, gpu, other, total float64 }
 
 func (p *costParts) add(r openCostRow) {
 	p.cpu += r.CPU
 	p.mem += r.Memory
 	p.storage += r.Storage
 	p.network += r.Network
+	p.gpu += r.GPU
 	p.other += r.Other
 	p.total += r.Total
 }
@@ -479,7 +480,7 @@ func (p costParts) breakdown(scale float64) CostBreakdown {
 	return CostBreakdown{
 		CPUUSD: usdPtr(costUSD(p.cpu, scale)), MemoryUSD: usdPtr(costUSD(p.mem, scale)),
 		StorageUSD: usdPtr(costUSD(p.storage, scale)), NetworkUSD: usdPtr(costUSD(p.network, scale)),
-		OtherUSD: usdPtr(costUSD(p.other, scale)),
+		GPUUSD: usdPtr(costUSD(p.gpu, scale)), OtherUSD: usdPtr(costUSD(p.other, scale)),
 	}
 }
 

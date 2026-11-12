@@ -63,6 +63,12 @@ spec:
               value: /etc/axiom/tls/tls.crt
             - name: AXIOM_TLS_KEY
               value: /etc/axiom/tls/tls.key
+            # Mutual TLS: browsers/API clients must present a cert signed by this CA.
+            # Import .run/mtls/admin.p12 (password: axiom) or use curl --cert/--key.
+            - name: AXIOM_TLS_CLIENT_CA
+              value: /etc/axiom/mtls/ca.crt
+            - name: AXIOM_TLS_MTLS
+              value: require
             - name: AXIOM_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -106,18 +112,18 @@ spec:
             - name: tls
               mountPath: /etc/axiom/tls
               readOnly: true
+            - name: mtls
+              mountPath: /etc/axiom/mtls
+              readOnly: true
+          # tcpSocket: HTTP probes cannot present a client cert under mTLS require.
           readinessProbe:
-            httpGet:
-              path: /api/v1/health
+            tcpSocket:
               port: https
-              scheme: HTTPS
             initialDelaySeconds: 3
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /api/v1/health
+            tcpSocket:
               port: https
-              scheme: HTTPS
             initialDelaySeconds: 10
             periodSeconds: 20
           resources:
@@ -131,6 +137,12 @@ spec:
         - name: tls
           secret:
             secretName: zyvor-axiom-tls
+        - name: mtls
+          secret:
+            secretName: zyvor-axiom-mtls
+            items:
+              - key: ca.crt
+                path: ca.crt
 ---
 apiVersion: v1
 kind: Service

@@ -547,6 +547,7 @@ func (k *KubernetesProvider) ListPods(ctx context.Context, ns string) ([]Pod, er
 			IP: p.Status.PodIP, Age: age(p.CreationTimestamp.Time), Containers: containers, ContainerInfo: cinfo,
 			Ports: ports, Labels: p.Labels, WorkloadID: wl, Replica: replica, Replicas: replicas,
 			Floor: string(FloorForNamespace(p.Namespace)), CPULimit: cpuLim, MemLimit: memLim,
+			GPU: podGPURequest(containerGPURequests(p)),
 			QOS: podQOS(p), Image: image, Intent: intentByWL[wlKey], Sealed: isSealed,
 		})
 	}
@@ -681,7 +682,7 @@ func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 		for _, t := range n.Spec.Taints {
 			taints = append(taints, TaintSummary{Key: t.Key, Value: t.Value, Effect: string(t.Effect)})
 		}
-		out = append(out, Node{
+		node := Node{
 			Name:              n.Name,
 			Status:            status,
 			Role:              role,
@@ -700,7 +701,9 @@ func (k *KubernetesProvider) ListNodes(ctx context.Context) ([]Node, error) {
 			Taints:            taints,
 			Unschedulable:     n.Spec.Unschedulable,
 			Age:               age(n.CreationTimestamp.Time),
-		})
+		}
+		applyNodeGPUFields(&node, resourceQuantityMap(n.Status.Capacity), resourceQuantityMap(n.Status.Allocatable), n.Labels)
+		out = append(out, node)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out, nil

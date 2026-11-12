@@ -234,6 +234,9 @@ func (sp *SwitchableProvider) GetAgentRun(a0 context.Context, a1 string, a2 stri
 func (sp *SwitchableProvider) CreateAgentRun(a0 context.Context, a1 CreateAgentRunRequest) (AgentRun, error) {
 	return sp.current(a0).CreateAgentRun(a0, a1)
 }
+func (sp *SwitchableProvider) UpdateAgentRun(a0 context.Context, a1 AgentRun) (AgentRun, error) {
+	return sp.current(a0).UpdateAgentRun(a0, a1)
+}
 func (sp *SwitchableProvider) ApproveAgentRun(a0 context.Context, a1 string, a2 string) (AgentRun, error) {
 	return sp.current(a0).ApproveAgentRun(a0, a1, a2)
 }
@@ -419,6 +422,9 @@ func (sp *SwitchableProvider) RemoveTaint(a0 context.Context, a1 string, a2 stri
 }
 func (sp *SwitchableProvider) ListGateways(a0 context.Context, a1 string) ([]GatewaySummary, error) {
 	return sp.current(a0).ListGateways(a0, a1)
+}
+func (sp *SwitchableProvider) ListAccelerators(a0 context.Context) (AcceleratorsReport, error) {
+	return sp.current(a0).ListAccelerators(a0)
 }
 func (sp *SwitchableProvider) CreateVeleroSchedule(a0 context.Context, a1 CreateVeleroScheduleRequest) (VeleroSchedule, error) {
 	return sp.current(a0).CreateVeleroSchedule(a0, a1)
