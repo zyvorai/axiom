@@ -4,9 +4,10 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
-### Docs — GitHub Pages refresh
-- ROADMAP / GAPS / VERIFICATION / QUICKSTART / API updated for the residual pack, Velero CRD harness, billing live harness, and Helm RBAC.
-- Marketing site hero pill: New in 0.14 (agents, MCP, GPUs, fleet twins, Seal & Still).
+## [0.14.0] - 2026-11-12
+
+### Docs
+- ROADMAP / GAPS / VERIFICATION / QUICKSTART / API synced; marketing site hero: New in 0.14.
 
 ### Added — Velero CRD / billing live / Helm RBAC
 - Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI (`testdata/velero/`); optional `storageLocation` on backups; `e2e/scripts/validate-velero.sh` + enterprise-writes path when CRDs exist.
@@ -74,8 +75,6 @@ All notable changes to Zyvor Axiom are documented here.
 - Agent actions: `cordon_node`, `uncordon_node`, `apply_rightsizing`.
 - Prometheus history charts on Node and Workload detail (`kind=node|workload|pod`).
 - Fleet search: Pods (name/image/labels); Atlas API token field in Settings; terminal idle disconnect (10m).
-
-## [0.14.0] - 2026-11-12
 
 ### Added — agentic ops (Lightspeed-class)
 - Built-in agent planner: investigate (diagnosis, events, health) → structured ProposeOnly plan → human approve/deny → allowlisted apply (`restart_pod`, `delete_pod`, `scale_workload`, `rollout_restart`, `noop`). Uses BYO LLM when AI is enabled; otherwise a deterministic plan from CrashLoop/ImagePull/scale signals.

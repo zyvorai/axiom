@@ -93,7 +93,7 @@ Other known gaps found by the functional test pass (see `e2e/README.md`) — **c
 - `/api/v1/session` reports `Operator` and `auth: "saml"` for SAML sessions
 - `DELETE /api/v1/clusters/{unknown}` returns 404
 
-Closed in the residual / Velero-billing-Helm pack (see CHANGELOG Unreleased):
+Closed in the residual / Velero-billing-Helm pack (see CHANGELOG 0.14.0):
 
 - Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI; live: `e2e/scripts/validate-velero.sh`
 - Cloud invoice AWS pagination + STS session tokens; live: `e2e/scripts/validate-billing-live.sh` / `AXIOM_BILLING_LIVE=1` (still experimental until you run it against your account)
