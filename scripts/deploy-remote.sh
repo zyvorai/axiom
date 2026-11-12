@@ -215,7 +215,10 @@ if [ ! -f .run/mtls/ca.crt ] || [ ! -f .run/mtls/ca.key ]; then
 else
   echo 'Reusing existing mTLS client CA (.run/mtls/ca.crt)'
 fi
-if [ ! -f .run/mtls/admin.crt ] || [ ! -f .run/mtls/admin.key ]; then
+# Remint admin whenever missing or not signed by the current CA (CA rotate left
+# a stale admin.crt that browsers/curl reject under AXIOM_TLS_MTLS=require).
+if [ ! -f .run/mtls/admin.crt ] || [ ! -f .run/mtls/admin.key ] \
+    || ! openssl verify -CAfile .run/mtls/ca.crt .run/mtls/admin.crt >/dev/null 2>&1; then
   openssl req -newkey rsa:2048 -nodes -keyout .run/mtls/admin.key -out .run/mtls/admin.csr \
     -subj '/CN=axiom-admin/O=Zyvor Axiom' 2>/dev/null
   openssl x509 -req -in .run/mtls/admin.csr -CA .run/mtls/ca.crt -CAkey .run/mtls/ca.key \

@@ -25,8 +25,17 @@ var (
 
 // newFakeFullProvider wires a *KubernetesProvider to BOTH a fake clientset
 // (which also backs discovery) and a fake dynamic client seeded with objects.
+// When gvrToListKind is nil, CRDs that ClusterHealth LISTs (cert-manager
+// Certificates) are still registered so the fake does not panic the way a
+// real apiserver would return NotFound for a missing CRD.
 func newFakeFullProvider(gvrToListKind map[schema.GroupVersionResource]string, dynObjects []runtime.Object, objects ...runtime.Object) (*KubernetesProvider, *k8sfake.Clientset, *dynamicfake.FakeDynamicClient) {
 	cs := k8sfake.NewSimpleClientset(objects...)
+	if gvrToListKind == nil {
+		gvrToListKind = map[schema.GroupVersionResource]string{}
+	}
+	if _, ok := gvrToListKind[certManagerCertificateGVR]; !ok {
+		gvrToListKind[certManagerCertificateGVR] = "CertificateList"
+	}
 	dyn := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), gvrToListKind, dynObjects...)
 	return &KubernetesProvider{client: cs, dynamic: dyn}, cs, dyn
 }
