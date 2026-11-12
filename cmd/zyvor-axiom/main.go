@@ -56,6 +56,7 @@ func main() {
 
 	platform.SetAuditRingSize(cfg.AuditRingSize)
 	platform.SetAuditStore(platform.OpenAuditStore(cfg.Mode, provider))
+	platform.SetNotifyLeader(platform.OpenNotifyLeader(cfg.Mode, provider))
 	platform.SetRemoteClusterStore(platform.OpenRemoteClusterStore(cfg.Mode, provider))
 	notifier := platform.NewHubNotifier(hub)
 	var fleetHistoryFlushed <-chan struct{}
@@ -151,7 +152,8 @@ func main() {
 
 		HelmRegistryCredStore: platform.OpenHelmRegistryCredStore(cfg.Mode, provider),
 
-		PodProxy: podProxy,
+		PodProxy:         podProxy,
+		SAMLRequestStore: platform.OpenSAMLRequestStore(cfg.Mode, provider),
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some

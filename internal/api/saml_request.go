@@ -9,6 +9,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"net/http"
@@ -40,10 +41,15 @@ const (
 var samlNow = time.Now
 
 // samlRequestStore holds outstanding AuthnRequest IDs -> expiry. The zero
-// value is ready to use.
+// value is ready to use. When shared is set (AttachSharedSAMLStore), add/consume
+// also merge through that store so replicas share outstanding IDs.
 type samlRequestStore struct {
-	mu  sync.Mutex
-	ids map[string]time.Time
+	mu     sync.Mutex
+	ids    map[string]time.Time
+	shared interface {
+		Load() ([]byte, error)
+		Save([]byte) error
+	}
 }
 
 // add records id, sweeping expired entries first. When the store is still at
@@ -72,18 +78,69 @@ func (st *samlRequestStore) add(id string, exp time.Time) {
 		delete(st.ids, oldest)
 	}
 	st.ids[id] = exp
+	st.persistSharedLocked()
 }
 
 // consume removes id and reports whether it was outstanding and unexpired.
 func (st *samlRequestStore) consume(id string) bool {
 	st.mu.Lock()
 	defer st.mu.Unlock()
+	if st.ids == nil {
+		st.ids = make(map[string]time.Time)
+	}
+	st.loadSharedLocked()
 	exp, ok := st.ids[id]
 	if !ok {
 		return false
 	}
 	delete(st.ids, id)
-	return samlNow().Before(exp)
+	ok = samlNow().Before(exp)
+	if ok {
+		st.persistSharedLocked()
+	}
+	return ok
+}
+
+func (st *samlRequestStore) loadSharedLocked() {
+	if st.shared == nil {
+		return
+	}
+	raw, err := st.shared.Load()
+	if err != nil || len(raw) == 0 {
+		return
+	}
+	var snap samlSharedSnap
+	if json.Unmarshal(raw, &snap) != nil || snap.IDs == nil {
+		return
+	}
+	now := samlNow()
+	for id, unix := range snap.IDs {
+		exp := time.Unix(unix, 0)
+		if !now.Before(exp) {
+			continue
+		}
+		if cur, has := st.ids[id]; !has || exp.After(cur) {
+			st.ids[id] = exp
+		}
+	}
+}
+
+func (st *samlRequestStore) persistSharedLocked() {
+	if st.shared == nil {
+		return
+	}
+	snap := samlSharedSnap{IDs: map[string]int64{}}
+	now := samlNow()
+	for id, exp := range st.ids {
+		if now.Before(exp) {
+			snap.IDs[id] = exp.Unix()
+		}
+	}
+	raw, err := json.Marshal(snap)
+	if err != nil {
+		return
+	}
+	_ = st.shared.Save(raw)
 }
 
 // newSAMLRequestID returns a random ID that is a valid xs:ID (an NCName must

@@ -4,6 +4,18 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Overall opportunities pack (HA + theatre deepen + MCP HITL)
+- Multi-replica notify leadership via coordination Lease (`zyvor-axiom-notify`); Slack/webhook dispatch retries once; non-leaders stay silent.
+- Audit ConfigMap Save merges rings across replicas (union by time/action/target/user/detail) instead of last-writer-wins.
+- Secret list prefers PartialObjectMetadata (no `.data` download) with Limit/Continue pagination fallback.
+- Shared SAML AuthnRequest store (`zyvor-axiom-saml-authn`) so login→ACS works without sticky sessions.
+- Twin-diff enrich: image / ready / desired / sealed / signed badge on fleet search hits.
+- Outage narrative API `GET /api/v1/fleet/outage-narrative` + Fleet UI (who-poked-it + agent runs).
+- Seal receipts record flowsBefore/After/delta and presence witnesses.
+- Findings → Seal ProposeOnly in deterministic agent planner; upgrade-risk prep actions expanded.
+- DRA browser `GET /api/v1/dra` + Ops Accelerators panel; OpenCost queries `shareIdle`/`includeIdle`.
+- MCP HITL writes: `propose_seal`, `approve_agent_run`, `deny_agent_run`, plus `list_dra` / `outage_narrative`.
+
 ### Added — NVIDIA Accelerators + weird k8s feats
 - `GET /api/v1/accelerators`: GPU nodes/pods, Operator/device-plugin/DCGM, GFD sharing/MIG labels, GPU ResourceQuotas, FailedScheduling issues, optional DRA counts and DCGM util snapshot.
 - Ops → Accelerators tab; GPU columns on Nodes / Node detail / Pod detail; Cost shows `gpuUsd` + `otherUsd`.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"sort"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -91,20 +92,60 @@ func fitAuditEntries(entries []AuditEntry, maxBytes int) ([]byte, []AuditEntry, 
 }
 
 func (s *K8sAuditStore) Save(ctx context.Context, entries []AuditEntry) error {
-	raw, _, err := fitAuditEntries(entries, maxAuditPersistBytes)
+	// Merge with whatever is already on the ConfigMap so concurrent replicas
+	// union their rings instead of last-writer-wins clobbering each other.
+	existing, _ := s.Load(ctx)
+	merged := mergeAuditEntries(existing, entries)
+	raw, _, err := fitAuditEntries(merged, maxAuditPersistBytes)
 	if err != nil {
 		return err
 	}
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: auditConfigMapName, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
-		Data:       map[string]string{"audit.json": string(raw)},
-	}
-	if _, err := s.client.CoreV1().ConfigMaps(s.ns).Update(ctx, cm, metav1.UpdateOptions{}); err != nil {
-		if apierrors.IsNotFound(err) {
-			_, err = s.client.CoreV1().ConfigMaps(s.ns).Create(ctx, cm, metav1.CreateOptions{})
-			return err
+	cm, err := s.client.CoreV1().ConfigMaps(s.ns).Get(ctx, auditConfigMapName, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		obj := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: auditConfigMapName, Namespace: s.ns, Labels: map[string]string{"app": "zyvor-axiom"}},
+			Data:       map[string]string{"audit.json": string(raw)},
 		}
+		_, err = s.client.CoreV1().ConfigMaps(s.ns).Create(ctx, obj, metav1.CreateOptions{})
 		return err
 	}
-	return nil
+	if err != nil {
+		return err
+	}
+	if cm.Data == nil {
+		cm.Data = map[string]string{}
+	}
+	cm.Data["audit.json"] = string(raw)
+	_, err = s.client.CoreV1().ConfigMaps(s.ns).Update(ctx, cm, metav1.UpdateOptions{})
+	return err
+}
+
+// mergeAuditEntries unions two rings by (time,action,target,user,detail) and
+// keeps chronological order, newest last, capped later by fitAuditEntries.
+func mergeAuditEntries(a, b []AuditEntry) []AuditEntry {
+	type key struct {
+		t      int64
+		action string
+		target string
+		user   string
+		detail string
+	}
+	seen := map[key]bool{}
+	out := make([]AuditEntry, 0, len(a)+len(b))
+	add := func(e AuditEntry) {
+		k := key{e.Time.UnixNano(), e.Action, e.Target, e.User, e.Detail}
+		if seen[k] {
+			return
+		}
+		seen[k] = true
+		out = append(out, e)
+	}
+	for _, e := range a {
+		add(e)
+	}
+	for _, e := range b {
+		add(e)
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Time.Before(out[j].Time) })
+	return out
 }

@@ -85,21 +85,34 @@ func isMissingCRD(err error) bool {
 }
 
 func (k *KubernetesProvider) ListSecrets(ctx context.Context, ns string) ([]SecretSummary, error) {
-	list, err := k.client.CoreV1().Secrets(nsSelector(ns)).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
+	// Prefer PartialObjectMetadata so list never downloads Secret.data (GAPS:
+	// large clusters were slow because every Secret body was pulled).
+	if out, ok := k.listSecretsMetadata(ctx, ns); ok {
+		return out, nil
 	}
-	out := make([]SecretSummary, 0, len(list.Items))
-	for _, s := range list.Items {
-		keys := make([]string, 0, len(s.Data))
-		for key := range s.Data {
-			keys = append(keys, key)
+	const page = int64(250)
+	var out []SecretSummary
+	var cont string
+	for {
+		list, err := k.client.CoreV1().Secrets(nsSelector(ns)).List(ctx, metav1.ListOptions{Limit: page, Continue: cont})
+		if err != nil {
+			return nil, err
 		}
-		sort.Strings(keys)
-		out = append(out, SecretSummary{
-			Namespace: s.Namespace, Name: s.Name, Type: string(s.Type),
-			Keys: keys, KeyCount: len(keys), Age: age(s.CreationTimestamp.Time),
-		})
+		for _, s := range list.Items {
+			keys := make([]string, 0, len(s.Data))
+			for key := range s.Data {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			out = append(out, SecretSummary{
+				Namespace: s.Namespace, Name: s.Name, Type: string(s.Type),
+				Keys: keys, KeyCount: len(keys), Age: age(s.CreationTimestamp.Time),
+			})
+		}
+		cont = list.Continue
+		if cont == "" {
+			break
+		}
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace == out[j].Namespace {

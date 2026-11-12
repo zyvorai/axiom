@@ -154,6 +154,21 @@ func deterministicAgentPlan(run AgentRun, evidence string) *AgentPlan {
 		plan.Summary = "Image pull failure — no safe automated fix"
 		plan.RootCause = "Image or pull secret issue"
 		plan.Actions = []AgentAction{{ID: "a1", Type: AgentActionNoop, Risk: "low", Description: "Fix image name or pull secrets manually"}}
+	case strings.Contains(low, "seal") || strings.Contains(low, "exfil") || strings.Contains(low, "network policy") ||
+		strings.Contains(low, "unexpected egress") || strings.Contains(low, "packetwolf") ||
+		strings.Contains(low, "lateral") || strings.Contains(low, "isolate"):
+		plan.Summary = "Containment proposed — Seal workload (NetworkPolicy isolate)"
+		plan.RootCause = "Network / presence finding suggests isolation"
+		plan.Risk = "medium"
+		if tgt != nil {
+			plan.Actions = []AgentAction{{
+				ID: "a1", Type: AgentActionSealWorkload, Risk: "medium",
+				Description: "Seal the workload (deny egress except DNS) — ProposeOnly until approved",
+				Target:      tgt,
+			}}
+		} else {
+			plan.Actions = []AgentAction{{ID: "a1", Type: AgentActionNoop, Risk: "low", Description: "Pick a workload target to Seal"}}
+		}
 	case strings.Contains(low, "scale") || strings.Contains(low, "replica"):
 		plan.Summary = "Scale adjustment proposed"
 		plan.Actions = []AgentAction{{

@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/zyvorai/axiom/internal/platform"
 )
@@ -12,6 +13,17 @@ func (s *Server) registerFleet(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/fleet", s.fleet)
 	mux.HandleFunc("POST /api/v1/fleet/refresh", s.refreshFleet)
 	mux.HandleFunc("GET /api/v1/fleet/history", s.fleetHistory)
+	mux.HandleFunc("GET /api/v1/fleet/outage-narrative", s.fleetOutageNarrative)
+}
+
+func (s *Server) fleetOutageNarrative(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	cluster := strings.TrimSpace(q.Get("cluster"))
+	if cluster == "" {
+		fail(w, http.StatusBadRequest, fmt.Errorf("cluster is required"))
+		return
+	}
+	writeJSON(w, http.StatusOK, platform.BuildOutageNarrative(r.Context(), s.provider, cluster, q.Get("from"), q.Get("state")))
 }
 
 // fleetHistory returns the probe history (uptime, incidents and a

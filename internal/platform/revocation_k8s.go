@@ -26,6 +26,9 @@ const (
 	// replica is refused on the others. Entries live for a ticket's 60 s.
 	podProxyRedeemedConfigMapName = "zyvor-axiom-pod-proxy-redeemed"
 	podProxyRedeemedConfigMapKey  = "redeemed.json"
+
+	samlRequestConfigMapName = "zyvor-axiom-saml-authn"
+	samlRequestConfigMapKey  = "saml-authn.json"
 )
 
 // K8sRevocationStore keeps the session-revocation snapshot in a ConfigMap so a
@@ -72,6 +75,18 @@ func OpenPodProxyRedeemedStore(mode string, provider Provider) auth.RevocationSt
 		return nil
 	}
 	return NewK8sPodProxyRedeemedStore(k.client, "")
+}
+
+// OpenSAMLRequestStore shares outstanding SAML AuthnRequest IDs across replicas.
+func OpenSAMLRequestStore(mode string, provider Provider) auth.RevocationStore {
+	if strings.ToLower(mode) != "kubernetes" {
+		return nil
+	}
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
+	if !ok || k == nil || k.client == nil {
+		return nil
+	}
+	return newK8sBlobStore(k.client, "", samlRequestConfigMapName, samlRequestConfigMapKey)
 }
 
 // OpenRevocationStore returns the persistent store in kubernetes mode and nil

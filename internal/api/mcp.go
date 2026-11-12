@@ -1,7 +1,9 @@
 package api
 
 // MCP (Model Context Protocol) HTTP endpoint for Axiom.
-// JSON-RPC 2.0 over POST /api/v1/mcp — read-only cluster tools plus create_agent_run.
+// JSON-RPC 2.0 over POST /api/v1/mcp — read tools plus HITL writes
+// (create_agent_run / approve / deny / propose_seal). No ephemeral ClusterRole
+// sandbox yet; writes stay ProposeOnly or human-approved allowlisted actions.
 // Auth is the same session/API-key guard as the rest of the API.
 
 import (
@@ -55,7 +57,7 @@ func (s *Server) mcpInfo(w http.ResponseWriter, r *http.Request) {
 			"version": buildVersion,
 		},
 		"capabilities": map[string]any{"tools": map[string]any{}},
-		"instructions": "POST JSON-RPC 2.0 to /api/v1/mcp. Auth with the same session cookie or API key as the Axiom console. Tools are read-only except create_agent_run (ProposeOnly).",
+		"instructions": "POST JSON-RPC 2.0 to /api/v1/mcp. Auth with the same session cookie or API key as the Axiom console. Writes are HITL only: create_agent_run / propose_seal (ProposeOnly) and approve_agent_run / deny_agent_run.",
 	})
 }
 
@@ -139,6 +141,19 @@ func (s *Server) mcpToolDefs() []mcpTool {
 		{Name: "network_guard", Description: "PacketWolf / isolation summary for a workload", InputSchema: obj(map[string]any{
 			"namespace": str, "kind": str, "name": str,
 		}, "namespace", "name")},
+		{Name: "list_dra", Description: "DRA inventory (DeviceClass / ResourceSlice / ResourceClaim)", InputSchema: obj(map[string]any{})},
+		{Name: "outage_narrative", Description: "Compose fleet outage narrative (who poked it + agent runs)", InputSchema: obj(map[string]any{
+			"cluster": str, "from": str, "state": str,
+		}, "cluster")},
+		{Name: "propose_seal", Description: "Create a ProposeOnly agent run to Seal a workload (HITL)", InputSchema: obj(map[string]any{
+			"namespace": str, "kind": str, "name": str, "goal": str,
+		}, "namespace", "name")},
+		{Name: "approve_agent_run", Description: "Approve a pending ProposeOnly agent run (HITL write)", InputSchema: obj(map[string]any{
+			"namespace": str, "name": str,
+		}, "namespace", "name")},
+		{Name: "deny_agent_run", Description: "Deny a pending ProposeOnly agent run", InputSchema: obj(map[string]any{
+			"namespace": str, "name": str,
+		}, "namespace", "name")},
 	}
 }
 
@@ -210,6 +225,45 @@ func (s *Server) mcpCallTool(r *http.Request, params json.RawMessage) (map[strin
 		payload, err = s.provider.ListAgentRuns(ctx, str("namespace"))
 	case "get_workload":
 		payload, err = s.provider.GetResource(ctx, str("namespace"), str("kind"), str("name"))
+	case "list_dra":
+		payload, err = platform.ListDRA(ctx, s.provider)
+	case "outage_narrative":
+		payload = platform.BuildOutageNarrative(ctx, s.provider, str("cluster"), str("from"), str("state"))
+	case "propose_seal":
+		ns := str("namespace")
+		if ns == "" {
+			ns = "default"
+		}
+		kind := str("kind")
+		if kind == "" {
+			kind = "Deployment"
+		}
+		goal := str("goal")
+		if goal == "" {
+			goal = "Seal workload after network finding — isolate egress"
+		}
+		dry := true
+		req := platform.CreateAgentRunRequest{
+			Namespace: ns, Goal: goal, DryRun: &dry, Source: platform.AgentSourceMCP,
+			ExtraContext: "seal isolate packetwolf unexpected egress",
+			Target:       &platform.AgentObjectRef{APIVersion: "apps/v1", Kind: kind, Namespace: ns, Name: str("name")},
+		}
+		run, cerr := s.provider.CreateAgentRun(ctx, req)
+		if cerr != nil {
+			err = cerr
+			break
+		}
+		planned, _ := platform.PlanAgentRun(ctx, s.provider, s.aiSettings(), s.mode == "demo", run, req.ExtraContext)
+		if updated, uerr := s.provider.UpdateAgentRun(ctx, planned); uerr == nil {
+			run = updated
+		} else {
+			run = planned
+		}
+		payload = run
+	case "approve_agent_run":
+		payload, err = s.provider.ApproveAgentRun(ctx, str("namespace"), str("name"))
+	case "deny_agent_run":
+		payload, err = s.provider.DenyAgentRun(ctx, str("namespace"), str("name"))
 	case "create_agent_run":
 		dry := true
 		if v, ok := args["dryRun"].(bool); ok {

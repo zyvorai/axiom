@@ -180,6 +180,8 @@ func (c *OpenCostClient) fetch(ctx context.Context, window string) (openCostAllo
 		"window":     {window},
 		"aggregate":  {"namespace,controllerKind,controller"},
 		"accumulate": {"true"},
+		"shareIdle":  {"true"},
+		"includeIdle": {"true"},
 	}.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {

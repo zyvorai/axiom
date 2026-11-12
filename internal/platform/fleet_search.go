@@ -52,6 +52,11 @@ type FleetSearchHit struct {
 	Name         string `json:"name"`
 	Status       string `json:"status"`
 	Detail       string `json:"detail"`
+	Image        string `json:"image,omitempty"`
+	Ready        int32  `json:"ready,omitempty"`
+	Desired      int32  `json:"desired,omitempty"`
+	Sealed       bool   `json:"sealed,omitempty"`
+	Signed       string `json:"signed,omitempty"` // cosign/SLSA badge: signed | unsigned | unknown
 
 	rank    int // 0 exact name, 1 name prefix, 2 name contains, 3 namespace/image
 	cluster int // registration order
@@ -286,6 +291,8 @@ func listClusterMatches(ctx context.Context, t fleetSearchTarget, state, needle 
 			}
 			h := base
 			h.Kind, h.WorkloadKind, h.Namespace, h.Name, h.Status, h.rank = FleetSearchWorkload, w.Kind, w.Namespace, w.Name, w.Status, rank
+			h.Image, h.Ready, h.Desired = w.Image, w.Ready, w.Desired
+			h.Signed = imageSignBadge(w.Image, w.Labels)
 			h.Detail = fmt.Sprintf("%d/%d ready", w.Ready, w.Desired)
 			if w.Image != "" {
 				h.Detail += " · " + w.Image
@@ -345,6 +352,8 @@ func listClusterMatches(ctx context.Context, t fleetSearchTarget, state, needle 
 			}
 			h := base
 			h.Kind, h.Namespace, h.Name, h.Status, h.rank = FleetSearchPod, pod.Namespace, pod.Name, pod.Status, rank
+			h.Image, h.Sealed = pod.Image, pod.Sealed
+			h.Signed = imageSignBadge(pod.Image, pod.Labels)
 			h.Detail = fmt.Sprintf("%s · %s", pod.Ready, pod.Node)
 			if pod.Image != "" {
 				h.Detail += " · " + pod.Image
@@ -415,6 +424,7 @@ func filterSealedHits(ctx context.Context, p Provider, hits []FleetSearchHit) []
 			key := h.Namespace + "/" + h.Name
 			keyKind := h.Namespace + "/" + strings.ToLower(h.WorkloadKind) + "/" + h.Name
 			if sealedWL[key] || sealedWL[keyKind] || strings.EqualFold(h.Status, "Sealed") {
+				h.Sealed = true
 				h.Detail = "sealed · " + h.Detail
 				out = append(out, h)
 			}

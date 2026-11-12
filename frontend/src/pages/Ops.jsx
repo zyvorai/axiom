@@ -1178,6 +1178,43 @@ function CostTab() {
     );
 }
 
+function DRABrowser() {
+    const { t } = useTranslation();
+    const [inv, setInv] = useState(null);
+    useEffect(() => {
+        let alive = true;
+        api.get("/dra").then((r) => alive && setInv(r.data)).catch(() => alive && setInv(null));
+        return () => { alive = false; };
+    }, []);
+    if (!inv?.available && !(inv?.objects || []).length) return null;
+    return (
+        <div className="card p-0">
+            <div className="panel-h">{t("pages:ops.accelerators.dra", { defaultValue: "DRA resources" })}</div>
+            <table className="tbl">
+                <thead>
+                    <tr>
+                        <th>{t("common:fields.kind")}</th>
+                        <th>{t("common:fields.name")}</th>
+                        <th>{t("pages:ops.accelerators.product", { defaultValue: "Driver" })}</th>
+                        <th>{t("common:fields.age")}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {(inv.objects || []).map((o) => (
+                        <tr key={`${o.kind}/${o.namespace || ""}/${o.name}`}>
+                            <td>{o.kind}</td>
+                            <td className="mono name">{o.namespace ? `${o.namespace}/` : ""}{o.name}</td>
+                            <td className="mono text-[12px]">{o.driver || "—"}</td>
+                            <td className="num">{o.age || "—"}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {inv.note && <div className="p-3 text-[12px] text-ink-3">{inv.note}</div>}
+        </div>
+    );
+}
+
 function AcceleratorsTab() {
     const { t } = useTranslation();
     const [rep, setRep] = useState(null);
@@ -1272,6 +1309,8 @@ function AcceleratorsTab() {
                     </div>
                 )}
             </div>
+
+            <DRABrowser />
 
             <div className="card p-0">
                 <div className="panel-h">{t("pages:ops.accelerators.gpuNodes")}</div>

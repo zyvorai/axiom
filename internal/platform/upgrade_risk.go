@@ -181,6 +181,26 @@ func EnrichUpgradeRiskPlan(run AgentRun, rep UpgradeRiskReport) AgentRun {
 				Type: AgentActionNoop, Risk: "low",
 				Description: "Clear Warning events / CrashLoops before upgrading",
 			})
+		case "version-skew", "control-plane-skew":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "medium",
+				Description: "Resolve version skew before upgrade: " + f.Detail,
+			})
+		case "cert-expiry", "certificate-expiring":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "medium",
+				Description: "Renew expiring certificates before upgrade: " + f.Detail,
+			})
+		case "drain-blocked", "pod-disruption":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "medium",
+				Description: "Unblock drain path: " + f.Title + " — " + f.Detail,
+			})
+		case "gpu-operator", "accelerator-not-ready":
+			add(AgentAction{
+				Type: AgentActionNoop, Risk: "low",
+				Description: "Confirm GPU Operator / device plugin healthy before node drains",
+			})
 		}
 	}
 	run.Plan = SanitizeAgentPlan(run.Plan)

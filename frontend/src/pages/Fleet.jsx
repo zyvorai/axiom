@@ -83,6 +83,72 @@ function HistoryStrip({ cluster, samples }) {
     );
 }
 
+function OutageNarrativeTip({ cluster, from, state }) {
+    const { t } = useTranslation();
+    const [n, setN] = useState(null);
+    useEffect(() => {
+        let alive = true;
+        api
+            .get("/fleet/outage-narrative", { params: { cluster, from, state } })
+            .then((r) => alive && setN(r.data))
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [cluster, from, state]);
+    if (!n?.summary) {
+        return (
+            <div className="text-[11px] text-ink-3">
+                {t("pages:fleet.history.narrative")}
+            </div>
+        );
+    }
+    return (
+        <div className="mt-0.5 space-y-0.5 text-[11px] text-ink-3" data-testid={`fleet-outage-narrative-${cluster}`}>
+            <div>{n.summary}</div>
+            {(n.whoPoked || []).slice(0, 3).map((w) => (
+                <div key={w} className="mono">who: {w}</div>
+            ))}
+            {(n.agentRuns || []).slice(0, 2).map((a) => (
+                <div key={a} className="mono">agent: {a}</div>
+            ))}
+        </div>
+    );
+}
+
+function OutageNarrativeTip({ cluster, from, state }) {
+    const { t } = useTranslation();
+    const [n, setN] = useState(null);
+    useEffect(() => {
+        let alive = true;
+        api
+            .get("/fleet/outage-narrative", { params: { cluster, from, state } })
+            .then((r) => alive && setN(r.data))
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [cluster, from, state]);
+    if (!n?.summary) {
+        return (
+            <div className="text-[11px] text-ink-3">
+                {t("pages:fleet.history.narrative")}
+            </div>
+        );
+    }
+    return (
+        <div className="mt-0.5 space-y-0.5 text-[11px] text-ink-3" data-testid={`fleet-outage-narrative-${cluster}`}>
+            <div>{n.summary}</div>
+            {(n.whoPoked || []).slice(0, 3).map((w) => (
+                <div key={w} className="mono">who: {w}</div>
+            ))}
+            {(n.agentRuns || []).slice(0, 2).map((a) => (
+                <div key={a} className="mono">agent: {a}</div>
+            ))}
+        </div>
+    );
+}
+
 function HistoryBlock({ h }) {
     const { t } = useTranslation();
     if (!h) return null;
@@ -108,11 +174,7 @@ function HistoryBlock({ h }) {
                         <li key={`${inc.from}-${i}`} data-testid={H.incident(h.cluster, i)} className={inc.state === "unreachable" ? "text-tone-red" : "text-tone-amber"}>
                             {t(inc.state === "unreachable" ? "pages:fleet.history.unreachableFor" : "pages:fleet.history.degradedFor", { duration: fmtDuration(inc.durationSeconds) })}
                             <span className="text-ink-3"> · {relTime(inc.from)}{inc.reason ? ` · ${inc.reason}` : ""}</span>
-                            <div className="text-[11px] text-ink-3">
-                                {t("pages:fleet.history.narrative", {
-                                    defaultValue: "Outage narrative: check Timeline for who poked it and Ops → Agents for ProposeOnly runs in this window.",
-                                })}
-                            </div>
+                            <OutageNarrativeTip cluster={h.cluster} from={inc.from} state={inc.state} />
                         </li>
                     ))}
                 </ul>
@@ -307,7 +369,12 @@ function FleetSearch({ currentName }) {
                                                 onClick={() => open(h)}
                                             >
                                                 <div className="mono text-[12px]">{h.clusterLabel || h.cluster}</div>
-                                                <div className="text-[12px]">{h.status}</div>
+                                                <div className="text-[12px]">{h.status}{h.sealed ? " · sealed" : ""}</div>
+                                                <div className="text-[11px] text-ink-3 mono">
+                                                    {h.desired != null ? `${h.ready ?? 0}/${h.desired}` : null}
+                                                    {h.image ? ` · ${h.image}` : ""}
+                                                    {h.signed ? ` · ${h.signed}` : ""}
+                                                </div>
                                                 <div className="text-[11px] text-ink-3">{h.detail || h.clusterState}</div>
                                             </button>
                                         ))}

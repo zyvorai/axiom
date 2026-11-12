@@ -85,14 +85,30 @@ func dispatchEvent(ctx context.Context, in Integrations, ev Event) {
 // incoming webhook, payload to the generic alert webhook. Failures are logged
 // (with the secret URL already scrubbed by postJSON), never returned.
 func deliver(ctx context.Context, in Integrations, slackText string, payload map[string]any) {
+	if !isNotifyLeader(ctx) {
+		return
+	}
+	deliverOnce(ctx, in, slackText, payload)
+}
+
+func deliverOnce(ctx context.Context, in Integrations, slackText string, payload map[string]any) {
 	if strings.TrimSpace(in.SlackWebhookURL) != "" {
 		if res := SendSlackMessage(ctx, in.SlackWebhookURL, slackText); res.Error != "" {
 			log.Printf("notify: slack dispatch failed: %s", res.Error)
+			// One retry after a short pause — best-effort, still no queue.
+			time.Sleep(400 * time.Millisecond)
+			if res2 := SendSlackMessage(ctx, in.SlackWebhookURL, slackText); res2.Error != "" {
+				log.Printf("notify: slack retry failed: %s", res2.Error)
+			}
 		}
 	}
 	if strings.TrimSpace(in.AlertWebhookURL) != "" {
 		if res := SendAlertWebhook(ctx, in.AlertWebhookURL, payload); res.Error != "" {
 			log.Printf("notify: webhook dispatch failed: %s", res.Error)
+			time.Sleep(400 * time.Millisecond)
+			if res2 := SendAlertWebhook(ctx, in.AlertWebhookURL, payload); res2.Error != "" {
+				log.Printf("notify: webhook retry failed: %s", res2.Error)
+			}
 		}
 	}
 }
@@ -125,6 +141,9 @@ func runAlertDispatcher(ctx context.Context, provider Provider, hub *Integration
 		}
 		in := hub.Get()
 		if !notifyEnabled(in) {
+			continue
+		}
+		if !isNotifyLeader(ctx) {
 			continue
 		}
 		func() {

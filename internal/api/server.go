@@ -96,6 +96,10 @@ type AuthOptions struct {
 	// PodProxy, when set (AXIOM_POD_PROXY_ADDR / AXIOM_POD_PROXY_ORIGIN), serves
 	// pod windows from a separate origin; see podproxy_origin.go. Optional.
 	PodProxy *PodProxyOrigin
+
+	// SAMLRequestStore shares outstanding SAML AuthnRequest IDs across replicas.
+	// Optional — nil keeps them in memory (affinity required).
+	SAMLRequestStore auth.RevocationStore
 }
 
 type Server struct {
@@ -173,6 +177,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	if opts.PodProxy != nil {
 		opts.PodProxy.attach(provider, revocationsChecker{revocations})
 		s.podProxy = opts.PodProxy
+	}
+	if opts.SAMLRequestStore != nil {
+		s.AttachSharedSAMLStore(opts.SAMLRequestStore)
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
@@ -298,6 +305,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/gateways", s.listGateways)
 	mux.HandleFunc("GET /api/v1/accelerators", s.listAccelerators)
 	mux.HandleFunc("POST /api/v1/accelerators/rightsizing/apply", s.applyGPURightsizing)
+	mux.HandleFunc("GET /api/v1/dra", s.listDRA)
 	mux.HandleFunc("GET /api/v1/backups", s.listBackups)
 	mux.HandleFunc("POST /api/v1/backups", s.createBackup)
 	mux.HandleFunc("POST /api/v1/backups/restore", s.restoreBackup)

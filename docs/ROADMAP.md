@@ -139,10 +139,24 @@ are theirs, not ours.
 | VM console | Embedded noVNC against the existing VNC websocket proxy | OpenShift/KubeVirt console |
 | Notifications | Clear Slack / alert webhook URLs from Settings | — |
 
+## Shipped in 0.14.x (opportunities pack)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| HA notify | Lease-backed notify leadership + one retry | Rancher/Portainer multi-replica ops |
+| Audit merge | ConfigMap union across replicas | — |
+| Secret scale | Metadata-only list + pagination | Serious console scale hygiene |
+| SAML HA | Shared AuthnRequest store | Affinity-free ACS |
+| Twin diff | Image/replicas/seal/sign columns | Portainer fleet views |
+| Outage narrative | Incident × who-poked-it × agent runs | Komodor-class storytelling |
+| MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
+| DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
+
 ## Next
 
-- **MCP write tools / ephemeral RBAC sandbox** for agent execution (OpenShift-style short-lived privileges)
-- **Deeper agentic cluster-upgrade planner** (beyond the lite assessor)
+- **MCP ephemeral ClusterRole sandbox** (short-lived privileges beyond HITL approve/deny)
+- **Deeper agentic cluster-upgrade planner** (beyond enriched lite assessor)
+- **GitOps ApplicationSets / OCI cloud-identity / multi-cluster OpenCost**
 - **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
 
 ## Not planned
