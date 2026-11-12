@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/zyvorai/axiom/internal/platform"
 )
@@ -154,6 +155,10 @@ func (s *Server) mcpToolDefs() []mcpTool {
 		{Name: "deny_agent_run", Description: "Deny a pending ProposeOnly agent run", InputSchema: obj(map[string]any{
 			"namespace": str, "name": str,
 		}, "namespace", "name")},
+		{Name: "mint_sandbox", Description: "Mint a short-lived HITL sandbox grant for allowlisted agent actions (no ClusterRole write)", InputSchema: obj(map[string]any{
+			"namespace": str, "ttlSeconds": map[string]any{"type": "number"},
+		})},
+		{Name: "list_sandboxes", Description: "List live MCP/HITL sandbox grants", InputSchema: obj(map[string]any{})},
 	}
 }
 
@@ -260,6 +265,15 @@ func (s *Server) mcpCallTool(r *http.Request, params json.RawMessage) (map[strin
 			run = planned
 		}
 		payload = run
+	case "mint_sandbox":
+		user := s.auditUser(r)
+		ttl := 15 * 60
+		if v, ok := args["ttlSeconds"].(float64); ok && v > 0 {
+			ttl = int(v)
+		}
+		payload = platform.MintMCPSandbox(user, str("namespace"), nil, time.Duration(ttl)*time.Second)
+	case "list_sandboxes":
+		payload = platform.ListMCPSandboxes(ctx)
 	case "approve_agent_run":
 		payload, err = s.provider.ApproveAgentRun(ctx, str("namespace"), str("name"))
 	case "deny_agent_run":

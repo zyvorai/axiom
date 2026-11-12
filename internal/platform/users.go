@@ -16,17 +16,33 @@ const (
 	RoleViewer   = "viewer"
 )
 
-// NormalizeRole maps any input to a known role. Empty/unknown values become
-// admin so a typo never silently locks an operator into read-only (existing
-// Create User API behavior). Explicit "viewer" / "operator" are preserved.
+// NormalizeRole maps known roles. Empty becomes admin. Unknown values are
+// rejected by ParseRole (Create/Update users); this helper still maps unknown
+// to admin for legacy call sites that only need a display default.
 func NormalizeRole(r string) string {
 	switch strings.ToLower(strings.TrimSpace(r)) {
 	case RoleViewer:
 		return RoleViewer
 	case RoleOperator:
 		return RoleOperator
+	case RoleAdmin, "":
+		return RoleAdmin
 	default:
 		return RoleAdmin
+	}
+}
+
+// ParseRole is fail-closed: unknown role strings error instead of becoming admin.
+func ParseRole(r string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(r)) {
+	case RoleViewer:
+		return RoleViewer, nil
+	case RoleOperator:
+		return RoleOperator, nil
+	case RoleAdmin, "":
+		return RoleAdmin, nil
+	default:
+		return "", fmt.Errorf("unknown role %q (want admin, operator, or viewer)", r)
 	}
 }
 
@@ -256,7 +272,10 @@ func (h *UserHub) Create(ctx context.Context, username, password, role string, n
 	if err != nil {
 		return UserView{}, err
 	}
-	normRole := NormalizeRole(role)
+	normRole, err := ParseRole(role)
+	if err != nil {
+		return UserView{}, err
+	}
 	u := User{
 		Username:     username,
 		PasswordHash: hash,
@@ -283,7 +302,11 @@ func (h *UserHub) UpdateRole(ctx context.Context, username, role string) (UserVi
 	if !ok {
 		return UserView{}, fmt.Errorf("user %q not found", username)
 	}
-	u.Role = NormalizeRole(role)
+	normRole, err := ParseRole(role)
+	if err != nil {
+		return UserView{}, err
+	}
+	u.Role = normRole
 	u.Namespaces = normalizeNamespaces(u.Role, u.Namespaces)
 	if err := h.store.Update(ctx, u); err != nil {
 		return UserView{}, err

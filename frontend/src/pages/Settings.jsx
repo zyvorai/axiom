@@ -226,10 +226,25 @@ export default function Settings() {
                 atlasUrl: form.atlasUrl,
                 atlasConsoleUrl: form.atlasConsoleUrl,
                 ...(form.atlasToken ? { atlasToken: form.atlasToken } : {}),
+                ...(form.atlasTokenClear ? { atlasTokenClear: true } : {}),
             });
             setData(v);
-            setForm({ ...v, atlasToken: "" });
+            setForm({ ...v, atlasToken: "", atlasTokenClear: false });
             toast.success(t("toasts:settings.atlasSaved"));
+        } catch (e) {
+            toast.error(t("toasts:settings.saveFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const clearAtlasToken = async () => {
+        setBusy("atlas-clear");
+        try {
+            const { data: v } = await api.put("/integrations", { atlasTokenClear: true });
+            setData(v);
+            setForm({ ...v, atlasToken: "", atlasTokenClear: false });
+            toast.success(t("toasts:settings.atlasCleared", { defaultValue: "Atlas token cleared" }));
         } catch (e) {
             toast.error(t("toasts:settings.saveFailed"), { description: e?.response?.data?.error || e.message });
         } finally {
@@ -567,9 +582,14 @@ export default function Settings() {
                         label={data.atlasTokenSet ? t("pages:settings.atlas.tokenSet") : t("pages:settings.atlas.token")}
                         type="password"
                         value={form.atlasToken || ""}
-                        onChange={(e) => set({ atlasToken: e.target.value })}
+                        onChange={(e) => set({ atlasToken: e.target.value, atlasTokenClear: false })}
                         autoComplete="off"
                     />
+                    {data.atlasTokenSet && (
+                        <button type="button" className="btn btn-line btn-sm" disabled={busy === "atlas-clear"} onClick={clearAtlasToken}>
+                            {t("pages:settings.atlas.clearToken", { defaultValue: "Clear token" })}
+                        </button>
+                    )}
                 </IntegrationCard>
 
                 <IntegrationCard

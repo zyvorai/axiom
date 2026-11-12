@@ -398,6 +398,8 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 | POST | `/api/v1/accelerators/rightsizing/apply` | Lower `nvidia.com/gpu` requests on a Deployment/StatefulSet (`{namespace,kind,name,container?,dryRun}`). Operator/admin; audited as `accelerators.gpu_rightsizing` |
 | GET | `/api/v1/dra` | Read-only DRA inventory (DeviceClass / ResourceSlice / ResourceClaim[/Template]) when `resource.k8s.io` is present |
 | GET | `/api/v1/fleet/outage-narrative?cluster=&from=&state=` | Compose who-poked-it + recent agent runs for a fleet incident window |
+| GET | `/api/v1/admission-policies` | Native ValidatingAdmissionPolicy + Binding inventory when the API is present |
+| POST | `/api/v1/helm/registry-credentials/cloud-token` | Refresh a short-lived OCI registry password via local CLI (`{provider:ecr\|gar\|acr, registry}`) — admin; write-only follow-up with registry-credentials |
 | POST | `/api/v1/integrations/probe/matrix` | Data-plane reachability matrix: `{urls[], pods:[{namespace,name,container?}]}` → cells with ok/latency from each pod (or Axiom when pods empty). Cap 8 URLs × 12 pods |
 
 ## Admission webhooks

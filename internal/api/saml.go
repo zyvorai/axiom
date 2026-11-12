@@ -95,7 +95,7 @@ func (s *Server) samlACS(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.SignSession(s.sessionSecret(), auth.Session{
 		User:   user,
 		Email:  email,
-		Issuer: firstNonEmpty(s.auth.SAMLEntityID, "saml"),
+		Issuer: auth.SAMLSessionIssuer,
 		Role:   role,
 		Exp:    time.Now().Add(auth.SessionTTL()).Unix(),
 	})

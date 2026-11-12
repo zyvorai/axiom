@@ -123,7 +123,11 @@ export const useAuth = () => useContext(AuthContext);
 // and stores, and stay untouched; only the label shown is translated. An
 // unknown value is shown as sent.
 const ACCOUNT_ROLE_KEYS = { viewer: "auth:roleNames.viewer", operator: "auth:roleNames.operator", admin: "auth:roleNames.admin" };
-const SESSION_ROLE_KEYS = { Viewer: "auth:sessionRole.viewer", "Platform Admin": "auth:sessionRole.platformAdmin" };
+const SESSION_ROLE_KEYS = {
+    Viewer: "auth:sessionRole.viewer",
+    Operator: "auth:sessionRole.operator",
+    "Platform Admin": "auth:sessionRole.platformAdmin",
+};
 
 /** Label for a stored account role (`viewer`, `operator`, `admin`). */
 export function accountRoleLabel(t, role) {

@@ -47,6 +47,9 @@ const LocalSessionIssuer = "local"
 // session.
 const LDAPSessionIssuer = "ldap"
 
+// SAMLSessionIssuer marks sessions created by POST /api/v1/auth/saml/acs.
+const SAMLSessionIssuer = "saml"
+
 // Identity is the resolved caller of an authorized request, attached to the
 // request context so handlers and audit logging can read who acted and
 // with what role without re-parsing credentials.

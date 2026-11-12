@@ -59,7 +59,11 @@ func (s *Server) unregisterCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	name := r.PathValue("name")
 	if err := sp.Unregister(name); err != nil {
-		fail(w, http.StatusBadRequest, err)
+		status := http.StatusBadRequest
+		if strings.Contains(err.Error(), "unknown cluster") {
+			status = http.StatusNotFound
+		}
+		fail(w, status, err)
 		return
 	}
 	resp := map[string]any{"ok": true}

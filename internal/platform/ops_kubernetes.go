@@ -37,6 +37,9 @@ var (
 	argoAppGVRs       = []schema.GroupVersionResource{
 		{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"},
 	}
+	argoAppSetGVRs = []schema.GroupVersionResource{
+		{Group: "argoproj.io", Version: "v1alpha1", Resource: "applicationsets"},
+	}
 	fluxKustomizationGVRs = []schema.GroupVersionResource{
 		{Group: "kustomize.toolkit.fluxcd.io", Version: "v1", Resource: "kustomizations"},
 		{Group: "kustomize.toolkit.fluxcd.io", Version: "v1beta2", Resource: "kustomizations"},
@@ -463,6 +466,7 @@ func (k *KubernetesProvider) ListGitOps(ctx context.Context) ([]GitOpsItem, erro
 	}
 	var out []GitOpsItem
 	out = append(out, k.listGitOpsGVR(ctx, argoAppGVRs, "Application", gitOpsArgoStatus)...)
+	out = append(out, k.listGitOpsGVR(ctx, argoAppSetGVRs, "ApplicationSet", gitOpsArgoStatus)...)
 	out = append(out, k.listGitOpsGVR(ctx, fluxKustomizationGVRs, "Kustomization", gitOpsFluxStatus)...)
 	out = append(out, k.listGitOpsGVR(ctx, fluxHelmReleaseGVRs, "HelmRelease", gitOpsFluxStatus)...)
 	sort.Slice(out, func(i, j int) bool {

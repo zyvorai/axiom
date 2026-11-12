@@ -105,19 +105,8 @@ func AssessUpgradeRisk(ctx context.Context, p Provider) (UpgradeRiskReport, erro
 		})
 	}
 
-	for _, f := range rep.Findings {
-		rep.Counts[f.Severity]++
-	}
-	switch {
-	case rep.Counts["critical"] > 0:
-		rep.Status = "blocked"
-		rep.Summary = "Upgrade blocked until critical findings are cleared"
-	case rep.Counts["warning"] > 0:
-		rep.Status = "caution"
-		rep.Summary = "Upgrade possible with caution — review warnings first"
-	default:
-		rep.Status = "ready"
-		rep.Summary = "No hard blockers found in the lightweight pre-check"
+	rep = DeepenUpgradeRisk(ctx, p, rep)
+	if rep.Status == "ready" && len(rep.Findings) == 0 {
 		rep.Findings = append(rep.Findings, UpgradeFinding{
 			Severity: "info", Code: "ok", Title: "Pre-check passed",
 			Detail: "Nodes look ready and no PDB hard-blocks were detected",

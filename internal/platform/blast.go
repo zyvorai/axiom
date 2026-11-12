@@ -37,11 +37,17 @@ func StillPreview(ctx context.Context, p Provider, ns, kind, name string, action
 	names := make([]string, 0)
 	ports := make([]string, 0)
 	for _, pod := range pods {
-		if pod.Namespace == ns && (strings.HasPrefix(pod.Name, prefix) || pod.WorkloadID == w.Name || strings.Contains(pod.Name, w.Name)) {
-			names = append(names, pod.Name)
-			for _, port := range pod.Ports {
-				ports = append(ports, fmt.Sprintf("%d/%s", port.ContainerPort, port.Protocol))
-			}
+		if pod.Namespace != ns {
+			continue
+		}
+		// Exact ownership only — never substring (web must not match web-api-*).
+		owned := pod.WorkloadID == w.Name || strings.HasPrefix(pod.Name, prefix) || pod.Name == w.Name
+		if !owned {
+			continue
+		}
+		names = append(names, pod.Name)
+		for _, port := range pod.Ports {
+			ports = append(ports, fmt.Sprintf("%d/%s", port.ContainerPort, port.Protocol))
 		}
 	}
 	targetNames := names

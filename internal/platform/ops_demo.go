@@ -239,6 +239,7 @@ var (
 	demoGitOpsMu sync.Mutex
 	demoGitOps   = map[string]GitOpsItem{
 		"argocd/platform-apps":  {Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d"},
+		"argocd/tenant-apps":    {Kind: "ApplicationSet", Namespace: "argocd", Name: "tenant-apps", Status: "Healthy", Source: "list generator → Applications", Age: "7d"},
 		"flux-system/apps":      {Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
 		"monitoring/prometheus": {Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d"},
 		// Non-cascading delete rows (gitops_delete_demo.go): no Argo finalizer / prune off.

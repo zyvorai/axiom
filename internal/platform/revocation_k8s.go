@@ -29,6 +29,9 @@ const (
 
 	samlRequestConfigMapName = "zyvor-axiom-saml-authn"
 	samlRequestConfigMapKey  = "saml-authn.json"
+
+	streamTicketConfigMapName = "zyvor-axiom-stream-tickets"
+	streamTicketConfigMapKey  = "tickets.json"
 )
 
 // K8sRevocationStore keeps the session-revocation snapshot in a ConfigMap so a
@@ -87,6 +90,18 @@ func OpenSAMLRequestStore(mode string, provider Provider) auth.RevocationStore {
 		return nil
 	}
 	return newK8sBlobStore(k.client, "", samlRequestConfigMapName, samlRequestConfigMapKey)
+}
+
+// OpenStreamTicketStore shares outstanding WebSocket/SSE tickets across replicas.
+func OpenStreamTicketStore(mode string, provider Provider) auth.RevocationStore {
+	if strings.ToLower(mode) != "kubernetes" {
+		return nil
+	}
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
+	if !ok || k == nil || k.client == nil {
+		return nil
+	}
+	return newK8sBlobStore(k.client, "", streamTicketConfigMapName, streamTicketConfigMapKey)
 }
 
 // OpenRevocationStore returns the persistent store in kubernetes mode and nil

@@ -181,8 +181,8 @@ func TestRegisterAndUnregisterClusterRoundTrip(t *testing.T) {
 func TestUnregisterClusterUnknownName(t *testing.T) {
 	h := New(platform.NewDemoSwitchableProvider(), "demo", "demo", "demo", "")
 	w := request(t, h, "DELETE", "/api/v1/clusters/does-not-exist", "")
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400 for an unknown cluster name, got %d: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 for an unknown cluster name, got %d: %s", w.Code, w.Body.String())
 	}
 	if !strings.Contains(w.Body.String(), "unknown cluster") {
 		t.Fatalf("expected an unknown-cluster error, got: %s", w.Body.String())

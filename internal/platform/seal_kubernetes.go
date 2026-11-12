@@ -64,7 +64,7 @@ func (k *KubernetesProvider) SealWorkload(ctx context.Context, ns, kind, name st
 	}
 	policy := &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      sealPolicyName(name),
+			Name:      sealPolicyName(kind, name),
 			Namespace: ns,
 			Labels:    map[string]string{"app.kubernetes.io/managed-by": "zyvor-axiom"},
 		},
@@ -80,7 +80,9 @@ func (k *KubernetesProvider) SealWorkload(ctx context.Context, ns, kind, name st
 }
 
 func (k *KubernetesProvider) UnsealWorkload(ctx context.Context, ns, kind, name string) error {
-	_ = k.client.NetworkingV1().NetworkPolicies(ns).Delete(ctx, sealPolicyName(name), metav1.DeleteOptions{})
+	for _, pol := range sealPolicyNames(kind, name) {
+		_ = k.client.NetworkingV1().NetworkPolicies(ns).Delete(ctx, pol, metav1.DeleteOptions{})
+	}
 	patch := map[string]any{"metadata": map[string]any{"annotations": map[string]string{SealedAnnotation: ""}}}
 	raw, err := json.Marshal(patch)
 	if err != nil {

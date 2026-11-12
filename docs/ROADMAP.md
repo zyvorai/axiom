@@ -152,14 +152,27 @@ are theirs, not ours.
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
 
+## Shipped in 0.14.x (ROADMAP Next closed)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| MCP HITL sandbox | `mint_sandbox` / `list_sandboxes` — short-lived allowlisted grants (does **not** mint ClusterRoles) | Lightspeed HITL without CR authoring |
+| Upgrade planner | Deepened pre-check (version skew, cert/clock, GPU) + enriched ProposeOnly actions | Lightspeed update-risk |
+| ApplicationSets | Listed read-only with Applications / Flux | OpenShift GitOps status |
+| OCI cloud identity | `POST /helm/registry-credentials/cloud-token` (ECR/GAR/ACR via local CLIs) | Cloud registry login helpers |
+| VAP browser | `GET /admission-policies` | Lens Admission Policies |
+| Stream tickets HA | Shared ConfigMap for WebSocket/SSE tickets | Affinity-free streams |
+| Seal / blast / users / clusters / Atlas | Kind-scoped Seal NPs, exact blast match, fail-closed roles, SAML auth label, DELETE 404, Atlas token clear | — |
+
 ## Next
 
-- **MCP ephemeral ClusterRole sandbox** (short-lived privileges beyond HITL approve/deny)
-- **Deeper agentic cluster-upgrade planner** (beyond enriched lite assessor)
-- **GitOps ApplicationSets / OCI cloud-identity / multi-cluster OpenCost**
-- **Translations:** reviewed by native speakers; a few technical screens still show English (see docs/GAPS.md).
+_None._ Remaining items are deliberate non-goals or packaging (see Not planned / docs/GAPS.md).
 
 ## Not planned
 
 - **Browser TCP port-forward.** A browser cannot open a local listener, so Axiom keeps the HTTP proxy and offers a copyable `kubectl port-forward` command instead.
-- **ClusterRole write UI.** Deliberate: RBAC changes stay in your GitOps flow.
+- **ClusterRole write UI.** Deliberate: RBAC changes stay in your GitOps flow. MCP sandbox grants allowlisted actions only.
+- **Run:ai / KAI fairshare editors and model-catalog MLOps.** Out of scope.
+- **Metal3-first / multi-runtime portability.** Axiom is k8s-native private cloud, not Aether.
+- **SOC2 / pen-test packaging** as a product SKU (attest the shipped surface yourself).
+- **Native-speaker translation review** is continuous polish (eight locales already complete).

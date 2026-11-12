@@ -152,8 +152,9 @@ func main() {
 
 		HelmRegistryCredStore: platform.OpenHelmRegistryCredStore(cfg.Mode, provider),
 
-		PodProxy:         podProxy,
-		SAMLRequestStore: platform.OpenSAMLRequestStore(cfg.Mode, provider),
+		PodProxy:          podProxy,
+		SAMLRequestStore:  platform.OpenSAMLRequestStore(cfg.Mode, provider),
+		StreamTicketStore: platform.OpenStreamTicketStore(cfg.Mode, provider),
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some

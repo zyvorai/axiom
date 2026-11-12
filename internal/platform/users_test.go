@@ -101,6 +101,15 @@ func TestNormalizeRole(t *testing.T) {
 	}
 }
 
+func TestParseRoleFailClosed(t *testing.T) {
+	if _, err := ParseRole("bogus"); err == nil {
+		t.Fatal("ParseRole(bogus) should fail closed")
+	}
+	if r, err := ParseRole("operator"); err != nil || r != RoleOperator {
+		t.Fatalf("ParseRole(operator) = %q %v", r, err)
+	}
+}
+
 func TestSwitchableProviderRegisterAndSwitch(t *testing.T) {
 	sp := NewSwitchableProvider()
 	a := NewDemoProvider()

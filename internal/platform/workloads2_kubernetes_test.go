@@ -897,7 +897,7 @@ func TestKubernetesSealWorkloadCreatesDenyAllPolicyAndAnnotates(t *testing.T) {
 	if err := k.SealWorkload(ctx, "a", "Deployment", "web"); err != nil {
 		t.Fatalf("SealWorkload: %v", err)
 	}
-	np, err := cs.NetworkingV1().NetworkPolicies("a").Get(ctx, sealPolicyName("web"), metav1.GetOptions{})
+	np, err := cs.NetworkingV1().NetworkPolicies("a").Get(ctx, sealPolicyName("Deployment", "web"), metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("seal policy not created: %v", err)
 	}
@@ -944,7 +944,7 @@ func TestKubernetesUnsealWorkloadRemovesPolicyAndAnnotation(t *testing.T) {
 	if err := k.UnsealWorkload(ctx, "a", "StatefulSet", "db"); err != nil {
 		t.Fatalf("UnsealWorkload: %v", err)
 	}
-	if _, err := cs.NetworkingV1().NetworkPolicies("a").Get(ctx, sealPolicyName("db"), metav1.GetOptions{}); !apierrors.IsNotFound(err) {
+	if _, err := cs.NetworkingV1().NetworkPolicies("a").Get(ctx, sealPolicyName("StatefulSet", "db"), metav1.GetOptions{}); !apierrors.IsNotFound(err) {
 		t.Fatalf("seal policy should be gone, err=%v", err)
 	}
 	sts, _ := cs.AppsV1().StatefulSets("a").Get(ctx, "db", metav1.GetOptions{})

@@ -100,6 +100,8 @@ type AuthOptions struct {
 	// SAMLRequestStore shares outstanding SAML AuthnRequest IDs across replicas.
 	// Optional — nil keeps them in memory (affinity required).
 	SAMLRequestStore auth.RevocationStore
+	// StreamTicketStore shares outstanding WebSocket/SSE tickets across replicas.
+	StreamTicketStore auth.RevocationStore
 }
 
 type Server struct {
@@ -180,6 +182,9 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	if opts.SAMLRequestStore != nil {
 		s.AttachSharedSAMLStore(opts.SAMLRequestStore)
+	}
+	if opts.StreamTicketStore != nil {
+		s.tickets.AttachShared(opts.StreamTicketStore)
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
@@ -306,6 +311,8 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("GET /api/v1/accelerators", s.listAccelerators)
 	mux.HandleFunc("POST /api/v1/accelerators/rightsizing/apply", s.applyGPURightsizing)
 	mux.HandleFunc("GET /api/v1/dra", s.listDRA)
+	mux.HandleFunc("GET /api/v1/admission-policies", s.listAdmissionPolicies)
+	mux.HandleFunc("POST /api/v1/helm/registry-credentials/cloud-token", s.refreshOCICloudToken)
 	mux.HandleFunc("GET /api/v1/backups", s.listBackups)
 	mux.HandleFunc("POST /api/v1/backups", s.createBackup)
 	mux.HandleFunc("POST /api/v1/backups/restore", s.restoreBackup)
@@ -510,10 +517,13 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 	if sess, ok := auth.SessionFromRequest(s.sessionSecret(), r); ok {
 		user = sess.User
 		authMethod = "oidc"
-		if sess.Issuer == auth.LocalSessionIssuer {
+		switch sess.Issuer {
+		case auth.LocalSessionIssuer:
 			authMethod = "local"
-		} else if sess.Issuer == auth.LDAPSessionIssuer {
+		case auth.LDAPSessionIssuer:
 			authMethod = "ldap"
+		case auth.SAMLSessionIssuer:
+			authMethod = "saml"
 		}
 		if sess.Role != "" {
 			role = sess.Role
@@ -530,8 +540,11 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		user = u
 	}
 	roleLabel := "Platform Admin"
-	if role == "viewer" {
+	switch role {
+	case "viewer":
 		roleLabel = "Viewer"
+	case "operator":
+		roleLabel = "Operator"
 	}
 	regions := platform.DefaultRegions(cluster)
 	// mfa.required: the require-MFA policy covers this identity (the UI forces

@@ -20,3 +20,8 @@ func OpenPodProxyRedeemedStore(mode string, provider Provider) auth.RevocationSt
 func OpenSAMLRequestStore(mode string, provider Provider) auth.RevocationStore {
 	return nil
 }
+
+// OpenStreamTicketStore returns nil in the demo build.
+func OpenStreamTicketStore(mode string, provider Provider) auth.RevocationStore {
+	return nil
+}

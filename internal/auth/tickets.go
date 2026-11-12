@@ -51,6 +51,7 @@ type TicketStore struct {
 	entries map[string]ticketEntry // sha256(token) -> entry
 	now     func() time.Time
 	ttl     time.Duration
+	shared  *SharedTicketBacking // optional multi-replica backing
 }
 
 // NewTicketStore returns a store using the wall clock and TicketTTL.
@@ -131,7 +132,12 @@ func (s *TicketStore) Issue(id Identity, path string) (string, time.Time, error)
 	}
 	token := RandomURLToken(32)
 	exp := now.Add(s.ttl)
-	s.entries[ticketDigest(token)] = ticketEntry{ident: id, path: path, exp: exp}
+	dig := ticketDigest(token)
+	entry := ticketEntry{ident: id, path: path, exp: exp}
+	s.entries[dig] = entry
+	if s.shared != nil {
+		s.shared.put(dig, entry)
+	}
 	return token, exp, nil
 }
 
@@ -149,7 +155,11 @@ func (s *TicketStore) Consume(token, path string) (Identity, bool) {
 	if ok {
 		delete(s.entries, key)
 	}
+	shared := s.shared
 	s.mu.Unlock()
+	if !ok && shared != nil {
+		e, ok = shared.take(key)
+	}
 	if !ok || !now.Before(e.exp) || e.path != path {
 		return Identity{}, false
 	}

@@ -4,6 +4,16 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — ROADMAP Next + GAPS closed
+- MCP HITL sandbox: `mint_sandbox` / `list_sandboxes` (allowlisted grants; no ClusterRole minting).
+- Deepened upgrade-risk (version skew, cert/clock, GPU operator) folded into `AssessUpgradeRisk`.
+- GitOps lists Argo ApplicationSets read-only; demo includes `tenant-apps`.
+- OCI cloud token refresh: `POST /api/v1/helm/registry-credentials/cloud-token` (ecr/gar/acr via local CLIs).
+- ValidatingAdmissionPolicy browser: `GET /api/v1/admission-policies`.
+- Shared WebSocket/SSE ticket store (`zyvor-axiom-stream-tickets`).
+- Seal NetworkPolicies named `axiom-seal-{kind}-{name}`; blast radius uses exact ownership (no substring).
+- Users: unknown roles rejected; session reports Operator + `auth=saml`; Atlas token clear; unknown cluster DELETE → 404.
+
 ### Added — Overall opportunities pack (HA + theatre deepen + MCP HITL)
 - Multi-replica notify leadership via coordination Lease (`zyvor-axiom-notify`); Slack/webhook dispatch retries once; non-leaders stay silent.
 - Audit ConfigMap Save merges rings across replicas (union by time/action/target/user/detail) instead of last-writer-wins.
