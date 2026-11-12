@@ -16,6 +16,9 @@ type Config struct {
 	Kubeconfig string
 	Username   string
 	Password   string
+	// AllowDefaultCreds (AXIOM_ALLOW_DEFAULT_CREDS) lets non-demo mode start
+	// with username/password demo/demo. Off by default — refuse to start.
+	AllowDefaultCreds bool
 	// SessionSecret signs OIDC session cookies/tokens. Optional — when unset,
 	// the server generates a random per-process secret instead of falling
 	// back to Password (see api.AuthOptions.SessionSecret).
@@ -121,6 +124,7 @@ func FromEnv() Config {
 		Kubeconfig:         os.Getenv("KUBECONFIG"),
 		Username:           env("AXIOM_USERNAME", "demo"),
 		Password:           env("AXIOM_PASSWORD", "demo"),
+		AllowDefaultCreds:  truthy(os.Getenv("AXIOM_ALLOW_DEFAULT_CREDS")),
 		SessionSecret:      strings.TrimSpace(os.Getenv("AXIOM_SESSION_SECRET")),
 		TrustedProxyHeader: strings.TrimSpace(os.Getenv("AXIOM_TRUSTED_PROXY_HEADER")),
 		AllowOrigin:        env("AXIOM_ALLOW_ORIGIN", "http://localhost:5173"),

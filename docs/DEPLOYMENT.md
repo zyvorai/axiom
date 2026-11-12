@@ -81,6 +81,7 @@ Sign-in hardening variables:
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `AXIOM_SESSION_TTL` | `12h` | Lifetime of login sessions (a Go duration such as `8h`; clamped to 1 minute – 30 days). Helm: `auth.sessionTTL`. |
+| `AXIOM_ALLOW_DEFAULT_CREDS` | unset / false | Outside demo mode, Axiom **refuses to start** when username and password are both still `demo`. Set `true` only for sealed labs (Helm: `auth.allowDefaultCreds`, default `true` on the chart so eval installs boot; turn it off after you change `auth.username` / `auth.password`). |
 | `AXIOM_TOTP_SECRET` | unset | Adds a TOTP second factor to the built-in admin account (`AXIOM_USERNAME`). Base32, at least 16 characters; generate one with `head -c20 /dev/urandom \| base32`. Once set, that account signs in through `POST /api/v1/auth/login` with a code instead of HTTP Basic, which the web UI does automatically; keep the API key (`AXIOM_API_KEY`) for automation. Local accounts enrol themselves from the user menu → **Account security**. Helm: `auth.totpSecret` (kept in Secret `zyvor-axiom-auth`). |
 
 Fleet health probing (clusters registered under Settings → Clusters):

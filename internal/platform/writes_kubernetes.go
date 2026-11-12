@@ -142,6 +142,15 @@ func (k *KubernetesProvider) CreateVolume(ctx context.Context, req CreateVolumeR
 		sc := req.StorageClass
 		pvc.Spec.StorageClassName = &sc
 	}
+	if src := strings.TrimSpace(req.SourcePVC); src != "" {
+		if src == req.Name {
+			return Volume{}, fmt.Errorf("sourcePVC must differ from name")
+		}
+		pvc.Spec.DataSource = &corev1.TypedLocalObjectReference{
+			Kind: "PersistentVolumeClaim",
+			Name: src,
+		}
+	}
 	created, err := k.client.CoreV1().PersistentVolumeClaims(req.Namespace).Create(ctx, pvc, metav1.CreateOptions{})
 	if err != nil {
 		return Volume{}, err

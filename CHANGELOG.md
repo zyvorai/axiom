@@ -4,6 +4,13 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — residual GAPS pack
+- Pod exec + node shell idle timeout (10 m websocket ping/pong), same window as pod-proxy.
+- Non-demo mode refuses default `demo`/`demo` unless `AXIOM_ALLOW_DEFAULT_CREDS=true` (Helm `auth.allowDefaultCreds`).
+- Shared login throttle across replicas (`zyvor-axiom-login-throttle`).
+- CSI PVC clone: `sourcePVC` on `POST /api/v1/volumes` + ProposeOnly agent action `clone_pvc`.
+- Policy coverage: `GET /api/v1/security/policy-coverage` (PolicyReport rollup by policy/rule).
+
 ### Added — ROADMAP Next + GAPS closed
 - MCP HITL sandbox: `mint_sandbox` / `list_sandboxes` (allowlisted grants; no ClusterRole minting).
 - Deepened upgrade-risk (version skew, cert/clock, GPU operator) folded into `AssessUpgradeRisk`.

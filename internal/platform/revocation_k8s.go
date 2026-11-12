@@ -32,6 +32,9 @@ const (
 
 	streamTicketConfigMapName = "zyvor-axiom-stream-tickets"
 	streamTicketConfigMapKey  = "tickets.json"
+
+	loginThrottleConfigMapName = "zyvor-axiom-login-throttle"
+	loginThrottleConfigMapKey  = "throttle.json"
 )
 
 // K8sRevocationStore keeps the session-revocation snapshot in a ConfigMap so a
@@ -102,6 +105,18 @@ func OpenStreamTicketStore(mode string, provider Provider) auth.RevocationStore 
 		return nil
 	}
 	return newK8sBlobStore(k.client, "", streamTicketConfigMapName, streamTicketConfigMapKey)
+}
+
+// OpenLoginThrottleStore shares failed-login counters across replicas.
+func OpenLoginThrottleStore(mode string, provider Provider) auth.RevocationStore {
+	if strings.ToLower(mode) != "kubernetes" {
+		return nil
+	}
+	k, ok := CurrentKubernetesProvider(context.Background(), provider)
+	if !ok || k == nil || k.client == nil {
+		return nil
+	}
+	return newK8sBlobStore(k.client, "", loginThrottleConfigMapName, loginThrottleConfigMapKey)
 }
 
 // OpenRevocationStore returns the persistent store in kubernetes mode and nil

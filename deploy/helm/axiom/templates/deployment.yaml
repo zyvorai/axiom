@@ -52,6 +52,10 @@ spec:
                 secretKeyRef:
                   name: zyvor-axiom-auth
                   key: password
+            {{- if .Values.auth.allowDefaultCreds }}
+            - name: AXIOM_ALLOW_DEFAULT_CREDS
+              value: "true"
+            {{- end }}
             {{- if .Values.clusterName }}
             - name: AXIOM_CLUSTER_NAME
               value: {{ .Values.clusterName | quote }}

@@ -16,6 +16,7 @@ const (
 	AgentActionUncordonNode    = "uncordon_node"
 	AgentActionApplyRightsizing = "apply_rightsizing"
 	AgentActionSealWorkload     = "seal_workload"
+	AgentActionClonePVC         = "clone_pvc"
 	AgentActionNoop             = "noop"
 )
 
@@ -28,6 +29,7 @@ var agentActionAllowlist = map[string]bool{
 	AgentActionUncordonNode:     true,
 	AgentActionApplyRightsizing: true,
 	AgentActionSealWorkload:     true,
+	AgentActionClonePVC:         true,
 	AgentActionNoop:             true,
 }
 

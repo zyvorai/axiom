@@ -21,6 +21,7 @@ import (
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	clienttesting "k8s.io/client-go/testing"
+	"k8s.io/utils/ptr"
 )
 
 var secretGVR = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "secrets"}
@@ -222,15 +223,13 @@ func TestKubernetesDiffManifestSurfacesValidationErrorsAndBadInput(t *testing.T)
 
 // --- ResourceGraph ---
 
-func ptr[T any](v T) *T { return &v }
-
 func graphFixture() []runtime.Object {
 	labels := map[string]string{"app": "web"}
 	yes := true
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "web", Namespace: "shop", UID: "dep-uid"},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: ptr(int32(2)),
+			Replicas: ptr.To(int32(2)),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: labels},
 				Spec: corev1.PodSpec{
@@ -253,18 +252,18 @@ func graphFixture() []runtime.Object {
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "web-abc", Namespace: "shop", UID: "rs-uid",
 			OwnerReferences: []metav1.OwnerReference{{Kind: "Deployment", Name: "web", UID: "dep-uid", Controller: &yes}}},
-		Spec:   appsv1.ReplicaSetSpec{Replicas: ptr(int32(2))},
+		Spec:   appsv1.ReplicaSetSpec{Replicas: ptr.To(int32(2))},
 		Status: appsv1.ReplicaSetStatus{Replicas: 2, ReadyReplicas: 2},
 	}
 	oldRS := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "web-old", Namespace: "shop", UID: "rs-old",
 			OwnerReferences: []metav1.OwnerReference{{Kind: "Deployment", Name: "web", UID: "dep-uid", Controller: &yes}}},
-		Spec: appsv1.ReplicaSetSpec{Replicas: ptr(int32(0))},
+		Spec: appsv1.ReplicaSetSpec{Replicas: ptr.To(int32(0))},
 	}
 	otherRS := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "other-rs", Namespace: "shop", UID: "rs-other",
 			OwnerReferences: []metav1.OwnerReference{{Kind: "Deployment", Name: "other", UID: "other-uid", Controller: &yes}}},
-		Spec: appsv1.ReplicaSetSpec{Replicas: ptr(int32(1))},
+		Spec: appsv1.ReplicaSetSpec{Replicas: ptr.To(int32(1))},
 	}
 	pod := func(n string, owner types.UID, phase corev1.PodPhase) *corev1.Pod {
 		return &corev1.Pod{
@@ -300,7 +299,7 @@ func graphFixture() []runtime.Object {
 		ObjectMeta: metav1.ObjectMeta{Name: "web", Namespace: "shop"},
 		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
 			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{Kind: "Deployment", Name: "web"},
-			MinReplicas:    ptr(int32(2)), MaxReplicas: 6,
+			MinReplicas:    ptr.To(int32(2)), MaxReplicas: 6,
 		},
 	}
 	pvc := &corev1.PersistentVolumeClaim{

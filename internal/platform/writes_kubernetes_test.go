@@ -249,6 +249,27 @@ func TestKubernetesCreateVolumeRejectsInvalidSize(t *testing.T) {
 	}
 }
 
+func TestKubernetesCreateVolumeCloneSetsDataSource(t *testing.T) {
+	ctx := context.Background()
+	k, cs := newFakeKubernetesProvider()
+	if _, err := k.CreateVolume(ctx, CreateVolumeRequest{Namespace: "wtest", Name: "src", Size: "10Gi"}); err != nil {
+		t.Fatalf("source: %v", err)
+	}
+	if _, err := k.CreateVolume(ctx, CreateVolumeRequest{Namespace: "wtest", Name: "clone", Size: "10Gi", SourcePVC: "src"}); err != nil {
+		t.Fatalf("clone: %v", err)
+	}
+	pvc, err := cs.CoreV1().PersistentVolumeClaims("wtest").Get(ctx, "clone", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pvc.Spec.DataSource == nil || pvc.Spec.DataSource.Kind != "PersistentVolumeClaim" || pvc.Spec.DataSource.Name != "src" {
+		t.Fatalf("expected PVC DataSource clone of src, got %+v", pvc.Spec.DataSource)
+	}
+	if _, err := k.CreateVolume(ctx, CreateVolumeRequest{Namespace: "wtest", Name: "same", Size: "1Gi", SourcePVC: "same"}); err == nil {
+		t.Fatal("expected sourcePVC == name to be rejected")
+	}
+}
+
 func TestKubernetesCreateVolumeRequiresFields(t *testing.T) {
 	k, _ := newFakeKubernetesProvider()
 	_, err := k.CreateVolume(context.Background(), CreateVolumeRequest{Namespace: "wtest", Name: "pvc-missing-size"})

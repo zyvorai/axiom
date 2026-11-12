@@ -153,8 +153,9 @@ func main() {
 		HelmRegistryCredStore: platform.OpenHelmRegistryCredStore(cfg.Mode, provider),
 
 		PodProxy:          podProxy,
-		SAMLRequestStore:  platform.OpenSAMLRequestStore(cfg.Mode, provider),
-		StreamTicketStore: platform.OpenStreamTicketStore(cfg.Mode, provider),
+		SAMLRequestStore:   platform.OpenSAMLRequestStore(cfg.Mode, provider),
+		StreamTicketStore:  platform.OpenStreamTicketStore(cfg.Mode, provider),
+		LoginThrottleStore: platform.OpenLoginThrottleStore(cfg.Mode, provider),
 	}))
 	mux.Handle("/", ui.Handler())
 	// Disable HTTP/2: gorilla/websocket upgrades are HTTP/1.1 only, and some
@@ -172,7 +173,10 @@ func main() {
 		TLSConfig:         tlsCfg,
 	}
 	if cfg.Mode != "demo" && cfg.Username == "demo" && cfg.Password == "demo" {
-		log.Printf("WARNING: running in %q mode with the default demo/demo credentials — set AXIOM_USERNAME/AXIOM_PASSWORD (Helm: auth.username/auth.password) to something strong before exposing this console", cfg.Mode)
+		if !cfg.AllowDefaultCreds {
+			log.Fatal(`refusing to start in non-demo mode with default demo/demo credentials — set AXIOM_USERNAME/AXIOM_PASSWORD (Helm: auth.username/auth.password), or set AXIOM_ALLOW_DEFAULT_CREDS=true only for a sealed lab`)
+		}
+		log.Printf("WARNING: running in %q mode with the default demo/demo credentials (AXIOM_ALLOW_DEFAULT_CREDS) — set AXIOM_USERNAME/AXIOM_PASSWORD before exposing this console", cfg.Mode)
 	}
 	tlsEnabled := cfg.TLSCert != "" && cfg.TLSKey != ""
 	go func() {

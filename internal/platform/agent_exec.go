@@ -140,6 +140,22 @@ func executeAgentAction(ctx context.Context, p Provider, run AgentRun, a AgentAc
 			kind = "Deployment"
 		}
 		return p.SealWorkload(ctx, ns, kind, name)
+	case AgentActionClonePVC:
+		src := paramOr(a, "sourcePVC", name)
+		dst := paramOr(a, "name", "")
+		if dst == "" {
+			dst = paramOr(a, "targetPVC", "")
+		}
+		size := paramOr(a, "size", "10Gi")
+		if ns == "" || src == "" || dst == "" {
+			return fmt.Errorf("clone_pvc needs namespace, sourcePVC, and name/targetPVC")
+		}
+		_, err := p.CreateVolume(ctx, CreateVolumeRequest{
+			Namespace: ns, Name: dst, Size: size,
+			StorageClass: paramOr(a, "storageClass", ""),
+			SourcePVC:    src,
+		})
+		return err
 	default:
 		return fmt.Errorf("unsupported action %q", a.Type)
 	}

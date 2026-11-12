@@ -231,8 +231,9 @@ func (k *KubernetesProvider) NodeShellWS(ctx context.Context, w http.ResponseWri
 	// request context for the same reason ExecWS detaches it.
 	streamCtx, streamCancel := context.WithTimeout(context.Background(), timeout)
 	defer streamCancel()
+	armTerminalIdle(conn, &writeMu, streamCtx.Done(), streamCancel)
 	writeMu.Lock()
-	_ = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("\x1b[33mroot shell on node %s - session ends in %s or on disconnect; the helper pod is deleted afterwards.\x1b[0m\r\n", node, timeout.Round(time.Second))))
+	_ = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("\x1b[33mroot shell on node %s - session ends in %s, after %s idle, or on disconnect; the helper pod is deleted afterwards.\x1b[0m\r\n", node, timeout.Round(time.Second), terminalIdleTimeout.Round(time.Second))))
 	writeMu.Unlock()
 	resize := &terminalSizeQueue{ch: make(chan remotecommand.TerminalSize, 4), done: streamCtx.Done()}
 	readErr := make(chan error, 1)
@@ -240,10 +241,16 @@ func (k *KubernetesProvider) NodeShellWS(ctx context.Context, w http.ResponseWri
 		for {
 			typ, msg, err := conn.ReadMessage()
 			if err != nil {
+				if ne, ok := err.(interface{ Timeout() bool }); ok && ne.Timeout() {
+					writeMu.Lock()
+					_ = conn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[33mnode shell idle timeout.\x1b[0m\r\n"))
+					writeMu.Unlock()
+				}
 				readErr <- err
 				streamCancel()
 				return
 			}
+			touchTerminalIdle(conn)
 			if typ != websocket.TextMessage && typ != websocket.BinaryMessage {
 				continue
 			}

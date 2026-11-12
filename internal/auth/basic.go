@@ -385,6 +385,7 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/diagnose",
 	"/api/v1/networking/policies",
 	"/api/v1/security/reports",
+	"/api/v1/security/policy-coverage",
 	"/api/v1/serviceaccounts",
 	// AI assistant: POST /api/v1/ai/explain?namespace=<ns>. Only the explain
 	// route is namespaced; GET /api/v1/ai/status carries no cluster data.

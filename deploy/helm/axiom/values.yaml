@@ -34,6 +34,9 @@ resources:
 auth:
   username: demo
   password: demo
+  # Non-demo mode refuses demo/demo unless this is true. Keep true only for
+  # throwaway labs; set false (and change username/password) before production.
+  allowDefaultCreds: true
   # Signs OIDC/SAML session cookies/tokens. REQUIRED when replicaCount > 1
   # so sessions validate on every replica. Generate with:
   #   openssl rand -base64 32

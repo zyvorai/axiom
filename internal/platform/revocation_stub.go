@@ -25,3 +25,8 @@ func OpenSAMLRequestStore(mode string, provider Provider) auth.RevocationStore {
 func OpenStreamTicketStore(mode string, provider Provider) auth.RevocationStore {
 	return nil
 }
+
+// OpenLoginThrottleStore returns nil in the demo build.
+func OpenLoginThrottleStore(mode string, provider Provider) auth.RevocationStore {
+	return nil
+}

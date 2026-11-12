@@ -959,16 +959,23 @@ func (k *KubernetesProvider) ExecWS(ctx context.Context, w http.ResponseWriter, 
 	// done, which would kill an otherwise healthy PTY mid-session.
 	streamCtx, streamCancel := context.WithCancel(context.Background())
 	defer streamCancel()
+	armTerminalIdle(conn, &writeMu, streamCtx.Done(), streamCancel)
 	resize := &terminalSizeQueue{ch: make(chan remotecommand.TerminalSize, 4), done: streamCtx.Done()}
 	readErr := make(chan error, 1)
 	go func() {
 		for {
 			typ, msg, err := conn.ReadMessage()
 			if err != nil {
+				if ne, ok := err.(interface{ Timeout() bool }); ok && ne.Timeout() {
+					writeMu.Lock()
+					_ = conn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[33mterminal idle timeout.\x1b[0m\r\n"))
+					writeMu.Unlock()
+				}
 				readErr <- err
 				streamCancel()
 				return
 			}
+			touchTerminalIdle(conn)
 			if typ != websocket.TextMessage && typ != websocket.BinaryMessage {
 				continue
 			}

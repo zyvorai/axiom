@@ -79,6 +79,10 @@ spec:
                 secretKeyRef:
                   name: zyvor-axiom-auth
                   key: password
+            # Lab default Secret is demo/demo — remove this (and change the Secret)
+            # before any production exposure.
+            - name: AXIOM_ALLOW_DEFAULT_CREDS
+              value: "true"
             # Optional env bootstrap only. Prefer Settings → Integrations in the UX
             # (persisted to ConfigMap/Secret zyvor-axiom-integrations).
             - name: AXIOM_ATLAS_URL

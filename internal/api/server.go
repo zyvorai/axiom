@@ -102,6 +102,8 @@ type AuthOptions struct {
 	SAMLRequestStore auth.RevocationStore
 	// StreamTicketStore shares outstanding WebSocket/SSE tickets across replicas.
 	StreamTicketStore auth.RevocationStore
+	// LoginThrottleStore shares failed-login counters across replicas.
+	LoginThrottleStore auth.RevocationStore
 }
 
 type Server struct {
@@ -117,8 +119,10 @@ type Server struct {
 	podProxy    *PodProxyOrigin   // separate pod-proxy origin, or nil (podproxy_origin.go)
 	revocations *auth.Revocations // revoked sessions (logout, sign out everywhere)
 	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
-	guard       auth.Guard        // used to re-verify a password for account-security actions
-	aiRL        aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
+	guard            auth.Guard // used to re-verify a password for account-security actions
+	aiRL             aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
+	loginIPLimiter   *auth.RateLimiter
+	loginAcctLimiter *auth.RateLimiter
 
 	samlReqs samlRequestStore // outstanding SAML AuthnRequest IDs (saml.go; zero value ready)
 
@@ -185,6 +189,16 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	}
 	if opts.StreamTicketStore != nil {
 		s.tickets.AttachShared(opts.StreamTicketStore)
+	}
+	if opts.LoginThrottleStore != nil {
+		backing := auth.NewSharedRateBacking(opts.LoginThrottleStore)
+		ipRL := auth.NewRateLimiter()
+		acctRL := auth.NewAccountRateLimiter(time.Now)
+		ipRL.AttachSharedBacking(backing)
+		acctRL.AttachSharedBacking(backing)
+		s.loginIPLimiter = ipRL
+		s.loginAcctLimiter = acctRL
+		log.Printf("auth: shared login-throttle store enabled")
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", s.health)
@@ -422,6 +436,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 		Username: username, Password: password, APIKey: opts.APIKey,
 		MFA: mfa, ExternalMFA: s.externalMFA, EnvTOTP: s.envTOTP, Revocations: s.revocations, RequireMFA: opts.RequireMFA,
 		SessionSecret: opts.SessionSecret, Users: authenticator, Tickets: s.tickets,
+		Limiter: s.loginIPLimiter, AccountLimiter: s.loginAcctLimiter,
 		Audit: axiomAuditLogger{}, TrustedProxyHeader: opts.TrustedProxyHeader,
 		LDAP: auth.LDAPConfig{
 			Enabled: opts.LDAPEnabled, URL: opts.LDAPURL, Domain: opts.LDAPDomain,

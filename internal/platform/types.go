@@ -517,6 +517,9 @@ type CreateVolumeRequest struct {
 	Size         string `json:"size"`
 	StorageClass string `json:"storageClass,omitempty"`
 	AccessMode   string `json:"accessMode,omitempty"`
+	// SourcePVC, when set, creates a CSI volume clone of that same-namespace PVC
+	// (spec.dataSource Kind=PersistentVolumeClaim). The StorageClass must support clones.
+	SourcePVC string `json:"sourcePVC,omitempty"`
 }
 
 type CreateVMRequest struct {

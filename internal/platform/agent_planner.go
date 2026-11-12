@@ -10,10 +10,11 @@ import (
 const agentPlanSystemPrompt = `You are Axiom's cluster remediation planner. Given redacted Kubernetes evidence, propose the safest fix.
 Respond with ONLY a JSON object (no markdown) of this shape:
 {"summary":"...","rootCause":"...","risk":"low|medium|high","actions":[{"id":"a1","type":"TYPE","risk":"low|medium|high","description":"...","target":{"apiVersion":"v1","kind":"Pod","namespace":"...","name":"..."},"params":{}}]}
-Allowed action types ONLY: restart_pod, delete_pod, scale_workload, rollout_restart, cordon_node, uncordon_node, apply_rightsizing, seal_workload, noop.
+Allowed action types ONLY: restart_pod, delete_pod, scale_workload, rollout_restart, cordon_node, uncordon_node, apply_rightsizing, seal_workload, clone_pvc, noop.
 For scale_workload set params.replicas to an integer string.
 For cordon_node/uncordon_node set target.kind=Node and target.name to the node name.
 For apply_rightsizing set params: kind, namespace, workload, container, resources (comma-separated cpu and/or memory).
+For clone_pvc set target.namespace, params.sourcePVC, params.name (new PVC), optional params.size and params.storageClass.
 Never invent Secret or ConfigMap contents. Prefer the least risky fix. Prefer noop when unsure.`
 
 // PlanAgentRun gathers evidence and fills run.Plan. Uses BYO LLM when AI is
@@ -154,6 +155,25 @@ func deterministicAgentPlan(run AgentRun, evidence string) *AgentPlan {
 		plan.Summary = "Image pull failure — no safe automated fix"
 		plan.RootCause = "Image or pull secret issue"
 		plan.Actions = []AgentAction{{ID: "a1", Type: AgentActionNoop, Risk: "low", Description: "Fix image name or pull secrets manually"}}
+	case strings.Contains(low, "clone") && (strings.Contains(low, "pvc") || strings.Contains(low, "volume") || strings.Contains(low, "claim")):
+		plan.Summary = "CSI volume clone proposed"
+		plan.RootCause = "Operator requested a PVC clone"
+		plan.Risk = "medium"
+		ns, src := "", ""
+		if tgt != nil {
+			ns, src = tgt.Namespace, tgt.Name
+		}
+		dst := src + "-clone"
+		if src == "" {
+			plan.Actions = []AgentAction{{ID: "a1", Type: AgentActionNoop, Risk: "low", Description: "Name the source PVC to clone"}}
+		} else {
+			plan.Actions = []AgentAction{{
+				ID: "a1", Type: AgentActionClonePVC, Risk: "medium",
+				Description: fmt.Sprintf("Clone PVC %s/%s → %s (CSI DataSource)", ns, src, dst),
+				Target:      &AgentObjectRef{APIVersion: "v1", Kind: "PersistentVolumeClaim", Namespace: ns, Name: src},
+				Params:      map[string]string{"sourcePVC": src, "name": dst, "size": "10Gi"},
+			}}
+		}
 	case strings.Contains(low, "seal") || strings.Contains(low, "exfil") || strings.Contains(low, "network policy") ||
 		strings.Contains(low, "unexpected egress") || strings.Contains(low, "packetwolf") ||
 		strings.Contains(low, "lateral") || strings.Contains(low, "isolate"):

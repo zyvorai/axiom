@@ -82,7 +82,7 @@ Register/unregister (and Settings → Clusters, which drives them) are restricte
 
 **OIDC verification.** The callback verifies the ID token's signature against the provider's JWKS (fetched from the discovery document's `jwks_uri`, 10 s timeout, cached 15 min, re-fetched at most every 30 s on an unknown `kid`), accepts only RS256/384/512, PS256/384/512 and ES256/384/512 (never `none` or HMAC), then checks `iss`, `aud` (and `azp` for multi-audience tokens), `exp`, `sub` and the `nonce` bound to the sign-in by the `axiom_oidc_nonce` cookie. Any failure rejects the login with `401`.
 
-**Login throttling.** Failed credentials are throttled twice: per client IP (grace of 3, then exponential backoff to 5 min) and per attempted account name (grace of 5, same backoff, keyed on the lower-cased username whether or not the account exists). A successful login clears the per-IP counter and only the account counter of the account whose own credentials were verified, so interleaving a valid login from another account no longer defeats throttling. A throttled request gets `429` with `Retry-After`; lockouts are audited as `auth.rate_limited` / `auth.account_rate_limited`. Lockout is per account, so someone who knows a username can temporarily lock it out - it clears by itself within 5 minutes.
+**Login throttling.** Failed credentials are throttled twice: per client IP (grace of 3, then exponential backoff to 5 min) and per attempted account name (grace of 5, same backoff, keyed on the lower-cased username whether or not the account exists). A successful login clears the per-IP counter and only the account counter of the account whose own credentials were verified, so interleaving a valid login from another account no longer defeats throttling. A throttled request gets `429` with `Retry-After`; lockouts are audited as `auth.rate_limited` / `auth.account_rate_limited`. Lockout is per account, so someone who knows a username can temporarily lock it out - it clears by itself within 5 minutes. In kubernetes mode counters are shared across replicas via ConfigMap `zyvor-axiom-login-throttle` (best-effort merge; a brief race can still under-count).
 
 `GET /api/v1/auth/providers` returns `lab.operator_login: true` and `lab.hint: "demo / demo"` when no SSO is configured, and an `ldap` block (`enabled`/`domain`/`url`) when `AXIOM_LDAP_*` is set — LDAP has no separate login form; the same username/password fields on the local sign-in form simple-bind against `AXIOM_LDAP_URL` first, falling through to local accounts on failure.
 
@@ -450,7 +450,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/volumes?namespace=...` | PVCs and storage classes |
-| POST | `/api/v1/volumes` | Create a PVC: `{"namespace","name","size","storageClass","accessMode"}` (`storageClass`/`accessMode` optional) |
+| POST | `/api/v1/volumes` | Create a PVC: `{"namespace","name","size","storageClass","accessMode","sourcePVC"}` (`storageClass`/`accessMode`/`sourcePVC` optional; `sourcePVC` = CSI clone of that same-namespace claim) |
 | DELETE | `/api/v1/volumes/{namespace}/{name}` | Delete a PVC |
 | GET | `/api/v1/persistentvolumes` | Cluster-scoped PersistentVolumes (capacity, access modes, claim, storage class) |
 | GET | `/api/v1/atlas` | Atlas summary (policies, pools, volumes) |
@@ -673,6 +673,7 @@ RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRole
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/security/reports?namespace=...` | Aggregated scanner output: `available`, `sources[]`, `vulnerabilities` / `misconfigurations` severity counts, `policy` result counts, `workloads[]` (riskiest first), `installHint` |
+| GET | `/api/v1/security/policy-coverage?namespace=...` | Kyverno/Gatekeeper PolicyReport rollup by `policy` (+ `rule`): pass/fail/warn/error counts and `failRate` |
 | GET | `/api/v1/security/reports/{namespace}/{kind}/{name}` | Drill-down for one workload: `vulnerabilities[]` (sorted by severity, de-duplicated, capped at 300), `misconfigurations[]`, `policyResults[]` (failing/warning only), `images` |
 
 Read-only aggregation of Trivy Operator `VulnerabilityReport` / `ConfigAuditReport` (`aquasecurity.github.io`) and `wgpolicyk8s.io` `PolicyReport` / `ClusterPolicyReport` (Kyverno, Gatekeeper-compatible) objects through the dynamic client. Axiom runs no scanner. Missing CRDs are not an error: `available` is `false`, each source says why (`CRD not installed`, or an RBAC hint on `Forbidden`) and `installHint` explains what to install. Trivy reports a Deployment's scan against its current ReplicaSet; the pod-template-hash suffix is stripped so the row shows the Deployment. Scoped like other namespaced lists: namespace-restricted accounts must pass `?namespace=` for a namespace they hold (cluster-scoped `ClusterPolicyReport` results appear only in the all-namespaces view). Reports are paged (200 per page, 10,000 per source).

@@ -25,6 +25,7 @@ type RateLimiter struct {
 	now        func() time.Time // injectable for tests
 	grace      int
 	maxBackoff time.Duration
+	shared     *SharedRateBacking // optional multi-replica backing
 }
 
 type attemptState struct {
@@ -89,6 +90,7 @@ func accountKey(user string) string {
 func (rl *RateLimiter) Allowed(key string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
+	rl.pullSharedLocked()
 	s := rl.state[key]
 	if s == nil {
 		return true
@@ -106,6 +108,7 @@ func (rl *RateLimiter) Allowed(key string) bool {
 func (rl *RateLimiter) RetryAfter(key string) time.Duration {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
+	rl.pullSharedLocked()
 	s := rl.state[key]
 	if s == nil {
 		return 0
@@ -121,6 +124,7 @@ func (rl *RateLimiter) RetryAfter(key string) time.Duration {
 func (rl *RateLimiter) RecordFailure(key string) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
+	rl.pullSharedLocked()
 	rl.sweepLocked()
 	s := rl.state[key]
 	if s == nil {
@@ -143,6 +147,7 @@ func (rl *RateLimiter) RecordFailure(key string) {
 		}
 		s.lockedUntil = rl.now().Add(backoff)
 	}
+	rl.pushSharedLocked(key)
 }
 
 // RecordSuccess clears any failure history for the key.
@@ -157,7 +162,9 @@ func (rl *RateLimiter) RecordFailure(key string) {
 func (rl *RateLimiter) RecordSuccess(key string) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
+	rl.pullSharedLocked()
 	delete(rl.state, key)
+	rl.pushSharedLocked(key)
 }
 
 // sweepLocked evicts idle entries. Must be called with rl.mu held.
