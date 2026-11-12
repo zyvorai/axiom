@@ -178,29 +178,55 @@ func (k *KubernetesProvider) acceleratorsMetrics(ctx context.Context, rep *Accel
 		return
 	}
 	m := &AcceleratorsMetrics{Available: true}
-	// Dual-family DCGM util: classic percent or renamed ratio.
-	queries := []string{
+	m.GPUUtil = firstPromValue(ctx, client, []string{
 		`avg(DCGM_FI_DEV_GPU_UTIL)`,
 		`avg(DCGM_FI_DEV_GPU_UTIL_RATIO)*100`,
 		`avg(DCGM_FI_PROF_GR_ENGINE_ACTIVE)*100`,
+	})
+	m.FBUsedBytes = firstPromValue(ctx, client, []string{
+		`avg(DCGM_FI_DEV_FB_USED)*1024*1024`,
+		`avg(DCGM_FI_DEV_FB_USED_BYTES)`,
+	})
+	m.FBFreeBytes = firstPromValue(ctx, client, []string{
+		`avg(DCGM_FI_DEV_FB_FREE)*1024*1024`,
+		`avg(DCGM_FI_DEV_FB_FREE_BYTES)`,
+	})
+	m.TempC = firstPromValue(ctx, client, []string{
+		`avg(DCGM_FI_DEV_GPU_TEMP)`,
+		`avg(DCGM_FI_DEV_GPU_TEMP_CELSIUS)`,
+	})
+	m.PowerW = firstPromValue(ctx, client, []string{
+		`avg(DCGM_FI_DEV_POWER_USAGE)`,
+		`avg(DCGM_FI_DEV_POWER_USAGE_WATTS)`,
+	})
+	m.XID = firstPromValue(ctx, client, []string{
+		`sum(DCGM_FI_DEV_XID_ERRORS)`,
+		`sum(DCGM_FI_DEV_XID_ERRORS_TOTAL)`,
+	})
+	if m.GPUUtil == 0 && rep.Counts["gpus"] > 0 && rep.Counts["pods"] > 0 {
+		m.IdleHint = "GPU pods are scheduled but DCGM util is ~0 — possible idle / time-sliced attribution gap"
+	} else if m.GPUUtil > 0 && m.GPUUtil < 10 && rep.Counts["pods"] > 0 {
+		m.IdleHint = fmt.Sprintf("Average GPU util ~%.0f%% with %d GPU pod(s) — silicon may be underused", m.GPUUtil, rep.Counts["pods"])
+	}
+	if m.GPUUtil == 0 && m.FBUsedBytes == 0 && m.TempC == 0 && m.PowerW == 0 && m.IdleHint == "" {
+		m.Note = "DCGM series not found in Prometheus (install GPU Operator DCGM Exporter and scrape :9400)"
+	}
+	rep.Metrics = m
+}
+
+// firstPromValue returns the first non-empty instant sample across queries.
+func firstPromValue(ctx context.Context, client *PrometheusClient, queries []string) float64 {
+	if client == nil {
+		return 0
 	}
 	for _, q := range queries {
 		samples, err := client.Query(ctx, q)
 		if err != nil || len(samples) == 0 {
 			continue
 		}
-		m.GPUUtil = samples[0].Value
-		break
+		return samples[0].Value
 	}
-	if m.GPUUtil == 0 && rep.Counts["gpus"] > 0 && rep.Counts["pods"] > 0 {
-		m.IdleHint = "GPU pods are scheduled but DCGM util is ~0 — possible idle / time-sliced attribution gap"
-	} else if m.GPUUtil > 0 && m.GPUUtil < 10 && rep.Counts["pods"] > 0 {
-		m.IdleHint = fmt.Sprintf("Average GPU util ~%.0f%% with %d GPU pod(s) — silicon may be underused", m.GPUUtil, rep.Counts["pods"])
-	}
-	if m.GPUUtil == 0 && m.IdleHint == "" {
-		m.Note = "DCGM series not found in Prometheus (install GPU Operator DCGM Exporter and scrape :9400)"
-	}
-	rep.Metrics = m
+	return 0
 }
 
 func (k *KubernetesProvider) ListAccelerators(ctx context.Context) (AcceleratorsReport, error) {

@@ -78,6 +78,15 @@ export function CostInvoice() {
                             <tr key={m.month} data-testid={T.row(m.month)}>
                                 <td className="name">
                                     {m.partial ? t("pages:billing.invoice.toDate", { month: monthLabel(m.month) }) : monthLabel(m.month)}
+                                    {(m.services || []).length > 0 && (
+                                        <div className="mt-1 space-y-0.5 text-[11px] font-normal text-ink-3" data-testid={`billing-services-${m.month}`}>
+                                            {m.services.slice(0, 5).map((s) => (
+                                                <div key={s.name} className="mono">
+                                                    {s.name}: {money(s.amount, currency)}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </td>
                                 <td className="mono num" data-testid={T.invoice(m.month)}>{money(m.invoiceTotal, currency)}</td>
                                 <td className="mono num" data-testid={T.allocated(m.month)}>{money(m.allocated, allocatedCurrency)}</td>

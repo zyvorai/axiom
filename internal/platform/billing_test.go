@@ -90,8 +90,14 @@ func TestAWSBillingClientFixture(t *testing.T) {
 		b, _ := io.ReadAll(r.Body)
 		_ = json.Unmarshal(b, &gotBody)
 		_, _ = io.WriteString(w, `{"ResultsByTime":[
-			{"TimePeriod":{"Start":"2026-10-01","End":"2026-11-01"},"Total":{"UnblendedCost":{"Amount":"4812.4012","Unit":"USD"}},"Estimated":false},
-			{"TimePeriod":{"Start":"2026-11-01","End":"2026-11-05"},"Total":{"UnblendedCost":{"Amount":"612.5","Unit":"USD"}},"Estimated":true}]}`)
+			{"TimePeriod":{"Start":"2026-10-01","End":"2026-11-01"},"Groups":[
+				{"Keys":["Amazon Elastic Compute Cloud - Compute"],"Metrics":{"UnblendedCost":{"Amount":"4000.0","Unit":"USD"}}},
+				{"Keys":["Amazon Simple Storage Service"],"Metrics":{"UnblendedCost":{"Amount":"812.4012","Unit":"USD"}}}
+			],"Estimated":false},
+			{"TimePeriod":{"Start":"2026-11-01","End":"2026-11-05"},"Groups":[
+				{"Keys":["Amazon Elastic Compute Cloud - Compute"],"Metrics":{"UnblendedCost":{"Amount":"500.0","Unit":"USD"}}},
+				{"Keys":["AWS Data Transfer"],"Metrics":{"UnblendedCost":{"Amount":"112.5","Unit":"USD"}}}
+			],"Estimated":true}]}`)
 	}))
 	defer srv.Close()
 	c, err := newAWSBillingClient(awsCfg(), billingTestTransport(srv.Client(), srv.URL))
@@ -105,12 +111,18 @@ func TestAWSBillingClientFixture(t *testing.T) {
 	if len(totals) != 2 || totals[0].Month != "2026-10" || totals[0].Amount != 4812.4012 || totals[1].Month != "2026-11" || totals[1].Currency != "USD" {
 		t.Fatalf("totals %+v", totals)
 	}
+	if len(totals[0].Services) < 2 || totals[0].Services[0].Name != "Amazon Elastic Compute Cloud - Compute" {
+		t.Fatalf("services %+v", totals[0].Services)
+	}
 	tp := gotBody["TimePeriod"].(map[string]any)
 	if tp["Start"] != "2026-10-01" || tp["End"] != "2026-11-05" || gotBody["Granularity"] != "MONTHLY" {
 		t.Fatalf("body %+v", gotBody)
 	}
 	if m := gotBody["Metrics"].([]any); len(m) != 1 || m[0] != "UnblendedCost" {
 		t.Fatalf("metrics %+v", m)
+	}
+	if gb := gotBody["GroupBy"].([]any); len(gb) != 1 {
+		t.Fatalf("groupby %+v", gotBody["GroupBy"])
 	}
 	tags := gotBody["Filter"].(map[string]any)["Tags"].(map[string]any)
 	if tags["Key"] != "kubernetes-cluster" || tags["Values"].([]any)[0] != "prod" {
@@ -645,7 +657,7 @@ func newTestBillingService(f billingFetcher, now *time.Time) *BillingService {
 
 func TestBillingServiceCachesAnHour(t *testing.T) {
 	now := billingNow
-	f := &countingFetcher{totals: []billingMonthTotal{{"2026-10", 900, "USD"}, {"2026-11", 120, "USD"}}}
+	f := &countingFetcher{totals: []billingMonthTotal{{Month: "2026-10", Amount: 900, Currency: "USD"}, {Month: "2026-11", Amount: 120, Currency: "USD"}}}
 	s := newTestBillingService(f, &now)
 	cfg := awsCfg()
 	ctx := context.Background()
@@ -700,29 +712,30 @@ func TestBillingServiceErrorCachedFiveMinutes(t *testing.T) {
 
 func TestBillingReportAssembly(t *testing.T) {
 	now := billingNow // 2026-11-04 12:00 → 3.5 days into November
-	f := &countingFetcher{totals: []billingMonthTotal{{"2026-10", 900, "USD"}, {"2026-11", 120, "usd"}}}
+	f := &countingFetcher{totals: []billingMonthTotal{{Month: "2026-10", Amount: 900, Currency: "USD"}, {Month: "2026-11", Amount: 120, Currency: "usd"}}}
 	s := newTestBillingService(f, &now)
 	rep := s.Report(context.Background(), awsCfg(), NewDemoProvider(), false)
-	// Demo estimate: 520 USD a month.
+	// Demo estimate includes GPU rate (default 100×2) → 720 USD a month.
+	const demoMonthly = 720.0
 	if rep.Provider != "aws" || rep.Currency != "USD" || rep.AllocatedSource != "estimate" || len(rep.Months) != 2 || !rep.Experimental {
 		t.Fatalf("report %+v", rep)
 	}
 	oct, nov := rep.Months[0], rep.Months[1]
-	if oct.Month != "2026-10" || oct.Partial || oct.InvoiceTotal != 900 || oct.Allocated != roundCents(520*31.0/30) || oct.Unallocated == nil || *oct.Unallocated != roundCents(900-oct.Allocated) {
+	if oct.Month != "2026-10" || oct.Partial || oct.InvoiceTotal != 900 || oct.Allocated != roundCents(demoMonthly*31.0/30) || oct.Unallocated == nil || *oct.Unallocated != roundCents(900-oct.Allocated) {
 		t.Fatalf("october %+v", oct)
 	}
-	if nov.Month != "2026-11" || !nov.Partial || nov.Allocated != roundCents(520*3.5/30) || nov.AsOf != "2026-11-04T12:00:00Z" {
+	if nov.Month != "2026-11" || !nov.Partial || nov.Allocated != roundCents(demoMonthly*3.5/30) || nov.AsOf != "2026-11-04T12:00:00Z" {
 		t.Fatalf("november %+v", nov)
 	}
 
 	// A non-USD invoice shows no difference.
-	f2 := &countingFetcher{totals: []billingMonthTotal{{"2026-10", 900, "EUR"}}}
+	f2 := &countingFetcher{totals: []billingMonthTotal{{Month: "2026-10", Amount: 900, Currency: "EUR"}}}
 	rep = newTestBillingService(f2, &now).Report(context.Background(), awsCfg(), NewDemoProvider(), false)
 	if rep.Currency != "EUR" || rep.Months[0].Unallocated != nil || rep.Months[1].InvoiceTotal != 0 || !strings.Contains(rep.Note, "EUR") {
 		t.Fatalf("eur %+v", rep)
 	}
 	// Mixed currencies are refused.
-	f3 := &countingFetcher{totals: []billingMonthTotal{{"2026-10", 1, "EUR"}, {"2026-11", 1, "USD"}}}
+	f3 := &countingFetcher{totals: []billingMonthTotal{{Month: "2026-10", Amount: 1, Currency: "EUR"}, {Month: "2026-11", Amount: 1, Currency: "USD"}}}
 	if rep = newTestBillingService(f3, &now).Report(context.Background(), awsCfg(), NewDemoProvider(), false); !strings.Contains(rep.Error, "mixes currencies") {
 		t.Fatalf("mixed %+v", rep)
 	}
@@ -751,7 +764,7 @@ func TestBillingReportNotConfiguredAndDemo(t *testing.T) {
 
 func TestBillingServiceTestBypassesCache(t *testing.T) {
 	now := billingNow
-	f := &countingFetcher{totals: []billingMonthTotal{{"2026-10", 900, "USD"}}}
+	f := &countingFetcher{totals: []billingMonthTotal{{Month: "2026-10", Amount: 900, Currency: "USD"}}}
 	s := newTestBillingService(f, &now)
 	s.Report(context.Background(), awsCfg(), NewDemoProvider(), false)
 	res := s.Test(context.Background(), awsCfg(), false)

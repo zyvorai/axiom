@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -502,6 +503,8 @@ func (k *KubernetesProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, na
 		return k.patchFirstGVR(ctx, fluxHelmReleaseGVRs, ns, name, fluxReconcilePatch())
 	case "Application":
 		return k.patchFirstGVR(ctx, argoAppGVRs, ns, name, argoSyncPatch())
+	case "ApplicationSet":
+		return NewStatusError(http.StatusUnprocessableEntity, fmt.Errorf("ApplicationSet cannot be synced; sync the generated Applications instead"))
 	default:
 		return fmt.Errorf("unsupported gitops kind %q", kind)
 	}
@@ -542,7 +545,7 @@ func argoSyncPatch() []byte {
 	return patch
 }
 
-type gitOpsStatusFn func(unstructured.Unstructured) (status, source string)
+type gitOpsStatusFn func(unstructured.Unstructured) GitOpsItem
 
 func (k *KubernetesProvider) listGitOpsGVR(ctx context.Context, gvrs []schema.GroupVersionResource, kind string, statusFn gitOpsStatusFn) []GitOpsItem {
 	for _, gvr := range gvrs {
@@ -555,21 +558,26 @@ func (k *KubernetesProvider) listGitOpsGVR(ctx context.Context, gvrs []schema.Gr
 		}
 		out := make([]GitOpsItem, 0, len(list.Items))
 		for _, item := range list.Items {
-			status, source := statusFn(item)
-			out = append(out, GitOpsItem{
-				Kind: kind, Namespace: item.GetNamespace(), Name: item.GetName(),
-				Status: status, Source: source, Age: age(item.GetCreationTimestamp().Time),
-			})
+			row := statusFn(item)
+			row.Kind = kind
+			row.Namespace = item.GetNamespace()
+			row.Name = item.GetName()
+			row.Age = age(item.GetCreationTimestamp().Time)
+			row.CanSync = kind == "Application" || kind == "Kustomization" || kind == "HelmRelease"
+			row.CanEdit = kind == "Application" || kind == "Kustomization" || kind == "HelmRelease"
+			out = append(out, row)
 		}
 		return out
 	}
 	return nil
 }
 
-func gitOpsArgoStatus(item unstructured.Unstructured) (string, string) {
-	status, _, _ := unstructured.NestedString(item.Object, "status", "sync", "status")
+func gitOpsArgoStatus(item unstructured.Unstructured) GitOpsItem {
+	sync, _, _ := unstructured.NestedString(item.Object, "status", "sync", "status")
+	health, _, _ := unstructured.NestedString(item.Object, "status", "health", "status")
+	status := sync
 	if status == "" {
-		status, _, _ = unstructured.NestedString(item.Object, "status", "health", "status")
+		status = health
 	}
 	if status == "" {
 		status = "Unknown"
@@ -580,10 +588,19 @@ func gitOpsArgoStatus(item unstructured.Unstructured) (string, string) {
 	if path != "" && repo != "" {
 		source = repo + ":" + path
 	}
-	return status, source
+	rev, _, _ := unstructured.NestedString(item.Object, "status", "sync", "revision")
+	if rev == "" {
+		rev, _, _ = unstructured.NestedString(item.Object, "status", "operationState", "syncResult", "revision")
+	}
+	_, autoOK, _ := unstructured.NestedMap(item.Object, "spec", "syncPolicy", "automated")
+	// ApplicationSet rows use this helper too — CanSync/CanEdit set by caller.
+	return GitOpsItem{
+		Status: status, Source: source, Health: health, Sync: sync,
+		Revision: shortGitRev(rev), Suspended: !autoOK && item.GetKind() == "Application",
+	}
 }
 
-func gitOpsFluxStatus(item unstructured.Unstructured) (string, string) {
+func gitOpsFluxStatus(item unstructured.Unstructured) GitOpsItem {
 	conds, _, _ := unstructured.NestedSlice(item.Object, "status", "conditions")
 	status := "Unknown"
 	for _, c := range conds {
@@ -611,7 +628,35 @@ func gitOpsFluxStatus(item unstructured.Unstructured) (string, string) {
 	if chart, _, _ := unstructured.NestedString(item.Object, "spec", "chart", "spec", "chart"); chart != "" {
 		source = chart
 	}
-	return status, source
+	rev, _, _ := unstructured.NestedString(item.Object, "status", "lastAppliedRevision")
+	if rev == "" {
+		rev, _, _ = unstructured.NestedString(item.Object, "status", "lastAttemptedRevision")
+	}
+	if rev == "" {
+		rev, _, _ = unstructured.NestedString(item.Object, "status", "lastAttemptedRevision")
+	}
+	suspend, _, _ := unstructured.NestedBool(item.Object, "spec", "suspend")
+	return GitOpsItem{
+		Status: status, Source: source, Health: status, Sync: status,
+		Revision: shortGitRev(rev), Suspended: suspend,
+	}
+}
+
+func shortGitRev(rev string) string {
+	rev = strings.TrimSpace(rev)
+	if len(rev) > 12 && isHexish(rev) {
+		return rev[:7]
+	}
+	return rev
+}
+
+func isHexish(s string) bool {
+	for _, r := range s {
+		if (r < '0' || r > '9') && (r < 'a' || r > 'f') && (r < 'A' || r > 'F') {
+			return false
+		}
+	}
+	return true
 }
 
 func (k *KubernetesProvider) ListAlerts(ctx context.Context, ns string) (AlertsResponse, error) {
@@ -788,7 +833,8 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 	if err != nil {
 		return CostEstimate{}, err
 	}
-	type acc struct{ cpu, mem float64 }
+	gpuRate := costGPURatePerGpu()
+	type acc struct{ cpu, mem, gpu float64 }
 	type workloadAcc struct {
 		acc
 		namespace, kind string
@@ -822,6 +868,13 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 				a.mem += mem
 				w.mem += mem
 			}
+			for rk, q := range c.Resources.Requests {
+				if isGPURequestKey(string(rk)) {
+					g := float64(q.Value())
+					a.gpu += g
+					w.gpu += g
+				}
+			}
 		}
 	}
 	names := make([]string, 0, len(byNS))
@@ -833,11 +886,17 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 	var total float64
 	for _, ns := range names {
 		a := byNS[ns]
-		usd := a.cpu*costCPURatePerCore + a.mem*costMemoryRatePerGi
+		gpuUSD := a.gpu * gpuRate
+		usd := a.cpu*costCPURatePerCore + a.mem*costMemoryRatePerGi + gpuUSD
 		total += usd
-		nsCosts = append(nsCosts, NamespaceCost{
+		row := NamespaceCost{
 			Namespace: ns, CPUCores: round1(a.cpu), MemoryGi: round1(a.mem), MonthlyUSD: round1(usd),
-		})
+		}
+		if a.gpu > 0 {
+			g := round1(gpuUSD)
+			row.GPUUSD = &g
+		}
+		nsCosts = append(nsCosts, row)
 	}
 	wKeys := make([]string, 0, len(byWorkload))
 	for k := range byWorkload {
@@ -847,16 +906,23 @@ func (k *KubernetesProvider) EstimateCost(ctx context.Context) (CostEstimate, er
 	workloadCosts := make([]WorkloadCost, 0, len(wKeys))
 	for _, wKey := range wKeys {
 		w := byWorkload[wKey]
-		usd := w.cpu*costCPURatePerCore + w.mem*costMemoryRatePerGi
-		workloadCosts = append(workloadCosts, WorkloadCost{
+		gpuUSD := w.gpu * gpuRate
+		usd := w.cpu*costCPURatePerCore + w.mem*costMemoryRatePerGi + gpuUSD
+		row := WorkloadCost{
 			Namespace: w.namespace, Workload: strings.TrimPrefix(wKey, w.namespace+"/"), Kind: w.kind,
 			CPUCores: round1(w.cpu), MemoryGi: round1(w.mem), MonthlyUSD: round1(usd),
-		})
+		}
+		if w.gpu > 0 {
+			g := round1(gpuUSD)
+			row.GPUUSD = &g
+		}
+		workloadCosts = append(workloadCosts, row)
 	}
 	return CostEstimate{
 		TotalMonthlyUSD: round1(total),
 		CPURatePerCore:  costCPURatePerCore,
 		MemoryRatePerGi: costMemoryRatePerGi,
+		GPURatePerGpu:   gpuRate,
 		Namespaces:      nsCosts,
 		Workloads:       workloadCosts,
 	}, nil

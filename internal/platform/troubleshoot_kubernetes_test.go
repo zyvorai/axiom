@@ -271,8 +271,13 @@ func TestK8sHealthPartialAndTotalFailure(t *testing.T) {
 		t.Fatalf("errors=%v findings=%+v", r.Errors, r.Findings)
 	}
 
-	k2, cs2, _ := newFakeFullProvider(nil, nil)
+	k2, cs2, dyn2 := newFakeFullProvider(nil, nil)
 	cs2.PrependReactor("list", "*", func(clienttesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("apiserver down")
+	})
+	// analyzeCertExpiry uses the dynamic client; deny those LISTs too so every
+	// analyzer fails (CertificateList is registered on the fake by default).
+	dyn2.PrependReactor("list", "*", func(clienttesting.Action) (bool, runtime.Object, error) {
 		return true, nil, errors.New("apiserver down")
 	})
 	if _, err := k2.ClusterHealth(context.Background(), "a"); err == nil {

@@ -4,7 +4,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -49,11 +48,11 @@ func (k *KubernetesProvider) ListDRA(ctx context.Context) (DRAInventory, error) 
 		any = true
 		for _, it := range list.Items {
 			driver, _, _ := unstructured.NestedString(it.Object, "spec", "driver")
-			inv.Objects = append(inv.Objects, DRAObject{
+			obj := DRAObject{
 				Kind: kg.kind, Namespace: it.GetNamespace(), Name: it.GetName(),
 				Driver: driver, Age: age(it.GetCreationTimestamp().Time),
-				Detail: fmt.Sprintf("%s/%s", kg.kind, it.GetName()),
-			})
+			}
+			inv.Objects = append(inv.Objects, enrichDRAObject(kg.kind, it, obj))
 		}
 		inv.Counts[kg.kind] = len(list.Items)
 	}

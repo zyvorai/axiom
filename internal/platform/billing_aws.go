@@ -51,11 +51,17 @@ func newAWSBillingClient(cfg Integrations, t *billingTransport) (*awsBillingClie
 }
 
 type awsCERequest struct {
-	TimePeriod  struct{ Start, End string } `json:"TimePeriod"`
-	Granularity string                      `json:"Granularity"`
-	Metrics     []string                    `json:"Metrics"`
-	Filter      *awsCEFilter                `json:"Filter,omitempty"`
-	NextPageToken string                    `json:"NextPageToken,omitempty"`
+	TimePeriod    struct{ Start, End string } `json:"TimePeriod"`
+	Granularity   string                      `json:"Granularity"`
+	Metrics       []string                    `json:"Metrics"`
+	Filter        *awsCEFilter                `json:"Filter,omitempty"`
+	GroupBy       []awsCEGroupBy              `json:"GroupBy,omitempty"`
+	NextPageToken string                      `json:"NextPageToken,omitempty"`
+}
+
+type awsCEGroupBy struct {
+	Type string `json:"Type"`
+	Key  string `json:"Key"`
 }
 
 type awsCEFilter struct {
@@ -68,13 +74,19 @@ type awsCETags struct {
 	MatchOptions []string `json:"MatchOptions"`
 }
 
+type awsCEMetric struct {
+	Amount string `json:"Amount"`
+	Unit   string `json:"Unit"`
+}
+
 type awsCEResponse struct {
 	ResultsByTime []struct {
 		TimePeriod struct{ Start, End string } `json:"TimePeriod"`
-		Total      map[string]struct {
-			Amount string `json:"Amount"`
-			Unit   string `json:"Unit"`
-		} `json:"Total"`
+		Total      map[string]awsCEMetric      `json:"Total"`
+		Groups     []struct {
+			Keys    []string                `json:"Keys"`
+			Metrics map[string]awsCEMetric  `json:"Metrics"`
+		} `json:"Groups"`
 	} `json:"ResultsByTime"`
 	NextPageToken string `json:"NextPageToken,omitempty"`
 }
@@ -85,10 +97,12 @@ func (c *awsBillingClient) fetch(ctx context.Context, periods []billingPeriod, n
 	body.TimePeriod.End = periods[len(periods)-1].End.Format("2006-01-02")
 	body.Granularity = "MONTHLY"
 	body.Metrics = []string{"UnblendedCost"}
+	body.GroupBy = []awsCEGroupBy{{Type: "DIMENSION", Key: "SERVICE"}}
 	if c.tagKey != "" {
 		body.Filter = &awsCEFilter{Tags: awsCETags{Key: c.tagKey, Values: []string{c.tagValue}, MatchOptions: []string{"EQUALS"}}}
 	}
 	byMonth := map[string]billingMonthTotal{}
+	svcByMonth := map[string]map[string]float64{}
 	token := ""
 	for page := 0; page < 20; page++ {
 		body.NextPageToken = token
@@ -126,20 +140,43 @@ func (c *awsBillingClient) fetch(ctx context.Context, periods []billingPeriod, n
 			if len(r.TimePeriod.Start) < 7 {
 				continue
 			}
-			m, ok := r.Total["UnblendedCost"]
-			if !ok {
-				continue
-			}
-			amt, err := strconv.ParseFloat(strings.TrimSpace(m.Amount), 64)
-			if err != nil {
-				return nil, billingErrorf("AWS Cost Explorer returned an amount that is not a number")
-			}
 			month := r.TimePeriod.Start[:7]
 			cur := byMonth[month]
 			cur.Month = month
-			cur.Amount += amt
-			if cur.Currency == "" {
-				cur.Currency = m.Unit
+			svc := svcByMonth[month]
+			if svc == nil {
+				svc = map[string]float64{}
+				svcByMonth[month] = svc
+			}
+			if len(r.Groups) > 0 {
+				for _, g := range r.Groups {
+					m, ok := g.Metrics["UnblendedCost"]
+					if !ok {
+						continue
+					}
+					amt, err := strconv.ParseFloat(strings.TrimSpace(m.Amount), 64)
+					if err != nil {
+						return nil, billingErrorf("AWS Cost Explorer returned an amount that is not a number")
+					}
+					cur.Amount += amt
+					if cur.Currency == "" {
+						cur.Currency = m.Unit
+					}
+					name := "Other"
+					if len(g.Keys) > 0 && strings.TrimSpace(g.Keys[0]) != "" {
+						name = g.Keys[0]
+					}
+					svc[name] += amt
+				}
+			} else if m, ok := r.Total["UnblendedCost"]; ok {
+				amt, err := strconv.ParseFloat(strings.TrimSpace(m.Amount), 64)
+				if err != nil {
+					return nil, billingErrorf("AWS Cost Explorer returned an amount that is not a number")
+				}
+				cur.Amount += amt
+				if cur.Currency == "" {
+					cur.Currency = m.Unit
+				}
 			}
 			byMonth[month] = cur
 		}
@@ -149,11 +186,32 @@ func (c *awsBillingClient) fetch(ctx context.Context, periods []billingPeriod, n
 		}
 	}
 	totals := make([]billingMonthTotal, 0, len(byMonth))
-	for _, m := range byMonth {
+	for month, m := range byMonth {
+		m.Services = topBillingServices(svcByMonth[month], 10)
 		totals = append(totals, m)
 	}
 	sort.Slice(totals, func(i, j int) bool { return totals[i].Month < totals[j].Month })
 	return totals, nil
+}
+
+func topBillingServices(byName map[string]float64, n int) []BillingServiceLine {
+	if len(byName) == 0 {
+		return nil
+	}
+	out := make([]BillingServiceLine, 0, len(byName))
+	for name, amt := range byName {
+		out = append(out, BillingServiceLine{Name: name, Amount: roundCents(amt)})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Amount == out[j].Amount {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].Amount > out[j].Amount
+	})
+	if len(out) > n {
+		out = out[:n]
+	}
+	return out
 }
 
 // awsErrorCode reads "__type" ("com.amazon...#AccessDeniedException").

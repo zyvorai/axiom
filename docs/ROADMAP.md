@@ -171,6 +171,16 @@ are theirs, not ours.
 | Velero CRD fidelity | Create Backup/Schedule validated against upstream v1.15.2 OpenAPI; live script when CRDs exist | — |
 | Helm install RBAC | ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions | Ordinary chart installs under Axiom's SA |
 
+## Shipped deepen pack (post-0.14.0)
+
+| Area | What you get |
+|------|--------------|
+| DRA depth | Claim phase, devices, bound pod on `/dra` |
+| DCGM tiles | FB / temp / power / XID on Accelerators |
+| GitOps list + suspend | Health/sync/revision columns; AppSet sync blocked; Flux/Argo suspend resume |
+| Cost estimate GPU | Flat GPU rate on estimate path + OpenCost status badge |
+| Invoice services | Experimental AWS SERVICE top-N on `/cost/invoice` |
+
 ## Next
 
 _None._ Remaining items are deliberate non-goals or packaging (see Not planned / docs/GAPS.md).

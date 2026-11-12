@@ -781,12 +781,20 @@
       "newApplication": "新しいアプリケーション",
       "empty": "GitOps アプリケーションはありません。",
       "columns": {
-        "application": "アプリケーション"
+        "application": "Application",
+        "sync": "Sync",
+        "health": "Health",
+        "revision": "Revision"
       },
       "sync": "同期",
       "syncAria": "{{name}} を同期",
       "deleteAria": "{{name}} を削除",
-      "editAria": "{{name}} を編集"
+      "editAria": "{{name}} を編集",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "suspendAria": "Suspend {{name}}",
+      "resumeAria": "Resume {{name}}",
+      "suspended": "suspended"
     },
     "agents": {
       "approve": "提案を承認",
@@ -882,7 +890,12 @@
       "last7d": "過去 7 日間",
       "last14d": "過去 14 日間",
       "last30d": "過去 30 日間",
-      "idle": "アイドル（割り当て済み・未使用）"
+      "idle": "アイドル（割り当て済み・未使用）",
+      "gpuRate": "GPU rate",
+      "opencostOff": "OpenCost off",
+      "opencostOk": "OpenCost OK",
+      "opencostDegraded": "OpenCost degraded",
+      "efficiency": "{{pct}}% of allocation in use (excl. idle)"
     },
     "accelerators": {
       "status": "Status",
@@ -905,7 +918,11 @@
       "recommend": "Recommend",
       "dryRun": "Dry-run",
       "apply": "Apply",
-      "dra": "DRA resources"
+      "dra": "DRA resources",
+      "fb": "Framebuffer",
+      "temp": "Temp",
+      "power": "Power",
+      "detail": "Detail"
     }
   },
   "rbac": {

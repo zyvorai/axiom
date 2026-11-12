@@ -660,15 +660,22 @@ func ActiveCost(ctx context.Context, provider Provider, window string) (CostEsti
 	src := costSourceFor(ctx, provider)
 	if src == nil {
 		est.Source, est.Window = CostSourceEstimate, window
+		est.OpenCostConfigured = false
 		return est, nil
 	}
+	est.OpenCostConfigured = true
 	set, err := src.allocations(ctx, window)
 	if err != nil {
 		est.Source, est.Window = CostSourceEstimate, window
-		est.Note = "OpenCost is configured but could not be read (" + safeOpenCostReason(err) + "); showing the request-based estimate instead."
+		est.OpenCostReachable = false
+		est.OpenCostError = safeOpenCostReason(err)
+		est.Note = "OpenCost is configured but could not be read (" + est.OpenCostError + "); showing the request-based estimate instead."
 		return est, nil
 	}
-	return costFromAllocations(est, set, window), nil
+	out := costFromAllocations(est, set, window)
+	out.OpenCostConfigured = true
+	out.OpenCostReachable = true
+	return out, nil
 }
 
 // safeOpenCostReason only ever surfaces our own sanitised messages.

@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
-import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard, Pause, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -316,6 +316,32 @@ function GitOpsTab() {
         }
     };
 
+    const toggleSuspend = async (a) => {
+        const busyKey = `suspend:${a.namespace}/${a.name}`;
+        setSyncing(busyKey);
+        try {
+            const edit = await api.get(`/gitops/${a.kind}/${a.namespace}/${encodeURIComponent(a.name)}/edit`);
+            const rv = edit.data?.resourceVersion;
+            if (!rv) throw new Error("missing resourceVersion");
+            await api.post(`/gitops/${a.kind}/${a.namespace}/${encodeURIComponent(a.name)}/suspend`, {
+                suspend: !a.suspended,
+                resourceVersion: rv,
+            });
+            toast.success(
+                a.suspended
+                    ? t("toasts:ops.gitops.resumed", { name: a.name, defaultValue: `Resumed ${a.name}` })
+                    : t("toasts:ops.gitops.suspended", { name: a.name, defaultValue: `Suspended ${a.name}` }),
+            );
+            setRefresh((n) => n + 1);
+        } catch (e) {
+            toast.error(t("toasts:ops.gitops.suspendFailed", { defaultValue: "Suspend failed" }), {
+                description: e?.response?.data?.error || e.message,
+            });
+        } finally {
+            setSyncing("");
+        }
+    };
+
     return (
         <div className="stack">
         <div className="flex justify-end gap-2">
@@ -334,23 +360,31 @@ function GitOpsTab() {
                             <tr>
                                 <th>{t("pages:ops.gitops.columns.application")}</th>
                                 <th>{t("common:fields.source")}</th>
-                                <th>{t("common:fields.status")}</th>
+                                <th>{t("pages:ops.gitops.columns.sync")}</th>
+                                <th>{t("pages:ops.gitops.columns.health")}</th>
+                                <th>{t("pages:ops.gitops.columns.revision")}</th>
                                 <th>{t("common:fields.age")}</th>
                                 <th><span className="sr-only">{t("common:fields.actions")}</span></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((a) => (
+                            {rows.map((a) => {
+                                const canSync = a.canSync !== false && a.kind !== "ApplicationSet";
+                                const canEdit = a.canEdit !== false && a.kind !== "ApplicationSet";
+                                return (
                                 <tr key={`${a.namespace}/${a.name}`}>
                                     <td className="name">
                                         {a.name}
-                                        <small>{a.kind} · {a.namespace}</small>
+                                        <small>{a.kind} · {a.namespace}{a.suspended ? ` · ${t("pages:ops.gitops.suspended")}` : ""}</small>
                                     </td>
                                     <td className="mono text-[12.5px] text-ink-3">{a.source}</td>
-                                    <td><StatusBadge status={a.status === "Synced" || a.status === "Ready" ? "Healthy" : a.status} /></td>
+                                    <td><StatusBadge status={a.sync || a.status || "Unknown"} /></td>
+                                    <td><StatusBadge status={a.health || a.status || "Unknown"} /></td>
+                                    <td className="mono text-[12px] text-ink-3">{a.revision || "—"}</td>
                                     <td className="num">{a.age}</td>
                                     <td>
                                         <div className="flex justify-end gap-1.5">
+                                            {canSync && (
                                             <button
                                                 type="button"
                                                 className="btn btn-line btn-sm"
@@ -361,7 +395,20 @@ function GitOpsTab() {
                                             >
                                                 <RotateCcw size={13} />
                                             </button>
-                                            {!isViewer && (
+                                            )}
+                                            {!isViewer && canEdit && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-line btn-sm"
+                                                    disabled={!!syncing}
+                                                    title={a.suspended ? t("pages:ops.gitops.resume") : t("pages:ops.gitops.suspend")}
+                                                    aria-label={a.suspended ? t("pages:ops.gitops.resumeAria", { name: a.name }) : t("pages:ops.gitops.suspendAria", { name: a.name })}
+                                                    onClick={() => toggleSuspend(a)}
+                                                >
+                                                    {a.suspended ? <Play size={13} /> : <Pause size={13} />}
+                                                </button>
+                                            )}
+                                            {!isViewer && canEdit && (
                                                 <button
                                                     type="button"
                                                     className="btn btn-line btn-sm"
@@ -388,7 +435,8 @@ function GitOpsTab() {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}
@@ -1054,13 +1102,25 @@ function CostTab() {
     const cost = useEndpoint(`/cost?window=${windowSel}`, [windowSel]);
     if (!cost) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
     const actual = cost.source === "opencost";
+    const ocBadge = !cost.opencostConfigured
+        ? { c: "var(--ink-3)", label: t("pages:ops.cost.opencostOff") }
+        : cost.opencostReachable
+          ? { c: "var(--green)", label: t("pages:ops.cost.opencostOk") }
+          : { c: "var(--orange)", label: t("pages:ops.cost.opencostDegraded") };
+    const idle = cost.idleMonthlyUsd ?? 0;
+    const total = cost.totalMonthlyUsd ?? 0;
+    const efficiency = actual && total + idle > 0 ? Math.round((total / (total + idle)) * 100) : null;
     return (
         <div className="stack">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-[12.5px] text-ink-3" data-testid={OPENCOST.source}>
+                <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-3" data-testid={OPENCOST.source}>
                     <span className="pill" style={{ "--c": actual ? "var(--green)" : "var(--blue)" }}>
                         <i aria-hidden="true" />
                         {actual ? t("pages:ops.cost.sourceActual") : t("pages:ops.cost.sourceEstimate")}
+                    </span>
+                    <span className="pill" style={{ "--c": ocBadge.c }} data-testid="cost-opencost-status">
+                        <i aria-hidden="true" />
+                        {ocBadge.label}
                     </span>
                     {cost.note ? <span data-testid={OPENCOST.note}>{cost.note}</span> : null}
                 </div>
@@ -1079,8 +1139,11 @@ function CostTab() {
                 </div>
                 {actual ? (
                     <div className="stat" data-testid={OPENCOST.idle}>
-                        <b>${cost.idleMonthlyUsd ?? 0}</b>
+                        <b>${idle}</b>
                         <span>{t("pages:ops.cost.idle")}</span>
+                        {efficiency != null && (
+                            <div className="mt-1 text-[11px] text-ink-3">{t("pages:ops.cost.efficiency", { pct: efficiency })}</div>
+                        )}
                     </div>
                 ) : (
                     <div className="stat">
@@ -1094,10 +1157,10 @@ function CostTab() {
                 {!actual && (
                     <div className="stat">
                         <b>
-                            ${cost.memoryRatePerGi}
-                            <small>/GiB</small>
+                            ${cost.gpuRatePerGpu ?? 100}
+                            <small>/GPU</small>
                         </b>
-                        <span>{t("pages:ops.cost.memoryRate")}</span>
+                        <span>{t("pages:ops.cost.gpuRate")}</span>
                     </div>
                 )}
             </div>
@@ -1116,7 +1179,7 @@ function CostTab() {
                                     <th>{t("common:fields.namespace")}</th>
                                     <th>{t("common:fields.cpu")}</th>
                                     <th>{t("common:fields.memory")}</th>
-                                    {actual && <th>{t("pages:ops.cost.columns.whereItGoes")}</th>}
+                                    {(actual || rows.some((n) => n.gpuUsd != null)) && <th>{t("pages:ops.cost.columns.whereItGoes")}</th>}
                                     <th>{t("pages:ops.cost.columns.monthlyCost")}</th>
                                 </tr>
                             </thead>
@@ -1126,11 +1189,17 @@ function CostTab() {
                                         <td className="name">{n.namespace}</td>
                                         <td className="text-[12.5px] text-ink-3">{t("pages:ops.cost.cores", { n: n.cpuCores })}</td>
                                         <td className="text-[12.5px] text-ink-3">{n.memoryGi} GiB</td>
-                                        {actual && (
+                                        {(actual || n.gpuUsd != null) && (
                                             <td className="mono text-[11.5px] text-ink-3" data-testid={OPENCOST.breakdown(n.namespace)}>
-                                                cpu ${n.cpuUsd ?? 0} · mem ${n.memoryUsd ?? 0} · storage ${n.storageUsd ?? 0} · net ${n.networkUsd ?? 0}
-                                                {(n.gpuUsd != null || n.otherUsd != null) && (
-                                                    <> · gpu ${n.gpuUsd ?? 0} · other ${n.otherUsd ?? 0}</>
+                                                {actual ? (
+                                                    <>
+                                                        cpu ${n.cpuUsd ?? 0} · mem ${n.memoryUsd ?? 0} · storage ${n.storageUsd ?? 0} · net ${n.networkUsd ?? 0}
+                                                        {(n.gpuUsd != null || n.otherUsd != null) && (
+                                                            <> · gpu ${n.gpuUsd ?? 0} · other ${n.otherUsd ?? 0}</>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <>gpu ${n.gpuUsd ?? 0}</>
                                                 )}
                                             </td>
                                         )}
@@ -1196,6 +1265,8 @@ function DRABrowser() {
                         <th>{t("common:fields.kind")}</th>
                         <th>{t("common:fields.name")}</th>
                         <th>{t("pages:ops.accelerators.product", { defaultValue: "Driver" })}</th>
+                        <th>{t("common:fields.status")}</th>
+                        <th>{t("pages:ops.accelerators.detail", { defaultValue: "Detail" })}</th>
                         <th>{t("common:fields.age")}</th>
                     </tr>
                 </thead>
@@ -1205,6 +1276,8 @@ function DRABrowser() {
                             <td>{o.kind}</td>
                             <td className="mono name">{o.namespace ? `${o.namespace}/` : ""}{o.name}</td>
                             <td className="mono text-[12px]">{o.driver || "—"}</td>
+                            <td><StatusBadge status={o.status || "Unknown"} /></td>
+                            <td className="mono text-[11.5px] text-ink-3">{o.detail || "—"}</td>
                             <td className="num">{o.age || "—"}</td>
                         </tr>
                     ))}
@@ -1270,7 +1343,7 @@ function AcceleratorsTab() {
     const waste = rep.waste || [];
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
                 <div className="card p-4">
                     <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.status")}</div>
                     <div className="mt-1 flex items-center gap-2">
@@ -1290,6 +1363,30 @@ function AcceleratorsTab() {
                     <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.util")}</div>
                     <div className="mt-1 mono text-lg">{rep.metrics?.available ? `${Math.round(rep.metrics.gpuUtil || 0)}%` : "—"}</div>
                     {rep.metrics?.idleHint && <div className="mt-1 text-[11.5px] text-tone-amber">{rep.metrics.idleHint}</div>}
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.fb")}</div>
+                    <div className="mt-1 mono text-lg">
+                        {rep.metrics?.fbUsedBytes
+                            ? `${(rep.metrics.fbUsedBytes / (1024 * 1024 * 1024)).toFixed(1)}G`
+                            : "—"}
+                    </div>
+                    {rep.metrics?.fbFreeBytes > 0 && (
+                        <div className="mt-1 text-[11px] text-ink-3">
+                            {(rep.metrics.fbFreeBytes / (1024 * 1024 * 1024)).toFixed(1)}G free
+                        </div>
+                    )}
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.temp")}</div>
+                    <div className="mt-1 mono text-lg">{rep.metrics?.tempC ? `${Math.round(rep.metrics.tempC)}°C` : "—"}</div>
+                </div>
+                <div className="card p-4">
+                    <div className="text-[11px] uppercase tracking-widest text-ink-3">{t("pages:ops.accelerators.power")}</div>
+                    <div className="mt-1 mono text-lg">{rep.metrics?.powerW ? `${Math.round(rep.metrics.powerW)}W` : "—"}</div>
+                    {rep.metrics?.xid > 0 && (
+                        <div className="mt-1 text-[11.5px] text-tone-amber">XID {Math.round(rep.metrics.xid)}</div>
+                    )}
                 </div>
             </div>
 

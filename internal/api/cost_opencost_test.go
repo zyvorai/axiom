@@ -17,7 +17,7 @@ func TestCostEndpointSourceAndWindow(t *testing.T) {
 		t.Fatalf("cost: %d %s", w.Code, w.Body.String())
 	}
 	decodeInto(t, w, &est)
-	if est.Source != "estimate" || est.Window != "30d" || est.TotalMonthlyUSD != 520 || strings.Contains(w.Body.String(), `"cpuUsd"`) {
+	if est.Source != "estimate" || est.Window != "30d" || est.TotalMonthlyUSD != 720 || est.GPURatePerGpu != 100 || strings.Contains(w.Body.String(), `"cpuUsd"`) {
 		t.Fatalf("estimate %+v", est)
 	}
 	// The window is validated even when it has no effect.
@@ -27,7 +27,7 @@ func TestCostEndpointSourceAndWindow(t *testing.T) {
 		}
 	}
 	decodeInto(t, e.do("GET", "/api/v1/cost?window=7d", "", asCost("viewer")), &est)
-	if est.Source != "estimate" || est.Window != "7d" || est.TotalMonthlyUSD != 520 {
+	if est.Source != "estimate" || est.Window != "7d" || est.TotalMonthlyUSD != 720 {
 		t.Fatalf("estimate 7d %+v", est)
 	}
 	// GET /cost stays readable by namespace-restricted accounts, as before.

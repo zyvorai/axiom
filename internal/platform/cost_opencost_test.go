@@ -366,12 +366,12 @@ func (f failingCostSource) allocations(context.Context, string) (openCostAllocat
 func TestActiveCostEstimateAndFallback(t *testing.T) {
 	t.Setenv("AXIOM_DEMO_OPENCOST", "")
 	est, err := ActiveCost(context.Background(), NewDemoProvider(), "7d")
-	if err != nil || est.Source != CostSourceEstimate || est.Window != "7d" || est.Note != "" || est.TotalMonthlyUSD != 520 || est.Namespaces[0].CPUUSD != nil {
+	if err != nil || est.Source != CostSourceEstimate || est.Window != "7d" || est.Note != "" || est.TotalMonthlyUSD != 720 || est.Namespaces[0].CPUUSD != nil || est.GPURatePerGpu != 100 || est.OpenCostConfigured {
 		t.Fatalf("estimate %+v %v", est, err)
 	}
 	p := &stubCostProvider{Provider: NewDemoProvider(), src: failingCostSource{openCostErrorf("OpenCost returned HTTP 503")}}
 	est, err = ActiveCost(context.Background(), p, "30d")
-	if err != nil || est.Source != CostSourceEstimate || est.TotalMonthlyUSD != 520 || !strings.Contains(est.Note, "HTTP 503") || !strings.Contains(est.Note, "estimate") {
+	if err != nil || est.Source != CostSourceEstimate || est.TotalMonthlyUSD != 720 || !est.OpenCostConfigured || est.OpenCostReachable || !strings.Contains(est.Note, "HTTP 503") || !strings.Contains(est.Note, "estimate") {
 		t.Fatalf("fallback %+v %v", est, err)
 	}
 	// A foreign error (which might carry a URL) is never echoed.

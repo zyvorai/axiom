@@ -23,6 +23,9 @@ type DRAInventory struct {
 
 // ListDRA returns a read-only DRA inventory when resource.k8s.io is present.
 func ListDRA(ctx context.Context, p Provider) (DRAInventory, error) {
+	if sp, ok := p.(*SwitchableProvider); ok {
+		return sp.ListDRA(ctx)
+	}
 	if l, ok := p.(interface {
 		ListDRA(context.Context) (DRAInventory, error)
 	}); ok {
@@ -34,11 +37,12 @@ func ListDRA(ctx context.Context, p Provider) (DRAInventory, error) {
 func (d *DemoProvider) ListDRA(ctx context.Context) (DRAInventory, error) {
 	return DRAInventory{
 		Available: true,
-		Note:      "Demo DRA inventory (simulated DeviceClass)",
+		Note:      "Demo DRA inventory (simulated DeviceClass + claim)",
 		Objects: []DRAObject{
-			{Kind: "DeviceClass", Name: "gpu.nvidia.com", Driver: "gpu.nvidia.com", Status: "Available", Detail: "demo class", Age: "30d"},
+			{Kind: "DeviceClass", Name: "gpu.nvidia.com", Driver: "gpu.nvidia.com", Status: "Available", Detail: "1 selector(s)", Age: "30d"},
 			{Kind: "ResourceSlice", Name: "gpu-01-slice", Driver: "gpu.nvidia.com", Status: "Published", Detail: "node=gpu-01", Age: "17d"},
+			{Kind: "ResourceClaim", Namespace: "ml", Name: "training-gpu", Driver: "gpu.nvidia.com", Status: "Allocated", Detail: "devices=gpu-0 · pod=train-0", Age: "2d"},
 		},
-		Counts: map[string]int{"DeviceClass": 1, "ResourceSlice": 1, "ResourceClaim": 0},
+		Counts: map[string]int{"DeviceClass": 1, "ResourceSlice": 1, "ResourceClaim": 1},
 	}, nil
 }

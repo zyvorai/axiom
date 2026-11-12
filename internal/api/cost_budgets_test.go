@@ -42,8 +42,8 @@ func TestCostBudgetsCRUD(t *testing.T) {
 	}
 	var rep platform.CostBudgetReport
 	decodeInto(t, w, &rep)
-	// Demo estimate: payments 180, data 170, commerce 90, observability 80.
-	if len(rep.Budgets) != 0 || len(rep.Unbudgeted) != 4 || rep.Unbudgeted[0].Namespace != "payments" || rep.Unbudgeted[0].CurrentUSD != 180 {
+	// Demo estimate: data 370 (incl. GPU), payments 180, commerce 90, observability 80.
+	if len(rep.Budgets) != 0 || len(rep.Unbudgeted) != 4 || rep.Unbudgeted[0].Namespace != "data" || rep.Unbudgeted[0].CurrentUSD != 370 {
 		t.Fatalf("report %+v", rep)
 	}
 	if !strings.Contains(w.Body.String(), `"budgets":[]`) {

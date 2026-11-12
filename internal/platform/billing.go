@@ -259,6 +259,12 @@ func ValidateBillingPatch(p IntegrationsPatch) error {
 // ---------------------------------------------------------------------------
 // Report
 
+// BillingServiceLine is one top service/SKU slice of an experimental invoice.
+type BillingServiceLine struct {
+	Name   string  `json:"name"`
+	Amount float64 `json:"amount"`
+}
+
 // BillingMonth is one calendar month of the reconciliation.
 type BillingMonth struct {
 	Month        string  `json:"month"` // YYYY-MM
@@ -270,6 +276,8 @@ type BillingMonth struct {
 	AsOf        string   `json:"asOf"`
 	// Partial marks the month in progress (month-to-date).
 	Partial bool `json:"partial"`
+	// Services is an optional top-N service breakdown (experimental).
+	Services []BillingServiceLine `json:"services,omitempty"`
 }
 
 // BillingReport is GET /api/v1/cost/invoice.
@@ -297,6 +305,7 @@ type billingMonthTotal struct {
 	Month    string
 	Amount   float64
 	Currency string
+	Services []BillingServiceLine
 }
 
 // billingFetcher is one provider client.
@@ -527,6 +536,9 @@ func assembleBillingMonths(periods []billingPeriod, totals []billingMonthTotal, 
 		if prev.Currency == "" {
 			prev.Currency = strings.ToUpper(strings.TrimSpace(t.Currency))
 		}
+		if len(t.Services) > 0 {
+			prev.Services = append(prev.Services, t.Services...)
+		}
 		byMonth[t.Month] = prev
 		if currency == "" {
 			currency = prev.Currency
@@ -539,12 +551,14 @@ func assembleBillingMonths(periods []billingPeriod, totals []billingMonthTotal, 
 		if partial {
 			days = now.Sub(p.Start).Hours() / 24
 		}
+		raw := byMonth[p.Month]
 		m := BillingMonth{
 			Month:        p.Month,
-			InvoiceTotal: roundCents(byMonth[p.Month].Amount),
+			InvoiceTotal: roundCents(raw.Amount),
 			Allocated:    roundCents(monthlyRate * days / 30),
 			AsOf:         asOf.UTC().Format(time.RFC3339),
 			Partial:      partial,
+			Services:     mergeBillingServices(raw.Services, 10),
 		}
 		if haveRate && (currency == "" || currency == "USD") {
 			d := roundCents(m.InvoiceTotal - m.Allocated)
@@ -557,6 +571,17 @@ func assembleBillingMonths(periods []billingPeriod, totals []billingMonthTotal, 
 		currency = "USD"
 	}
 	return out, currency
+}
+
+func mergeBillingServices(in []BillingServiceLine, n int) []BillingServiceLine {
+	if len(in) == 0 {
+		return nil
+	}
+	by := map[string]float64{}
+	for _, s := range in {
+		by[s.Name] += s.Amount
+	}
+	return topBillingServices(by, n)
 }
 
 // Test runs one uncached call with the saved settings for

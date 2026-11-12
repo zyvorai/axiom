@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -14,13 +16,33 @@ import (
 // rightsizing recommender prices its deltas with the same rates so a
 // recommendation's savings line up with the Cost tab's totals.
 const (
-	costCPURatePerCore  = 20.0
-	costMemoryRatePerGi = 5.0
+	costCPURatePerCore     = 20.0
+	costMemoryRatePerGi    = 5.0
+	costGPURatePerGpuDefault = 100.0
 )
+
+// costGPURatePerGpu returns the estimate rate for nvidia.com/gpu (+ MIG keys).
+// Override with AXIOM_COST_GPU_RATE (USD per GPU per month).
+func costGPURatePerGpu() float64 {
+	v := strings.TrimSpace(os.Getenv("AXIOM_COST_GPU_RATE"))
+	if v == "" {
+		return costGPURatePerGpuDefault
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil || f < 0 || math.IsNaN(f) || math.IsInf(f, 0) {
+		return costGPURatePerGpuDefault
+	}
+	return f
+}
 
 // costMonthlyUSD prices cpu cores and memory GiB with the EstimateCost rates.
 func costMonthlyUSD(cpuCores, memGi float64) float64 {
 	return cpuCores*costCPURatePerCore + memGi*costMemoryRatePerGi
+}
+
+func isGPURequestKey(k string) bool {
+	k = strings.ToLower(k)
+	return k == "nvidia.com/gpu" || strings.HasPrefix(k, "nvidia.com/mig-")
 }
 
 // ---------------------------------------------------------------------------

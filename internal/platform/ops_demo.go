@@ -238,13 +238,13 @@ func (d *DemoProvider) ListHelmReleases(ctx context.Context, ns string) ([]HelmR
 var (
 	demoGitOpsMu sync.Mutex
 	demoGitOps   = map[string]GitOpsItem{
-		"argocd/platform-apps":  {Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d"},
-		"argocd/tenant-apps":    {Kind: "ApplicationSet", Namespace: "argocd", Name: "tenant-apps", Status: "Healthy", Source: "list generator → Applications", Age: "7d"},
-		"flux-system/apps":      {Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
-		"monitoring/prometheus": {Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d"},
+		"argocd/platform-apps":  {Kind: "Application", Namespace: "argocd", Name: "platform-apps", Status: "Synced", Source: "https://github.com/zyvorai/platform.git", Age: "14d", Health: "Healthy", Sync: "Synced", Revision: "a1b2c3d", CanSync: true, CanEdit: true},
+		"argocd/tenant-apps":    {Kind: "ApplicationSet", Namespace: "argocd", Name: "tenant-apps", Status: "Healthy", Source: "list generator → Applications", Age: "7d", Health: "Healthy", CanSync: false, CanEdit: false},
+		"flux-system/apps":      {Kind: "Kustomization", Namespace: "flux-system", Name: "apps", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d", Health: "Ready", Sync: "Ready", Revision: "main@sha1:deadbee", CanSync: true, CanEdit: true},
+		"monitoring/prometheus": {Kind: "HelmRelease", Namespace: "monitoring", Name: "prometheus", Status: "Ready", Source: "HelmRepository/prometheus-community", Age: "22d", Health: "Ready", Sync: "Ready", CanSync: true, CanEdit: true},
 		// Non-cascading delete rows (gitops_delete_demo.go): no Argo finalizer / prune off.
-		"argocd/docs-site":  {Kind: "Application", Namespace: "argocd", Name: "docs-site", Status: "Synced", Source: "https://github.com/zyvorai/docs.git", Age: "5d"},
-		"flux-system/infra": {Kind: "Kustomization", Namespace: "flux-system", Name: "infra", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d"},
+		"argocd/docs-site":  {Kind: "Application", Namespace: "argocd", Name: "docs-site", Status: "Synced", Source: "https://github.com/zyvorai/docs.git", Age: "5d", Health: "Healthy", Sync: "Synced", CanSync: true, CanEdit: true},
+		"flux-system/infra": {Kind: "Kustomization", Namespace: "flux-system", Name: "infra", Status: "Ready", Source: "GitRepository/flux-system", Age: "9d", Health: "Ready", Sync: "Ready", CanSync: true, CanEdit: true},
 	}
 )
 
@@ -265,6 +265,9 @@ func (d *DemoProvider) ListGitOps(ctx context.Context) ([]GitOpsItem, error) {
 }
 
 func (d *DemoProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name string) error {
+	if kind == "ApplicationSet" {
+		return NewStatusError(http.StatusUnprocessableEntity, fmt.Errorf("ApplicationSet cannot be synced; sync the generated Applications instead"))
+	}
 	demoGitOpsMu.Lock()
 	defer demoGitOpsMu.Unlock()
 	key := ns + "/" + name
@@ -274,8 +277,10 @@ func (d *DemoProvider) TriggerGitOpsSync(ctx context.Context, kind, ns, name str
 	}
 	if kind == "Application" {
 		g.Status = "Synced"
+		g.Sync = "Synced"
 	} else {
 		g.Status = "Ready"
+		g.Sync = "Ready"
 	}
 	demoGitOps[key] = g
 	return nil
@@ -289,10 +294,12 @@ func (d *DemoProvider) CreateGitOpsApp(ctx context.Context, req GitOpsCreateRequ
 		return GitOpsCreateResult{}, err
 	}
 	app := plan.Objects[len(plan.Objects)-1]
-	item := GitOpsItem{Kind: app.Kind, Namespace: app.Namespace, Name: app.Name, Status: "Ready", Age: "0s"}
+	item := GitOpsItem{Kind: app.Kind, Namespace: app.Namespace, Name: app.Name, Status: "Ready", Health: "Ready", Sync: "Ready", Age: "0s", CanSync: true, CanEdit: true}
 	switch plan.Engine {
 	case GitOpsEngineArgoCD:
 		item.Status = "Synced"
+		item.Health = "Healthy"
+		item.Sync = "Synced"
 		item.Source = req.Source.RepoURL
 		if req.Source.Chart != "" {
 			item.Source += ":" + req.Source.Chart
@@ -443,11 +450,13 @@ func (d *DemoProvider) DeleteRoleBinding(ctx context.Context, ns, name string) e
 }
 
 func (d *DemoProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {
-	const cpuRate, memRate = 20.0, 5.0
+	cpuRate, memRate, gpuRate := 20.0, 5.0, costGPURatePerGpu()
+	gpuUSD := 2 * gpuRate // demo: 2 GPUs in data/train
+	gpuPtr := round1(gpuUSD)
 	nsCosts := []NamespaceCost{
 		{Namespace: "payments", CPUCores: 6.0, MemoryGi: 12.0, MonthlyUSD: 6*cpuRate + 12*memRate},
 		{Namespace: "commerce", CPUCores: 3.0, MemoryGi: 6.0, MonthlyUSD: 3*cpuRate + 6*memRate},
-		{Namespace: "data", CPUCores: 4.5, MemoryGi: 16.0, MonthlyUSD: 4.5*cpuRate + 16*memRate},
+		{Namespace: "data", CPUCores: 4.5, MemoryGi: 16.0, MonthlyUSD: 4.5*cpuRate + 16*memRate + gpuUSD, CostBreakdown: CostBreakdown{GPUUSD: &gpuPtr}},
 		{Namespace: "observability", CPUCores: 2.0, MemoryGi: 8.0, MonthlyUSD: 2*cpuRate + 8*memRate},
 	}
 	var total float64
@@ -458,10 +467,11 @@ func (d *DemoProvider) EstimateCost(ctx context.Context) (CostEstimate, error) {
 		{Namespace: "payments", Workload: "payments-api", Kind: "Deployment", CPUCores: 6.0, MemoryGi: 12.0, MonthlyUSD: 6*cpuRate + 12*memRate},
 		{Namespace: "commerce", Workload: "checkout", Kind: "Deployment", CPUCores: 3.0, MemoryGi: 6.0, MonthlyUSD: 3*cpuRate + 6*memRate},
 		{Namespace: "data", Workload: "redis", Kind: "StatefulSet", CPUCores: 4.5, MemoryGi: 16.0, MonthlyUSD: 4.5*cpuRate + 16*memRate},
+		{Namespace: "data", Workload: "train", Kind: "Job", CPUCores: 0, MemoryGi: 0, MonthlyUSD: gpuUSD, CostBreakdown: CostBreakdown{GPUUSD: &gpuPtr}},
 		{Namespace: "observability", Workload: "otel-collector", Kind: "Deployment", CPUCores: 2.0, MemoryGi: 8.0, MonthlyUSD: 2*cpuRate + 8*memRate},
 	}
 	return CostEstimate{
-		TotalMonthlyUSD: round1(total), CPURatePerCore: cpuRate, MemoryRatePerGi: memRate,
+		TotalMonthlyUSD: round1(total), CPURatePerCore: cpuRate, MemoryRatePerGi: memRate, GPURatePerGpu: gpuRate,
 		Namespaces: nsCosts, Workloads: workloadCosts,
 	}, nil
 }

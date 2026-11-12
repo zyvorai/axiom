@@ -4,6 +4,13 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — deepen pack (GPU/DRA, GitOps write, cost/bill)
+- DRA browser: ResourceClaim phase / allocated devices / bound pod on `GET /api/v1/dra`; Ops Status + Detail columns.
+- DCGM overview tiles: framebuffer, temperature, power, XID on `GET /api/v1/accelerators` metrics (first-hit PromQL families).
+- GitOps list enrichment: `health`, `sync`, `revision`, `suspended`, `canSync`/`canEdit`; ApplicationSet sync returns 422; Ops hides Sync/Edit for AppSets.
+- GitOps suspend/resume: `POST /api/v1/gitops/{kind}/{ns}/{name}/suspend` (Flux `spec.suspend`, Argo automated sync); admin-only, RV-guarded.
+- Cost estimate prices `nvidia.com/gpu` (+ MIG) at `gpuRatePerGpu` (default 100 USD/mo, `AXIOM_COST_GPU_RATE`); OpenCost status fields on `GET /cost`; invoice top-N AWS SERVICE breakdown (experimental).
+
 ## [0.14.0] - 2026-11-12
 
 ### Docs

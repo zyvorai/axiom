@@ -21,8 +21,11 @@ func (k *KubernetesProvider) analyzeCertExpiry(ctx context.Context, ns string) (
 	}
 	list, err := k.dynamic.Resource(certManagerCertificateGVR).Namespace(nsSelector(ns)).List(ctx, metav1.ListOptions{Limit: 200})
 	if err != nil {
-		// CRD absent is fine.
-		return nil, nil
+		// CRD absent is fine; RBAC / apiserver failures surface as analyzer errors.
+		if isMissingCRD(err) {
+			return nil, nil
+		}
+		return nil, err
 	}
 	var out []HealthFinding
 	cutoff := time.Now().UTC().Add(14 * 24 * time.Hour)

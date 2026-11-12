@@ -217,10 +217,15 @@ type AcceleratorsDRA struct {
 
 // AcceleratorsMetrics is an optional DCGM snapshot (when Prometheus is configured).
 type AcceleratorsMetrics struct {
-	Available bool    `json:"available"`
-	GPUUtil   float64 `json:"gpuUtil,omitempty"`   // 0–100 average when known
-	IdleHint  string  `json:"idleHint,omitempty"` // requested-vs-util note
-	Note      string  `json:"note,omitempty"`
+	Available   bool    `json:"available"`
+	GPUUtil     float64 `json:"gpuUtil,omitempty"`     // 0–100 average when known
+	FBUsedBytes float64 `json:"fbUsedBytes,omitempty"` // framebuffer used (avg)
+	FBFreeBytes float64 `json:"fbFreeBytes,omitempty"` // framebuffer free (avg)
+	TempC       float64 `json:"tempC,omitempty"`       // GPU temp °C (avg)
+	PowerW      float64 `json:"powerW,omitempty"`      // power draw watts (avg)
+	XID         float64 `json:"xid,omitempty"`         // XID error counter when series present
+	IdleHint    string  `json:"idleHint,omitempty"`    // requested-vs-util note
+	Note        string  `json:"note,omitempty"`
 }
 
 type PodPort struct {
@@ -731,6 +736,17 @@ type GitOpsItem struct {
 	Status    string `json:"status"`
 	Source    string `json:"source,omitempty"`
 	Age       string `json:"age"`
+	// Health is Argo health.status or Flux Ready condition summary.
+	Health string `json:"health,omitempty"`
+	// Sync is Argo sync.status or Flux Ready/NotReady.
+	Sync string `json:"sync,omitempty"`
+	// Revision is the last synced git SHA / chart version when known.
+	Revision string `json:"revision,omitempty"`
+	// Suspended is true when Flux spec.suspend or Argo lacks automated sync.
+	Suspended bool `json:"suspended,omitempty"`
+	// CanSync / CanEdit gate Ops row actions (ApplicationSet: neither).
+	CanSync bool `json:"canSync"`
+	CanEdit bool `json:"canEdit"`
 }
 
 type PrometheusRuleSummary struct {
@@ -819,8 +835,10 @@ type CostEstimate struct {
 	TotalMonthlyUSD float64         `json:"totalMonthlyUsd"`
 	CPURatePerCore  float64         `json:"cpuRatePerCore"`
 	MemoryRatePerGi float64         `json:"memoryRatePerGi"`
-	Namespaces      []NamespaceCost `json:"namespaces"`
-	Workloads       []WorkloadCost  `json:"workloads"`
+	// GPURatePerGpu is the flat estimate rate for nvidia.com/gpu (+ MIG keys).
+	GPURatePerGpu float64 `json:"gpuRatePerGpu,omitempty"`
+	Namespaces    []NamespaceCost `json:"namespaces"`
+	Workloads     []WorkloadCost  `json:"workloads"`
 	// Source is "estimate" (requests priced at the flat rates) or "opencost"
 	// (actual allocation cost). Set by ActiveCost; providers leave it empty.
 	Source string `json:"source,omitempty"`
@@ -832,6 +850,11 @@ type CostEstimate struct {
 	IdleMonthlyUSD        float64 `json:"idleMonthlyUsd"`
 	UnallocatedMonthlyUSD float64 `json:"unallocatedMonthlyUsd,omitempty"`
 	Note                  string  `json:"note,omitempty"`
+	// OpenCostConfigured / OpenCostReachable / OpenCostError describe the
+	// OpenCost client without leaking URL or token (set by ActiveCost).
+	OpenCostConfigured bool   `json:"opencostConfigured,omitempty"`
+	OpenCostReachable  bool   `json:"opencostReachable,omitempty"`
+	OpenCostError      string `json:"opencostError,omitempty"`
 }
 
 type ValidateResult struct {

@@ -789,12 +789,20 @@
       "newApplication": "Nouvelle application",
       "empty": "Aucune application GitOps.",
       "columns": {
-        "application": "Application"
+        "application": "Application",
+        "sync": "Sync",
+        "health": "Health",
+        "revision": "Revision"
       },
       "sync": "Synchroniser",
       "syncAria": "Synchroniser {{name}}",
       "deleteAria": "Supprimer {{name}}",
-      "editAria": "Modifier {{name}}"
+      "editAria": "Modifier {{name}}",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "suspendAria": "Suspend {{name}}",
+      "resumeAria": "Resume {{name}}",
+      "suspended": "suspended"
     },
     "agents": {
       "approve": "Approuver la proposition",
@@ -890,7 +898,12 @@
       "last7d": "7 derniers jours",
       "last14d": "14 derniers jours",
       "last30d": "30 derniers jours",
-      "idle": "Inactif (alloué mais inutilisé)"
+      "idle": "Inactif (alloué mais inutilisé)",
+      "gpuRate": "GPU rate",
+      "opencostOff": "OpenCost off",
+      "opencostOk": "OpenCost OK",
+      "opencostDegraded": "OpenCost degraded",
+      "efficiency": "{{pct}}% of allocation in use (excl. idle)"
     },
     "accelerators": {
       "status": "Status",
@@ -913,7 +926,11 @@
       "recommend": "Recommend",
       "dryRun": "Dry-run",
       "apply": "Apply",
-      "dra": "DRA resources"
+      "dra": "DRA resources",
+      "fb": "Framebuffer",
+      "temp": "Temp",
+      "power": "Power",
+      "detail": "Detail"
     }
   },
   "rbac": {

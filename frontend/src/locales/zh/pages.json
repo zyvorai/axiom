@@ -781,12 +781,20 @@
       "newApplication": "新建应用",
       "empty": "没有 GitOps 应用。",
       "columns": {
-        "application": "应用"
+        "application": "Application",
+        "sync": "Sync",
+        "health": "Health",
+        "revision": "Revision"
       },
       "sync": "同步",
       "syncAria": "同步 {{name}}",
       "deleteAria": "删除 {{name}}",
-      "editAria": "编辑 {{name}}"
+      "editAria": "编辑 {{name}}",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "suspendAria": "Suspend {{name}}",
+      "resumeAria": "Resume {{name}}",
+      "suspended": "suspended"
     },
     "agents": {
       "approve": "批准提议",
@@ -882,7 +890,12 @@
       "last7d": "最近 7 天",
       "last14d": "最近 14 天",
       "last30d": "最近 30 天",
-      "idle": "闲置（已分配但未使用）"
+      "idle": "闲置（已分配但未使用）",
+      "gpuRate": "GPU rate",
+      "opencostOff": "OpenCost off",
+      "opencostOk": "OpenCost OK",
+      "opencostDegraded": "OpenCost degraded",
+      "efficiency": "{{pct}}% of allocation in use (excl. idle)"
     },
     "accelerators": {
       "status": "Status",
@@ -905,7 +918,11 @@
       "recommend": "Recommend",
       "dryRun": "Dry-run",
       "apply": "Apply",
-      "dra": "DRA resources"
+      "dra": "DRA resources",
+      "fb": "Framebuffer",
+      "temp": "Temp",
+      "power": "Power",
+      "detail": "Detail"
     }
   },
   "rbac": {
