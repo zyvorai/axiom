@@ -553,5 +553,53 @@
     "cooldownPeriod": "Cooldown (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "Nessuna credenziale"
+  },
+  "nodeDrain": {
+    "title": "Drain di {{name}}",
+    "failed": "Drain non riuscito",
+    "step": {
+      "preview": "Anteprima",
+      "confirm": "Conferma",
+      "run": "Cordon e drain"
+    },
+    "verdict": {
+      "ok": "Drain sicuro",
+      "caution": "Il drain è possibile, ma con cautela",
+      "blocked": "Bloccato: un PodDisruptionBudget rifiuterà le evizioni"
+    },
+    "reason": {
+      "pdbBlocked": "Un PodDisruptionBudget non consente interruzioni per i Pod di questo Node.",
+      "pdbTight": "Un PodDisruptionBudget consente meno interruzioni dei Pod che copre qui.",
+      "unmanaged": "I Pod senza controller andranno persi.",
+      "localStorage": "I Pod con emptyDir perdono i dati (delete-emptydir-data).",
+      "singleReplica": "I workload con una sola replica avranno downtime.",
+      "pinnedVolumes": "I volumi vincolati a questo Node impediscono ai Pod di spostarsi.",
+      "noHeadroom": "Gli altri Node potrebbero non avere spazio per i Pod spostati."
+    },
+    "pdbBlocked": "Bloccato da PodDisruptionBudget",
+    "pdbAllows": "consente {{n}} interruzioni",
+    "evict": "Verranno evicted ({{n}} Pod)",
+    "unmanaged": "Pod non gestiti (senza controller): persi, nulla li ricrea",
+    "localStorage": "Storage locale (emptyDir): i dati vengono eliminati, il drain richiede delete-emptydir-data",
+    "singleReplica": "Replica singola: downtime fino alla riprogrammazione",
+    "pinned": "Volume vincolato a questo Node (claim mostrato): non può essere riprogrammato altrove",
+    "ignored": "Ignorati ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod mirror",
+      "kube-system": "kube-system",
+      "finished": "terminato"
+    },
+    "reschedule": "Riprogrammazione (approssimativa)",
+    "fits": "Sembra che ci stia.",
+    "noFit": "Potrebbe non starci.",
+    "rescheduleBody": "{{nodes}} altri Node pianificabili e Ready; margine di request libero {{cpu}} CPU e {{mem}}; necessario {{needCpu}} CPU e {{needMem}}.",
+    "approximate": "Stima basata solo sulle request di risorse. Ignora affinity, taint, topologia e storage.",
+    "confirmHelp": "Il Node viene prima isolato (cordon), poi i suoi Pod vengono evicted. Solo operatori e amministratori possono farlo, ed è registrato nell'audit.",
+    "confirmLabel": "Digita <code>{{name}}</code> per confermare",
+    "start": "Cordon e drain",
+    "progressCordon": "Cordon del Node in corso...",
+    "progressDrain": "Eviction dei Pod: ne restano {{n}} sul Node",
+    "done": "Drain completato. {{name}} resta in cordon finché non fai uncordon."
   }
 }

@@ -369,7 +369,8 @@ Listing CRD *definitions* only requires the `apiextensions.k8s.io` RBAC grant Ax
 | GET | `/api/v1/nodes/{name}` | Node detail (includes `taints`) |
 | POST | `/api/v1/nodes/{name}/cordon` | Mark unschedulable |
 | POST | `/api/v1/nodes/{name}/uncordon` | Mark schedulable |
-| POST | `/api/v1/nodes/{name}/drain` | Cordon and evict eligible Pods |
+| POST | `/api/v1/nodes/{name}/drain?confirm=<name>` | Cordon and evict eligible Pods (DaemonSet, mirror and `kube-system` Pods are skipped). `confirm` must equal the node name exactly or the call is refused with `400` (server-enforced, like GitOps delete). Operator/admin, audited as `node.drain` |
+| GET | `/api/v1/nodes/{name}/drain-preview` | Read-only: what a drain would do. Returns `verdict` (`ok`\|`caution`\|`blocked`), `reasons`, `evict` (grouped by namespace/owner), `ignored`, `localStorage`, `unmanaged`, `pdbBlocked` (with the PDB), `singleReplica`, `pinnedVolumes` and `reschedule` (`approximate:true`). Denied (`403`) for namespace-restricted accounts; `404` for an unknown node |
 | GET | `/api/v1/nodes/{name}/metrics` | Live CPU/memory for the node plus a short in-memory rolling time series (not historical Prometheus data) — shares the per-pod metrics ring buffer, keyed `"node:<name>"` |
 | POST | `/api/v1/nodes/{name}/taints` | Add a taint: `{"key","value","effect"}` (`effect` one of `NoSchedule`\|`PreferNoSchedule`\|`NoExecute`) |
 | DELETE | `/api/v1/nodes/{name}/taints/{key}?effect=...` | Remove a taint matching `key` and `effect` |

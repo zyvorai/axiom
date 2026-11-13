@@ -504,3 +504,7 @@ func (sp *SwitchableProvider) PreviewVeleroRestore(a0 context.Context, a1 Velero
 func (sp *SwitchableProvider) CreateVeleroRestore(a0 context.Context, a1 VeleroRestoreRequest) (VeleroRestore, error) {
 	return sp.current(a0).CreateVeleroRestore(a0, a1)
 }
+
+func (sp *SwitchableProvider) PreviewNodeDrain(a0 context.Context, a1 string) (DrainPreview, error) {
+	return sp.current(a0).PreviewNodeDrain(a0, a1)
+}

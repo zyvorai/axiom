@@ -946,10 +946,18 @@ test("nodes list: drain POSTs /drain, cordons the node (UI + API); uncordon rest
   await page.getByTestId("nav-link-nodes").click();
   const tile = nodeTile(page, "gpu-01");
   await expect(tile).toBeVisible();
-  const d = waitMutation(page, "POST", /\/nodes\/gpu-01\/drain$/);
-  await tile.getByRole("button", { name: "Drain" }).click();
+  // Drain now opens the wizard on Node detail: preview -> typed name -> cordon + drain.
+  await tile.getByRole("link", { name: "Drain" }).click();
+  await expect(page.getByTestId("node-drain-dialog")).toBeVisible();
+  const d = waitMutation(page, "POST", /\/nodes\/gpu-01\/drain(\?|$)/);
+  await page.getByTestId("node-drain-next").click();
+  await page.getByTestId("node-drain-confirm-input").fill("gpu-01");
+  await page.getByTestId("node-drain-start").click();
+  await expect(page.getByTestId("node-drain-done")).toBeVisible();
   expect((await d).status()).toBeLessThan(300);
   await toastText(page, /gpu-01: drain requested/);
+  await page.getByRole("button", { name: "Close" }).click();
+  await page.getByTestId("nav-link-nodes").click();
   await expect(tile).toContainText("Cordoned");
   await expect(tile.getByRole("button", { name: "Uncordon" })).toBeVisible();
   expect(await findNode(page, "gpu-01")).toMatchObject({ unschedulable: true });
@@ -979,10 +987,15 @@ test("node detail: cordon, uncordon and drain buttons drive the same API and ref
   await expect(page.getByRole("button", { name: "Cordon", exact: true })).toBeVisible();
   expect((await findNode(page, "gpu-01")).unschedulable).toBeFalsy();
 
-  const d = waitMutation(page, "POST", /\/nodes\/gpu-01\/drain$/);
-  await page.getByRole("button", { name: "Drain" }).click();
+  const d = waitMutation(page, "POST", /\/nodes\/gpu-01\/drain(\?|$)/);
+  await page.getByTestId("node-drain-open").click();
+  await page.getByTestId("node-drain-next").click();
+  await page.getByTestId("node-drain-confirm-input").fill("gpu-01");
+  await page.getByTestId("node-drain-start").click();
+  await expect(page.getByTestId("node-drain-done")).toBeVisible();
   expect((await d).status()).toBeLessThan(300);
   await toastText(page, /gpu-01: drain requested/);
+  await page.getByRole("button", { name: "Close" }).click();
   await expect(page.getByRole("button", { name: "Uncordon" })).toBeVisible();
   expect((await findNode(page, "gpu-01")).unschedulable).toBe(true);
 
@@ -1030,7 +1043,7 @@ test("node detail: add a taint (POST /taints) then remove it (DELETE /taints/{ke
 test("nodes negative: cordon/drain against a node that does not exist -> 404, and no node is created or changed", async ({ page }) => {
   const before = (await apiGet(page, "/nodes")).data.map((n) => `${n.name}:${n.status}`);
   for (const action of ["cordon", "uncordon", "drain"]) {
-    const r = await apiSend(page, "POST", `/nodes/no-such-node/${action}`);
+    const r = await apiSend(page, "POST", `/nodes/no-such-node/${action}${action === "drain" ? "?confirm=no-such-node" : ""}`);
     expect(r.status).toBe(404);
   }
   expect((await apiGet(page, "/nodes")).data.map((n) => `${n.name}:${n.status}`)).toEqual(before);

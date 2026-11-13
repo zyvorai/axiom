@@ -553,5 +553,53 @@
     "cooldownPeriod": "Resfriamento (s)",
     "triggerLegend": "Gatilho {{n}} · {{type}}",
     "noCredentials": "Sem credenciais"
+  },
+  "nodeDrain": {
+    "title": "Drenar {{name}}",
+    "failed": "Falha ao drenar",
+    "step": {
+      "preview": "Pré-visualização",
+      "confirm": "Confirmar",
+      "run": "Isolar e drenar"
+    },
+    "verdict": {
+      "ok": "Drenagem segura",
+      "caution": "A drenagem é possível, mas com cautela",
+      "blocked": "Bloqueado: um PodDisruptionBudget recusará as remoções"
+    },
+    "reason": {
+      "pdbBlocked": "Um PodDisruptionBudget não permite interrupções para os Pods deste Node.",
+      "pdbTight": "Um PodDisruptionBudget permite menos interrupções do que os Pods que ele cobre aqui.",
+      "unmanaged": "Pods sem controlador serão perdidos.",
+      "localStorage": "Pods com emptyDir perdem seus dados (delete-emptydir-data).",
+      "singleReplica": "Cargas de réplica única terão indisponibilidade.",
+      "pinnedVolumes": "Volumes fixados neste Node impedem que seus Pods se movam.",
+      "noHeadroom": "Outros Nodes podem não ter espaço para os Pods deslocados."
+    },
+    "pdbBlocked": "Bloqueado por PodDisruptionBudget",
+    "pdbAllows": "permite {{n}} interrupções",
+    "evict": "Serão removidos ({{n}} Pods)",
+    "unmanaged": "Pods não gerenciados (sem controlador): perdidos, nada os recria",
+    "localStorage": "Armazenamento local (emptyDir): dados são apagados, a drenagem exige delete-emptydir-data",
+    "singleReplica": "Réplica única: indisponibilidade até ser reagendado",
+    "pinned": "Volume fixado neste Node (claim exibido): não pode ser reagendado em outro lugar",
+    "ignored": "Ignorados ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod espelho",
+      "kube-system": "kube-system",
+      "finished": "concluído"
+    },
+    "reschedule": "Reagendamento (aproximado)",
+    "fits": "Parece que cabe.",
+    "noFit": "Pode não caber.",
+    "rescheduleBody": "{{nodes}} outros Nodes agendáveis e Ready; folga de requests livre {{cpu}} CPU e {{mem}}; necessário {{needCpu}} CPU e {{needMem}}.",
+    "approximate": "Estimativa apenas com base nos requests de recursos. Ignora afinidade, taints, topologia e armazenamento.",
+    "confirmHelp": "O Node é isolado primeiro e depois seus Pods são removidos. Somente operadores e administradores podem fazer isso, e fica registrado em auditoria.",
+    "confirmLabel": "Digite <code>{{name}}</code> para confirmar",
+    "start": "Isolar e drenar",
+    "progressCordon": "Isolando o Node...",
+    "progressDrain": "Removendo Pods: ainda restam {{n}} no Node",
+    "done": "Drenagem concluída. {{name}} continua isolado até você reintegrá-lo."
   }
 }

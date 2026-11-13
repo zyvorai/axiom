@@ -158,14 +158,9 @@ export default function Nodes() {
                                     <Ban size={13} /> {t("pages:nodes.actions.cordon")}
                                 </button>
                             )}
-                            <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                disabled={busy === `${n.name}:drain`}
-                                onClick={() => act(n.name, "drain", "drain")}
-                            >
+                            <Link to={`/nodes/${encodeURIComponent(n.name)}?drain=1`} className="btn btn-danger btn-sm">
                                 <LogOut size={13} /> {t("pages:nodes.actions.drain")}
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 ))}
