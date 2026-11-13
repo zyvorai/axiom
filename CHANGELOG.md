@@ -4,6 +4,20 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — In-place pod resize
+- `POST /api/v1/cost/rightsizing/apply` accepts `inPlace:true` (opt-in, default unchanged): the same recommendation is written to each running pod of the workload through the `pods/resize` subresource (Kubernetes >= 1.33 beta, 1.35 stable) with no restart and no rollout; the pod template is not changed. Dry run supported (server-side `dryRun=All`), operator/admin only, audited as `cost.rightsizing_apply_inplace`. Limits are never lowered or added; a Guaranteed pod whose request would drop is skipped (a resize cannot change QoS class). A cluster without the subresource gets `501` with a clear message. RBAC: `pods/resize` `patch` (k8s + Helm). Pod detail shows PodResizePending / PodResizeInProgress and legacy `status.resize`; demo supported. Strings in all 8 locales.
+
+### Added — Image vulnerability and SBOM view
+- `GET /api/v1/security/vulnerabilities?namespace=&severity=` and an Images and SBOM section on Security: per-image rollup (critical/high/medium/low, fixable, workloads using the image), top CVEs with `fixedIn`, per-image fix suggestions (lowest fixed version per package) and SBOM component counts with a license summary, from Trivy Operator VulnerabilityReports / SbomReports / ClusterSbomReports. Read-only; ClusterRole gains get/list/watch on `sbomreports` and `clustersbomreports` (k8s + Helm). Strings in all 8 locales.
+### Added — change correlation
+- `GET /api/v1/changes?namespace=&workload=&at=&window=` and MCP tool `recent_changes`: ordered recent changes (GitOps syncs, Helm upgrades, rollouts, Secret/ConfigMap updates, node cordon/drain/NotReady, HPA scaling, Axiom audit) in a lookback window (default 60 min), each with source, time, actor and a relevance score (same workload/namespace and closer in time rank higher). Pure ranking in `internal/platform/changes.go`; no new RBAC. 'Recent changes' panel on Workload detail (Changes tab) and Timeline. Strings in all 8 locales.
+
+### Added — Idle resources finder
+- `GET /api/v1/cost/idle?namespace=&minAgeDays=7` and an Idle resources section on Ops → Cost: unbound PVCs and PVCs no Pod mounts (with a monthly estimate at a flat storage rate, default $0.10/GiB, `AXIOM_COST_STORAGE_RATE`), empty namespaces (never `default`, `kube-*` or Axiom's own), LoadBalancer Services with no ready endpoints, finished Jobs, scaled-to-zero Deployments, and low-confidence unreferenced ConfigMaps/Secrets (names only, values never read). Read-only: no write endpoint and nothing is deleted; each finding carries a confidence and suggested action. Uses existing list calls, so no RBAC change; namespace-restricted accounts get `403`. Strings in all eight languages
+### Added — Velero restore wizard
+- Backups page: Velero Restores list and a wizard (pick Backup, included/excluded namespaces and resources, namespace mapping, restorePVs, existingResourcePolicy none|update) with a server-side dry-run preview (backup summary, namespace collisions, effect on existing objects, warnings) and a typed confirmation before the Restore CR is created.
+- `GET /api/v1/velero/restores`, `POST /api/v1/velero/restores/preview`, `POST /api/v1/velero/restores` (admin-only, audited by name, confirmation enforced server-side). ClusterRole (k8s + Helm) gains create on `restores.velero.io`. Strings in all 8 locales. Not yet exercised against a live cluster.
+
 ### Added — Karpenter view
 - Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
 ### Added — Gateway API deep view

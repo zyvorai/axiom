@@ -495,3 +495,12 @@ func (sp *SwitchableProvider) WorkloadLogs(a0 context.Context, a1 string, a2 str
 func (sp *SwitchableProvider) CreateDebugContainer(a0 context.Context, a1 string, a2 string, a3 DebugRequest) (DebugContainer, error) {
 	return sp.current(a0).CreateDebugContainer(a0, a1, a2, a3)
 }
+func (sp *SwitchableProvider) ListVeleroRestores(a0 context.Context, a1 string) ([]VeleroRestore, error) {
+	return sp.current(a0).ListVeleroRestores(a0, a1)
+}
+func (sp *SwitchableProvider) PreviewVeleroRestore(a0 context.Context, a1 VeleroRestoreRequest) (VeleroRestorePreview, error) {
+	return sp.current(a0).PreviewVeleroRestore(a0, a1)
+}
+func (sp *SwitchableProvider) CreateVeleroRestore(a0 context.Context, a1 VeleroRestoreRequest) (VeleroRestore, error) {
+	return sp.current(a0).CreateVeleroRestore(a0, a1)
+}

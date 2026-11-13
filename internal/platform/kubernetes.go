@@ -541,7 +541,9 @@ func (k *KubernetesProvider) ListPods(ctx context.Context, ns string) ([]Pod, er
 				ports = append(ports, PodPort{Name: cp.Name, Container: c.Name, ContainerPort: cp.ContainerPort, Protocol: string(cp.Protocol)})
 			}
 		}
+		pvcs, cms, secs := podRefs(p)
 		out = append(out, Pod{
+			PVCs: pvcs, ConfigMaps: cms, Secrets: secs,
 			Namespace: p.Namespace, Name: p.Name, Node: p.Spec.NodeName, Status: phase,
 			Ready: fmt.Sprintf("%d/%d", ready, len(p.Spec.Containers)), Restarts: restarts,
 			IP: p.Status.PodIP, Age: age(p.CreationTimestamp.Time), Containers: containers, ContainerInfo: cinfo,

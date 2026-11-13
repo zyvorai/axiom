@@ -151,7 +151,9 @@
     "scheduleCreated": "Agendamento {{name}} criado",
     "createScheduleFailed": "Falha ao criar o agendamento",
     "veleroRequested": "Backup do Velero {{name}} solicitado",
-    "veleroFailed": "Falha no backup do Velero"
+    "veleroFailed": "Falha no backup do Velero",
+    "veleroRestoreCreated": "Restauração {{name}} criada",
+    "veleroRestoreFailed": "Falha na restauração do Velero"
   },
   "costPanels": {
     "budgetSaved": "Orçamento salvo para {{namespace}}",
@@ -159,7 +161,9 @@
     "budgetRemoved": "Orçamento de {{namespace}} removido",
     "removeFailed": "Falha ao remover",
     "requestsUpdated": "Requests de {{target}} atualizados",
-    "requestsUpdatedDescription": "A carga de trabalho está sendo implantada com os novos valores."
+    "requestsUpdatedDescription": "A carga de trabalho está sendo implantada com os novos valores.",
+    "requestsResizedInPlace": "{{target}} redimensionado em execução",
+    "requestsResizedInPlaceDescription": "Os Pods em execução estão aplicando os novos valores sem reiniciar."
   },
   "gitops": {
     "deleted": "{{name}} excluído",

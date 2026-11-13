@@ -184,6 +184,39 @@
     "velero": {
       "title": "Velero バックアップを作成",
       "included": "対象 Namespace（カンマ区切りまたは *）"
+    },
+    "veleroRestore": {
+      "title": "Velero リストア",
+      "step": "ステップ {{n}} / {{total}}",
+      "stepChoose": "選択",
+      "stepPreview": "プレビューと確認",
+      "backup": "バックアップ",
+      "noBackups": "利用可能なバックアップがありません",
+      "name": "リストア名",
+      "included": "含める Namespace(カンマ区切り)",
+      "includedHint": "空欄にするとバックアップ内のすべてを復元します。",
+      "excluded": "除外する Namespace",
+      "includedResources": "含めるリソース(例: deployments,services)",
+      "excludedResources": "除外するリソース",
+      "mapping": "Namespace マッピング(元=先、カンマ区切り)",
+      "mappingHint": "衝突を避けるため、別の名前で Namespace を復元します。",
+      "mappingInvalid": "元=先 の形式でカンマ区切りで入力してください。",
+      "policy": "オブジェクトが既に存在する場合",
+      "policyNone": "スキップする (none)",
+      "policyUpdate": "バックアップに合わせて更新する (update)",
+      "restorePVs": "永続ボリュームを復元する (restorePVs)",
+      "preview": "プレビュー(何も作成しません)",
+      "previewing": "プレビュー中…",
+      "back": "戻る",
+      "create": "リストアを作成",
+      "targets": "Namespace",
+      "allNamespaces": "バックアップ内のすべての Namespace が復元されます。",
+      "collides": "既に存在、衝突",
+      "isNew": "新規",
+      "warnings": "警告",
+      "noWarnings": "警告はありません。",
+      "items": "{{total}} 件中 {{count}} 件",
+      "confirmLabel": "確認のため {{name}} と入力してください"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "（なし）",
       "basedOn": "{{source}} のデータに基づきます（信頼度: {{confidence}}）。",
       "applying": "適用中…",
-      "confirm": "適用してロールアウト"
+      "confirm": "適用してロールアウト",
+      "inPlace": "インプレースでリサイズ（再起動なし）",
+      "inPlaceHint": "実行中の Pod を再起動せずにリサイズします（Kubernetes 1.33 以降、1.35 で安定版）。Pod テンプレートは変更されないため、マニフェストを更新するまで、後続のロールアウトで元の値に戻ります。",
+      "confirmInPlace": "インプレースでリサイズ",
+      "podResized": "リサイズ済み",
+      "podUnchanged": "変更なし",
+      "podSkipped": "スキップ"
     }
   },
   "gitops": {

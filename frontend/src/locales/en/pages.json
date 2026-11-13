@@ -1121,6 +1121,46 @@
       "noPolicyFailsPassing": "No failing policy results ({{n}} passing).",
       "policyResults": "Policy results",
       "truncated": "Some lists were truncated; the scanner's own tooling has the full report."
+    },
+    "vulns": {
+      "title": "Images and SBOM",
+      "severity": "Severity",
+      "sevAll": "All severities",
+      "sevCritical": "Critical",
+      "sevHigh": "High",
+      "sevMedium": "Medium",
+      "sevLow": "Low",
+      "images": "Images",
+      "imagesCount": "{{n}} images, riskiest first",
+      "noImages": "No images match these filters.",
+      "noVulnReports": "No Trivy vulnerability reports found in this scope.",
+      "colImage": "Image",
+      "colCounts": "Vulnerabilities",
+      "colFixable": "Fixable",
+      "colWorkloads": "Workloads",
+      "colSbom": "Components",
+      "topCves": "Top CVEs",
+      "colCve": "CVE",
+      "colSeverity": "Severity",
+      "colPackage": "Package",
+      "colInstalled": "Installed",
+      "colFixedIn": "Fixed in",
+      "colImages": "Images",
+      "noFix": "No fix available yet",
+      "fixes": "Fix suggestions (lowest fixed version per package)",
+      "fixLine": "{{pkg}} {{installed}} → {{fixed}} (resolves {{n}})",
+      "sbom": "SBOM",
+      "sbomCount": "{{n}} components",
+      "noSbom": "No SBOM reports found. Enable sbomGenerationEnabled in Trivy Operator to list components and licenses.",
+      "components_one": "{{count}} component",
+      "components_other": "{{count}} components",
+      "unlicensed": "{{n}} without a license",
+      "noLicenses": "No license data",
+      "licenses": "Licenses",
+      "imagesRegion": "Image vulnerability rollup",
+      "cvesRegion": "Top CVEs",
+      "sbomRegion": "SBOM components per image",
+      "fixableOf": "{{n}} fixable"
     }
   },
   "severity": {
@@ -1272,6 +1312,13 @@
       "phase": "Phase",
       "schedule": "Schedule",
       "lastBackup": "Last backup"
+    },
+    "veleroRestores": {
+      "title": "Velero restores",
+      "empty": "No Velero restores.",
+      "new": "New restore",
+      "backup": "Backup",
+      "policy": "Existing objects"
     }
   },
   "costPanels": {
@@ -1327,7 +1374,26 @@
     "footnote": "Recommendations add headroom over observed usage. Axiom never changes requests on its own: Apply shows the exact change first and only acts when you confirm.",
     "totalsActual": "{{current}} actual across budgeted namespaces, of {{budget}} budgeted.",
     "basedOnOpenCost": "Based on OpenCost",
-    "basedOnRequests": "Based on requests"
+    "basedOnRequests": "Based on requests",
+    "idle": {
+      "title": "Idle resources",
+      "intro": "Read-only heuristics from current cluster state, not guarantees. Verify each finding before acting; Axiom never deletes anything from this list.",
+      "minAge": "Older than",
+      "minAgeOption": "{{n}} days",
+      "total": "Findings",
+      "savings": "Possible monthly saving",
+      "colKind": "Kind",
+      "colResource": "Resource",
+      "colReason": "Why",
+      "colAge": "Age",
+      "colConfidence": "Confidence",
+      "colCost": "Est. monthly cost",
+      "colAction": "Suggested action",
+      "empty": "No idle resources found for this age.",
+      "truncated": "The list is capped per kind; more findings exist.",
+      "clusterScoped": "cluster",
+      "costNote": "Storage is priced at a flat per-GiB estimate."
+    }
   },
   "helmCatalog": {
     "repositories": "Repositories",
@@ -1642,7 +1708,13 @@
     "interactiveUnavailable": "Interactive terminal requires a live Kubernetes connection. Running a one-shot command instead.",
     "manifestUnavailable": "Manifest unavailable in this mode.",
     "noEvents": "No events for this pod.",
-    "noLabels": "No labels."
+    "noLabels": "No labels.",
+    "resize": {
+      "title": "In-place resize",
+      "pending": "Resize pending",
+      "inProgress": "Resize in progress",
+      "legacy": "Resize status: {{status}}"
+    }
   },
   "pods": {
     "title": "Pods",
@@ -1774,5 +1846,26 @@
     "memory": "Memory",
     "unavailable": "Prometheus is not configured (AXIOM_PROMETHEUS_URL).",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "Recent changes",
+    "window": "Lookback window",
+    "relevance": "Relevance score",
+    "empty": "No changes found in this window.",
+    "windows": {
+      "m15": "Last 15 minutes",
+      "m60": "Last hour",
+      "h6": "Last 6 hours",
+      "h24": "Last 24 hours"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "Rollout",
+      "config": "Config",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "Audit"
+    }
   }
 }

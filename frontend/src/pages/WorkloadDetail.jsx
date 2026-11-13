@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Tag, FileJson, Boxes, BellRing, Save, Network, History, Activity, Lock, Unlock } from "lucide-react";
 import WorkloadTimeline from "@/components/WorkloadTimeline";
+import RecentChanges from "@/components/RecentChanges";
 import { TIMELINE } from "@/constants/testIds";
 import CodeEditor from "@/components/CodeEditor";
 import KvChip, { toneForKey } from "@/components/KvChip";
@@ -291,7 +292,8 @@ export default function WorkloadDetail() {
                     <ResourceGraph namespace={namespace} kind={kind} name={name} />
                 </TabsContent>
 
-                <TabsContent value="changes" className="mt-4">
+                <TabsContent value="changes" className="mt-4 space-y-4">
+                    <RecentChanges namespace={namespace} workload={name} />
                     <WorkloadTimeline namespace={namespace} kind={kind} name={name} />
                 </TabsContent>
             </Tabs>

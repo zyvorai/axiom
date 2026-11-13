@@ -184,6 +184,39 @@
     "velero": {
       "title": "Créer une sauvegarde Velero",
       "included": "Namespaces inclus (séparés par des virgules ou *)"
+    },
+    "veleroRestore": {
+      "title": "Restauration Velero",
+      "step": "Étape {{n}} sur {{total}}",
+      "stepChoose": "Choisir",
+      "stepPreview": "Aperçu et confirmation",
+      "backup": "Backup",
+      "noBackups": "Aucun backup disponible",
+      "name": "Nom de la restauration",
+      "included": "Namespaces inclus (séparés par des virgules)",
+      "includedHint": "Laisser vide pour tout restaurer depuis le backup.",
+      "excluded": "Namespaces exclus",
+      "includedResources": "Ressources incluses (p. ex. deployments,services)",
+      "excludedResources": "Ressources exclues",
+      "mapping": "Mappage de Namespaces (source=cible, séparés par des virgules)",
+      "mappingHint": "Restaurer un Namespace sous un autre nom pour éviter les collisions.",
+      "mappingInvalid": "Utilisez le format source=cible, séparé par des virgules.",
+      "policy": "Si un objet existe déjà",
+      "policyNone": "L'ignorer (none)",
+      "policyUpdate": "Le mettre à jour selon le backup (update)",
+      "restorePVs": "Restaurer les volumes persistants (restorePVs)",
+      "preview": "Aperçu (ne crée rien)",
+      "previewing": "Génération de l'aperçu…",
+      "back": "Retour",
+      "create": "Créer la restauration",
+      "targets": "Namespaces",
+      "allNamespaces": "Tous les Namespaces du backup seraient restaurés.",
+      "collides": "existe déjà, collision",
+      "isNew": "nouveau",
+      "warnings": "Avertissements",
+      "noWarnings": "Aucun avertissement.",
+      "items": "{{count}} éléments sur {{total}}",
+      "confirmLabel": "Saisissez {{name}} pour confirmer"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "(aucun)",
       "basedOn": "D'après les données {{source}} (confiance : {{confidence}}).",
       "applying": "Application…",
-      "confirm": "Appliquer et déployer"
+      "confirm": "Appliquer et déployer",
+      "inPlace": "Redimensionner à chaud (sans redémarrage)",
+      "inPlaceHint": "Redimensionne les Pods en cours d'exécution sans les redémarrer (Kubernetes 1.33+, stable en 1.35). Le modèle du Pod n'est pas modifié : un déploiement ultérieur rétablit les anciennes valeurs tant que vous n'avez pas mis à jour le manifeste.",
+      "confirmInPlace": "Redimensionner à chaud",
+      "podResized": "redimensionné",
+      "podUnchanged": "inchangé",
+      "podSkipped": "ignoré"
     }
   },
   "gitops": {

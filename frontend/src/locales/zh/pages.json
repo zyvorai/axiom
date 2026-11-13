@@ -1112,6 +1112,45 @@
       "noPolicyFailsPassing": "没有失败的策略结果（{{n}} 项通过）。",
       "policyResults": "策略结果",
       "truncated": "部分列表已被截断；完整报告请使用扫描器自带的工具查看。"
+    },
+    "vulns": {
+      "title": "镜像与 SBOM",
+      "severity": "严重程度",
+      "sevAll": "所有严重程度",
+      "sevCritical": "严重",
+      "sevHigh": "高危",
+      "sevMedium": "中危",
+      "sevLow": "低危",
+      "images": "镜像",
+      "imagesCount": "{{n}} 个镜像,风险最高的在前",
+      "noImages": "没有镜像符合这些筛选条件。",
+      "noVulnReports": "此范围内未找到 Trivy 漏洞报告。",
+      "colImage": "镜像",
+      "colCounts": "漏洞",
+      "colFixable": "可修复",
+      "colWorkloads": "工作负载",
+      "colSbom": "组件",
+      "topCves": "主要 CVE",
+      "colCve": "CVE",
+      "colSeverity": "严重程度",
+      "colPackage": "软件包",
+      "colInstalled": "已安装",
+      "colFixedIn": "修复版本",
+      "colImages": "镜像",
+      "noFix": "暂无可用修复",
+      "fixes": "修复建议(每个软件包的最低修复版本)",
+      "fixLine": "{{pkg}} {{installed}} → {{fixed}}(解决 {{n}} 个)",
+      "sbom": "SBOM",
+      "sbomCount": "{{n}} 个组件",
+      "noSbom": "未找到 SBOM 报告。请在 Trivy Operator 中启用 sbomGenerationEnabled 以列出组件和许可证。",
+      "components_other": "{{count}} 个组件",
+      "unlicensed": "{{n}} 个无许可证",
+      "noLicenses": "无许可证数据",
+      "licenses": "许可证",
+      "imagesRegion": "按镜像汇总的漏洞",
+      "cvesRegion": "主要 CVE",
+      "sbomRegion": "按镜像的 SBOM 组件",
+      "fixableOf": "可修复 {{n}} 个"
     }
   },
   "severity": {
@@ -1263,6 +1302,13 @@
       "phase": "阶段",
       "schedule": "计划",
       "lastBackup": "上次备份"
+    },
+    "veleroRestores": {
+      "title": "Velero 恢复",
+      "empty": "没有 Velero 恢复。",
+      "new": "新建恢复",
+      "backup": "备份",
+      "policy": "现有对象"
     }
   },
   "costPanels": {
@@ -1318,7 +1364,26 @@
     "footnote": "建议值在观测用量基础上预留了余量。Axiom 从不自行修改 requests：“应用”会先显示确切的变更，仅在您确认后才执行。",
     "totalsActual": "已设预算的 Namespace 实际成本合计 {{current}}，预算总额 {{budget}}。",
     "basedOnOpenCost": "基于 OpenCost",
-    "basedOnRequests": "基于 requests"
+    "basedOnRequests": "基于 requests",
+    "idle": {
+      "title": "闲置资源",
+      "intro": "基于当前集群状态的只读启发式结果，并非保证。操作前请逐项核实；Axiom 绝不会从此列表中删除任何内容。",
+      "minAge": "存在时间超过",
+      "minAgeOption": "{{n}} 天",
+      "total": "发现项",
+      "savings": "每月可能节省",
+      "colKind": "类型",
+      "colResource": "资源",
+      "colReason": "原因",
+      "colAge": "存在时间",
+      "colConfidence": "置信度",
+      "colCost": "预计月成本",
+      "colAction": "建议操作",
+      "empty": "在此时间范围内未发现闲置资源。",
+      "truncated": "列表按类型设有上限，还有更多发现项。",
+      "clusterScoped": "集群",
+      "costNote": "存储按每 GiB 固定单价估算。"
+    }
   },
   "helmCatalog": {
     "repositories": "仓库",
@@ -1631,7 +1696,13 @@
     "interactiveUnavailable": "交互式终端需要实时的 Kubernetes 连接。将改为运行一次性命令。",
     "manifestUnavailable": "此模式下清单不可用。",
     "noEvents": "此 Pod 没有事件。",
-    "noLabels": "无标签。"
+    "noLabels": "无标签。",
+    "resize": {
+      "title": "原地调整大小",
+      "pending": "调整大小等待中",
+      "inProgress": "调整大小进行中",
+      "legacy": "调整大小状态：{{status}}"
+    }
   },
   "pods": {
     "title": "Pod",
@@ -1763,5 +1834,26 @@
     "memory": "内存",
     "unavailable": "未配置 Prometheus（AXIOM_PROMETHEUS_URL）。",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "最近变更",
+    "window": "回溯窗口",
+    "relevance": "相关度评分",
+    "empty": "此时间窗口内未发现变更。",
+    "windows": {
+      "m15": "最近 15 分钟",
+      "m60": "最近 1 小时",
+      "h6": "最近 6 小时",
+      "h24": "最近 24 小时"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "发布",
+      "config": "配置",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "审计"
+    }
   }
 }

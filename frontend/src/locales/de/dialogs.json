@@ -184,6 +184,39 @@
     "velero": {
       "title": "Velero-Backup erstellen",
       "included": "Enthaltene Namespaces (kommagetrennt oder *)"
+    },
+    "veleroRestore": {
+      "title": "Velero-Wiederherstellung",
+      "step": "Schritt {{n}} von {{total}}",
+      "stepChoose": "Auswahl",
+      "stepPreview": "Vorschau und Bestätigung",
+      "backup": "Backup",
+      "noBackups": "Keine Backups verfügbar",
+      "name": "Name der Wiederherstellung",
+      "included": "Eingeschlossene Namespaces (kommagetrennt)",
+      "includedHint": "Leer lassen, um alles aus dem Backup wiederherzustellen.",
+      "excluded": "Ausgeschlossene Namespaces",
+      "includedResources": "Eingeschlossene Ressourcen (z. B. deployments,services)",
+      "excludedResources": "Ausgeschlossene Ressourcen",
+      "mapping": "Namespace-Zuordnung (Quelle=Ziel, kommagetrennt)",
+      "mappingHint": "Einen Namespace unter anderem Namen wiederherstellen, um Kollisionen zu vermeiden.",
+      "mappingInvalid": "Format Quelle=Ziel, durch Kommas getrennt.",
+      "policy": "Wenn ein Objekt bereits existiert",
+      "policyNone": "Überspringen (none)",
+      "policyUpdate": "An das Backup angleichen (update)",
+      "restorePVs": "Persistente Volumes wiederherstellen (restorePVs)",
+      "preview": "Vorschau (erstellt nichts)",
+      "previewing": "Vorschau wird erstellt…",
+      "back": "Zurück",
+      "create": "Wiederherstellung erstellen",
+      "targets": "Namespaces",
+      "allNamespaces": "Alle Namespaces des Backups würden wiederhergestellt.",
+      "collides": "existiert bereits, Kollision",
+      "isNew": "neu",
+      "warnings": "Warnungen",
+      "noWarnings": "Keine Warnungen.",
+      "items": "{{count}} von {{total}} Objekten",
+      "confirmLabel": "{{name}} zur Bestätigung eingeben"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "(keiner)",
       "basedOn": "Basierend auf {{source}}-Daten (Konfidenz: {{confidence}}).",
       "applying": "Wird angewendet…",
-      "confirm": "Anwenden und ausrollen"
+      "confirm": "Anwenden und ausrollen",
+      "inPlace": "Direkt anpassen (ohne Neustart)",
+      "inPlaceHint": "Passt die laufenden Pods ohne Neustart an (Kubernetes 1.33+, stabil ab 1.35). Das Pod-Template bleibt unverändert, daher stellt ein späterer Rollout die alten Werte wieder her, bis Sie das Manifest aktualisieren.",
+      "confirmInPlace": "Direkt anpassen",
+      "podResized": "angepasst",
+      "podUnchanged": "unverändert",
+      "podSkipped": "übersprungen"
     }
   },
   "gitops": {

@@ -50,4 +50,6 @@ export const COST = {
     applyChanges: 'cost-apply-changes',
     applyError: 'cost-apply-error',
     applyConfirm: 'cost-apply-confirm',
+    applyInPlace: 'cost-apply-inplace',
+    applyPod: (name) => `cost-apply-pod-${name}`,
 };

@@ -114,6 +114,11 @@ type Pod struct {
 	Intent        string               `json:"intent,omitempty"`
 	Sealed        bool                 `json:"sealed,omitempty"`
 	Message       string               `json:"message,omitempty"` // e.g. FailedScheduling reason
+	// PVCs, ConfigMaps and Secrets name what the pod mounts or references.
+	// Internal (idle-resource finder); never serialized.
+	PVCs       []string `json:"-"`
+	ConfigMaps []string `json:"-"`
+	Secrets    []string `json:"-"`
 }
 
 // AcceleratorsReport is GET /api/v1/accelerators — NVIDIA GPU inventory.

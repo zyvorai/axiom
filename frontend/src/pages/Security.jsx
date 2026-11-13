@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import PageHeader from "@/components/PageHeader";
+import SecurityImages from "@/components/SecurityImages";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SECURITY } from "@/constants/testIds";
@@ -400,6 +401,7 @@ export default function Security() {
                     </GlassCard>
                 </>
             )}
+            {data && data.available && <SecurityImages namespace={ns} />}
             <WorkloadDetailDialog target={target} onClose={() => setTarget(null)} />
         </div>
     );

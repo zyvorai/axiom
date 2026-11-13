@@ -59,7 +59,7 @@ func isOperatorForbidden(r *http.Request) bool {
 		return true
 	case strings.HasPrefix(p, "/api/v1/integrations/"):
 		return true
-	case isGitOpsCreate(r):
+	case isGitOpsCreate(r), isVeleroRestoreWrite(r):
 		return true
 	case isCostBudgetOperatorForbidden(r):
 		return true
@@ -89,6 +89,7 @@ var restrictedSensitivePrefixes = []string{
 	// Cluster-wide cost data. GET /api/v1/cost itself stays readable, as before.
 	"/api/v1/cost/budgets",
 	"/api/v1/cost/rightsizing",
+	"/api/v1/cost/idle",
 	"/api/v1/cost/invoice", // the cloud bill of the whole account (experimental)
 }
 

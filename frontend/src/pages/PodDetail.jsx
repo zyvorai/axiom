@@ -55,7 +55,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { ExplainWithAiButton } from "@/components/AiAssistantDrawer";
 import { RunAgentButton } from "@/components/RunAgentButton";
 import MetricHistoryChart from "@/components/MetricHistoryChart";
-import { AI } from "@/constants/testIds";
+import { AI, POD_RESIZE } from "@/constants/testIds";
 
 function ExecPanel({ namespace, name, containers }) {
     const { t } = useTranslation();
@@ -584,6 +584,28 @@ export default function PodDetail() {
                                     })}
                                 </GlassCard>
                             )}
+
+                            {(() => {
+                                const conds = (status?.conditions || []).filter((c) => (c.type === "PodResizePending" || c.type === "PodResizeInProgress") && c.status === "True");
+                                const legacy = status?.resize;
+                                if (conds.length === 0 && !legacy) return null;
+                                return (
+                                    <GlassCard className="p-4 space-y-2" data-testid={POD_RESIZE.card}>
+                                        <div className="text-sm font-medium">{t("pages:podDetail.resize.title")}</div>
+                                        {conds.map((c) => (
+                                            <div key={c.type} className="text-xs" data-testid={c.type === "PodResizePending" ? POD_RESIZE.pending : POD_RESIZE.inProgress}>
+                                                <Badge variant="outline" className="border-border bg-muted text-[11px] text-tone-amber">
+                                                    {t(c.type === "PodResizePending" ? "pages:podDetail.resize.pending" : "pages:podDetail.resize.inProgress")}
+                                                </Badge>
+                                                {c.reason || c.message ? <span className="ml-2 text-muted-foreground">{[c.reason, c.message].filter(Boolean).join(": ")}</span> : null}
+                                            </div>
+                                        ))}
+                                        {legacy ? (
+                                            <div className="text-xs text-muted-foreground" data-testid={POD_RESIZE.legacy}>{t("pages:podDetail.resize.legacy", { status: legacy })}</div>
+                                        ) : null}
+                                    </GlassCard>
+                                );
+                            })()}
 
                             {(status?.conditions || []).length > 0 && (
                                 <GlassCard className="overflow-hidden p-0">

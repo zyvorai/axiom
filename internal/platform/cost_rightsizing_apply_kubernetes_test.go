@@ -250,3 +250,36 @@ func TestKubernetesApplyRightsizingStatefulSetAndDaemonSet(t *testing.T) {
 		t.Fatal("update strategy changed")
 	}
 }
+
+func TestKubernetesApplyRightsizingInPlace(t *testing.T) {
+	k, cs := applyFakeProvider(t)
+	ctx := context.Background()
+	req := RightsizingApplyRequest{Namespace: "shop", Kind: "Deployment", Workload: "web", Container: "app", Resources: []string{"cpu", "memory"}, InPlace: true, DryRun: true}
+	dry, err := k.ApplyRightsizing(ctx, req)
+	if err != nil || !dry.InPlace || len(dry.Pods) != 1 || dry.Pods[0].Status != inPlaceResized {
+		t.Fatalf("dry run %+v %v", dry, err)
+	}
+	for _, a := range patchActions(cs) {
+		if a.PatchOptions.DryRun == nil {
+			t.Fatalf("dry run must pass dryRun=All to the API server: %+v", a)
+		}
+	}
+	// The fake clientset ignores dryRun and mutated the pod; start over.
+	k, cs = applyFakeProvider(t)
+	req.DryRun = false
+	res, err := k.ApplyRightsizing(ctx, req)
+	if err != nil || len(res.Pods) != 1 || res.Pods[0].Name != "web-6d4cf56db6-aaaaa" {
+		t.Fatalf("apply %+v %v", res, err)
+	}
+	pa := patchActions(cs)
+	last := pa[len(pa)-1]
+	if last.GetResource().Resource != "pods" || last.GetSubresource() != "resize" || last.Name != "web-6d4cf56db6-aaaaa" {
+		t.Fatalf("patch %+v", last)
+	}
+	if strings.Contains(string(last.Patch), "limits") {
+		t.Fatalf("limits must not be touched: %s", last.Patch)
+	}
+	if d, _ := cs.AppsV1().Deployments("shop").Get(ctx, "web", metav1.GetOptions{}); d.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu().MilliValue() != 1000 {
+		t.Fatal("in-place must not change the pod template")
+	}
+}

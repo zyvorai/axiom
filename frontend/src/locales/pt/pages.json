@@ -1121,6 +1121,46 @@
       "noPolicyFailsPassing": "Nenhum resultado de política com falha ({{n}} aprovados).",
       "policyResults": "Resultados de política",
       "truncated": "Algumas listas foram truncadas; as ferramentas do próprio scanner têm o relatório completo."
+    },
+    "vulns": {
+      "title": "Imagens e SBOM",
+      "severity": "Severidade",
+      "sevAll": "Todas as severidades",
+      "sevCritical": "Crítica",
+      "sevHigh": "Alta",
+      "sevMedium": "Média",
+      "sevLow": "Baixa",
+      "images": "Imagens",
+      "imagesCount": "{{n}} imagens, as mais arriscadas primeiro",
+      "noImages": "Nenhuma imagem corresponde a estes filtros.",
+      "noVulnReports": "Nenhum relatório de vulnerabilidades do Trivy encontrado neste escopo.",
+      "colImage": "Imagem",
+      "colCounts": "Vulnerabilidades",
+      "colFixable": "Corrigíveis",
+      "colWorkloads": "Cargas de trabalho",
+      "colSbom": "Componentes",
+      "topCves": "Principais CVEs",
+      "colCve": "CVE",
+      "colSeverity": "Severidade",
+      "colPackage": "Pacote",
+      "colInstalled": "Instalada",
+      "colFixedIn": "Corrigida em",
+      "colImages": "Imagens",
+      "noFix": "Ainda sem correção disponível",
+      "fixes": "Sugestões de correção (menor versão corrigida por pacote)",
+      "fixLine": "{{pkg}} {{installed}} → {{fixed}} (resolve {{n}})",
+      "sbom": "SBOM",
+      "sbomCount": "{{n}} componentes",
+      "noSbom": "Nenhum relatório SBOM encontrado. Ative sbomGenerationEnabled no Trivy Operator para listar componentes e licenças.",
+      "components_one": "{{count}} componente",
+      "components_other": "{{count}} componentes",
+      "unlicensed": "{{n}} sem licença",
+      "noLicenses": "Sem dados de licença",
+      "licenses": "Licenças",
+      "imagesRegion": "Resumo de vulnerabilidades por imagem",
+      "cvesRegion": "Principais CVEs",
+      "sbomRegion": "Componentes SBOM por imagem",
+      "fixableOf": "{{n}} corrigíveis"
     }
   },
   "severity": {
@@ -1272,6 +1312,13 @@
       "phase": "Fase",
       "schedule": "Agendamento",
       "lastBackup": "Último backup"
+    },
+    "veleroRestores": {
+      "title": "Restaurações do Velero",
+      "empty": "Nenhuma restauração do Velero.",
+      "new": "Nova restauração",
+      "backup": "Backup",
+      "policy": "Objetos existentes"
     }
   },
   "costPanels": {
@@ -1327,7 +1374,26 @@
     "footnote": "As recomendações adicionam margem sobre o uso observado. O Axiom nunca altera requests por conta própria: Aplicar mostra primeiro a alteração exata e só age quando você confirma.",
     "totalsActual": "{{current}} reais nos namespaces com orçamento, de {{budget}} orçados.",
     "basedOnOpenCost": "Com base no OpenCost",
-    "basedOnRequests": "Com base nos requests"
+    "basedOnRequests": "Com base nos requests",
+    "idle": {
+      "title": "Recursos ociosos",
+      "intro": "Heurísticas somente leitura do estado atual do cluster, sem garantias. Verifique cada achado antes de agir; o Axiom nunca exclui nada desta lista.",
+      "minAge": "Mais antigos que",
+      "minAgeOption": "{{n}} dias",
+      "total": "Achados",
+      "savings": "Economia mensal possível",
+      "colKind": "Tipo",
+      "colResource": "Recurso",
+      "colReason": "Motivo",
+      "colAge": "Idade",
+      "colConfidence": "Confiança",
+      "colCost": "Custo mensal est.",
+      "colAction": "Ação sugerida",
+      "empty": "Nenhum recurso ocioso encontrado para esta idade.",
+      "truncated": "A lista é limitada por tipo; há mais achados.",
+      "clusterScoped": "cluster",
+      "costNote": "O armazenamento é precificado com uma estimativa fixa por GiB."
+    }
   },
   "helmCatalog": {
     "repositories": "Repositórios",
@@ -1642,7 +1708,13 @@
     "interactiveUnavailable": "O terminal interativo requer uma conexão ativa com o Kubernetes. Executando um comando único em vez disso.",
     "manifestUnavailable": "Manifesto indisponível neste modo.",
     "noEvents": "Nenhum evento para este pod.",
-    "noLabels": "Sem labels."
+    "noLabels": "Sem labels.",
+    "resize": {
+      "title": "Redimensionamento em execução",
+      "pending": "Redimensionamento pendente",
+      "inProgress": "Redimensionamento em andamento",
+      "legacy": "Status do redimensionamento: {{status}}"
+    }
   },
   "pods": {
     "title": "Pods",
@@ -1774,5 +1846,26 @@
     "memory": "Memória",
     "unavailable": "Prometheus não está configurado (AXIOM_PROMETHEUS_URL).",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "Alterações recentes",
+    "window": "Janela de consulta",
+    "relevance": "Pontuação de relevância",
+    "empty": "Nenhuma alteração encontrada nesta janela.",
+    "windows": {
+      "m15": "Últimos 15 minutos",
+      "m60": "Última hora",
+      "h6": "Últimas 6 horas",
+      "h24": "Últimas 24 horas"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "Rollout",
+      "config": "Configuração",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "Auditoria"
+    }
   }
 }

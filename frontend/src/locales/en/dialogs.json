@@ -184,6 +184,39 @@
     "velero": {
       "title": "Create Velero backup",
       "included": "Included namespaces (comma-separated or *)"
+    },
+    "veleroRestore": {
+      "title": "Velero restore",
+      "step": "Step {{n}} of {{total}}",
+      "stepChoose": "Choose",
+      "stepPreview": "Preview and confirm",
+      "backup": "Backup",
+      "noBackups": "No backups available",
+      "name": "Restore name",
+      "included": "Included namespaces (comma-separated)",
+      "includedHint": "Leave empty to restore everything in the backup.",
+      "excluded": "Excluded namespaces",
+      "includedResources": "Included resources (e.g. deployments,services)",
+      "excludedResources": "Excluded resources",
+      "mapping": "Namespace mapping (source=target, comma-separated)",
+      "mappingHint": "Restore a namespace under a different name to avoid collisions.",
+      "mappingInvalid": "Use the form source=target, separated by commas.",
+      "policy": "If an object already exists",
+      "policyNone": "Skip it (none)",
+      "policyUpdate": "Update it to match the backup (update)",
+      "restorePVs": "Restore persistent volumes (restorePVs)",
+      "preview": "Preview (creates nothing)",
+      "previewing": "Previewing…",
+      "back": "Back",
+      "create": "Create restore",
+      "targets": "Namespaces",
+      "allNamespaces": "Every namespace in the backup would be restored.",
+      "collides": "already exists, collision",
+      "isNew": "new",
+      "warnings": "Warnings",
+      "noWarnings": "No warnings.",
+      "items": "{{count}} of {{total}} items",
+      "confirmLabel": "Type {{name}} to confirm"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "(none)",
       "basedOn": "Based on {{source}} data ({{confidence}} confidence).",
       "applying": "Applying…",
-      "confirm": "Apply and roll out"
+      "confirm": "Apply and roll out",
+      "inPlace": "Resize in place (no restart)",
+      "inPlaceHint": "Resizes the running Pods without restarting them (Kubernetes 1.33+, stable in 1.35). The Pod template is not changed, so a later rollout restores the old values until you update the manifest.",
+      "confirmInPlace": "Resize in place",
+      "podResized": "resized",
+      "podUnchanged": "unchanged",
+      "podSkipped": "skipped"
     }
   },
   "gitops": {

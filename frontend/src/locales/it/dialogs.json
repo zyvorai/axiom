@@ -184,6 +184,39 @@
     "velero": {
       "title": "Crea backup Velero",
       "included": "Namespace inclusi (separati da virgola o *)"
+    },
+    "veleroRestore": {
+      "title": "Ripristino Velero",
+      "step": "Passaggio {{n}} di {{total}}",
+      "stepChoose": "Scelta",
+      "stepPreview": "Anteprima e conferma",
+      "backup": "Backup",
+      "noBackups": "Nessun backup disponibile",
+      "name": "Nome del ripristino",
+      "included": "Namespace inclusi (separati da virgole)",
+      "includedHint": "Lascia vuoto per ripristinare tutto il contenuto del backup.",
+      "excluded": "Namespace esclusi",
+      "includedResources": "Risorse incluse (es. deployments,services)",
+      "excludedResources": "Risorse escluse",
+      "mapping": "Mappatura dei Namespace (origine=destinazione, separati da virgole)",
+      "mappingHint": "Ripristina un Namespace con un altro nome per evitare collisioni.",
+      "mappingInvalid": "Usa il formato origine=destinazione, separato da virgole.",
+      "policy": "Se un oggetto esiste già",
+      "policyNone": "Ignoralo (none)",
+      "policyUpdate": "Aggiornalo in base al backup (update)",
+      "restorePVs": "Ripristina i volumi persistenti (restorePVs)",
+      "preview": "Anteprima (non crea nulla)",
+      "previewing": "Generazione anteprima…",
+      "back": "Indietro",
+      "create": "Crea ripristino",
+      "targets": "Namespace",
+      "allNamespaces": "Verrebbero ripristinati tutti i Namespace del backup.",
+      "collides": "esiste già, collisione",
+      "isNew": "nuovo",
+      "warnings": "Avvisi",
+      "noWarnings": "Nessun avviso.",
+      "items": "{{count}} di {{total}} elementi",
+      "confirmLabel": "Digita {{name}} per confermare"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "(nessuna)",
       "basedOn": "Basata su dati {{source}} (affidabilità {{confidence}}).",
       "applying": "Applicazione…",
-      "confirm": "Applica e distribuisci"
+      "confirm": "Applica e distribuisci",
+      "inPlace": "Ridimensiona a caldo (senza riavvio)",
+      "inPlaceHint": "Ridimensiona i Pod in esecuzione senza riavviarli (Kubernetes 1.33+, stabile dalla 1.35). Il template del Pod non cambia, quindi un rollout successivo ripristina i vecchi valori finché non aggiorni il manifest.",
+      "confirmInPlace": "Ridimensiona a caldo",
+      "podResized": "ridimensionato",
+      "podUnchanged": "invariato",
+      "podSkipped": "saltato"
     }
   },
   "gitops": {

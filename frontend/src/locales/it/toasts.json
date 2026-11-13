@@ -151,7 +151,9 @@
     "scheduleCreated": "Pianificazione {{name}} creata",
     "createScheduleFailed": "Creazione della pianificazione non riuscita",
     "veleroRequested": "Backup Velero {{name}} richiesto",
-    "veleroFailed": "Backup Velero non riuscito"
+    "veleroFailed": "Backup Velero non riuscito",
+    "veleroRestoreCreated": "Ripristino {{name}} creato",
+    "veleroRestoreFailed": "Ripristino Velero non riuscito"
   },
   "costPanels": {
     "budgetSaved": "Budget salvato per {{namespace}}",
@@ -159,7 +161,9 @@
     "budgetRemoved": "Budget rimosso per {{namespace}}",
     "removeFailed": "Rimozione non riuscita",
     "requestsUpdated": "Requests aggiornate per {{target}}",
-    "requestsUpdatedDescription": "Il rollout del carico di lavoro è in corso con i nuovi valori."
+    "requestsUpdatedDescription": "Il rollout del carico di lavoro è in corso con i nuovi valori.",
+    "requestsResizedInPlace": "{{target}} ridimensionato a caldo",
+    "requestsResizedInPlaceDescription": "I Pod in esecuzione applicano i nuovi valori senza riavvio."
   },
   "gitops": {
     "deleted": "{{name}} eliminato",

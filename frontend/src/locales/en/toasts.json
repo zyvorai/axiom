@@ -151,7 +151,9 @@
     "scheduleCreated": "Schedule {{name}} created",
     "createScheduleFailed": "Create schedule failed",
     "veleroRequested": "Velero backup {{name}} requested",
-    "veleroFailed": "Velero backup failed"
+    "veleroFailed": "Velero backup failed",
+    "veleroRestoreCreated": "Restore {{name}} created",
+    "veleroRestoreFailed": "Velero restore failed"
   },
   "costPanels": {
     "budgetSaved": "Budget saved for {{namespace}}",
@@ -159,7 +161,9 @@
     "budgetRemoved": "Removed the budget for {{namespace}}",
     "removeFailed": "Remove failed",
     "requestsUpdated": "Updated requests for {{target}}",
-    "requestsUpdatedDescription": "The workload is rolling out with the new values."
+    "requestsUpdatedDescription": "The workload is rolling out with the new values.",
+    "requestsResizedInPlace": "Resized {{target}} in place",
+    "requestsResizedInPlaceDescription": "The running Pods are applying the new values without a restart."
   },
   "gitops": {
     "deleted": "Deleted {{name}}",

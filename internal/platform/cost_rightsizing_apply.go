@@ -31,6 +31,11 @@ type RightsizingApplyRequest struct {
 	Window string `json:"window,omitempty"`
 	// DryRun computes and returns the changes without writing anything.
 	DryRun bool `json:"dryRun,omitempty"`
+	// InPlace resizes the running pods through the pods/resize subresource
+	// (Kubernetes >= 1.33 beta, 1.35 stable) instead of patching the pod
+	// template: no restart and no rollout. The template is not changed, so a
+	// later rollout brings the old values back until the manifest is updated.
+	InPlace bool `json:"inPlace,omitempty"`
 	// Observed is the request the caller saw; when given and different from
 	// the live request the apply is refused (stale view).
 	Observed *RightsizingObserved `json:"observed,omitempty"`
@@ -61,6 +66,9 @@ type RightsizingApplyResult struct {
 	Verdict    string              `json:"verdict"`
 	Source     string              `json:"source"`
 	Confidence string              `json:"confidence"`
+	// InPlace and Pods are set only for an inPlace request.
+	InPlace bool                   `json:"inPlace,omitempty"`
+	Pods    []RightsizingPodResize `json:"pods,omitempty"`
 }
 
 // Summary is the one-line description recorded in the audit log, e.g.
@@ -217,6 +225,19 @@ func (p rightsizingPlan) applyTo(cur rightsizingCurrentResources) rightsizingCur
 // patchJSON is the strategic-merge patch for the workload: containers merge
 // by name, so only the named container's touched resource keys change.
 func (p rightsizingPlan) patchJSON(container string) ([]byte, error) {
+	return json.Marshal(map[string]any{"spec": map[string]any{"template": map[string]any{"spec": map[string]any{
+		"containers": []any{map[string]any{"name": container, "resources": p.resourcesPatch()}},
+	}}}})
+}
+
+// podPatchJSON is the strategic-merge patch for a pod's resize subresource.
+func (p rightsizingPlan) podPatchJSON(container string) ([]byte, error) {
+	return json.Marshal(map[string]any{"spec": map[string]any{
+		"containers": []any{map[string]any{"name": container, "resources": p.resourcesPatch()}},
+	}})
+}
+
+func (p rightsizingPlan) resourcesPatch() map[string]any {
 	requests := map[string]string{}
 	limits := map[string]string{}
 	if p.NewCPURequestMilli > 0 {
@@ -238,9 +259,7 @@ func (p rightsizingPlan) patchJSON(container string) ([]byte, error) {
 	if len(limits) > 0 {
 		res["limits"] = limits
 	}
-	return json.Marshal(map[string]any{"spec": map[string]any{"template": map[string]any{"spec": map[string]any{
-		"containers": []any{map[string]any{"name": container, "resources": res}},
-	}}}})
+	return res
 }
 
 // checkRightsizingObserved refuses (409) when the caller's view of the

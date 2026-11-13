@@ -54,6 +54,9 @@ func (k *KubernetesProvider) ApplyRightsizing(ctx context.Context, req Rightsizi
 		OK: true, DryRun: req.DryRun, Changes: plan.Changes, Rollout: rollout,
 		Verdict: item.Verdict, Source: src.name(), Confidence: src.confidence(req.Window),
 	}
+	if req.InPlace {
+		return k.applyRightsizingInPlace(ctx, req, item, res)
+	}
 	if req.DryRun {
 		return res, nil
 	}
@@ -139,4 +142,81 @@ func rightsizingPatchError(err error) error {
 		return NewStatusError(http.StatusConflict, err)
 	}
 	return err
+}
+
+// applyRightsizingInPlace resizes the workload's running pods through the
+// pods/resize subresource. Each pod is planned from its own live resources;
+// one pod's refusal is reported on that pod and does not stop the others. On
+// dry run the API server validates the patch (dryRun=All), which also detects
+// a cluster without the subresource before anything is written.
+func (k *KubernetesProvider) applyRightsizingInPlace(ctx context.Context, req RightsizingApplyRequest, item RightsizingItem, res RightsizingApplyResult) (RightsizingApplyResult, error) {
+	pods, err := k.client.CoreV1().Pods(req.Namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return RightsizingApplyResult{}, err
+	}
+	res.InPlace, res.Rollout = true, rightsizingInPlaceRollout
+	opts := metav1.PatchOptions{FieldManager: axiomFieldManager}
+	if req.DryRun {
+		opts.DryRun = []string{metav1.DryRunAll}
+	}
+	for i := range pods.Items {
+		p := &pods.Items[i]
+		if kind, name := workloadOwnerForPod(p); kind != req.Kind || name != req.Workload {
+			continue
+		}
+		if p.Status.Phase != corev1.PodRunning {
+			res.Pods = append(res.Pods, RightsizingPodResize{Name: p.Name, Status: inPlaceSkipped, Note: "pod is " + string(p.Status.Phase) + ", not Running"})
+			continue
+		}
+		var c *corev1.Container
+		for j := range p.Spec.Containers {
+			if p.Spec.Containers[j].Name == req.Container {
+				c = &p.Spec.Containers[j]
+			}
+		}
+		if c == nil {
+			continue
+		}
+		plan, perr := planInPlacePod(templateContainerResources(c), item, req.Resources, p.Status.QOSClass == corev1.PodQOSGuaranteed)
+		if perr != nil {
+			res.Pods = append(res.Pods, RightsizingPodResize{Name: p.Name, Status: inPlaceSkipped, Note: perr.Error()})
+			continue
+		}
+		if len(plan.Changes) == 0 {
+			res.Pods = append(res.Pods, RightsizingPodResize{Name: p.Name, Status: inPlaceUnchanged})
+			continue
+		}
+		patch, perr := plan.podPatchJSON(req.Container)
+		if perr != nil {
+			return RightsizingApplyResult{}, perr
+		}
+		_, perr = k.client.CoreV1().Pods(req.Namespace).Patch(ctx, p.Name, types.StrategicMergePatchType, patch, opts, "resize")
+		if perr != nil {
+			if apierrors.IsNotFound(perr) || apierrors.IsMethodNotSupported(perr) {
+				return RightsizingApplyResult{}, NewStatusError(http.StatusNotImplemented, fmt.Errorf("%s", InPlaceUnsupportedMessage))
+			}
+			if apierrors.IsForbidden(perr) && !strings.Contains(strings.ToLower(perr.Error()), "quota") {
+				return RightsizingApplyResult{}, perr
+			}
+			res.Pods = append(res.Pods, RightsizingPodResize{Name: p.Name, Status: inPlaceSkipped, Note: rightsizingPatchError(perr).Error()})
+			continue
+		}
+		rp := RightsizingPodResize{Name: p.Name, Status: inPlaceResized}
+		if inPlaceRestartsContainer(plan, resizePolicies(c)) {
+			rp.Note = inPlaceRestartNote
+		}
+		res.Pods = append(res.Pods, rp)
+	}
+	if len(res.Pods) == 0 {
+		return RightsizingApplyResult{}, rightsizingConflict("%s has no running pods to resize in place", req.workloadRef())
+	}
+	return res, nil
+}
+
+func resizePolicies(c *corev1.Container) map[string]string {
+	m := map[string]string{}
+	for _, rp := range c.ResizePolicy {
+		m[string(rp.ResourceName)] = string(rp.RestartPolicy)
+	}
+	return m
 }

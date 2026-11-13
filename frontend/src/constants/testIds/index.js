@@ -24,3 +24,6 @@ export * from './gitops';
 export * from './autoscaling';
 export * from './deferred';
 export * from './billing';
+export * from './podresize';
+export * from './costidle';
+export * from './velero';

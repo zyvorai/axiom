@@ -1112,6 +1112,45 @@
       "noPolicyFailsPassing": "失敗したポリシー結果はありません（合格 {{n}} 件）。",
       "policyResults": "ポリシー結果",
       "truncated": "一部のリストは切り詰められています。完全なレポートはスキャナー側のツールで確認してください。"
+    },
+    "vulns": {
+      "title": "イメージと SBOM",
+      "severity": "重大度",
+      "sevAll": "すべての重大度",
+      "sevCritical": "クリティカル",
+      "sevHigh": "高",
+      "sevMedium": "中",
+      "sevLow": "低",
+      "images": "イメージ",
+      "imagesCount": "{{n}} 件のイメージ(リスクの高い順)",
+      "noImages": "これらのフィルターに一致するイメージはありません。",
+      "noVulnReports": "このスコープには Trivy の脆弱性レポートが見つかりません。",
+      "colImage": "イメージ",
+      "colCounts": "脆弱性",
+      "colFixable": "修正可能",
+      "colWorkloads": "ワークロード",
+      "colSbom": "コンポーネント",
+      "topCves": "主要な CVE",
+      "colCve": "CVE",
+      "colSeverity": "重大度",
+      "colPackage": "パッケージ",
+      "colInstalled": "インストール済み",
+      "colFixedIn": "修正バージョン",
+      "colImages": "イメージ",
+      "noFix": "修正はまだありません",
+      "fixes": "修正の提案(パッケージごとの最低修正バージョン)",
+      "fixLine": "{{pkg}} {{installed}} → {{fixed}}({{n}} 件を解消)",
+      "sbom": "SBOM",
+      "sbomCount": "{{n}} 個のコンポーネント",
+      "noSbom": "SBOM レポートが見つかりません。コンポーネントとライセンスを一覧表示するには、Trivy Operator で sbomGenerationEnabled を有効にしてください。",
+      "components_other": "{{count}} 個のコンポーネント",
+      "unlicensed": "ライセンスなし: {{n}} 件",
+      "noLicenses": "ライセンス情報なし",
+      "licenses": "ライセンス",
+      "imagesRegion": "イメージ別の脆弱性サマリー",
+      "cvesRegion": "主要な CVE",
+      "sbomRegion": "イメージ別の SBOM コンポーネント",
+      "fixableOf": "修正可能: {{n}} 件"
     }
   },
   "severity": {
@@ -1263,6 +1302,13 @@
       "phase": "フェーズ",
       "schedule": "スケジュール",
       "lastBackup": "最終バックアップ"
+    },
+    "veleroRestores": {
+      "title": "Velero リストア",
+      "empty": "Velero リストアはありません。",
+      "new": "新規リストア",
+      "backup": "バックアップ",
+      "policy": "既存オブジェクト"
     }
   },
   "costPanels": {
@@ -1318,7 +1364,26 @@
     "footnote": "推奨値は観測された使用量に余裕を加えたものです。Axiom が独自にリクエストを変更することはありません。「適用」では正確な変更内容を先に表示し、確認後にのみ実行します。",
     "totalsActual": "予算設定済み Namespace の実績合計 {{current}}（予算 {{budget}}）。",
     "basedOnOpenCost": "OpenCost に基づく",
-    "basedOnRequests": "リクエストに基づく"
+    "basedOnRequests": "リクエストに基づく",
+    "idle": {
+      "title": "未使用リソース",
+      "intro": "現在のクラスター状態に基づく読み取り専用のヒューリスティックであり、保証ではありません。操作の前に各項目を確認してください。Axiom がこの一覧から何かを削除することはありません。",
+      "minAge": "経過時間が次より長い",
+      "minAgeOption": "{{n}} 日",
+      "total": "検出数",
+      "savings": "月額の削減見込み",
+      "colKind": "種類",
+      "colResource": "リソース",
+      "colReason": "理由",
+      "colAge": "経過時間",
+      "colConfidence": "信頼度",
+      "colCost": "月額コスト（推定）",
+      "colAction": "推奨アクション",
+      "empty": "この期間に該当する未使用リソースは見つかりませんでした。",
+      "truncated": "一覧は種類ごとに上限があり、他にも検出項目があります。",
+      "clusterScoped": "クラスター",
+      "costNote": "ストレージは GiB あたりの固定単価で見積もっています。"
+    }
   },
   "helmCatalog": {
     "repositories": "リポジトリ",
@@ -1631,7 +1696,13 @@
     "interactiveUnavailable": "対話型ターミナルにはライブの Kubernetes 接続が必要です。代わりにワンショットコマンドを実行します。",
     "manifestUnavailable": "このモードではマニフェストを利用できません。",
     "noEvents": "この Pod のイベントはありません。",
-    "noLabels": "ラベルはありません。"
+    "noLabels": "ラベルはありません。",
+    "resize": {
+      "title": "インプレースリサイズ",
+      "pending": "リサイズ保留中",
+      "inProgress": "リサイズ進行中",
+      "legacy": "リサイズの状態: {{status}}"
+    }
   },
   "pods": {
     "title": "Pod",
@@ -1763,5 +1834,26 @@
     "memory": "メモリ",
     "unavailable": "Prometheus が未設定です (AXIOM_PROMETHEUS_URL)。",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "最近の変更",
+    "window": "遡及期間",
+    "relevance": "関連度スコア",
+    "empty": "この期間に変更は見つかりませんでした。",
+    "windows": {
+      "m15": "過去15分",
+      "m60": "過去1時間",
+      "h6": "過去6時間",
+      "h24": "過去24時間"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "ロールアウト",
+      "config": "設定",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "監査"
+    }
   }
 }

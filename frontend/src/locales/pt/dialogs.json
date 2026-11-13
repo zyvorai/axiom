@@ -184,6 +184,39 @@
     "velero": {
       "title": "Criar backup do Velero",
       "included": "Namespaces incluídos (separados por vírgula ou *)"
+    },
+    "veleroRestore": {
+      "title": "Restauração do Velero",
+      "step": "Etapa {{n}} de {{total}}",
+      "stepChoose": "Escolher",
+      "stepPreview": "Pré-visualização e confirmação",
+      "backup": "Backup",
+      "noBackups": "Nenhum backup disponível",
+      "name": "Nome da restauração",
+      "included": "Namespaces incluídos (separados por vírgula)",
+      "includedHint": "Deixe vazio para restaurar tudo do backup.",
+      "excluded": "Namespaces excluídos",
+      "includedResources": "Recursos incluídos (ex.: deployments,services)",
+      "excludedResources": "Recursos excluídos",
+      "mapping": "Mapeamento de Namespaces (origem=destino, separados por vírgula)",
+      "mappingHint": "Restaure um Namespace com outro nome para evitar colisões.",
+      "mappingInvalid": "Use o formato origem=destino, separado por vírgulas.",
+      "policy": "Se um objeto já existir",
+      "policyNone": "Ignorá-lo (none)",
+      "policyUpdate": "Atualizá-lo conforme o backup (update)",
+      "restorePVs": "Restaurar volumes persistentes (restorePVs)",
+      "preview": "Pré-visualizar (não cria nada)",
+      "previewing": "Gerando pré-visualização…",
+      "back": "Voltar",
+      "create": "Criar restauração",
+      "targets": "Namespaces",
+      "allNamespaces": "Todos os Namespaces do backup seriam restaurados.",
+      "collides": "já existe, colisão",
+      "isNew": "novo",
+      "warnings": "Avisos",
+      "noWarnings": "Sem avisos.",
+      "items": "{{count}} de {{total}} itens",
+      "confirmLabel": "Digite {{name}} para confirmar"
     }
   },
   "costPanels": {
@@ -207,7 +240,13 @@
       "none": "(nenhuma)",
       "basedOn": "Com base em dados de {{source}} (confiança {{confidence}}).",
       "applying": "Aplicando…",
-      "confirm": "Aplicar e implantar"
+      "confirm": "Aplicar e implantar",
+      "inPlace": "Redimensionar em execução (sem reinício)",
+      "inPlaceHint": "Redimensiona os Pods em execução sem reiniciá-los (Kubernetes 1.33+, estável no 1.35). O template do Pod não é alterado, então um rollout posterior restaura os valores antigos até você atualizar o manifesto.",
+      "confirmInPlace": "Redimensionar em execução",
+      "podResized": "redimensionado",
+      "podUnchanged": "inalterado",
+      "podSkipped": "ignorado"
     }
   },
   "gitops": {
