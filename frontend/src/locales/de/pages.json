@@ -1367,7 +1367,26 @@
     "footnote": "Empfehlungen enthalten einen Puffer über der beobachteten Nutzung. Axiom ändert Requests nie selbstständig: Anwenden zeigt zuerst die genaue Änderung und handelt erst nach Ihrer Bestätigung.",
     "totalsActual": "{{current}} tatsächlich in Namespaces mit Budget, von {{budget}} Budget.",
     "basedOnOpenCost": "Auf Basis von OpenCost",
-    "basedOnRequests": "Auf Basis der Requests"
+    "basedOnRequests": "Auf Basis der Requests",
+    "idle": {
+      "title": "Ungenutzte Ressourcen",
+      "intro": "Schreibgeschützte Heuristiken auf Basis des aktuellen Cluster-Zustands, keine Garantien. Jeden Fund prüfen, bevor Sie handeln; Axiom löscht nichts aus dieser Liste.",
+      "minAge": "Älter als",
+      "minAgeOption": "{{n}} Tage",
+      "total": "Funde",
+      "savings": "Mögliche monatliche Ersparnis",
+      "colKind": "Art",
+      "colResource": "Ressource",
+      "colReason": "Grund",
+      "colAge": "Alter",
+      "colConfidence": "Konfidenz",
+      "colCost": "Gesch. Monatskosten",
+      "colAction": "Empfohlene Aktion",
+      "empty": "Für dieses Alter wurden keine ungenutzten Ressourcen gefunden.",
+      "truncated": "Die Liste ist pro Art begrenzt; es gibt weitere Funde.",
+      "clusterScoped": "Cluster",
+      "costNote": "Speicher wird mit einer pauschalen Schätzung pro GiB bewertet."
+    }
   },
   "helmCatalog": {
     "repositories": "Repositorys",

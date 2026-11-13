@@ -1357,7 +1357,26 @@
     "footnote": "推奨値は観測された使用量に余裕を加えたものです。Axiom が独自にリクエストを変更することはありません。「適用」では正確な変更内容を先に表示し、確認後にのみ実行します。",
     "totalsActual": "予算設定済み Namespace の実績合計 {{current}}（予算 {{budget}}）。",
     "basedOnOpenCost": "OpenCost に基づく",
-    "basedOnRequests": "リクエストに基づく"
+    "basedOnRequests": "リクエストに基づく",
+    "idle": {
+      "title": "未使用リソース",
+      "intro": "現在のクラスター状態に基づく読み取り専用のヒューリスティックであり、保証ではありません。操作の前に各項目を確認してください。Axiom がこの一覧から何かを削除することはありません。",
+      "minAge": "経過時間が次より長い",
+      "minAgeOption": "{{n}} 日",
+      "total": "検出数",
+      "savings": "月額の削減見込み",
+      "colKind": "種類",
+      "colResource": "リソース",
+      "colReason": "理由",
+      "colAge": "経過時間",
+      "colConfidence": "信頼度",
+      "colCost": "月額コスト（推定）",
+      "colAction": "推奨アクション",
+      "empty": "この期間に該当する未使用リソースは見つかりませんでした。",
+      "truncated": "一覧は種類ごとに上限があり、他にも検出項目があります。",
+      "clusterScoped": "クラスター",
+      "costNote": "ストレージは GiB あたりの固定単価で見積もっています。"
+    }
   },
   "helmCatalog": {
     "repositories": "リポジトリ",

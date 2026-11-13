@@ -31,6 +31,7 @@ func (s *Server) registerCost(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/cost/rightsizing", c.rightsizing)
 	mux.HandleFunc("POST /api/v1/cost/rightsizing/apply", c.applyRightsizing)
 	mux.HandleFunc("GET /api/v1/cost/invoice", s.costInvoice)
+	mux.HandleFunc("GET /api/v1/cost/idle", c.idleResources)
 }
 
 func (c *costAPI) listBudgets(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +117,32 @@ func (c *costAPI) rightsizing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	v, err := c.s.provider.ListRightsizing(r.Context(), ns, window)
+	respond(w, v, err)
+}
+
+// idleResources is the read-only idle/zombie finder. It never deletes.
+func (c *costAPI) idleResources(w http.ResponseWriter, r *http.Request) {
+	noStore(w)
+	q := r.URL.Query()
+	ns := q.Get("namespace")
+	if ns != "" && ns != "all" {
+		if err := platform.ValidateCostNamespace(ns); err != nil {
+			fail(w, http.StatusBadRequest, err)
+			return
+		}
+	}
+	minAge := platform.IdleDefaultMinAgeDays
+	if v := q.Get("minAgeDays"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 0 || n > platform.IdleMaxMinAgeDays {
+			fail(w, http.StatusBadRequest, fmt.Errorf("minAgeDays must be a whole number from 0 to %d", platform.IdleMaxMinAgeDays))
+			return
+		}
+		if n > 0 {
+			minAge = n
+		}
+	}
+	v, err := platform.IdleResources(r.Context(), c.s.provider, ns, minAge)
 	respond(w, v, err)
 }
 

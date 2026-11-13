@@ -1367,7 +1367,26 @@
     "footnote": "Recommendations add headroom over observed usage. Axiom never changes requests on its own: Apply shows the exact change first and only acts when you confirm.",
     "totalsActual": "{{current}} actual across budgeted namespaces, of {{budget}} budgeted.",
     "basedOnOpenCost": "Based on OpenCost",
-    "basedOnRequests": "Based on requests"
+    "basedOnRequests": "Based on requests",
+    "idle": {
+      "title": "Idle resources",
+      "intro": "Read-only heuristics from current cluster state, not guarantees. Verify each finding before acting; Axiom never deletes anything from this list.",
+      "minAge": "Older than",
+      "minAgeOption": "{{n}} days",
+      "total": "Findings",
+      "savings": "Possible monthly saving",
+      "colKind": "Kind",
+      "colResource": "Resource",
+      "colReason": "Why",
+      "colAge": "Age",
+      "colConfidence": "Confidence",
+      "colCost": "Est. monthly cost",
+      "colAction": "Suggested action",
+      "empty": "No idle resources found for this age.",
+      "truncated": "The list is capped per kind; more findings exist.",
+      "clusterScoped": "cluster",
+      "costNote": "Storage is priced at a flat per-GiB estimate."
+    }
   },
   "helmCatalog": {
     "repositories": "Repositories",
