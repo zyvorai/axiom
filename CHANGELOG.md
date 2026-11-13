@@ -4,6 +4,17 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-13
+
+### Fixed
+- **External Secrets health** (`GET /api/v1/external-secrets/health`, the Secrets section and the failing/recovered notification watcher) reported "not available" on every real cluster. Kubernetes mode serves requests through a switchable provider that did not forward this view. 0.15.0 only.
+- **Admission policy browser** (`GET /api/v1/admission-policies`) had the same problem and never listed ValidatingAdmissionPolicies on a real cluster. Present since 0.14.x.
+- **Still / blast-radius preview** never listed the Atlas volumes a workload uses on a real cluster (same cause). Present since 0.14.x.
+- **Karpenter NodePools** showed a blank Nodes column: the node count is the integer `status.nodes` in Karpenter v1, not `status.resources.nodes`. The old path is kept as a fallback. 0.15.0 only.
+
+### Changed
+- A test now fails the build if a provider capability that the demo provider implements is not forwarded by the switchable provider, so this class of bug cannot return unnoticed. All four fixes above were also checked against a real Kubernetes 1.37 API server with the upstream CRDs.
+
 ## [0.15.0] - 2026-11-13
 
 ### Changed — action needed when upgrading
