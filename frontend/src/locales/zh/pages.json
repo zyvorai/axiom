@@ -377,6 +377,34 @@
         "verdict": "判定"
       },
       "noFlows": "当前时间窗口内没有流量。"
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "只读查看 Gateway、HTTPRoute、GRPCRoute 和 ReferenceGrant 及其 Accepted / Programmed / ResolvedRefs 状态。",
+      "unavailable": "此集群未安装 Gateway API 的 CRD，或无法读取。",
+      "routesTitle": "路由",
+      "noGateways": "未找到 Gateway。",
+      "noRoutes": "未找到 HTTPRoute 或 GRPCRoute。",
+      "noGrants": "未找到 ReferenceGrant。",
+      "gatewaysRegion": "Gateway",
+      "routesRegion": "路由",
+      "grantsRegion": "ReferenceGrant",
+      "gotoGateway": "转到父级 Gateway {{name}}",
+      "columns": {
+        "class": "类",
+        "listeners": "监听器",
+        "addresses": "地址",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "主机名",
+        "parents": "父级 Gateway",
+        "backends": "后端",
+        "from": "来源",
+        "to": "目标",
+        "routes": "路由",
+        "kind": "类型"
+      }
     }
   },
   "networkPolicy": {

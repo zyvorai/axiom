@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Gateway API deep view
+- `GET /api/v1/gateway-api` and a Gateway API section on Networking: Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute and GRPCRoute (hostnames, parentRefs linked to their Gateway, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants. Read-only; the ClusterRole gains get/list/watch on `grpcroutes` and `referencegrants`. Strings in all 8 locales.
+
 ## [0.14.1] - 2026-11-12
 
 ### Added — deepen pack (GPU/DRA, GitOps write, cost/bill)

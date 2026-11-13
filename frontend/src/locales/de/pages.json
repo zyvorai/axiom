@@ -380,6 +380,34 @@
         "verdict": "Urteil"
       },
       "noFlows": "Keine Flüsse im aktuellen Zeitfenster."
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "Schreibgeschützte Ansicht von Gateways, HTTPRoutes, GRPCRoutes und ReferenceGrants mit ihrem Accepted-/Programmed-/ResolvedRefs-Status.",
+      "unavailable": "Die Gateway-API-CRDs sind in diesem Cluster nicht installiert oder nicht lesbar.",
+      "routesTitle": "Routen",
+      "noGateways": "Keine Gateways gefunden.",
+      "noRoutes": "Keine HTTPRoutes oder GRPCRoutes gefunden.",
+      "noGrants": "Keine ReferenceGrants gefunden.",
+      "gatewaysRegion": "Gateways",
+      "routesRegion": "Routen",
+      "grantsRegion": "ReferenceGrants",
+      "gotoGateway": "Zum übergeordneten Gateway {{name}}",
+      "columns": {
+        "class": "Klasse",
+        "listeners": "Listener",
+        "addresses": "Adressen",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "Hostnamen",
+        "parents": "Übergeordnete Gateways",
+        "backends": "Backends",
+        "from": "Von",
+        "to": "Nach",
+        "routes": "Routen",
+        "kind": "Art"
+      }
     }
   },
   "networkPolicy": {
