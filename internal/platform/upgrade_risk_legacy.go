@@ -38,10 +38,36 @@ func ingressNginxFindings(ings []IngressSummary) []UpgradeFinding {
 	}}
 }
 
-func legacyUpgradeFindings(ctx context.Context, p Provider) []UpgradeFinding {
-	ings, err := p.ListIngresses(ctx, "")
-	if err != nil {
-		return nil
+// kubeProxyIPVSFinding flags kube-proxy running in the deprecated ipvs mode,
+// read from the kube-proxy ConfigMap's config.conf (kubeadm-style clusters).
+// Distributions that do not keep that ConfigMap (k3s, managed control planes)
+// produce no finding, which is "unknown", not "fine".
+func kubeProxyIPVSFinding(cm ConfigMapDetail) []UpgradeFinding {
+	for _, line := range strings.Split(cm.Data["config.conf"], "\n") {
+		l := strings.TrimSpace(line)
+		if !strings.HasPrefix(l, "mode:") {
+			continue
+		}
+		mode := strings.Trim(strings.TrimSpace(strings.TrimPrefix(l, "mode:")), `"'`)
+		if strings.EqualFold(mode, "ipvs") {
+			return []UpgradeFinding{{
+				Severity: "warning", Code: "kube-proxy-ipvs",
+				Title:  "kube-proxy uses the deprecated ipvs mode",
+				Detail: "kube-system/kube-proxy config.conf sets mode: ipvs",
+				Hint:   "Plan a switch to nftables (or iptables) mode before ipvs is removed",
+			}}
+		}
 	}
-	return ingressNginxFindings(ings)
+	return nil
+}
+
+func legacyUpgradeFindings(ctx context.Context, p Provider) []UpgradeFinding {
+	var out []UpgradeFinding
+	if ings, err := p.ListIngresses(ctx, ""); err == nil {
+		out = append(out, ingressNginxFindings(ings)...)
+	}
+	if cm, err := p.GetConfigMap(ctx, "kube-system", "kube-proxy"); err == nil {
+		out = append(out, kubeProxyIPVSFinding(cm)...)
+	}
+	return out
 }

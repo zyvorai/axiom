@@ -14,3 +14,14 @@ func TestIngressNginxFindings(t *testing.T) {
 		t.Fatalf("unexpected: %+v", got)
 	}
 }
+
+func TestKubeProxyIPVSFinding(t *testing.T) {
+	cm := ConfigMapDetail{Data: map[string]string{"config.conf": "kind: KubeProxyConfiguration\nmode: \"ipvs\"\n"}}
+	if got := kubeProxyIPVSFinding(cm); len(got) != 1 || got[0].Code != "kube-proxy-ipvs" {
+		t.Fatalf("unexpected: %+v", got)
+	}
+	cm.Data["config.conf"] = "mode: iptables\n"
+	if got := kubeProxyIPVSFinding(cm); got != nil {
+		t.Fatalf("expected none, got %v", got)
+	}
+}
