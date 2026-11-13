@@ -23,10 +23,11 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2 } from "lucide-react";
+import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { CERTS } from "@/constants/testIds";
 
 const SECRET_TYPES = ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth"];
 
@@ -181,6 +182,162 @@ function ExternalSecretsSection() {
     );
 }
 
+const CERT_BUCKET_TONE = {
+    expired: "var(--red)",
+    lt7d: "var(--red)",
+    lt30d: "var(--amber)",
+    ok: "var(--green)",
+    unknown: "var(--ink-3)",
+};
+
+function CertificatesSection() {
+    const { t } = useTranslation();
+    const [inv, setInv] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/certificates").then((r) => alive && setInv(r.data)).catch(() => alive && setInv({ available: false, certificates: [], issuers: [], failures: [] }));
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    const fmt = (v) => (v ? v.slice(0, 10) : "-");
+    const certs = inv?.certificates || [];
+    const issuers = inv?.issuers || [];
+    const failures = inv?.failures || [];
+
+    return (
+        <GlassCard className="overflow-hidden p-0" data-testid={CERTS.root}>
+            <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
+                <ShieldCheck className="h-4 w-4 text-tone-link" /> {t("pages:secrets.certs.title")}
+            </div>
+            {!inv && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
+            {inv && !inv.available && (
+                <div className="empty" data-testid={CERTS.unavailable}>{t("pages:secrets.certs.unavailable")}</div>
+            )}
+            {inv?.available && (
+                <>
+                    <div className="max-h-[320px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.aria")}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("pages:secrets.certs.columns.issuer")}</th>
+                                    <th>{t("pages:secrets.certs.columns.secret")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("pages:secrets.certs.columns.notAfter")}</th>
+                                    <th>{t("pages:secrets.certs.columns.renewal")}</th>
+                                    <th>{t("pages:secrets.certs.columns.days")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {certs.map((c) => (
+                                    <tr key={`${c.namespace}/${c.name}`} data-testid={CERTS.certRow(c.namespace, c.name)}>
+                                        <td className="name">
+                                            {c.name}
+                                            <small>{c.namespace}</small>
+                                        </td>
+                                        <td className="mono">{c.issuer}</td>
+                                        <td className="mono">{c.secretName}</td>
+                                        <td title={c.message}>
+                                            <StatusBadge status={c.ready === "True" ? "Ready" : c.ready === "False" ? "Failed" : "Unknown"} />
+                                        </td>
+                                        <td className="mono">{fmt(c.notAfter)}</td>
+                                        <td className="mono">{fmt(c.renewalTime)}</td>
+                                        <td data-testid={CERTS.bucket(c.namespace, c.name)}>
+                                            <span className="mono" style={{ color: CERT_BUCKET_TONE[c.expiryBucket] }}>
+                                                {c.daysToExpiry ?? "-"} · {t(`pages:secrets.certs.buckets.${c.expiryBucket || "unknown"}`)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {certs.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <div className="empty">{t("pages:secrets.certs.empty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.certs.issuersTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.issuersAria")} data-testid={CERTS.issuersRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("common:fields.type")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {issuers.map((i) => (
+                                    <tr key={`${i.kind}/${i.namespace}/${i.name}`} data-testid={CERTS.issuerRow(i.kind, i.name)}>
+                                        <td className="name">
+                                            {i.name}
+                                            {i.namespace && <small>{i.namespace}</small>}
+                                        </td>
+                                        <td className="mono">{i.kind}</td>
+                                        <td className="mono">{i.type}</td>
+                                        <td>
+                                            <StatusBadge status={i.ready === "True" ? "Ready" : i.ready === "False" ? "Failed" : "Unknown"} />
+                                        </td>
+                                        <td>{i.message}</td>
+                                    </tr>
+                                ))}
+                                {issuers.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5}>
+                                            <div className="empty">{t("pages:secrets.certs.issuersEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.certs.failTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.failAria")} data-testid={CERTS.failuresRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("pages:secrets.certs.columns.state")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {failures.map((f) => (
+                                    <tr key={`${f.kind}/${f.namespace}/${f.name}`} data-testid={CERTS.failureRow(f.kind, f.namespace, f.name)}>
+                                        <td className="name">
+                                            {f.name}
+                                            <small>{f.namespace}</small>
+                                        </td>
+                                        <td className="mono">{f.kind}</td>
+                                        <td className="mono">{f.state}</td>
+                                        <td>{f.message}</td>
+                                    </tr>
+                                ))}
+                                {failures.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <div className="empty">{t("pages:secrets.certs.failEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </GlassCard>
+    );
+}
+
 export default function Secrets() {
     const { t } = useTranslation();
     const confirm = useConfirm();
@@ -315,6 +472,8 @@ export default function Secrets() {
             </GlassCard>
 
             <ExternalSecretsSection />
+
+            <CertificatesSection />
 
             <CreateSecretDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
         </div>

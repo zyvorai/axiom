@@ -169,6 +169,33 @@
         "refresh": "更新間隔"
       },
       "empty": "ExternalSecret リソースが見つかりません。"
+    },
+    "certs": {
+      "title": "証明書 (cert-manager)",
+      "aria": "cert-manager の Certificate",
+      "columns": {
+        "issuer": "発行者",
+        "secret": "Secret",
+        "notAfter": "有効期限",
+        "renewal": "更新予定",
+        "days": "残り日数",
+        "state": "状態"
+      },
+      "empty": "Certificate が見つかりません。",
+      "unavailable": "cert-manager がインストールされていないか、読み取れません。",
+      "buckets": {
+        "expired": "期限切れ",
+        "lt7d": "7 日未満",
+        "lt30d": "30 日未満",
+        "ok": "正常",
+        "unknown": "不明"
+      },
+      "issuersTitle": "発行者",
+      "issuersAria": "cert-manager の Issuer",
+      "issuersEmpty": "Issuer / ClusterIssuer が見つかりません。",
+      "failTitle": "失敗したリクエストと Order",
+      "failAria": "失敗した CertificateRequest と Order",
+      "failEmpty": "失敗した CertificateRequest / Order はありません。"
     }
   },
   "secretDetail": {

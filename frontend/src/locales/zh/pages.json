@@ -169,6 +169,33 @@
         "refresh": "刷新"
       },
       "empty": "未找到 ExternalSecret 资源。"
+    },
+    "certs": {
+      "title": "证书 (cert-manager)",
+      "aria": "cert-manager Certificate",
+      "columns": {
+        "issuer": "颁发者",
+        "secret": "Secret",
+        "notAfter": "到期时间",
+        "renewal": "续期时间",
+        "days": "剩余天数",
+        "state": "状态"
+      },
+      "empty": "未找到 Certificate。",
+      "unavailable": "cert-manager 未安装或无法读取。",
+      "buckets": {
+        "expired": "已过期",
+        "lt7d": "不足 7 天",
+        "lt30d": "不足 30 天",
+        "ok": "正常",
+        "unknown": "未知"
+      },
+      "issuersTitle": "颁发者",
+      "issuersAria": "cert-manager Issuer",
+      "issuersEmpty": "未找到 Issuer 或 ClusterIssuer。",
+      "failTitle": "失败的请求和 Order",
+      "failAria": "失败的 CertificateRequest 和 Order",
+      "failEmpty": "没有失败的 CertificateRequest 或 Order。"
     }
   },
   "secretDetail": {

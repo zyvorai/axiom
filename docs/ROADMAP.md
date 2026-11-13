@@ -158,6 +158,7 @@ are theirs, not ours.
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
 | Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
+| cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

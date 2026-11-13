@@ -45,3 +45,13 @@ func (sp *SwitchableProvider) ListKarpenter(ctx context.Context) (KarpenterInven
 	}
 	return emptyKarpenter("Karpenter view not available on this provider"), nil
 }
+
+func (sp *SwitchableProvider) ListCertManager(ctx context.Context) (CertManagerInventory, error) {
+	type lister interface {
+		ListCertManager(context.Context) (CertManagerInventory, error)
+	}
+	if l, ok := sp.current(ctx).(lister); ok {
+		return l.ListCertManager(ctx)
+	}
+	return emptyCertInventory("cert-manager view not available on this provider"), nil
+}

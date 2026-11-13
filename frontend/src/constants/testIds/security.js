@@ -42,3 +42,15 @@ export const SECURITY = {
     detailTab: (k) => `security-detail-tab-${k}`,
     vulnRow: (id) => `security-vuln-${id}`,
 };
+
+// cert-manager read-only view (Secrets page).
+export const CERTS = {
+    root: "certs-root",
+    unavailable: "certs-unavailable",
+    certRow: (ns, name) => `certs-row-${ns}-${name}`,
+    bucket: (ns, name) => `certs-bucket-${ns}-${name}`,
+    issuersRoot: "certs-issuers",
+    issuerRow: (kind, name) => `certs-issuer-${kind}-${name}`,
+    failuresRoot: "certs-failures",
+    failureRow: (kind, ns, name) => `certs-failure-${kind}-${ns}-${name}`,
+};
