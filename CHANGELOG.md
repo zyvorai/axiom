@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Karpenter view
+- Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
+
 ## [0.14.1] - 2026-11-12
 
 ### Added — deepen pack (GPU/DRA, GitOps write, cost/bill)

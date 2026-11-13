@@ -1105,7 +1105,8 @@
     "tabs": {
       "hpa": "水平",
       "vpa": "垂直（VPA）",
-      "keda": "イベント駆動（KEDA）"
+      "keda": "イベント駆動（KEDA）",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "スケーリングなし",
@@ -1158,6 +1159,29 @@
       "new": "新しい ScaledObject",
       "deleteAria": "ScaledObject {{name}} を削除",
       "editAria": "ScaledObject {{name}} を編集"
+    },
+    "karpenter": {
+      "notInstalled": "このクラスターには Karpenter がインストールされていません。",
+      "notInstalledHint": "Karpenter をインストールすると、ノードをオンデマンドでプロビジョニングできます。NodePools と NodeClaims が読み取り専用でここに表示されます。",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "NodePool はありません。",
+      "emptyClaims": "NodeClaim はありません。",
+      "region": "Karpenter NodePools",
+      "claimsRegion": "Karpenter NodeClaims",
+      "columns": {
+        "nodeClass": "ノードクラス",
+        "policy": "統合",
+        "consolidateAfter": "統合までの時間",
+        "cpuLimit": "CPU 上限",
+        "memoryLimit": "メモリ上限",
+        "nodes": "Nodes",
+        "capacity": "キャパシティ",
+        "instanceType": "インスタンスタイプ",
+        "zone": "ゾーン",
+        "nodePool": "NodePool",
+        "phase": "フェーズ"
+      }
     }
   },
   "backups": {

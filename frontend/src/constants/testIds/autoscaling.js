@@ -15,6 +15,9 @@ export const AUTOSCALE = {
     kedaNotInstalled: 'keda-not-installed',
     kedaRow: (ns, name) => `keda-row-${ns}-${name}`,
     kedaTriggers: (ns, name) => `keda-triggers-${ns}-${name}`,
+    karpenterNotInstalled: 'karpenter-not-installed',
+    karpenterPoolRow: (name) => `karpenter-pool-${name}`,
+    karpenterClaimRow: (name) => `karpenter-claim-${name}`,
 };
 
 export const COST = {
