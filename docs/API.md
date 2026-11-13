@@ -680,6 +680,7 @@ RBAC write access is deliberately namespaced-only — `ClusterRole`/`ClusterRole
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/v1/security/reports?namespace=...` | Aggregated scanner output: `available`, `sources[]`, `vulnerabilities` / `misconfigurations` severity counts, `policy` result counts, `workloads[]` (riskiest first), `installHint` |
+| GET | `/api/v1/security/vulnerabilities?namespace=...&severity=...` | Per-image Trivy rollup: `images[]` (`counts`, `fixable`, `workloads[]`, `fixes[]` = lowest fixed version per package, `components`/`licenses` when an SbomReport exists), `topCves[]` (with `fixedIn`), `sbom[]` (component count, license summary), `totals`, `available`/`sbomAvailable`, `installHint`. `severity` is a comma list of `critical,high,medium,low,unknown` (400 otherwise); with it set, only matching CVEs and images that have one are returned |
 | GET | `/api/v1/security/policy-coverage?namespace=...` | Kyverno/Gatekeeper PolicyReport rollup by `policy` (+ `rule`): pass/fail/warn/error counts and `failRate` |
 | GET | `/api/v1/security/reports/{namespace}/{kind}/{name}` | Drill-down for one workload: `vulnerabilities[]` (sorted by severity, de-duplicated, capped at 300), `misconfigurations[]`, `policyResults[]` (failing/warning only), `images` |
 

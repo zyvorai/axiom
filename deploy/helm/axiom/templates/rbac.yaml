@@ -172,7 +172,7 @@ rules:
     resources: ["serviceaccounts"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["aquasecurity.github.io"]
-    resources: ["vulnerabilityreports", "configauditreports"]
+    resources: ["vulnerabilityreports", "configauditreports", "sbomreports", "clustersbomreports"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["wgpolicyk8s.io"]
     resources: ["policyreports", "clusterpolicyreports"]
