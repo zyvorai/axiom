@@ -4,6 +4,21 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-13
+
+### Changed — action needed when upgrading
+- **`POST /api/v1/nodes/{name}/drain` now requires `?confirm=<node name>`** (`400` otherwise). The console wizard sends it; any script or client calling the endpoint directly must add it.
+- **Helm rollback is now admin-only** (it was operator-allowed) and takes a typed confirmation of the release name; `POST .../rollback` accepts `{revision, confirm}`.
+- Console headings (page titles and the `hero`/`display`/`title` sizes) are smaller, sized for a console rather than a marketing page.
+
+### Added — upgrade pre-check
+- `GET /api/v1/upgrade-risk` warns when Ingresses still use the retiring ingress-nginx class (`ingress-nginx-retiring`) and when kube-proxy runs in the deprecated `ipvs` mode (`kube-proxy-ipvs`, read from the `kube-system/kube-proxy` ConfigMap; clusters that keep no such ConfigMap, such as k3s or managed control planes, produce no finding, which means unknown rather than fine). Cgroup v1 and deprecated-API scanning are not covered.
+
+### Fixed
+- The demo Helm history keeps later revisions after a rollback, so a release can be rolled forward again, as real Helm does.
+- `scripts/deploy-remote.sh` no longer fails its health check under `set -u` when no mTLS client arguments are set.
+
+
 ### Added — Node maintenance wizard
 - `GET /api/v1/nodes/{name}/drain-preview`: read-only, server-computed preview of a drain (Pods to evict grouped by namespace/owner; ignored DaemonSet, mirror and kube-system Pods; emptyDir Pods needing delete-emptydir-data; bare Pods that would be lost; Pods blocked by a PodDisruptionBudget with `disruptionsAllowed == 0`; single-replica downtime; Pods whose PVC is pinned to the node by PV node affinity; approximate reschedule headroom on other Ready schedulable Nodes) with a blocked/caution/ok verdict. Pure logic in `internal/platform/drain_preview.go`; uses existing list calls, so no new RBAC; denied for namespace-restricted accounts.
 - Node detail: Drain now opens a wizard (Preview, typed node name, cordon then drain with progress, uncordon). The Nodes list Drain button links to it.

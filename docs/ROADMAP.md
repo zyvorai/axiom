@@ -5,10 +5,19 @@ what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
 
-## Shipped, unreleased
+## Shipped in 0.15.0
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
+| In-place pod resize | Opt-in `inPlace` rightsizing apply via the pods `resize` subresource (no restart); resize status on pod detail | Kubernetes 1.35 in-place resize (stable) |
+| Helm history and rollback | Per-release revision history, values and manifest diff between revisions (credential-looking values redacted) and a reviewed, admin-only rollback with PVC/CRD/hook warnings and a typed confirmation | Rancher/Lens Helm history, `helm history`/`helm rollback` |
+| Image vulnerabilities and SBOM | Per-image rollup from Trivy Operator reports on Security (`GET /api/v1/security/vulnerabilities`): critical/high/medium/low counts, fixable count, workloads using each image, top CVEs with the fixed version and a lowest-fix suggestion per package, SBOM component count and licenses; read-only | Trivy Operator dashboards, Lens security panels |
+| Change correlation | "What changed before this?" (`GET /api/v1/changes`, MCP `recent_changes`): GitOps syncs, Helm upgrades, rollouts, ConfigMap/Secret edits, HPA scaling, node events and audit entries ranked by workload scope and time proximity; a Recent changes panel on workloads and the Timeline. GitOps and Helm times are approximated from the age shown | Komodor change timeline |
+| Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
+| cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
+| External Secrets sync health | ExternalSecret list (store, refresh interval, last sync, Ready condition and message, target Secret), stale bucket (> 2x refresh), failing/stale rollup, SecretStore/ClusterSecretStore Ready and provider type, debounced notification when one flips to failing (`/external-secrets/health`) | Lens/Headlamp External Secrets panels |
+| Velero restore wizard | Backups page: pick a Backup, namespaces/resources, mapping, restorePVs, existingResourcePolicy, server-side dry-run preview, typed confirm; `/velero/restores` list/preview/create (admin) | Creating a real Restore not yet exercised against a live cluster |
+| Upgrade pre-check | Warns when Ingresses still use the retiring ingress-nginx class and when kube-proxy runs in the deprecated `ipvs` mode (read from the `kube-system/kube-proxy` ConfigMap; k3s and managed control planes that keep no such ConfigMap produce no finding) | Lightspeed update-risk |
 | Node maintenance | Drain wizard on Node detail: server-side read-only drain preview (`GET /api/v1/nodes/{name}/drain-preview`: Pods to evict by namespace/owner, ignored DaemonSet/mirror/kube-system Pods, emptyDir, bare Pods, PDB-blocked, single-replica, volume-pinned, approximate reschedule headroom, blocked/caution/ok verdict), then typed node-name confirmation (server-enforced) and cordon + drain with progress, uncordon afterwards | Lens/OpenLens drain, Rancher node drain |
 | Idle resources | Read-only idle/zombie finder on Ops → Cost (`GET /api/v1/cost/idle`): unmounted or unbound PVCs with a monthly storage estimate, empty namespaces, LoadBalancer Services with no endpoints, old finished Jobs, scaled-to-zero Deployments, and advisory unreferenced ConfigMaps/Secrets. Heuristics with a confidence level; nothing is deleted | Kubecost abandoned-resources, Robusta KRR/popeye-style sanitizers |
 | Progressive delivery | Read-only Argo Rollouts (strategy, step/weight, replicas, phase, pause reason, latest AnalysisRun, stable vs canary revision and images) and Flagger Canaries (phase, canaryWeight, failedChecks, lastTransitionTime) on Ops → GitOps (`GET /api/v1/rollouts`). Promote/abort are not offered | Argo Rollouts dashboard, Flagger/Weave GitOps |
@@ -86,14 +95,12 @@ are theirs, not ours.
 |------|--------------|---------------|
 | Autoscaling beyond CPU | HPAs show every metric (CPU, memory, Pods, Object, External) with current and target plus what the autoscaler reports, and can be created on CPU and memory with a scale-down window; read-only VPA recommendations and KEDA ScaledObjects | Lens/Headlamp HPA views, Rancher workload autoscaling |
 | Cost budgets | Per-namespace monthly budgets against the estimated cost with on-track / near / over state | OpenCost budgets, Kubecost alerts |
-| In-place pod resize | Opt-in `inPlace` rightsizing apply via the pods `resize` subresource (no restart); resize status on pod detail | Kubernetes 1.35 in-place resize (stable) |
 | Rightsizing | Request-vs-usage recommendations with headroom, from Prometheus history (`AXIOM_PROMETHEUS_URL`) or, without it, a clearly labelled low-confidence snapshot; never applied automatically | Kubecost/Goldilocks recommendations |
 
 ## Shipped in 0.7.0
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
-| Helm history and rollback | Per-release revision history, values and manifest diff between revisions (credential-looking values redacted) and a reviewed, admin-only rollback with PVC/CRD/hook warnings and a typed confirmation | Rancher/Lens Helm history, `helm history`/`helm rollback` |
 | Helm chart catalog | Administrator-approved chart repositories, search, versions, default values and README, installing through the existing Helm Job; fetches are guarded against reaching private, loopback or metadata addresses | Rancher Apps & Marketplace, Portainer app templates, Lens Helm charts |
 | GitOps application creation | Create an Argo CD Application, a Flux Git source + Kustomization or a Flux Helm source + HelmRelease from typed fields, after previewing the exact YAML; admin only, no credentials in URLs, rolled back if only part of it could be created | Argo CD "New app", Rancher Fleet, Devtron |
 
@@ -121,8 +128,8 @@ are theirs, not ours.
 | Understanding | Resource relationship graph per workload (owner chain, Services, Ingress, HPA, volumes) | Octant, Headlamp map, k9s xray |
 | North-south | Envoy Gateway via Gateway API (`expose.type=Gateway`, Ingresses UI provider=envoy) | Ingress NGINX → Envoy migration |
 | Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
-| Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views, per-image vulnerability rollup and SBOM component/license summary | Rancher/NeuVector, Lens Security Center |
-| Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; ranked "Recent changes" correlation (GitOps, Helm, rollouts, config, nodes, HPA, audit) around a workload and time; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
+| Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views | Rancher/NeuVector, Lens Security Center |
+| Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
 | Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views | Rancher/NeuVector, Lens Security Center |
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
@@ -164,9 +171,6 @@ are theirs, not ours.
 | Outage narrative | Incident × who-poked-it × agent runs | Komodor-class storytelling |
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
-| Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
-| cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
-| External Secrets sync health | ExternalSecret list (store, refresh interval, last sync, Ready condition and message, target Secret), stale bucket (> 2x refresh), failing/stale rollup, SecretStore/ClusterSecretStore Ready and provider type, debounced notification when one flips to failing (`/external-secrets/health`) | Lens/Headlamp External Secrets panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 
@@ -184,7 +188,6 @@ are theirs, not ours.
 | Login throttle HA | Shared ConfigMap `zyvor-axiom-login-throttle` | — |
 | CSI clone ProposeOnly | `sourcePVC` on volumes + agent action `clone_pvc` | — |
 | Policy coverage | `GET /security/policy-coverage` (PolicyReport rollup) | Kyverno / Gatekeeper reports |
-| Velero restore wizard | Backups page: pick a Backup, namespaces/resources, mapping, restorePVs, existingResourcePolicy, server-side dry-run preview, typed confirm; `/velero/restores` list/preview/create (admin) | Creating a real Restore not yet exercised against a live cluster |
 | Velero CRD fidelity | Create Backup/Schedule validated against upstream v1.15.2 OpenAPI; live script when CRDs exist | — |
 | Helm install RBAC | ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions | Ordinary chart installs under Axiom's SA |
 
