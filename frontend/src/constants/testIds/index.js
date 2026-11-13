@@ -27,3 +27,4 @@ export * from './billing';
 export * from './podresize';
 export * from './costidle';
 export * from './velero';
+export * from './rollouts';

@@ -1867,5 +1867,32 @@
       "hpa": "HPA",
       "audit": "Audit"
     }
+  },
+  "rollouts": {
+    "title": "Livraison progressive",
+    "notInstalled": "Argo Rollouts et Flagger ne sont pas installés dans ce cluster.",
+    "notInstalledHint": "Installez Argo Rollouts ou Flagger pour voir ici les déploiements canary et blue-green, en lecture seule.",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "Aucun Rollout.",
+    "emptyFlagger": "Aucun Canary.",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "Stratégie",
+      "step": "Étape",
+      "weight": "Poids",
+      "replicas": "Réplicas (souhaités / à jour / prêts / disponibles)",
+      "phase": "Phase",
+      "pauseReason": "Raison de la pause",
+      "analysis": "Dernière analyse",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "Images",
+      "target": "Cible",
+      "failedChecks": "Vérifications échouées",
+      "lastTransition": "Dernière transition"
+    },
+    "readOnlyNote": "Lecture seule. Promote et abort ne sont pas proposés ; utilisez kubectl argo rollouts."
   }
 }

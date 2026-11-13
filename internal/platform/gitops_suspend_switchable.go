@@ -46,6 +46,16 @@ func (sp *SwitchableProvider) ListKarpenter(ctx context.Context) (KarpenterInven
 	return emptyKarpenter("Karpenter view not available on this provider"), nil
 }
 
+func (sp *SwitchableProvider) ListRollouts(ctx context.Context, namespace string) (RolloutsInventory, error) {
+	type lister interface {
+		ListRollouts(context.Context, string) (RolloutsInventory, error)
+	}
+	if l, ok := sp.current(ctx).(lister); ok {
+		return l.ListRollouts(ctx, namespace)
+	}
+	return emptyRollouts("Progressive delivery view not available on this provider"), nil
+}
+
 func (sp *SwitchableProvider) ListCertManager(ctx context.Context) (CertManagerInventory, error) {
 	type lister interface {
 		ListCertManager(context.Context) (CertManagerInventory, error)

@@ -327,6 +327,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/accelerators/rightsizing/apply", s.applyGPURightsizing)
 	mux.HandleFunc("GET /api/v1/dra", s.listDRA)
 	mux.HandleFunc("GET /api/v1/karpenter", s.listKarpenter)
+	mux.HandleFunc("GET /api/v1/rollouts", s.listRollouts)
 	mux.HandleFunc("GET /api/v1/gateway-api", s.listGatewayAPI)
 	mux.HandleFunc("GET /api/v1/certificates", s.listCertificates)
 	mux.HandleFunc("GET /api/v1/admission-policies", s.listAdmissionPolicies)

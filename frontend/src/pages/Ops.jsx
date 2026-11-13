@@ -31,6 +31,7 @@ import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import { CostInvoice } from "@/components/CostInvoice";
 import { CostIdle } from "@/components/CostIdle";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
+import RolloutsPanel from "@/components/RolloutsPanel";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import GitOpsEditDialog from "@/components/GitOpsEditDialog";
 import GitOpsCredentials, { CredentialsButton } from "@/components/GitOpsRepoCreds";
@@ -450,6 +451,7 @@ function GitOpsTab() {
         <GitOpsEditDialog app={editing} onClose={() => setEditing(null)} onSaved={() => setRefresh((n) => n + 1)} />
         <GitOpsCredentials open={credsOpen} onOpenChange={setCredsOpen} />
         <GitOpsDeleteDialog app={deleting} onClose={() => setDeleting(null)} onDeleted={() => setRefresh((n) => n + 1)} />
+        <RolloutsPanel />
         </div>
     );
 }

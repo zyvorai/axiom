@@ -10,6 +10,7 @@ are theirs, not ours.
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
 | Idle resources | Read-only idle/zombie finder on Ops → Cost (`GET /api/v1/cost/idle`): unmounted or unbound PVCs with a monthly storage estimate, empty namespaces, LoadBalancer Services with no endpoints, old finished Jobs, scaled-to-zero Deployments, and advisory unreferenced ConfigMaps/Secrets. Heuristics with a confidence level; nothing is deleted | Kubecost abandoned-resources, Robusta KRR/popeye-style sanitizers |
+| Progressive delivery | Read-only Argo Rollouts (strategy, step/weight, replicas, phase, pause reason, latest AnalysisRun, stable vs canary revision and images) and Flagger Canaries (phase, canaryWeight, failedChecks, lastTransitionTime) on Ops → GitOps (`GET /api/v1/rollouts`). Promote/abort are not offered | Argo Rollouts dashboard, Flagger/Weave GitOps |
 | Autoscaling | Read-only Karpenter view: NodePools and NodeClaims (instance type, spot/on-demand, zone, phase) on the Autoscaling page | Headlamp Karpenter plugin |
 
 ## Shipped in 0.13.2

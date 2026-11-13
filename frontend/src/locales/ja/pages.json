@@ -1855,5 +1855,32 @@
       "hpa": "HPA",
       "audit": "監査"
     }
+  },
+  "rollouts": {
+    "title": "プログレッシブデリバリー",
+    "notInstalled": "このクラスターには Argo Rollouts と Flagger がインストールされていません。",
+    "notInstalledHint": "Argo Rollouts または Flagger をインストールすると、カナリアおよびブルーグリーンのリリースがここに読み取り専用で表示されます。",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "Rollout はありません。",
+    "emptyFlagger": "Canary はありません。",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "戦略",
+      "step": "ステップ",
+      "weight": "ウェイト",
+      "replicas": "レプリカ(希望 / 更新済み / 準備完了 / 利用可能)",
+      "phase": "フェーズ",
+      "pauseReason": "一時停止の理由",
+      "analysis": "最新の分析",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "イメージ",
+      "target": "対象",
+      "failedChecks": "失敗したチェック",
+      "lastTransition": "最終遷移"
+    },
+    "readOnlyNote": "読み取り専用です。promote と abort は提供されません。kubectl argo rollouts を使用してください。"
   }
 }

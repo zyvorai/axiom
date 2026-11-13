@@ -108,3 +108,4 @@ Still thinner than a full private-cloud suite (**deliberate** — see ROADMAP No
 - SOC2 / pen-test packaging as a SKU
 - Run:ai / KAI fairshare editors and model-catalog MLOps
 - Charts that mint CRDs or ClusterRoles still need wider RBAC or an out-of-band `helm` install
+- **Progressive delivery is read-only.** Argo Rollouts promote/abort are not offered (the exact patch semantics could not be verified offline); use `kubectl argo rollouts`. The stable ReplicaSet images are not resolved (only the desired pod-template images and the stable/canary revision hashes), and a rollout is mapped from `status` as Argo Rollouts reports it, verified on unstructured fixtures only, not a live cluster.

@@ -1855,5 +1855,32 @@
       "hpa": "HPA",
       "audit": "审计"
     }
+  },
+  "rollouts": {
+    "title": "渐进式交付",
+    "notInstalled": "此集群未安装 Argo Rollouts 和 Flagger。",
+    "notInstalledHint": "安装 Argo Rollouts 或 Flagger 后,可在此只读查看金丝雀和蓝绿发布。",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "没有 Rollout。",
+    "emptyFlagger": "没有 Canary。",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "策略",
+      "step": "步骤",
+      "weight": "权重",
+      "replicas": "副本(期望 / 已更新 / 就绪 / 可用)",
+      "phase": "阶段",
+      "pauseReason": "暂停原因",
+      "analysis": "最近一次分析",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "镜像",
+      "target": "目标",
+      "failedChecks": "失败的检查",
+      "lastTransition": "上次转换"
+    },
+    "readOnlyNote": "只读。不提供 promote 和 abort;请使用 kubectl argo rollouts。"
   }
 }
