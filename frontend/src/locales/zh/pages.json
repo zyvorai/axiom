@@ -1105,7 +1105,8 @@
     "tabs": {
       "hpa": "水平",
       "vpa": "垂直（VPA）",
-      "keda": "事件驱动（KEDA）"
+      "keda": "事件驱动（KEDA）",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "未扩缩",
@@ -1158,6 +1159,29 @@
       "new": "新建 ScaledObject",
       "deleteAria": "删除 ScaledObject {{name}}",
       "editAria": "编辑 ScaledObject {{name}}"
+    },
+    "karpenter": {
+      "notInstalled": "此集群未安装 Karpenter。",
+      "notInstalledHint": "安装 Karpenter 即可按需配置节点。其 NodePools 和 NodeClaims 将以只读方式列在此处。",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "没有 NodePool。",
+      "emptyClaims": "没有 NodeClaim。",
+      "region": "Karpenter NodePools",
+      "claimsRegion": "Karpenter NodeClaims",
+      "columns": {
+        "nodeClass": "节点类",
+        "policy": "整合",
+        "consolidateAfter": "整合等待时间",
+        "cpuLimit": "CPU 上限",
+        "memoryLimit": "内存上限",
+        "nodes": "Nodes",
+        "capacity": "容量类型",
+        "instanceType": "实例类型",
+        "zone": "可用区",
+        "nodePool": "NodePool",
+        "phase": "阶段"
+      }
     }
   },
   "backups": {

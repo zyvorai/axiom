@@ -5,6 +5,12 @@ what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
 
+## Shipped, unreleased
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Autoscaling | Read-only Karpenter view: NodePools and NodeClaims (instance type, spot/on-demand, zone, phase) on the Autoscaling page | Headlamp Karpenter plugin |
+
 ## Shipped in 0.13.2
 
 | Area | What you get | Comparable to |

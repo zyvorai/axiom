@@ -1114,7 +1114,8 @@
     "tabs": {
       "hpa": "Horizontal",
       "vpa": "Vertical (VPA)",
-      "keda": "Basado en eventos (KEDA)"
+      "keda": "Basado en eventos (KEDA)",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "Sin escalar",
@@ -1167,6 +1168,29 @@
       "new": "Nuevo ScaledObject",
       "deleteAria": "Eliminar ScaledObject {{name}}",
       "editAria": "Editar el ScaledObject {{name}}"
+    },
+    "karpenter": {
+      "notInstalled": "Karpenter no está instalado en este clúster.",
+      "notInstalledHint": "Instale Karpenter para aprovisionar nodos bajo demanda. Sus NodePools y NodeClaims se mostrarán aquí, en solo lectura.",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "No hay NodePools.",
+      "emptyClaims": "No hay NodeClaims.",
+      "region": "NodePools de Karpenter",
+      "claimsRegion": "NodeClaims de Karpenter",
+      "columns": {
+        "nodeClass": "Clase de nodo",
+        "policy": "Consolidación",
+        "consolidateAfter": "Consolidar tras",
+        "cpuLimit": "Límite de CPU",
+        "memoryLimit": "Límite de memoria",
+        "nodes": "Nodes",
+        "capacity": "Capacidad",
+        "instanceType": "Tipo de instancia",
+        "zone": "Zona",
+        "nodePool": "NodePool",
+        "phase": "Fase"
+      }
     }
   },
   "backups": {

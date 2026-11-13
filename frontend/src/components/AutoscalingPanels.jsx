@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Layers3, Pencil, Plus, Trash2, Zap } from "lucide-react";
+import { Boxes, Layers3, Pencil, Plus, Trash2, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import i18n from "@/lib/i18n";
@@ -7,6 +7,7 @@ import GlassCard from "@/components/GlassCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTOSCALE as T, VPA_CREATE as V, KEDA_CREATE as K, AUTOSCALE_EDIT as AE } from "@/constants/testIds";
 import { toast } from "sonner";
+import StatusBadge from "@/components/StatusBadge";
 import { useAuth } from "@/lib/auth";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { VpaCreateDialog, KedaCreateDialog } from "@/components/AutoscalingCreate";
@@ -272,5 +273,120 @@ export function KedaPanel() {
                 </div>
             )}
         </GlassCard>
+    );
+}
+
+const readyStatus = (v) => (v === "True" ? "Ready" : v === "False" ? "NotReady" : "Pending");
+const phaseStatus = (v) => (v === "Initialized" ? "Ready" : v === "Pending" || v === "Launched" || v === "Registered" ? "Pending" : v);
+const KP = "pages:autoscalingPanels.karpenter";
+
+/** Read-only view of Karpenter NodePools and NodeClaims. */
+export function KarpenterPanel() {
+    const { t } = useTranslation();
+    const { data, error } = useList("/karpenter");
+    if (error) return <div className="notice danger" role="alert">{error}</div>;
+    if (!data) return <Skeleton className="h-48 rounded-2xl bg-muted" />;
+    if (!data.available) {
+        return (
+            <NotInstalled
+                testId={T.karpenterNotInstalled}
+                title={t(`${KP}.notInstalled`)}
+                hint={data.note || t(`${KP}.notInstalledHint`)}
+            />
+        );
+    }
+    const pools = data.nodePools || [];
+    const claims = data.nodeClaims || [];
+    return (
+        <div className="space-y-4">
+            <GlassCard className="overflow-hidden">
+                <div className="card-h">
+                    <h2 className="flex items-center gap-2 text-[15px]">
+                        <Boxes size={16} className="text-tone-link" /> {t(`${KP}.pools`)}
+                    </h2>
+                    <span className="r text-[12.5px] text-ink-3">{pools.length}</span>
+                </div>
+                {pools.length === 0 ? (
+                    <div className="empty">{t(`${KP}.emptyPools`)}</div>
+                ) : (
+                    <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t(`${KP}.region`)}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t(`${KP}.columns.nodeClass`)}</th>
+                                    <th>{t(`${KP}.columns.policy`)}</th>
+                                    <th>{t(`${KP}.columns.consolidateAfter`)}</th>
+                                    <th>{t(`${KP}.columns.cpuLimit`)}</th>
+                                    <th>{t(`${KP}.columns.memoryLimit`)}</th>
+                                    <th>{t(`${KP}.columns.nodes`)}</th>
+                                    <th>{t("common:fields.cpu")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("common:fields.age")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pools.map((p) => (
+                                    <tr key={p.name} data-testid={T.karpenterPoolRow(p.name)}>
+                                        <td className="name">{p.name}</td>
+                                        <td>{q(p.nodeClass)}</td>
+                                        <td>{q(p.policy)}</td>
+                                        <td className="mono">{q(p.consolidateAfter)}</td>
+                                        <td className="mono">{q(p.cpuLimit)}</td>
+                                        <td className="mono">{q(p.memoryLimit)}</td>
+                                        <td className="mono">{q(p.nodes)}</td>
+                                        <td className="mono">{q(p.cpu)}</td>
+                                        <td><StatusBadge status={readyStatus(p.ready)} /></td>
+                                        <td>{q(p.age)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </GlassCard>
+            <GlassCard className="overflow-hidden">
+                <div className="card-h">
+                    <h2 className="flex items-center gap-2 text-[15px]">
+                        <Layers3 size={16} className="text-tone-link" /> {t(`${KP}.claims`)}
+                    </h2>
+                    <span className="r text-[12.5px] text-ink-3">{claims.length}</span>
+                </div>
+                {claims.length === 0 ? (
+                    <div className="empty">{t(`${KP}.emptyClaims`)}</div>
+                ) : (
+                    <div className="max-h-[65vh] overflow-auto" tabIndex={0} role="region" aria-label={t(`${KP}.claimsRegion`)}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t(`${KP}.columns.nodePool`)}</th>
+                                    <th>{t("common:fields.node")}</th>
+                                    <th>{t(`${KP}.columns.instanceType`)}</th>
+                                    <th>{t(`${KP}.columns.capacity`)}</th>
+                                    <th>{t(`${KP}.columns.zone`)}</th>
+                                    <th>{t(`${KP}.columns.phase`)}</th>
+                                    <th>{t("common:fields.age")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {claims.map((c) => (
+                                    <tr key={c.name} data-testid={T.karpenterClaimRow(c.name)}>
+                                        <td className="name">{c.name}</td>
+                                        <td>{q(c.nodePool)}</td>
+                                        <td>{q(c.node)}</td>
+                                        <td className="mono">{q(c.instanceType)}</td>
+                                        <td>{q(c.capacityType)}</td>
+                                        <td>{q(c.zone)}</td>
+                                        <td><StatusBadge status={phaseStatus(c.phase)} /></td>
+                                        <td>{q(c.age)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </GlassCard>
+        </div>
     );
 }
