@@ -25,3 +25,13 @@ func (sp *SwitchableProvider) ListDRA(ctx context.Context) (DRAInventory, error)
 	}
 	return DRAInventory{Available: false, Note: "DRA browser not available on this provider", Objects: []DRAObject{}, Counts: map[string]int{}}, nil
 }
+
+func (sp *SwitchableProvider) ListKarpenter(ctx context.Context) (KarpenterInventory, error) {
+	type lister interface {
+		ListKarpenter(context.Context) (KarpenterInventory, error)
+	}
+	if l, ok := sp.current(ctx).(lister); ok {
+		return l.ListKarpenter(ctx)
+	}
+	return emptyKarpenter("Karpenter view not available on this provider"), nil
+}
