@@ -44,7 +44,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: zyvor-axiom
-          image: ghcr.io/zyvorai/axiom:0.14.1
+          image: ghcr.io/zyvorai/axiom:0.15.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
