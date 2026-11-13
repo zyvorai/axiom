@@ -55,3 +55,13 @@ func (sp *SwitchableProvider) ListCertManager(ctx context.Context) (CertManagerI
 	}
 	return emptyCertInventory("cert-manager view not available on this provider"), nil
 }
+
+func (sp *SwitchableProvider) ListVulnerabilities(ctx context.Context, ns, severity string) (VulnerabilityView, error) {
+	type lister interface {
+		ListVulnerabilities(context.Context, string, string) (VulnerabilityView, error)
+	}
+	if l, ok := sp.current(ctx).(lister); ok {
+		return l.ListVulnerabilities(ctx, ns, severity)
+	}
+	return emptyVulnView(), nil
+}

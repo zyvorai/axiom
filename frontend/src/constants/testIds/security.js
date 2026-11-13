@@ -43,6 +43,18 @@ export const SECURITY = {
     vulnRow: (id) => `security-vuln-${id}`,
 };
 
+// Per-image vulnerability rollup, top CVEs and SBOM summary on /security.
+export const SECURITY_VULNS = {
+    root: "security-vulns",
+    severity: "security-vulns-severity",
+    empty: "security-vulns-empty",
+    cves: "security-vulns-cves",
+    sbom: "security-vulns-sbom",
+    imageRow: (image) => `security-vulns-image-${image}`,
+    cveRow: (id) => `security-vulns-cve-${id}`,
+    sbomRow: (image) => `security-vulns-sbom-${image}`,
+};
+
 // cert-manager read-only view (Secrets page).
 export const CERTS = {
     root: "certs-root",

@@ -24,6 +24,7 @@ func (s *Server) registerSecurityRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/security/reports", s.securityReports)
 	mux.HandleFunc("GET /api/v1/security/reports/{namespace}/{kind}/{name}", s.workloadSecurity)
 	mux.HandleFunc("GET /api/v1/security/policy-coverage", s.policyCoverage)
+	mux.HandleFunc("GET /api/v1/security/vulnerabilities", s.securityVulnerabilities)
 
 	mux.HandleFunc("POST /api/v1/ws-ticket", s.issueWSTicket)
 }
@@ -64,6 +65,12 @@ func (s *Server) securityReports(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) workloadSecurity(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.GetWorkloadSecurity(r.Context(), r.PathValue("namespace"), r.PathValue("kind"), r.PathValue("name"))
+	respond(w, v, err)
+}
+
+func (s *Server) securityVulnerabilities(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	v, err := platform.ListVulnerabilities(r.Context(), s.provider, q.Get("namespace"), q.Get("severity"))
 	respond(w, v, err)
 }
 
