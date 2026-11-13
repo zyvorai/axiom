@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/zyvorai/axiom/internal/auth"
@@ -106,7 +107,13 @@ type AuthOptions struct {
 	LoginThrottleStore auth.RevocationStore
 }
 
+// serverSeq numbers Server instances (see Server.id).
+var serverSeq atomic.Uint64
+
 type Server struct {
+	// id is unique per Server for the life of the process. Shared limiter tables key on it instead
+	// of the pointer, because the garbage collector may hand a freed Server's address to a new one.
+	id          uint64
 	provider    platform.Provider
 	mode        string
 	username    string
@@ -179,7 +186,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	if revocations == nil {
 		revocations = auth.NewRevocations(opts.RevocationStore)
 	}
-	s := &Server{revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore(), billing: platform.NewBillingService()}
+	s := &Server{id: serverSeq.Add(1), revocations: revocations, provider: provider, mode: mode, username: username, password: password, allowOrigin: allowOrigin, auth: opts, hub: hub, users: users, tickets: auth.NewTicketStore(), billing: platform.NewBillingService()}
 	if opts.PodProxy != nil {
 		opts.PodProxy.attach(provider, revocationsChecker{revocations})
 		s.podProxy = opts.PodProxy

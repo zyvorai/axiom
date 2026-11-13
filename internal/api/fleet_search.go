@@ -19,7 +19,7 @@ const (
 	fleetSearchWindow    = 10 * time.Second
 )
 
-// fleetSearchRL is shared by every Server; keys carry the server pointer so
+// fleetSearchRL is shared by every Server; keys carry the server id so
 // two handlers (e.g. in tests) never share a bucket.
 var fleetSearchRL aiRateLimiter
 
@@ -52,7 +52,7 @@ func (s *Server) fleetSearch(w http.ResponseWriter, r *http.Request) {
 		limit = n
 	}
 
-	key := fmt.Sprintf("%p|%s", s, s.auditUser(r))
+	key := fmt.Sprintf("%d|%s", s.id, s.auditUser(r))
 	if ok, wait := fleetSearchRL.allow(key, fleetSearchPerWindow, fleetSearchWindow); !ok {
 		w.Header().Set("Retry-After", strconv.Itoa(int(wait.Seconds())+1))
 		fail(w, http.StatusTooManyRequests, errors.New("too many fleet searches; try again shortly"))

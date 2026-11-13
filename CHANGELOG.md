@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- The per-user fleet-search rate limiter keyed its buckets on the server's memory address, so in a long-running test process a freed server's address could be reused and two servers shared a bucket (an intermittent `429` in `TestFleetSearchRateLimit`, which failed the 0.15.1 container image's verify step once). Buckets now key on a unique per-server id. No effect on a normal single-server run.
+
 ## [0.15.1] - 2026-11-13
 
 ### Fixed
