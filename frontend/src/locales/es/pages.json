@@ -167,9 +167,24 @@
       "aria": "External Secrets",
       "columns": {
         "store": "Almacén",
-        "refresh": "Actualización"
+        "refresh": "Actualización",
+        "lastSync": "Última sincronización",
+        "condition": "Condición",
+        "target": "Secret de destino",
+        "health": "Estado",
+        "provider": "Proveedor"
       },
-      "empty": "No se encontraron recursos ExternalSecret."
+      "empty": "No se encontraron recursos ExternalSecret.",
+      "never": "Nunca",
+      "unavailable": "External Secrets Operator no está instalado o no es legible.",
+      "health": {
+        "ready": "Listo",
+        "failing": "Con fallos",
+        "stale": "Obsoleto"
+      },
+      "storesTitle": "Almacenes de secretos",
+      "storesAria": "Almacenes de External Secrets",
+      "storesEmpty": "No se encontraron SecretStores ni ClusterSecretStores."
     },
     "certs": {
       "title": "Certificados (cert-manager)",

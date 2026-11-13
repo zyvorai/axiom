@@ -166,9 +166,24 @@
       "aria": "External Secrets",
       "columns": {
         "store": "ストア",
-        "refresh": "更新間隔"
+        "refresh": "更新間隔",
+        "lastSync": "最終同期",
+        "condition": "状態",
+        "target": "ターゲット Secret",
+        "health": "ヘルス",
+        "provider": "プロバイダー"
       },
-      "empty": "ExternalSecret リソースが見つかりません。"
+      "empty": "ExternalSecret リソースが見つかりません。",
+      "never": "なし",
+      "unavailable": "External Secrets Operator がインストールされていないか、読み取れません。",
+      "health": {
+        "ready": "準備完了",
+        "failing": "失敗",
+        "stale": "古い"
+      },
+      "storesTitle": "シークレットストア",
+      "storesAria": "External Secrets ストア",
+      "storesEmpty": "SecretStore または ClusterSecretStore が見つかりません。"
     },
     "certs": {
       "title": "証明書 (cert-manager)",

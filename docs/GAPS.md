@@ -108,3 +108,4 @@ Still thinner than a full private-cloud suite (**deliberate** — see ROADMAP No
 - SOC2 / pen-test packaging as a SKU
 - Run:ai / KAI fairshare editors and model-catalog MLOps
 - Charts that mint CRDs or ClusterRoles still need wider RBAC or an out-of-band `helm` install
+- External Secrets health: a background check (every 5 min, first pass only records state) notifies through the existing Slack/webhook settings, debounced, when an ExternalSecret flips to failing; stale entries are shown in the UI but do not notify, and a refreshInterval of `0s` is never marked stale

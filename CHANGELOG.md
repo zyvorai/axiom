@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — External Secrets sync health
+- `GET /api/v1/external-secrets/health` and a rebuilt External Secrets section on Secrets: per-ExternalSecret store (SecretStore/ClusterSecretStore), refresh interval, last sync, Ready condition with reason and message, target Secret, a stale bucket (not synced for more than 2x refreshInterval), server-side ready/failing/stale rollup counts, and stores with Ready status and provider type. Names and status only, never credentials or values. A background watcher audits and sends a debounced notification (existing Slack/webhook settings) when an ExternalSecret flips to failing. ClusterRole gains get/list/watch on `secretstores` and `clustersecretstores` (k8s + Helm); demo includes a failing and a stale entry. Strings in all 8 locales.
+
 ### Added — In-place pod resize
 - `POST /api/v1/cost/rightsizing/apply` accepts `inPlace:true` (opt-in, default unchanged): the same recommendation is written to each running pod of the workload through the `pods/resize` subresource (Kubernetes >= 1.33 beta, 1.35 stable) with no restart and no rollout; the pod template is not changed. Dry run supported (server-side `dryRun=All`), operator/admin only, audited as `cost.rightsizing_apply_inplace`. Limits are never lowered or added; a Guaranteed pod whose request would drop is skipped (a resize cannot change QoS class). A cluster without the subresource gets `501` with a clear message. RBAC: `pods/resize` `patch` (k8s + Helm). Pod detail shows PodResizePending / PodResizeInProgress and legacy `status.resize`; demo supported. Strings in all 8 locales.
 
