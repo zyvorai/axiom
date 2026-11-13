@@ -118,6 +118,8 @@ are theirs, not ours.
 | North-south | Envoy Gateway via Gateway API (`expose.type=Gateway`, Ingresses UI provider=envoy) | Ingress NGINX → Envoy migration |
 | Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
 | Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views, per-image vulnerability rollup and SBOM component/license summary | Rancher/NeuVector, Lens Security Center |
+| Troubleshooting | Timeline of events, audit entries, alerts and rollouts; "What changed" per workload; ranked "Recent changes" correlation (GitOps, Helm, rollouts, config, nodes, HPA, audit) around a workload and time; cluster health check with suggested fixes; multi-pod log view with regex, download and previous-container; ephemeral debug containers; opt-in admin-only node shell | Komodor timeline, k8sgpt analyzers |
+| Security | Read-only RBAC viewer ("who can…", per subject), ServiceAccounts, NetworkPolicy analysis, Trivy-operator and PolicyReport (Kyverno) views | Rancher/NeuVector, Lens Security Center |
 | Auth hardening | Per-account login throttling, single-use WebSocket/SSE tickets instead of credentials in URLs, OIDC ID-token signature and nonce verification, audit JSON export | — |
 | AI (opt-in) | Bring-your-own-LLM "Explain with AI" for Pods, Warning events and health findings; redacted payload preview; never sends Secret or ConfigMap values | Lens Prism, Komodor Klaudia, Rancher Liz, OpenShift Lightspeed |
 

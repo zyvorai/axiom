@@ -9,6 +9,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Added — Image vulnerability and SBOM view
 - `GET /api/v1/security/vulnerabilities?namespace=&severity=` and an Images and SBOM section on Security: per-image rollup (critical/high/medium/low, fixable, workloads using the image), top CVEs with `fixedIn`, per-image fix suggestions (lowest fixed version per package) and SBOM component counts with a license summary, from Trivy Operator VulnerabilityReports / SbomReports / ClusterSbomReports. Read-only; ClusterRole gains get/list/watch on `sbomreports` and `clustersbomreports` (k8s + Helm). Strings in all 8 locales.
+### Added — change correlation
+- `GET /api/v1/changes?namespace=&workload=&at=&window=` and MCP tool `recent_changes`: ordered recent changes (GitOps syncs, Helm upgrades, rollouts, Secret/ConfigMap updates, node cordon/drain/NotReady, HPA scaling, Axiom audit) in a lookback window (default 60 min), each with source, time, actor and a relevance score (same workload/namespace and closer in time rank higher). Pure ranking in `internal/platform/changes.go`; no new RBAC. 'Recent changes' panel on Workload detail (Changes tab) and Timeline. Strings in all 8 locales.
+
 ### Added — Karpenter view
 - Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
 ### Added — Gateway API deep view

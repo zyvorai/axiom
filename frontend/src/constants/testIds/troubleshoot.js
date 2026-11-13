@@ -17,6 +17,14 @@ export const TIMELINE = {
     eventsLink: "events-open-timeline",
 };
 
+export const RECENT_CHANGES = {
+    root: "recent-changes",
+    window: "recent-changes-window",
+    row: (i) => `recent-changes-row-${i}`,
+    score: (i) => `recent-changes-score-${i}`,
+    empty: "recent-changes-empty",
+};
+
 export const HEALTH = {
     root: "health-check-page",
     namespace: "health-namespace",

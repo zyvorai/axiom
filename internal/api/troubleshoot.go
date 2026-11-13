@@ -15,6 +15,7 @@ import (
 // function so the shared route block in server.go gains a single line.
 func (s *Server) registerTroubleshooting(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/timeline", s.timeline)
+	mux.HandleFunc("GET /api/v1/changes", s.changes)
 	mux.HandleFunc("GET /api/v1/diagnose", s.clusterHealth)
 	mux.HandleFunc("GET /api/v1/workloads/{namespace}/{kind}/{name}/logs", s.workloadLogs)
 	mux.HandleFunc("POST /api/v1/pods/{namespace}/{name}/debug", s.debugPod)

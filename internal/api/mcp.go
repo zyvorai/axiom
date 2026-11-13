@@ -143,6 +143,9 @@ func (s *Server) mcpToolDefs() []mcpTool {
 			"namespace": str, "kind": str, "name": str,
 		}, "namespace", "name")},
 		{Name: "list_dra", Description: "DRA inventory (DeviceClass / ResourceSlice / ResourceClaim)", InputSchema: obj(map[string]any{})},
+		{Name: "recent_changes", Description: "Ranked changes (GitOps, Helm, rollouts, config, nodes, HPA, audit) before a time; window like 60m", InputSchema: obj(map[string]any{
+			"namespace": str, "workload": str, "at": str, "window": str,
+		})},
 		{Name: "outage_narrative", Description: "Compose fleet outage narrative (who poked it + agent runs)", InputSchema: obj(map[string]any{
 			"cluster": str, "from": str, "state": str,
 		}, "cluster")},
@@ -232,6 +235,13 @@ func (s *Server) mcpCallTool(r *http.Request, params json.RawMessage) (map[strin
 		payload, err = s.provider.GetResource(ctx, str("namespace"), str("kind"), str("name"))
 	case "list_dra":
 		payload, err = platform.ListDRA(ctx, s.provider)
+	case "recent_changes":
+		at, window, perr := parseChangeParams(str("at"), str("window"), time.Now())
+		if perr != nil {
+			err = perr
+			break
+		}
+		payload = platform.CollectChanges(ctx, s.provider, str("namespace"), str("workload"), at, window)
 	case "outage_narrative":
 		payload = platform.BuildOutageNarrative(ctx, s.provider, str("cluster"), str("from"), str("state"))
 	case "propose_seal":

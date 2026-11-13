@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { RefreshCw, Search, X } from "lucide-react";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
+import RecentChanges from "@/components/RecentChanges";
 import PageHeader from "@/components/PageHeader";
 import { SeverityBadge, SourceBadge } from "@/components/SeverityBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -176,6 +177,8 @@ export default function Timeline() {
                     {error}
                 </div>
             )}
+
+            <RecentChanges namespace={namespace} workload={object.includes("/") ? object.split("/")[1] : ""} />
 
             {!entries && !error ? (
                 <Skeleton className="h-[60vh] rounded-2xl bg-muted" />
