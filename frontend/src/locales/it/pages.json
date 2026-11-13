@@ -1312,6 +1312,13 @@
       "phase": "Fase",
       "schedule": "Pianificazione",
       "lastBackup": "Ultimo backup"
+    },
+    "veleroRestores": {
+      "title": "Ripristini Velero",
+      "empty": "Nessun ripristino Velero.",
+      "new": "Nuovo ripristino",
+      "backup": "Backup",
+      "policy": "Oggetti esistenti"
     }
   },
   "costPanels": {

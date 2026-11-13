@@ -193,6 +193,10 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted viewer cannot list directory mfa", "rviewer", "GET", "/api/v1/users/external-mfa", 403},
 		{"restricted operator cannot list directory mfa", "roper", "GET", "/api/v1/users/external-mfa", 403},
 		{"operator cannot list directory mfa (slash)", "oper", "GET", "/api/v1/users/external-mfa/", 403},
+		{"viewer velero restore preview", "viewer", "POST", "/api/v1/velero/restores/preview", 403},
+		{"operator velero restore preview", "oper", "POST", "/api/v1/velero/restores/preview", 403},
+		{"operator velero restore create", "oper", "POST", "/api/v1/velero/restores", 403},
+		{"operator velero restore create slash", "oper", "POST", "/api/v1/velero/restores/", 403},
 		// --- GitOps application creation: admin-only; list and sync unchanged ---
 		{"viewer gitops create", "viewer", "POST", "/api/v1/gitops", 403},
 		{"viewer gitops preview", "viewer", "POST", "/api/v1/gitops/preview", 403},

@@ -1302,6 +1302,13 @@
       "phase": "フェーズ",
       "schedule": "スケジュール",
       "lastBackup": "最終バックアップ"
+    },
+    "veleroRestores": {
+      "title": "Velero リストア",
+      "empty": "Velero リストアはありません。",
+      "new": "新規リストア",
+      "backup": "バックアップ",
+      "policy": "既存オブジェクト"
     }
   },
   "costPanels": {

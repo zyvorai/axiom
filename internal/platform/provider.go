@@ -72,6 +72,7 @@ type Provider interface {
 	CreateVMRestore(context.Context, CreateVMRestoreRequest) (VMRestore, error)
 	ListVeleroBackups(context.Context, string) ([]VeleroBackup, error)
 	ListVeleroSchedules(context.Context, string) ([]VeleroSchedule, error)
+	ListVeleroRestores(context.Context, string) ([]VeleroRestore, error)
 	ListGitOps(context.Context) ([]GitOpsItem, error)
 	ListAlerts(context.Context, string) (AlertsResponse, error)
 	ListRBAC(context.Context, string) (RBACSummary, error)
@@ -173,6 +174,8 @@ type Provider interface {
 
 	CreateVeleroSchedule(context.Context, CreateVeleroScheduleRequest) (VeleroSchedule, error)
 	CreateVeleroBackup(context.Context, CreateVeleroBackupRequest) (VeleroBackup, error)
+	PreviewVeleroRestore(context.Context, VeleroRestoreRequest) (VeleroRestorePreview, error)
+	CreateVeleroRestore(context.Context, VeleroRestoreRequest) (VeleroRestore, error)
 
 	DiagnosePod(context.Context, string, string) (PodDiagnosis, error)
 

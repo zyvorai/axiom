@@ -1312,6 +1312,13 @@
       "phase": "Phase",
       "schedule": "Zeitplan",
       "lastBackup": "Letztes Backup"
+    },
+    "veleroRestores": {
+      "title": "Velero-Wiederherstellungen",
+      "empty": "Keine Velero-Wiederherstellungen.",
+      "new": "Neue Wiederherstellung",
+      "backup": "Backup",
+      "policy": "Vorhandene Objekte"
     }
   },
   "costPanels": {

@@ -14,6 +14,10 @@ All notable changes to Zyvor Axiom are documented here.
 
 ### Added — Idle resources finder
 - `GET /api/v1/cost/idle?namespace=&minAgeDays=7` and an Idle resources section on Ops → Cost: unbound PVCs and PVCs no Pod mounts (with a monthly estimate at a flat storage rate, default $0.10/GiB, `AXIOM_COST_STORAGE_RATE`), empty namespaces (never `default`, `kube-*` or Axiom's own), LoadBalancer Services with no ready endpoints, finished Jobs, scaled-to-zero Deployments, and low-confidence unreferenced ConfigMaps/Secrets (names only, values never read). Read-only: no write endpoint and nothing is deleted; each finding carries a confidence and suggested action. Uses existing list calls, so no RBAC change; namespace-restricted accounts get `403`. Strings in all eight languages
+### Added — Velero restore wizard
+- Backups page: Velero Restores list and a wizard (pick Backup, included/excluded namespaces and resources, namespace mapping, restorePVs, existingResourcePolicy none|update) with a server-side dry-run preview (backup summary, namespace collisions, effect on existing objects, warnings) and a typed confirmation before the Restore CR is created.
+- `GET /api/v1/velero/restores`, `POST /api/v1/velero/restores/preview`, `POST /api/v1/velero/restores` (admin-only, audited by name, confirmation enforced server-side). ClusterRole (k8s + Helm) gains create on `restores.velero.io`. Strings in all 8 locales. Not yet exercised against a live cluster.
+
 ### Added — Karpenter view
 - Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
 ### Added — Gateway API deep view

@@ -151,7 +151,9 @@
     "scheduleCreated": "Zeitplan {{name}} erstellt",
     "createScheduleFailed": "Zeitplan konnte nicht erstellt werden",
     "veleroRequested": "Velero-Backup {{name}} angefordert",
-    "veleroFailed": "Velero-Backup fehlgeschlagen"
+    "veleroFailed": "Velero-Backup fehlgeschlagen",
+    "veleroRestoreCreated": "Wiederherstellung {{name}} erstellt",
+    "veleroRestoreFailed": "Velero-Wiederherstellung fehlgeschlagen"
   },
   "costPanels": {
     "budgetSaved": "Budget für {{namespace}} gespeichert",

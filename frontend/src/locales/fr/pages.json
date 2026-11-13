@@ -1312,6 +1312,13 @@
       "phase": "Phase",
       "schedule": "Planification",
       "lastBackup": "Dernière sauvegarde"
+    },
+    "veleroRestores": {
+      "title": "Restaurations Velero",
+      "empty": "Aucune restauration Velero.",
+      "new": "Nouvelle restauration",
+      "backup": "Backup",
+      "policy": "Objets existants"
     }
   },
   "costPanels": {

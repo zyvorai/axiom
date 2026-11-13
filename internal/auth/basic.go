@@ -371,6 +371,7 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/helm/releases",
 	"/api/v1/velero/backups",
 	"/api/v1/velero/schedules",
+	"/api/v1/velero/restores",
 	"/api/v1/haven/identity",
 	"/api/v1/haven/planes",
 	"/api/v1/hpas",

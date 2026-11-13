@@ -151,7 +151,9 @@
     "scheduleCreated": "Programación {{name}} creada",
     "createScheduleFailed": "Error al crear la programación",
     "veleroRequested": "Copia de seguridad de Velero {{name}} solicitada",
-    "veleroFailed": "Error en la copia de seguridad de Velero"
+    "veleroFailed": "Error en la copia de seguridad de Velero",
+    "veleroRestoreCreated": "Restauración {{name}} creada",
+    "veleroRestoreFailed": "Falló la restauración de Velero"
   },
   "costPanels": {
     "budgetSaved": "Presupuesto guardado para {{namespace}}",

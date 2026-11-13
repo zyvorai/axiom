@@ -1312,6 +1312,13 @@
       "phase": "Fase",
       "schedule": "Agendamento",
       "lastBackup": "Último backup"
+    },
+    "veleroRestores": {
+      "title": "Restaurações do Velero",
+      "empty": "Nenhuma restauração do Velero.",
+      "new": "Nova restauração",
+      "backup": "Backup",
+      "policy": "Objetos existentes"
     }
   },
   "costPanels": {

@@ -476,6 +476,9 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | GET | `/api/v1/velero/backups?namespace=...` | Velero backups |
 | GET | `/api/v1/velero/schedules?namespace=...` | Velero schedules |
 | POST | `/api/v1/velero/backups` | Create a Velero Backup: `{"namespace","name","includedNamespaces","ttl","storageLocation"}` (`includedNamespaces` defaults to `["*"]`; `ttl` / `storageLocation` optional). Object validated against upstream Velero CRD OpenAPI in unit tests |
+| GET | `/api/v1/velero/restores?namespace=...` | Velero restores (name, backup, phase, existingResourcePolicy, errors/warnings) |
+| POST | `/api/v1/velero/restores/preview` | Admin. Dry-run of a restore, creates nothing: `{"namespace","name","backupName","includedNamespaces","excludedNamespaces","includedResources","excludedResources","namespaceMapping":{"src":"dst"},"restorePVs","existingResourcePolicy":"none\|update"}`. Returns backup summary, per-namespace targets with `exists` (collision), `resourceEffect`, `warnings` and `confirmPhrase` (the restore name). 400 on invalid input or a backup that is not Completed/PartiallyFailed, 404 for an unknown backup |
+| POST | `/api/v1/velero/restores` | Admin. Creates the Restore. Same body plus `confirm`; the server recomputes the preview and requires `confirm` to equal the restore name (400 otherwise). Audited as `velero-restore.create` (names only). 201 with the restore, 409 if it exists |
 | POST | `/api/v1/velero/schedules` | Create a schedule: `{"namespace","name","schedule","ttl"}` (`schedule` is a cron string, `ttl` is optional, e.g. `"720h0m0s"`) — builds the Velero `Schedule` object directly via the dynamic client, same as the other Velero/Flux/Argo access in this API |
 
 ## Helm, GitOps, ops

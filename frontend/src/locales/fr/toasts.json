@@ -151,7 +151,9 @@
     "scheduleCreated": "Planification {{name}} créée",
     "createScheduleFailed": "Échec de la création de la planification",
     "veleroRequested": "Sauvegarde Velero {{name}} demandée",
-    "veleroFailed": "Échec de la sauvegarde Velero"
+    "veleroFailed": "Échec de la sauvegarde Velero",
+    "veleroRestoreCreated": "Restauration {{name}} créée",
+    "veleroRestoreFailed": "Échec de la restauration Velero"
   },
   "costPanels": {
     "budgetSaved": "Budget enregistré pour {{namespace}}",

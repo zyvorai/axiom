@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Archive, CalendarClock, Snowflake, Plus, Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import VeleroRestoreWizard from "@/components/VeleroRestoreWizard";
+import { VELERO_RESTORE } from "@/constants/testIds";
 
 function Section({ title, icon: Icon, rows, columns, empty, action }) {
     return (
@@ -207,6 +209,8 @@ export default function Backups() {
     const [snapshots, setSnapshots] = useState(null);
     const [veleroBackups, setVeleroBackups] = useState(null);
     const [veleroSchedules, setVeleroSchedules] = useState(null);
+    const [veleroRestores, setVeleroRestores] = useState(null);
+    const [wizardOpen, setWizardOpen] = useState(false);
     const [createOpen, setCreateOpen] = useState(false);
     const [restoreOpen, setRestoreOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -219,10 +223,12 @@ export default function Backups() {
             api.get("/backups").catch(() => ({ data: [] })),
             api.get("/velero/backups").catch(() => ({ data: [] })),
             api.get("/velero/schedules").catch(() => ({ data: [] })),
-        ]).then(([a, b, c]) => {
+            api.get("/velero/restores").catch(() => ({ data: [] })),
+        ]).then(([a, b, c, d]) => {
             setSnapshots(a.data);
             setVeleroBackups(b.data);
             setVeleroSchedules(c.data);
+            setVeleroRestores(d.data);
         });
     };
 
@@ -305,6 +311,26 @@ export default function Backups() {
                 ]}
             />
 
+            <Section
+                title={t("pages:backups.veleroRestores.title")}
+                icon={Undo2}
+                rows={veleroRestores || []}
+                empty={t("pages:backups.veleroRestores.empty")}
+                action={
+                    <button type="button" data-testid={VELERO_RESTORE.open} className="btn btn-sm btn-line" onClick={() => setWizardOpen(true)}>
+                        <Plus size={13} /> {t("pages:backups.veleroRestores.new")}
+                    </button>
+                }
+                columns={[
+                    { key: "name", label: t("common:fields.name"), render: (r) => <><div className="name mono">{r.name}</div><div className="text-[11px] text-ink-3">{r.namespace}</div></> },
+                    { key: "backup", label: t("pages:backups.veleroRestores.backup"), render: (r) => <span className="mono">{r.backup}</span> },
+                    { key: "policy", label: t("pages:backups.veleroRestores.policy"), render: (r) => <span className="mono">{r.existingResourcePolicy || "none"}</span> },
+                    { key: "phase", label: t("pages:backups.columns.phase"), render: (r) => <StatusBadge status={r.phase} /> },
+                    { key: "age", label: t("common:fields.age"), render: (r) => <span className="mono num">{r.age}</span> },
+                ]}
+            />
+
+            <VeleroRestoreWizard open={wizardOpen} onOpenChange={setWizardOpen} backups={veleroBackups || []} onCreated={load} />
             <CreateBackupDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
             <RestoreDialog open={restoreOpen} onOpenChange={setRestoreOpen} onCreated={load} />
             <CreateScheduleDialog open={scheduleOpen} onOpenChange={setScheduleOpen} onCreated={load} />

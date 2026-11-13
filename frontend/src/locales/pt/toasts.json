@@ -151,7 +151,9 @@
     "scheduleCreated": "Agendamento {{name}} criado",
     "createScheduleFailed": "Falha ao criar o agendamento",
     "veleroRequested": "Backup do Velero {{name}} solicitado",
-    "veleroFailed": "Falha no backup do Velero"
+    "veleroFailed": "Falha no backup do Velero",
+    "veleroRestoreCreated": "Restauração {{name}} criada",
+    "veleroRestoreFailed": "Falha na restauração do Velero"
   },
   "costPanels": {
     "budgetSaved": "Orçamento salvo para {{namespace}}",

@@ -1,0 +1,25 @@
+// Test IDs for the Velero restore wizard (Backups page). Naming follows ./auth.js.
+
+export const VELERO_RESTORE = {
+    open: 'velero-restore-open',
+    list: 'velero-restores',
+    dialog: 'velero-restore-dialog',
+    step: 'velero-restore-step',
+    backup: 'velero-restore-backup',
+    name: 'velero-restore-name',
+    included: 'velero-restore-included',
+    excluded: 'velero-restore-excluded',
+    includedResources: 'velero-restore-included-resources',
+    excludedResources: 'velero-restore-excluded-resources',
+    mapping: 'velero-restore-mapping',
+    policy: 'velero-restore-policy',
+    restorePVs: 'velero-restore-pvs',
+    previewBtn: 'velero-restore-preview-btn',
+    preview: 'velero-restore-preview',
+    targets: 'velero-restore-targets',
+    warnings: 'velero-restore-warnings',
+    confirm: 'velero-restore-confirm',
+    back: 'velero-restore-back',
+    create: 'velero-restore-create',
+    error: 'velero-restore-error',
+};
