@@ -166,9 +166,24 @@
       "aria": "外部 Secret",
       "columns": {
         "store": "存储",
-        "refresh": "刷新"
+        "refresh": "刷新",
+        "lastSync": "上次同步",
+        "condition": "状态",
+        "target": "目标 Secret",
+        "health": "健康度",
+        "provider": "提供方"
       },
-      "empty": "未找到 ExternalSecret 资源。"
+      "empty": "未找到 ExternalSecret 资源。",
+      "never": "从未",
+      "unavailable": "External Secrets Operator 未安装或无法读取。",
+      "health": {
+        "ready": "就绪",
+        "failing": "失败",
+        "stale": "已过期"
+      },
+      "storesTitle": "密钥存储",
+      "storesAria": "External Secrets 存储",
+      "storesEmpty": "未找到 SecretStore 或 ClusterSecretStore。"
     },
     "certs": {
       "title": "证书 (cert-manager)",

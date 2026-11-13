@@ -343,6 +343,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/helm/install", s.helmInstall)
 	mux.HandleFunc("POST /api/v1/helm/upgrade", s.helmUpgrade)
 	mux.HandleFunc("GET /api/v1/external-secrets", s.externalSecrets)
+	mux.HandleFunc("GET /api/v1/external-secrets/health", s.externalSecretsHealth)
 	mux.HandleFunc("GET /api/v1/vm-snapshots", s.vmSnapshots)
 	mux.HandleFunc("POST /api/v1/vm-snapshots", s.createVMSnapshot)
 	mux.HandleFunc("POST /api/v1/vms/{namespace}/{name}/migrate", s.migrateVM)

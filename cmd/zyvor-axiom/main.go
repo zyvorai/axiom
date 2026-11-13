@@ -72,6 +72,7 @@ func main() {
 	// store is in memory, so two instances would not see each other's writes).
 	costBudgets := platform.OpenCostBudgetStore(cfg.Mode, provider)
 	platform.StartBudgetWatcher(dispatchCtx, cfg.BudgetCheckInterval, provider, costBudgets, notifier)
+	platform.StartExternalSecretsWatcher(dispatchCtx, platform.DefaultExternalSecretsCheckInterval, provider, notifier)
 	autoAgents := &platform.AgentAutoRunner{Provider: provider, Hub: hub, Demo: cfg.Mode == "demo"}
 	autoAgents.Start()
 	defer autoAgents.Stop()

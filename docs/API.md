@@ -472,6 +472,7 @@ Set `AXIOM_PACKETWOLF_URL` (and optional `AXIOM_PACKETWOLF_API_KEY`) to enable P
 | PUT | `/api/v1/secrets/{namespace}/{name}` | Replace a Secret's data: `{"data":{...},"type":"..."}` |
 | DELETE | `/api/v1/secrets/{namespace}/{name}` | Delete Secret |
 | GET | `/api/v1/external-secrets?namespace=...` | ExternalSecret CRs |
+| GET | `/api/v1/external-secrets/health?namespace=...` | External Secrets sync health: `rollup` {total, ready, failing, stale}, `externalSecrets` (store, storeKind, refreshInterval, lastSync, Ready, reason, message, targetSecret, `health` = ready/failing/stale where stale means Ready but not synced for more than 2x refreshInterval), and `stores` (SecretStore/ClusterSecretStore with Ready and provider type). Names and status only, never credentials or secret values. `available:false` when the operator CRDs are absent. Needs get/list on externalsecrets, secretstores, clustersecretstores |
 | GET | `/api/v1/backups?namespace=...` | Volume snapshots / backups |
 | POST | `/api/v1/backups` | Create backup |
 | POST | `/api/v1/backups/restore` | Restore PVC from snapshot |

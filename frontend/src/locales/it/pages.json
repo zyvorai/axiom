@@ -167,9 +167,24 @@
       "aria": "Secret esterni",
       "columns": {
         "store": "Store",
-        "refresh": "Aggiornamento"
+        "refresh": "Aggiornamento",
+        "lastSync": "Ultima sincronizzazione",
+        "condition": "Condizione",
+        "target": "Secret di destinazione",
+        "health": "Salute",
+        "provider": "Provider"
       },
-      "empty": "Nessuna risorsa ExternalSecret trovata."
+      "empty": "Nessuna risorsa ExternalSecret trovata.",
+      "never": "Mai",
+      "unavailable": "External Secrets Operator non è installato o non è leggibile.",
+      "health": {
+        "ready": "Pronto",
+        "failing": "In errore",
+        "stale": "Obsoleto"
+      },
+      "storesTitle": "Store di secret",
+      "storesAria": "Store di External Secrets",
+      "storesEmpty": "Nessun SecretStore o ClusterSecretStore trovato."
     },
     "certs": {
       "title": "Certificati (cert-manager)",

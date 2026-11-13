@@ -165,6 +165,7 @@ are theirs, not ours.
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
 | Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
 | cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
+| External Secrets sync health | ExternalSecret list (store, refresh interval, last sync, Ready condition and message, target Secret), stale bucket (> 2x refresh), failing/stale rollup, SecretStore/ClusterSecretStore Ready and provider type, debounced notification when one flips to failing (`/external-secrets/health`) | Lens/Headlamp External Secrets panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

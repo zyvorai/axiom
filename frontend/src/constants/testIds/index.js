@@ -29,3 +29,4 @@ export * from './costidle';
 export * from './velero';
 export * from './rollouts';
 export * from './nodedrain';
+export * from './externalsecrets';
