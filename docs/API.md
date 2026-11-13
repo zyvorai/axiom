@@ -806,6 +806,22 @@ A `viewer` account's `namespaces` field restricts it to reading only the listed 
 
 `namespace` scopes every source (cluster-wide audit actions such as `node.cordon` only appear when no namespace is given). `object` is `Kind/name` (for example `Deployment/payments-api`) and also matches the ReplicaSets and pods that workload owns. `since` is an RFC 3339 time or a lookback such as `90m`, `6h` or `7d`; `limit` defaults to 200 (max 1000). Any role may call it; namespace-restricted accounts must pass a `namespace` they own (an unscoped or `all` query is `403`).
 
+### Change correlation ("what changed before this?")
+
+`GET /api/v1/changes?namespace=&workload=&at=&window=` returns the recent changes around a namespace/workload, ranked by relevance: `{namespace, workload, at, window, changes: [{source, time, namespace, object, actor, summary, score, scope, before}]}`. `at` is an RFC 3339 reference time (default now); `window` is a lookback such as `30m`, `2h` or `7d` (default `60m`, max `7d`). Changes after `at` are excluded.
+
+| `source` | From |
+|---|---|
+| `gitops` | Argo CD / Flux revision syncs (and `gitops.*` audit entries) |
+| `helm` | Helm release upgrades/rollbacks (and `helm.*` audit entries) |
+| `rollout` | Deployment rollout revisions, `ScalingReplicaSet` events, restart/scale audit entries |
+| `config` | `secret.*` / `configmap.*` audit entries |
+| `node` | `NodeNotReady`, cordon/drain events and `node.*` audit entries |
+| `hpa` | HPA scaling (`lastScaleTime`, `SuccessfulRescale`) |
+| `audit` | Any other Axiom audit entry (`actor` is the Axiom user; exec/terminal entries are omitted) |
+
+`score` is 0-100: `100 * (0.7 * scope + 0.3 * proximity)`, where `scope` is 1.0 for the same workload (`scope: "workload"`), 0.6 for the same namespace and 0.3 for cluster-scoped changes such as nodes, and `proximity` falls linearly from 1 at `at` to 0 at the window edge. With `namespace` set, other namespaces are dropped. Uses only existing read access (no extra RBAC). Namespace-restricted accounts must pass an owned `namespace`. The MCP tool `recent_changes` takes the same four arguments.
+
 ### Cluster health check
 
 `GET /api/v1/diagnose?namespace=` runs deterministic, rule-based analyzers (no LLM, nothing leaves the cluster) and returns `{namespace, generatedAt, status, counts, analyzers, findings, errors?}`. `status` is `healthy`, `warning` or `critical`; each finding is `{id, analyzer, severity, kind, namespace, name, object, title, message, suggestion}` with `severity` one of `critical`, `warning`, `info`. Findings are sorted most severe first.

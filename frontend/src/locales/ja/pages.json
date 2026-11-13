@@ -1763,5 +1763,26 @@
     "memory": "メモリ",
     "unavailable": "Prometheus が未設定です (AXIOM_PROMETHEUS_URL)。",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "最近の変更",
+    "window": "遡及期間",
+    "relevance": "関連度スコア",
+    "empty": "この期間に変更は見つかりませんでした。",
+    "windows": {
+      "m15": "過去15分",
+      "m60": "過去1時間",
+      "h6": "過去6時間",
+      "h24": "過去24時間"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "ロールアウト",
+      "config": "設定",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "監査"
+    }
   }
 }

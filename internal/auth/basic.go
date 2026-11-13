@@ -382,6 +382,7 @@ var namespacedResourcePrefixes = []string{
 	"/api/v1/gateways",
 	"/api/v1/graph",
 	"/api/v1/timeline",
+	"/api/v1/changes",
 	"/api/v1/diagnose",
 	"/api/v1/networking/policies",
 	"/api/v1/security/reports",

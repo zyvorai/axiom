@@ -1774,5 +1774,26 @@
     "memory": "Mémoire",
     "unavailable": "Prometheus n'est pas configuré (AXIOM_PROMETHEUS_URL).",
     "gpu": "GPU util"
+  },
+  "recentChanges": {
+    "title": "Changements récents",
+    "window": "Fenêtre de recherche",
+    "relevance": "Score de pertinence",
+    "empty": "Aucun changement trouvé dans cette fenêtre.",
+    "windows": {
+      "m15": "15 dernières minutes",
+      "m60": "Dernière heure",
+      "h6": "6 dernières heures",
+      "h24": "24 dernières heures"
+    },
+    "sources": {
+      "gitops": "GitOps",
+      "helm": "Helm",
+      "rollout": "Déploiement",
+      "config": "Configuration",
+      "node": "Node",
+      "hpa": "HPA",
+      "audit": "Audit"
+    }
   }
 }
