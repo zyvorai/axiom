@@ -207,7 +207,13 @@
       "none": "（なし）",
       "basedOn": "{{source}} のデータに基づきます（信頼度: {{confidence}}）。",
       "applying": "適用中…",
-      "confirm": "適用してロールアウト"
+      "confirm": "適用してロールアウト",
+      "inPlace": "インプレースでリサイズ（再起動なし）",
+      "inPlaceHint": "実行中の Pod を再起動せずにリサイズします（Kubernetes 1.33 以降、1.35 で安定版）。Pod テンプレートは変更されないため、マニフェストを更新するまで、後続のロールアウトで元の値に戻ります。",
+      "confirmInPlace": "インプレースでリサイズ",
+      "podResized": "リサイズ済み",
+      "podUnchanged": "変更なし",
+      "podSkipped": "スキップ"
     }
   },
   "gitops": {

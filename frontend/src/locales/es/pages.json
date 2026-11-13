@@ -1642,7 +1642,13 @@
     "interactiveUnavailable": "El terminal interactivo requiere una conexión activa con Kubernetes. Se ejecutará un comando único en su lugar.",
     "manifestUnavailable": "Manifiesto no disponible en este modo.",
     "noEvents": "No hay eventos para este pod.",
-    "noLabels": "Sin labels."
+    "noLabels": "Sin labels.",
+    "resize": {
+      "title": "Redimensionado en caliente",
+      "pending": "Redimensionado pendiente",
+      "inProgress": "Redimensionado en curso",
+      "legacy": "Estado del redimensionado: {{status}}"
+    }
   },
   "pods": {
     "title": "Pods",

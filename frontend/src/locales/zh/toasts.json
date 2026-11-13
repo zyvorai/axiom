@@ -159,7 +159,9 @@
     "budgetRemoved": "已移除 {{namespace}} 的预算",
     "removeFailed": "移除失败",
     "requestsUpdated": "已更新 {{target}} 的 requests",
-    "requestsUpdatedDescription": "工作负载正在使用新值滚动更新。"
+    "requestsUpdatedDescription": "工作负载正在使用新值滚动更新。",
+    "requestsResizedInPlace": "已原地调整 {{target}}",
+    "requestsResizedInPlaceDescription": "正在运行的 Pod 无需重启即可应用新值。"
   },
   "gitops": {
     "deleted": "已删除 {{name}}",

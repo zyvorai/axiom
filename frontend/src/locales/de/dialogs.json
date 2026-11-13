@@ -207,7 +207,13 @@
       "none": "(keiner)",
       "basedOn": "Basierend auf {{source}}-Daten (Konfidenz: {{confidence}}).",
       "applying": "Wird angewendet…",
-      "confirm": "Anwenden und ausrollen"
+      "confirm": "Anwenden und ausrollen",
+      "inPlace": "Direkt anpassen (ohne Neustart)",
+      "inPlaceHint": "Passt die laufenden Pods ohne Neustart an (Kubernetes 1.33+, stabil ab 1.35). Das Pod-Template bleibt unverändert, daher stellt ein späterer Rollout die alten Werte wieder her, bis Sie das Manifest aktualisieren.",
+      "confirmInPlace": "Direkt anpassen",
+      "podResized": "angepasst",
+      "podUnchanged": "unverändert",
+      "podSkipped": "übersprungen"
     }
   },
   "gitops": {

@@ -207,7 +207,13 @@
       "none": "(nessuna)",
       "basedOn": "Basata su dati {{source}} (affidabilità {{confidence}}).",
       "applying": "Applicazione…",
-      "confirm": "Applica e distribuisci"
+      "confirm": "Applica e distribuisci",
+      "inPlace": "Ridimensiona a caldo (senza riavvio)",
+      "inPlaceHint": "Ridimensiona i Pod in esecuzione senza riavviarli (Kubernetes 1.33+, stabile dalla 1.35). Il template del Pod non cambia, quindi un rollout successivo ripristina i vecchi valori finché non aggiorni il manifest.",
+      "confirmInPlace": "Ridimensiona a caldo",
+      "podResized": "ridimensionato",
+      "podUnchanged": "invariato",
+      "podSkipped": "saltato"
     }
   },
   "gitops": {

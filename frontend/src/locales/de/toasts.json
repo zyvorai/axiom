@@ -159,7 +159,9 @@
     "budgetRemoved": "Budget für {{namespace}} entfernt",
     "removeFailed": "Entfernen fehlgeschlagen",
     "requestsUpdated": "Requests für {{target}} aktualisiert",
-    "requestsUpdatedDescription": "Der Workload wird mit den neuen Werten ausgerollt."
+    "requestsUpdatedDescription": "Der Workload wird mit den neuen Werten ausgerollt.",
+    "requestsResizedInPlace": "{{target}} direkt angepasst",
+    "requestsResizedInPlaceDescription": "Die laufenden Pods übernehmen die neuen Werte ohne Neustart."
   },
   "gitops": {
     "deleted": "{{name}} gelöscht",

@@ -1631,7 +1631,13 @@
     "interactiveUnavailable": "交互式终端需要实时的 Kubernetes 连接。将改为运行一次性命令。",
     "manifestUnavailable": "此模式下清单不可用。",
     "noEvents": "此 Pod 没有事件。",
-    "noLabels": "无标签。"
+    "noLabels": "无标签。",
+    "resize": {
+      "title": "原地调整大小",
+      "pending": "调整大小等待中",
+      "inProgress": "调整大小进行中",
+      "legacy": "调整大小状态：{{status}}"
+    }
   },
   "pods": {
     "title": "Pod",

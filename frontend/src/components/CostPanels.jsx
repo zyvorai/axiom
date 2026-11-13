@@ -196,6 +196,7 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
     const { t } = useTranslation();
     const [cpu, setCpu] = useState(true);
     const [mem, setMem] = useState(true);
+    const [inPlace, setInPlace] = useState(false);
     const [preview, setPreview] = useState(null);
     const [error, setError] = useState("");
     const [busy, setBusy] = useState("");
@@ -209,9 +210,10 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
                 container: item.container,
                 resources: [cpu && "cpu", mem && "memory"].filter(Boolean),
                 window: windowSel,
+                ...(inPlace ? { inPlace: true } : {}),
                 observed: { cpuRequestMilli: item.cpu.requestMilli, memoryRequestMiB: item.memory.requestMiB },
             },
-        [item, cpu, mem, windowSel]
+        [item, cpu, mem, inPlace, windowSel]
     );
 
     // Always dry-run first: the person sees exactly what would change.
@@ -244,6 +246,7 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
         if (item) {
             setCpu(true);
             setMem(true);
+            setInPlace(false);
         }
     }, [item]);
 
@@ -252,7 +255,12 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
         setError("");
         try {
             await api.post("/cost/rightsizing/apply", { ...body, dryRun: false });
-            toast.success(t("toasts:costPanels.requestsUpdated", { target: `${item.workload}/${item.container}` }), { description: t("toasts:costPanels.requestsUpdatedDescription") });
+            const target = `${item.workload}/${item.container}`;
+            if (inPlace) {
+                toast.success(t("toasts:costPanels.requestsResizedInPlace", { target }), { description: t("toasts:costPanels.requestsResizedInPlaceDescription") });
+            } else {
+                toast.success(t("toasts:costPanels.requestsUpdated", { target }), { description: t("toasts:costPanels.requestsUpdatedDescription") });
+            }
             onApplied();
             onClose();
         } catch (e) {
@@ -282,6 +290,13 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
                         {t("dialogs:costPanels.apply.memoryRequest")}
                     </label>
                 </div>
+                <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" data-testid={T.applyInPlace} checked={inPlace} onChange={(e) => setInPlace(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-border accent-primary" />
+                    <span>
+                        {t("dialogs:costPanels.apply.inPlace")}
+                        <span className="block text-[11.5px] text-ink-3">{t("dialogs:costPanels.apply.inPlaceHint")}</span>
+                    </span>
+                </label>
                 {error ? <div className="notice danger" role="alert" data-testid={T.applyError}>{error}</div> : null}
                 {busy === "preview" && !preview ? <Skeleton className="h-20 rounded-xl bg-muted" /> : null}
                 {preview && (
@@ -295,6 +310,16 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
                                 </li>
                             ))}
                         </ul>
+                        {preview.inPlace && (preview.pods || []).length > 0 ? (
+                            <ul className="divide-y divide-border rounded-xl border border-border">
+                                {preview.pods.map((p) => (
+                                    <li key={p.name} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs" data-testid={T.applyPod(p.name)}>
+                                        <span className="mono">{p.name}</span>
+                                        <span>{t(`dialogs:costPanels.apply.pod${p.status.charAt(0).toUpperCase()}${p.status.slice(1)}`)}{p.note ? ` · ${p.note}` : ""}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : null}
                         <p className="text-xs text-ink-3">
                             {t("dialogs:costPanels.apply.basedOn", { source: preview.source, confidence: preview.confidence })} {preview.rollout}
                         </p>
@@ -302,7 +327,7 @@ function ApplyRightsizingDialog({ item, windowSel, onClose, onApplied }) {
                 )}
                 <DialogFooter>
                     <button type="button" className="btn btn-fill" data-testid={T.applyConfirm} onClick={apply} disabled={!!busy || !preview || body.resources.length === 0}>
-                        <Wand2 size={14} /> {busy === "apply" ? t("dialogs:costPanels.apply.applying") : t("dialogs:costPanels.apply.confirm")}
+                        <Wand2 size={14} /> {busy === "apply" ? t("dialogs:costPanels.apply.applying") : inPlace ? t("dialogs:costPanels.apply.confirmInPlace") : t("dialogs:costPanels.apply.confirm")}
                     </button>
                 </DialogFooter>
             </DialogContent>

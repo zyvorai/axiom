@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — In-place pod resize
+- `POST /api/v1/cost/rightsizing/apply` accepts `inPlace:true` (opt-in, default unchanged): the same recommendation is written to each running pod of the workload through the `pods/resize` subresource (Kubernetes >= 1.33 beta, 1.35 stable) with no restart and no rollout; the pod template is not changed. Dry run supported (server-side `dryRun=All`), operator/admin only, audited as `cost.rightsizing_apply_inplace`. Limits are never lowered or added; a Guaranteed pod whose request would drop is skipped (a resize cannot change QoS class). A cluster without the subresource gets `501` with a clear message. RBAC: `pods/resize` `patch` (k8s + Helm). Pod detail shows PodResizePending / PodResizeInProgress and legacy `status.resize`; demo supported. Strings in all 8 locales.
+
 ### Added — Karpenter view
 - Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
 ### Added — Gateway API deep view

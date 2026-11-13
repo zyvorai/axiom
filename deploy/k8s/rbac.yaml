@@ -38,6 +38,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods/ephemeralcontainers"]
     verbs: ["update"]
+  # In-place pod resize (POST /api/v1/cost/rightsizing/apply with inPlace:true)
+  # patches the pods/resize subresource (Kubernetes >= 1.33 beta, 1.35 stable).
+  - apiGroups: [""]
+    resources: ["pods/resize"]
+    verbs: ["patch"]
   - apiGroups: ["apps"]
     resources: ["deployments", "statefulsets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

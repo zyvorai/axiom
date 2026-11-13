@@ -207,7 +207,13 @@
       "none": "(none)",
       "basedOn": "Based on {{source}} data ({{confidence}} confidence).",
       "applying": "Applying…",
-      "confirm": "Apply and roll out"
+      "confirm": "Apply and roll out",
+      "inPlace": "Resize in place (no restart)",
+      "inPlaceHint": "Resizes the running Pods without restarting them (Kubernetes 1.33+, stable in 1.35). The Pod template is not changed, so a later rollout restores the old values until you update the manifest.",
+      "confirmInPlace": "Resize in place",
+      "podResized": "resized",
+      "podUnchanged": "unchanged",
+      "podSkipped": "skipped"
     }
   },
   "gitops": {

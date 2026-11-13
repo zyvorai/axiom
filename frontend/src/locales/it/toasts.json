@@ -159,7 +159,9 @@
     "budgetRemoved": "Budget rimosso per {{namespace}}",
     "removeFailed": "Rimozione non riuscita",
     "requestsUpdated": "Requests aggiornate per {{target}}",
-    "requestsUpdatedDescription": "Il rollout del carico di lavoro è in corso con i nuovi valori."
+    "requestsUpdatedDescription": "Il rollout del carico di lavoro è in corso con i nuovi valori.",
+    "requestsResizedInPlace": "{{target}} ridimensionato a caldo",
+    "requestsResizedInPlaceDescription": "I Pod in esecuzione applicano i nuovi valori senza riavvio."
   },
   "gitops": {
     "deleted": "{{name}} eliminato",

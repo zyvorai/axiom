@@ -207,7 +207,13 @@
       "none": "(aucun)",
       "basedOn": "D'après les données {{source}} (confiance : {{confidence}}).",
       "applying": "Application…",
-      "confirm": "Appliquer et déployer"
+      "confirm": "Appliquer et déployer",
+      "inPlace": "Redimensionner à chaud (sans redémarrage)",
+      "inPlaceHint": "Redimensionne les Pods en cours d'exécution sans les redémarrer (Kubernetes 1.33+, stable en 1.35). Le modèle du Pod n'est pas modifié : un déploiement ultérieur rétablit les anciennes valeurs tant que vous n'avez pas mis à jour le manifeste.",
+      "confirmInPlace": "Redimensionner à chaud",
+      "podResized": "redimensionné",
+      "podUnchanged": "inchangé",
+      "podSkipped": "ignoré"
     }
   },
   "gitops": {

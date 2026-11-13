@@ -159,7 +159,9 @@
     "budgetRemoved": "{{namespace}} の予算を除去しました",
     "removeFailed": "除去に失敗しました",
     "requestsUpdated": "{{target}} の Request を更新しました",
-    "requestsUpdatedDescription": "ワークロードは新しい値でロールアウト中です。"
+    "requestsUpdatedDescription": "ワークロードは新しい値でロールアウト中です。",
+    "requestsResizedInPlace": "{{target}} をインプレースでリサイズしました",
+    "requestsResizedInPlaceDescription": "実行中の Pod は再起動せずに新しい値を適用しています。"
   },
   "gitops": {
     "deleted": "{{name}} を削除しました",

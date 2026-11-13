@@ -83,6 +83,7 @@ are theirs, not ours.
 |------|--------------|---------------|
 | Autoscaling beyond CPU | HPAs show every metric (CPU, memory, Pods, Object, External) with current and target plus what the autoscaler reports, and can be created on CPU and memory with a scale-down window; read-only VPA recommendations and KEDA ScaledObjects | Lens/Headlamp HPA views, Rancher workload autoscaling |
 | Cost budgets | Per-namespace monthly budgets against the estimated cost with on-track / near / over state | OpenCost budgets, Kubecost alerts |
+| In-place pod resize | Opt-in `inPlace` rightsizing apply via the pods `resize` subresource (no restart); resize status on pod detail | Kubernetes 1.35 in-place resize (stable) |
 | Rightsizing | Request-vs-usage recommendations with headroom, from Prometheus history (`AXIOM_PROMETHEUS_URL`) or, without it, a clearly labelled low-confidence snapshot; never applied automatically | Kubecost/Goldilocks recommendations |
 
 ## Shipped in 0.7.0

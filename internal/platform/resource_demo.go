@@ -28,6 +28,19 @@ func (d *DemoProvider) GetResource(ctx context.Context, ns, kind, name string) (
 		}
 		d.mu.RUnlock()
 	}
+	if strings.EqualFold(kind, "pod") {
+		d.mu.RLock()
+		for _, ps := range d.pods {
+			for _, p := range ps {
+				if p.Namespace == ns && p.Name == name {
+					if st := d.demoPodResizeStatus(ns, p.WorkloadID, p.Replica); st != nil {
+						detail.Manifest["status"] = st
+					}
+				}
+			}
+		}
+		d.mu.RUnlock()
+	}
 	events, err := d.ListEvents(ctx, ns)
 	if err == nil {
 		for _, e := range events {

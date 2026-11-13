@@ -207,7 +207,13 @@
       "none": "（无）",
       "basedOn": "基于 {{source}} 数据（置信度：{{confidence}}）。",
       "applying": "正在应用…",
-      "confirm": "应用并发布"
+      "confirm": "应用并发布",
+      "inPlace": "原地调整大小（无需重启）",
+      "inPlaceHint": "无需重启即可调整正在运行的 Pod 的资源（Kubernetes 1.33+，1.35 起稳定）。Pod 模板不会改变，因此在你更新清单之前，之后的滚动发布会恢复旧值。",
+      "confirmInPlace": "原地调整大小",
+      "podResized": "已调整",
+      "podUnchanged": "未变化",
+      "podSkipped": "已跳过"
     }
   },
   "gitops": {

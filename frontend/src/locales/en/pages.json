@@ -1642,7 +1642,13 @@
     "interactiveUnavailable": "Interactive terminal requires a live Kubernetes connection. Running a one-shot command instead.",
     "manifestUnavailable": "Manifest unavailable in this mode.",
     "noEvents": "No events for this pod.",
-    "noLabels": "No labels."
+    "noLabels": "No labels.",
+    "resize": {
+      "title": "In-place resize",
+      "pending": "Resize pending",
+      "inProgress": "Resize in progress",
+      "legacy": "Resize status: {{status}}"
+    }
   },
   "pods": {
     "title": "Pods",

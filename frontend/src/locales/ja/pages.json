@@ -1631,7 +1631,13 @@
     "interactiveUnavailable": "対話型ターミナルにはライブの Kubernetes 接続が必要です。代わりにワンショットコマンドを実行します。",
     "manifestUnavailable": "このモードではマニフェストを利用できません。",
     "noEvents": "この Pod のイベントはありません。",
-    "noLabels": "ラベルはありません。"
+    "noLabels": "ラベルはありません。",
+    "resize": {
+      "title": "インプレースリサイズ",
+      "pending": "リサイズ保留中",
+      "inProgress": "リサイズ進行中",
+      "legacy": "リサイズの状態: {{status}}"
+    }
   },
   "pods": {
     "title": "Pod",

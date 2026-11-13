@@ -86,6 +86,9 @@ func (d *DemoProvider) ApplyRightsizing(ctx context.Context, req RightsizingAppl
 	if err != nil {
 		return RightsizingApplyResult{}, err
 	}
+	if req.InPlace {
+		return d.demoApplyInPlace(req, item, plan, cur, src), nil
+	}
 	if !req.DryRun {
 		if demoRightsizingApplied.m[d] == nil {
 			demoRightsizingApplied.m[d] = map[string]rightsizingCurrentResources{}
@@ -96,4 +99,61 @@ func (d *DemoProvider) ApplyRightsizing(ctx context.Context, req RightsizingAppl
 		OK: true, DryRun: req.DryRun, Changes: plan.Changes, Rollout: rightsizingRolloutNote(req.Kind, "", false),
 		Verdict: item.Verdict, Source: src.name(), Confidence: src.confidence(req.Window),
 	}, nil
+}
+
+// demoInPlaceApplied records, per DemoProvider, the workloads ("ns/name") a
+// real in-place apply resized, so their pod detail shows the resize conditions.
+var demoInPlaceApplied = struct {
+	sync.Mutex
+	m map[*DemoProvider]map[string]bool
+}{m: map[*DemoProvider]map[string]bool{}}
+
+// demoApplyInPlace resizes the demo workload's pods without a "rollout": the
+// requests change like a normal apply, the pods are reported resized. The
+// caller holds demoRightsizingApplied's lock.
+func (d *DemoProvider) demoApplyInPlace(req RightsizingApplyRequest, item RightsizingItem, plan rightsizingPlan, cur rightsizingCurrentResources, src snapshotUsageSource) RightsizingApplyResult {
+	res := RightsizingApplyResult{
+		OK: true, DryRun: req.DryRun, Changes: plan.Changes, Rollout: rightsizingInPlaceRollout, InPlace: true,
+		Verdict: item.Verdict, Source: src.name(), Confidence: src.confidence(req.Window),
+	}
+	d.mu.RLock()
+	for _, p := range d.pods[req.Namespace+"/"+req.Workload] {
+		res.Pods = append(res.Pods, RightsizingPodResize{Name: p.Name, Status: inPlaceResized})
+	}
+	d.mu.RUnlock()
+	if len(res.Pods) == 0 {
+		res.Pods = []RightsizingPodResize{{Name: req.Workload + "-0", Status: inPlaceResized}}
+	}
+	if !req.DryRun {
+		key := req.containerKey()
+		if demoRightsizingApplied.m[d] == nil {
+			demoRightsizingApplied.m[d] = map[string]rightsizingCurrentResources{}
+		}
+		demoRightsizingApplied.m[d][key] = plan.applyTo(cur)
+		demoInPlaceApplied.Lock()
+		if demoInPlaceApplied.m[d] == nil {
+			demoInPlaceApplied.m[d] = map[string]bool{}
+		}
+		demoInPlaceApplied.m[d][req.Namespace+"/"+req.Workload] = true
+		demoInPlaceApplied.Unlock()
+	}
+	return res
+}
+
+// demoPodResizeStatus returns the pod status the kubelet would report right
+// after an in-place resize of the pod's workload: the first replica still
+// applying the change (PodResizeInProgress), the others settled. nil when the
+// workload was never resized in place.
+func (d *DemoProvider) demoPodResizeStatus(ns, workload string, replica int32) map[string]any {
+	demoInPlaceApplied.Lock()
+	ok := demoInPlaceApplied.m[d][ns+"/"+workload]
+	demoInPlaceApplied.Unlock()
+	if !ok {
+		return nil
+	}
+	conds := []any{map[string]any{"type": "Ready", "status": "True"}}
+	if replica <= 1 {
+		conds = append(conds, map[string]any{"type": "PodResizeInProgress", "status": "True", "message": "the kubelet is applying the new container resources"})
+	}
+	return map[string]any{"conditions": conds}
 }

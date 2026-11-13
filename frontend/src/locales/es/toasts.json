@@ -159,7 +159,9 @@
     "budgetRemoved": "Presupuesto de {{namespace}} quitado",
     "removeFailed": "Error al quitar",
     "requestsUpdated": "Requests actualizados para {{target}}",
-    "requestsUpdatedDescription": "La carga de trabajo se está desplegando con los nuevos valores."
+    "requestsUpdatedDescription": "La carga de trabajo se está desplegando con los nuevos valores.",
+    "requestsResizedInPlace": "{{target}} redimensionado en caliente",
+    "requestsResizedInPlaceDescription": "Los Pods en ejecución aplican los nuevos valores sin reiniciarse."
   },
   "gitops": {
     "deleted": "{{name}} eliminado",

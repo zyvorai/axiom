@@ -139,8 +139,13 @@ func (c *costAPI) applyRightsizing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !res.DryRun {
-		platform.RecordAxiomAudit("cost.rightsizing_apply", req.Kind+"/"+req.Namespace+"/"+req.Workload+"/"+req.Container,
-			res.Summary()+" (window "+req.Window+", source "+res.Source+")", c.s.auditUser(r))
+		detail := res.Summary() + " (window " + req.Window + ", source " + res.Source + ")"
+		action := "cost.rightsizing_apply"
+		if res.InPlace {
+			action = "cost.rightsizing_apply_inplace"
+			detail = res.Summary() + " in place (" + platform.InPlaceSummary(res.Pods) + "; window " + req.Window + ", source " + res.Source + ")"
+		}
+		platform.RecordAxiomAudit(action, req.Kind+"/"+req.Namespace+"/"+req.Workload+"/"+req.Container, detail, c.s.auditUser(r))
 		EmitStateChanged("workload", "update")
 	}
 	writeJSON(w, http.StatusOK, res)
