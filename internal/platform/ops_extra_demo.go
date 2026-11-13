@@ -52,6 +52,9 @@ func (d *DemoProvider) HelmRollback(ctx context.Context, ns, name string, revisi
 			return HelmActionResult{}, NewStatusError(http.StatusConflict, fmt.Errorf("release %s/%s has no previous revision", ns, name))
 		}
 	}
+	if r.Revision > demoHelmMaxRev[key] {
+		demoHelmMaxRev[key] = r.Revision
+	}
 	r.Revision = revision
 	r.Status = "deployed"
 	demoHelmReleases[key] = r

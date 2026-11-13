@@ -210,6 +210,9 @@ func (d *DemoProvider) RestoreBackup(ctx context.Context, req RestoreBackupReque
 
 var (
 	demoHelmMu       sync.Mutex
+	// demoHelmMaxRev remembers the highest revision a demo release has reached, so a rollback
+	// leaves the later revisions in its history (as real Helm does) and can be rolled forward again.
+	demoHelmMaxRev = map[string]int{}
 	demoHelmReleases = map[string]HelmRelease{
 		"ingress-nginx/ingress-nginx": {Name: "ingress-nginx", Namespace: "ingress-nginx", Status: "deployed", Chart: "ingress-nginx-4.11.0", Revision: 3, Age: "45d"},
 		"monitoring/prometheus":       {Name: "prometheus", Namespace: "monitoring", Status: "deployed", Chart: "kube-prometheus-stack-61.2.0", Revision: 7, Age: "22d"},

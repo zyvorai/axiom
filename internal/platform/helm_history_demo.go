@@ -8,7 +8,7 @@ import (
 
 // demoHelmRevisions builds a realistic history for a demo release: the last
 // revision is live, earlier ones are superseded with older chart/app versions.
-func demoHelmRevisions(r HelmRelease) map[int]HelmRevisionData {
+func demoHelmRevisions(r HelmRelease, maxRev int) map[int]HelmRevisionData {
 	out := map[int]HelmRevisionData{}
 	chartName := r.Chart
 	if i := strings.LastIndex(r.Chart, "-"); i > 0 {
@@ -18,7 +18,11 @@ func demoHelmRevisions(r HelmRelease) map[int]HelmRevisionData {
 	if r.Name == "cert-manager" {
 		hooks = 1
 	}
-	for rev := 1; rev <= r.Revision; rev++ {
+	top := r.Revision
+	if maxRev > top {
+		top = maxRev
+	}
+	for rev := 1; rev <= top; rev++ {
 		status, desc := "superseded", "Upgrade complete"
 		if rev == 1 {
 			desc = "Install complete"
@@ -50,11 +54,12 @@ func demoHelmRevisions(r HelmRelease) map[int]HelmRevisionData {
 func (d *DemoProvider) demoRevisions(ns, name string) (map[int]HelmRevisionData, error) {
 	demoHelmMu.Lock()
 	r, ok := demoHelmReleases[ns+"/"+name]
+	maxRev := demoHelmMaxRev[ns+"/"+name]
 	demoHelmMu.Unlock()
 	if !ok {
 		return nil, NewStatusError(404, fmt.Errorf("release %s/%s not found", ns, name))
 	}
-	return demoHelmRevisions(r), nil
+	return demoHelmRevisions(r, maxRev), nil
 }
 
 func (d *DemoProvider) ListHelmRevisions(ctx context.Context, ns, name string) ([]HelmRevision, error) {
