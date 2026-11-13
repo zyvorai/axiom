@@ -838,7 +838,8 @@
         "release": "Release",
         "chart": "Chart",
         "revision": "Revision"
-      }
+      },
+      "history": "Verlauf"
     },
     "gitops": {
       "newApplication": "Neue Anwendung",

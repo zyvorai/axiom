@@ -551,5 +551,36 @@
     "cooldownPeriod": "冷却（s）",
     "triggerLegend": "触发器 {{n}} · {{type}}",
     "noCredentials": "无凭据"
+  },
+  "helmHistory": {
+    "title": "{{name}} 的历史",
+    "empty": "未找到修订版本。",
+    "revisions": "修订版本",
+    "revision": "修订版本",
+    "chartVersion": "chart 版本",
+    "appVersion": "应用版本",
+    "updated": "更新时间",
+    "description": "说明",
+    "reviewRollback": "检查回滚到修订版本 {{n}}",
+    "from": "起始修订版本",
+    "to": "目标修订版本",
+    "compare": "比较",
+    "redactNote": "看起来像凭据的值(password、token、secret、key)会被隐藏。",
+    "values": "值",
+    "manifest": "清单",
+    "noChanges": "没有变更。",
+    "summary": "从修订版本 {{from}} 回滚到 {{to}}:清单新增 {{added}} 行,删除 {{removed}} 行。",
+    "valuesChanged": "这些修订版本之间的 release 值不同。",
+    "confirmLabel": "输入 <code>{{name}}</code> 以确认回滚",
+    "back": "返回",
+    "rollingBack": "正在回滚…",
+    "rollback": "回滚到修订版本 {{n}}",
+    "warn": {
+      "pvc": "该 release 拥有 PersistentVolumeClaim。回滚不会还原其中的数据。",
+      "crd": "该 release 拥有 CRD。已创建的自定义资源不会被迁移回去。",
+      "hooks": "该 release 定义了 Helm 钩子;目标修订版本的钩子会再次运行。",
+      "sameRevision": "目标是当前修订版本;回滚会创建一个内容相同的新修订版本。",
+      "targetFailed": "目标修订版本以 failed 状态结束,可能并不健康。"
+    }
   }
 }

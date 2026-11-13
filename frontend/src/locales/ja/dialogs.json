@@ -551,5 +551,36 @@
     "cooldownPeriod": "クールダウン（s）",
     "triggerLegend": "トリガー {{n}} · {{type}}",
     "noCredentials": "認証情報なし"
+  },
+  "helmHistory": {
+    "title": "{{name}} の履歴",
+    "empty": "リビジョンが見つかりません。",
+    "revisions": "リビジョン",
+    "revision": "リビジョン",
+    "chartVersion": "chart バージョン",
+    "appVersion": "アプリのバージョン",
+    "updated": "更新日時",
+    "description": "説明",
+    "reviewRollback": "リビジョン {{n}} へのロールバックを確認",
+    "from": "比較元リビジョン",
+    "to": "比較先リビジョン",
+    "compare": "比較",
+    "redactNote": "認証情報に見える値(password、token、secret、key)は非表示になります。",
+    "values": "値",
+    "manifest": "マニフェスト",
+    "noChanges": "変更はありません。",
+    "summary": "リビジョン {{from}} から {{to}} へロールバックします。マニフェストは {{added}} 行追加、{{removed}} 行削除されます。",
+    "valuesChanged": "これらのリビジョン間でリリースの値が異なります。",
+    "confirmLabel": "ロールバックを確認するには <code>{{name}}</code> と入力してください",
+    "back": "戻る",
+    "rollingBack": "ロールバック中…",
+    "rollback": "リビジョン {{n}} にロールバック",
+    "warn": {
+      "pvc": "このリリースは PersistentVolumeClaim を所有しています。ロールバックしても、その中のデータは元に戻りません。",
+      "crd": "このリリースは CRD を所有しています。既に作成されたカスタムリソースは元に戻りません。",
+      "hooks": "このリリースは Helm フックを定義しています。対象リビジョンのフックが再度実行されます。",
+      "sameRevision": "対象は現在のリビジョンです。ロールバックにより同一内容の新しいリビジョンが作成されます。",
+      "targetFailed": "対象リビジョンは failed で終了しており、正常でなかった可能性があります。"
+    }
   }
 }

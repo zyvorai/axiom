@@ -553,5 +553,36 @@
     "cooldownPeriod": "Abkühlzeit (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "Keine Zugangsdaten"
+  },
+  "helmHistory": {
+    "title": "Verlauf von {{name}}",
+    "empty": "Keine Revisionen gefunden.",
+    "revisions": "Revisionen",
+    "revision": "Revision",
+    "chartVersion": "Chart-Version",
+    "appVersion": "App-Version",
+    "updated": "Aktualisiert",
+    "description": "Beschreibung",
+    "reviewRollback": "Zurücksetzen auf Revision {{n}} prüfen",
+    "from": "Von Revision",
+    "to": "Bis Revision",
+    "compare": "Vergleichen",
+    "redactNote": "Werte, die nach Zugangsdaten aussehen (Passwort, Token, Secret, Key), werden ausgeblendet.",
+    "values": "Werte",
+    "manifest": "Manifest",
+    "noChanges": "Keine Änderungen.",
+    "summary": "Zurücksetzen von Revision {{from}} auf {{to}}: {{added}} Manifest-Zeilen hinzugefügt, {{removed}} entfernt.",
+    "valuesChanged": "Die Werte des Release unterscheiden sich zwischen diesen Revisionen.",
+    "confirmLabel": "Geben Sie <code>{{name}}</code> ein, um das Zurücksetzen zu bestätigen",
+    "back": "Zurück",
+    "rollingBack": "Wird zurückgesetzt…",
+    "rollback": "Auf Revision {{n}} zurücksetzen",
+    "warn": {
+      "pvc": "Das Release besitzt PersistentVolumeClaims. Ein Zurücksetzen stellt die Daten darauf nicht wieder her.",
+      "crd": "Das Release besitzt CRDs. Bereits vorhandene Custom Resources werden nicht zurückmigriert.",
+      "hooks": "Das Release definiert Helm-Hooks; die Hooks der Zielrevision laufen erneut.",
+      "sameRevision": "Die Zielrevision ist die aktive Revision; das Zurücksetzen erzeugt eine neue Revision mit identischem Inhalt.",
+      "targetFailed": "Die Zielrevision endete mit dem Status failed und war möglicherweise nicht fehlerfrei."
+    }
   }
 }

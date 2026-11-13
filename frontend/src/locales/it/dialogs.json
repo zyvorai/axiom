@@ -553,5 +553,36 @@
     "cooldownPeriod": "Cooldown (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "Nessuna credenziale"
+  },
+  "helmHistory": {
+    "title": "Cronologia di {{name}}",
+    "empty": "Nessuna revisione trovata.",
+    "revisions": "Revisioni",
+    "revision": "Revisione",
+    "chartVersion": "Versione del chart",
+    "appVersion": "Versione dell'app",
+    "updated": "Aggiornato",
+    "description": "Descrizione",
+    "reviewRollback": "Verifica il rollback alla revisione {{n}}",
+    "from": "Dalla revisione",
+    "to": "Alla revisione",
+    "compare": "Confronta",
+    "redactNote": "I valori che sembrano credenziali (password, token, secret, key) sono nascosti.",
+    "values": "Valori",
+    "manifest": "Manifest",
+    "noChanges": "Nessuna modifica.",
+    "summary": "Rollback dalla revisione {{from}} alla {{to}}: {{added}} righe del manifest aggiunte, {{removed}} rimosse.",
+    "valuesChanged": "I valori del release differiscono tra queste revisioni.",
+    "confirmLabel": "Digita <code>{{name}}</code> per confermare il rollback",
+    "back": "Indietro",
+    "rollingBack": "Rollback in corso…",
+    "rollback": "Rollback alla revisione {{n}}",
+    "warn": {
+      "pvc": "Il release possiede PersistentVolumeClaim. Il rollback non ripristina i dati che contengono.",
+      "crd": "Il release possiede CRD. Le risorse personalizzate già create non vengono migrate indietro.",
+      "hooks": "Il release definisce hook Helm; gli hook della revisione di destinazione vengono eseguiti di nuovo.",
+      "sameRevision": "La revisione di destinazione è quella attiva; il rollback crea una nuova revisione con contenuto identico.",
+      "targetFailed": "La revisione di destinazione è terminata con stato failed e potrebbe non essere stata integra."
+    }
   }
 }

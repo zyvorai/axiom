@@ -830,7 +830,8 @@
         "release": "Release",
         "chart": "Chart",
         "revision": "修订版本"
-      }
+      },
+      "history": "历史"
     },
     "gitops": {
       "newApplication": "新建应用",

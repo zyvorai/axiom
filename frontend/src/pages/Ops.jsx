@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
-import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard, Pause, Play } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard, Pause, Play, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,8 @@ import {
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { RbacBySubject, RbacWhoCan } from "@/components/RbacExplorer";
-import { RBAC, HELM_CATALOG, GITOPS_CREATE, OPENCOST, GITOPS_EDIT } from "@/constants/testIds";
+import { RBAC, HELM_CATALOG, GITOPS_CREATE, OPENCOST, GITOPS_EDIT, HELM_HISTORY } from "@/constants/testIds";
+import HelmHistoryDialog from "@/components/HelmHistoryDialog";
 import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import { CostInvoice } from "@/components/CostInvoice";
@@ -90,7 +91,7 @@ function TablePanel({ items, empty, table }) {
 function HelmRow({ r, onChanged }) {
     const { t } = useTranslation();
     const confirm = useConfirm();
-    const [revision, setRevision] = useState("");
+    const [historyOpen, setHistoryOpen] = useState(false);
     const [busy, setBusy] = useState("");
 
     const uninstall = async () => {
@@ -112,21 +113,6 @@ function HelmRow({ r, onChanged }) {
         }
     };
 
-    const rollback = async () => {
-        setBusy("rollback");
-        try {
-            await api.post(`/helm/releases/${r.namespace}/${encodeURIComponent(r.name)}/rollback`, {
-                revision: revision ? Number(revision) : 0,
-            });
-            toast.success(t("toasts:ops.helm.rolledBack", { name: r.name }));
-            onChanged();
-        } catch (e) {
-            toast.error(t("toasts:ops.helm.rollbackFailed"), { description: e?.response?.data?.error || e.message });
-        } finally {
-            setBusy("");
-        }
-    };
-
     return (
         <tr>
             <td className="name">
@@ -141,19 +127,14 @@ function HelmRow({ r, onChanged }) {
             <td className="num">{r.age}</td>
             <td>
                 <div className="flex items-center justify-end gap-1.5">
-                    <Input
-                        value={revision}
-                        onChange={(e) => setRevision(e.target.value)}
-                        placeholder={t("pages:ops.helm.revPlaceholder")}
-                        className="h-7 w-14 bg-muted/30 px-2 text-xs"
-                    />
-                    <button type="button" className="btn btn-line btn-sm" disabled={!!busy} onClick={rollback} title={t("pages:ops.helm.rollback")}>
-                        <RotateCcw size={13} />
+                    <button type="button" className="btn btn-line btn-sm" disabled={!!busy} data-testid={HELM_HISTORY.open(r.name)} onClick={() => setHistoryOpen(true)} title={t("pages:ops.helm.history")} aria-label={t("pages:ops.helm.history")}>
+                        <History size={13} />
                     </button>
                     <button type="button" className="btn btn-danger btn-sm" disabled={!!busy} onClick={uninstall} title={t("pages:ops.helm.uninstall")}>
                         <Trash2 size={13} />
                     </button>
                 </div>
+                <HelmHistoryDialog release={historyOpen ? r : null} onClose={() => setHistoryOpen(false)} onChanged={onChanged} />
             </td>
         </tr>
     );

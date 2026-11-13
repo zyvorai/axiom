@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/zyvorai/axiom/internal/auth"
@@ -375,20 +377,63 @@ func (s *Server) helmUninstall(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, v)
 }
 
-func (s *Server) helmRollback(w http.ResponseWriter, r *http.Request) {
-	ns, name := r.PathValue("namespace"), r.PathValue("name")
-	rev := 0
-	var body struct {
-		Revision int `json:"revision"`
+func (s *Server) helmRevisions(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.ListHelmRevisions(r.Context(), r.PathValue("namespace"), r.PathValue("name"))
+	respond(w, v, err)
+}
+
+func (s *Server) helmRevisionDiff(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	from, e1 := strconv.Atoi(q.Get("from"))
+	to, e2 := strconv.Atoi(q.Get("to"))
+	if e1 != nil || e2 != nil || from < 1 || to < 1 {
+		fail(w, http.StatusBadRequest, errors.New("from and to must be revision numbers"))
+		return
 	}
-	_ = decode(r, &body)
-	rev = body.Revision
-	v, err := s.provider.HelmRollback(r.Context(), ns, name, rev)
+	v, err := s.provider.DiffHelmRevisions(r.Context(), r.PathValue("namespace"), r.PathValue("name"), from, to)
+	respond(w, v, err)
+}
+
+func (s *Server) helmRollbackPreview(w http.ResponseWriter, r *http.Request) {
+	rev := 0
+	if v := r.URL.Query().Get("revision"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 0 {
+			fail(w, http.StatusBadRequest, errors.New("revision must be a positive number"))
+			return
+		}
+		rev = n
+	}
+	v, err := s.provider.PreviewHelmRollback(r.Context(), r.PathValue("namespace"), r.PathValue("name"), rev)
+	respond(w, v, err)
+}
+
+// helmRollback is admin-only (internal/auth/policy_helm.go). The provider
+// recomputes the preview and requires confirm=<release name>, so the typed
+// confirmation never depends on the UI. The audit entry carries only the
+// release and the revisions.
+func (s *Server) helmRollback(w http.ResponseWriter, r *http.Request) {
+	req := platform.HelmRollbackRequest{Namespace: r.PathValue("namespace"), Name: r.PathValue("name")}
+	var body struct {
+		Revision int    `json:"revision"`
+		Confirm  string `json:"confirm"`
+	}
+	if err := decode(r, &body); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	req.Revision, req.Confirm = body.Revision, body.Confirm
+	p, perr := s.provider.PreviewHelmRollback(r.Context(), req.Namespace, req.Name, req.Revision)
+	v, err := s.provider.RollbackHelm(r.Context(), req)
 	if err != nil {
 		fail(w, platform.HTTPStatus(err), err)
 		return
 	}
-	platform.RecordAxiomAudit("helm.rollback", ns+"/"+name, v.Message, s.auditUser(r))
+	detail := "to=" + strconv.Itoa(req.Revision)
+	if perr == nil {
+		detail = "from=" + strconv.Itoa(p.Current) + " to=" + strconv.Itoa(p.Target)
+	}
+	platform.RecordAxiomAudit("helm.rollback", req.Namespace+"/"+req.Name, detail, s.auditUser(r))
 	EmitStateChanged("helm", "rollback")
 	writeJSON(w, http.StatusAccepted, v)
 }

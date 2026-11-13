@@ -553,5 +553,36 @@
     "cooldownPeriod": "Cooldown (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "No credentials"
+  },
+  "helmHistory": {
+    "title": "History of {{name}}",
+    "empty": "No revisions found.",
+    "revisions": "Revisions",
+    "revision": "Revision",
+    "chartVersion": "Chart version",
+    "appVersion": "App version",
+    "updated": "Updated",
+    "description": "Description",
+    "reviewRollback": "Review rollback to revision {{n}}",
+    "from": "From revision",
+    "to": "To revision",
+    "compare": "Compare",
+    "redactNote": "Values that look like credentials (password, token, secret, key) are hidden.",
+    "values": "Values",
+    "manifest": "Manifest",
+    "noChanges": "No changes.",
+    "summary": "Rolling back from revision {{from}} to {{to}}: {{added}} manifest lines added, {{removed}} removed.",
+    "valuesChanged": "The release values differ between these revisions.",
+    "confirmLabel": "Type <code>{{name}}</code> to confirm the rollback",
+    "back": "Back",
+    "rollingBack": "Rolling back…",
+    "rollback": "Roll back to revision {{n}}",
+    "warn": {
+      "pvc": "The release owns PersistentVolumeClaims. A rollback does not revert the data on them.",
+      "crd": "The release owns CRDs. Custom resources that already exist are not migrated back.",
+      "hooks": "The release defines Helm hooks; the hooks of the target revision run again.",
+      "sameRevision": "The target is the live revision; the rollback creates a new revision with identical content.",
+      "targetFailed": "The target revision ended in status failed and may not have been healthy."
+    }
   }
 }
