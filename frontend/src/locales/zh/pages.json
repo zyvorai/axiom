@@ -166,9 +166,24 @@
       "aria": "外部 Secret",
       "columns": {
         "store": "存储",
-        "refresh": "刷新"
+        "refresh": "刷新",
+        "lastSync": "上次同步",
+        "condition": "状态",
+        "target": "目标 Secret",
+        "health": "健康度",
+        "provider": "提供方"
       },
-      "empty": "未找到 ExternalSecret 资源。"
+      "empty": "未找到 ExternalSecret 资源。",
+      "never": "从未",
+      "unavailable": "External Secrets Operator 未安装或无法读取。",
+      "health": {
+        "ready": "就绪",
+        "failing": "失败",
+        "stale": "已过期"
+      },
+      "storesTitle": "密钥存储",
+      "storesAria": "External Secrets 存储",
+      "storesEmpty": "未找到 SecretStore 或 ClusterSecretStore。"
     },
     "certs": {
       "title": "证书 (cert-manager)",
@@ -830,7 +845,8 @@
         "release": "Release",
         "chart": "Chart",
         "revision": "修订版本"
-      }
+      },
+      "history": "历史"
     },
     "gitops": {
       "newApplication": "新建应用",
@@ -1855,5 +1871,32 @@
       "hpa": "HPA",
       "audit": "审计"
     }
+  },
+  "rollouts": {
+    "title": "渐进式交付",
+    "notInstalled": "此集群未安装 Argo Rollouts 和 Flagger。",
+    "notInstalledHint": "安装 Argo Rollouts 或 Flagger 后,可在此只读查看金丝雀和蓝绿发布。",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "没有 Rollout。",
+    "emptyFlagger": "没有 Canary。",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "策略",
+      "step": "步骤",
+      "weight": "权重",
+      "replicas": "副本(期望 / 已更新 / 就绪 / 可用)",
+      "phase": "阶段",
+      "pauseReason": "暂停原因",
+      "analysis": "最近一次分析",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "镜像",
+      "target": "目标",
+      "failedChecks": "失败的检查",
+      "lastTransition": "上次转换"
+    },
+    "readOnlyNote": "只读。不提供 promote 和 abort;请使用 kubectl argo rollouts。"
   }
 }

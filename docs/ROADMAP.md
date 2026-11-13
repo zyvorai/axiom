@@ -9,7 +9,9 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
+| Node maintenance | Drain wizard on Node detail: server-side read-only drain preview (`GET /api/v1/nodes/{name}/drain-preview`: Pods to evict by namespace/owner, ignored DaemonSet/mirror/kube-system Pods, emptyDir, bare Pods, PDB-blocked, single-replica, volume-pinned, approximate reschedule headroom, blocked/caution/ok verdict), then typed node-name confirmation (server-enforced) and cordon + drain with progress, uncordon afterwards | Lens/OpenLens drain, Rancher node drain |
 | Idle resources | Read-only idle/zombie finder on Ops → Cost (`GET /api/v1/cost/idle`): unmounted or unbound PVCs with a monthly storage estimate, empty namespaces, LoadBalancer Services with no endpoints, old finished Jobs, scaled-to-zero Deployments, and advisory unreferenced ConfigMaps/Secrets. Heuristics with a confidence level; nothing is deleted | Kubecost abandoned-resources, Robusta KRR/popeye-style sanitizers |
+| Progressive delivery | Read-only Argo Rollouts (strategy, step/weight, replicas, phase, pause reason, latest AnalysisRun, stable vs canary revision and images) and Flagger Canaries (phase, canaryWeight, failedChecks, lastTransitionTime) on Ops → GitOps (`GET /api/v1/rollouts`). Promote/abort are not offered | Argo Rollouts dashboard, Flagger/Weave GitOps |
 | Autoscaling | Read-only Karpenter view: NodePools and NodeClaims (instance type, spot/on-demand, zone, phase) on the Autoscaling page | Headlamp Karpenter plugin |
 
 ## Shipped in 0.13.2
@@ -91,6 +93,7 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
+| Helm history and rollback | Per-release revision history, values and manifest diff between revisions (credential-looking values redacted) and a reviewed, admin-only rollback with PVC/CRD/hook warnings and a typed confirmation | Rancher/Lens Helm history, `helm history`/`helm rollback` |
 | Helm chart catalog | Administrator-approved chart repositories, search, versions, default values and README, installing through the existing Helm Job; fetches are guarded against reaching private, loopback or metadata addresses | Rancher Apps & Marketplace, Portainer app templates, Lens Helm charts |
 | GitOps application creation | Create an Argo CD Application, a Flux Git source + Kustomization or a Flux Helm source + HelmRelease from typed fields, after previewing the exact YAML; admin only, no credentials in URLs, rolled back if only part of it could be created | Argo CD "New app", Rancher Fleet, Devtron |
 
@@ -163,6 +166,7 @@ are theirs, not ours.
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
 | Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
 | cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
+| External Secrets sync health | ExternalSecret list (store, refresh interval, last sync, Ready condition and message, target Secret), stale bucket (> 2x refresh), failing/stale rollup, SecretStore/ClusterSecretStore Ready and provider type, debounced notification when one flips to failing (`/external-secrets/health`) | Lens/Headlamp External Secrets panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

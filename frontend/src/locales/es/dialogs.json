@@ -553,5 +553,84 @@
     "cooldownPeriod": "Enfriamiento (s)",
     "triggerLegend": "Disparador {{n}} · {{type}}",
     "noCredentials": "Sin credenciales"
+  },
+  "nodeDrain": {
+    "title": "Drenar {{name}}",
+    "failed": "Error al drenar",
+    "step": {
+      "preview": "Vista previa",
+      "confirm": "Confirmar",
+      "run": "Acordonar y drenar"
+    },
+    "verdict": {
+      "ok": "Se puede drenar sin riesgo",
+      "caution": "Se puede drenar, pero con precaución",
+      "blocked": "Bloqueado: un PodDisruptionBudget rechazará las expulsiones"
+    },
+    "reason": {
+      "pdbBlocked": "Un PodDisruptionBudget no permite interrupciones para los Pods de este Node.",
+      "pdbTight": "Un PodDisruptionBudget permite menos interrupciones que los Pods que cubre aquí.",
+      "unmanaged": "Los Pods sin controlador se perderán.",
+      "localStorage": "Los Pods con emptyDir pierden sus datos (delete-emptydir-data).",
+      "singleReplica": "Las cargas de una sola réplica tendrán tiempo de inactividad.",
+      "pinnedVolumes": "Los volúmenes fijados a este Node impiden que sus Pods se muevan.",
+      "noHeadroom": "Puede que otros Nodes no tengan espacio para los Pods desplazados."
+    },
+    "pdbBlocked": "Bloqueado por PodDisruptionBudget",
+    "pdbAllows": "permite {{n}} interrupciones",
+    "evict": "Se expulsarán ({{n}} Pods)",
+    "unmanaged": "Pods sin gestionar (sin controlador): se pierden, nada los recrea",
+    "localStorage": "Almacenamiento local (emptyDir): los datos se eliminan, drenar requiere delete-emptydir-data",
+    "singleReplica": "Una sola réplica: inactividad hasta que se reprograme",
+    "pinned": "Volumen fijado a este Node (se muestra el claim): no puede reprogramarse en otro",
+    "ignored": "Ignorados ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod espejo",
+      "kube-system": "kube-system",
+      "finished": "finalizado"
+    },
+    "reschedule": "Reprogramación (aproximada)",
+    "fits": "Parece que cabe.",
+    "noFit": "Puede que no quepa.",
+    "rescheduleBody": "{{nodes}} otros Nodes programables y Ready; margen libre de requests {{cpu}} CPU y {{mem}}; necesario {{needCpu}} CPU y {{needMem}}.",
+    "approximate": "Estimación solo a partir de los requests de recursos. Ignora afinidad, taints, topología y almacenamiento.",
+    "confirmHelp": "Primero se acordona el Node y luego se expulsan sus Pods. Solo operadores y administradores pueden hacerlo, y queda auditado.",
+    "confirmLabel": "Escribe <code>{{name}}</code> para confirmar",
+    "start": "Acordonar y drenar",
+    "progressCordon": "Acordonando el Node...",
+    "progressDrain": "Expulsando Pods: aún quedan {{n}} en el Node",
+    "done": "Drenaje terminado. {{name}} sigue acordonado hasta que lo desacordones."
+  },
+  "helmHistory": {
+    "title": "Historial de {{name}}",
+    "empty": "No se encontraron revisiones.",
+    "revisions": "Revisiones",
+    "revision": "Revisión",
+    "chartVersion": "Versión del chart",
+    "appVersion": "Versión de la app",
+    "updated": "Actualizado",
+    "description": "Descripción",
+    "reviewRollback": "Revisar la reversión a la revisión {{n}}",
+    "from": "Desde la revisión",
+    "to": "Hasta la revisión",
+    "compare": "Comparar",
+    "redactNote": "Los valores que parecen credenciales (contraseña, token, secret, key) se ocultan.",
+    "values": "Valores",
+    "manifest": "Manifiesto",
+    "noChanges": "Sin cambios.",
+    "summary": "Revirtiendo de la revisión {{from}} a la {{to}}: {{added}} líneas del manifiesto añadidas, {{removed}} eliminadas.",
+    "valuesChanged": "Los valores del release difieren entre estas revisiones.",
+    "confirmLabel": "Escriba <code>{{name}}</code> para confirmar la reversión",
+    "back": "Atrás",
+    "rollingBack": "Revirtiendo…",
+    "rollback": "Revertir a la revisión {{n}}",
+    "warn": {
+      "pvc": "El release es propietario de PersistentVolumeClaims. Revertir no restaura los datos que contienen.",
+      "crd": "El release es propietario de CRDs. Los recursos personalizados ya creados no se migran de vuelta.",
+      "hooks": "El release define hooks de Helm; los hooks de la revisión de destino se ejecutan de nuevo.",
+      "sameRevision": "La revisión de destino es la activa; la reversión crea una nueva revisión con contenido idéntico.",
+      "targetFailed": "La revisión de destino terminó con el estado failed y puede no haber estado sana."
+    }
   }
 }

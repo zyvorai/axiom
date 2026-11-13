@@ -167,9 +167,24 @@
       "aria": "External secrets",
       "columns": {
         "store": "Store",
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "lastSync": "Last sync",
+        "condition": "Condition",
+        "target": "Target secret",
+        "health": "Health",
+        "provider": "Provider"
       },
-      "empty": "No ExternalSecret resources found."
+      "empty": "No ExternalSecret resources found.",
+      "never": "Never",
+      "unavailable": "External Secrets Operator is not installed or not readable.",
+      "health": {
+        "ready": "Ready",
+        "failing": "Failing",
+        "stale": "Stale"
+      },
+      "storesTitle": "Secret stores",
+      "storesAria": "External Secrets stores",
+      "storesEmpty": "No SecretStores or ClusterSecretStores found."
     },
     "certs": {
       "title": "Certificates (cert-manager)",
@@ -838,7 +853,8 @@
         "release": "Release",
         "chart": "Chart",
         "revision": "Revision"
-      }
+      },
+      "history": "History"
     },
     "gitops": {
       "newApplication": "New application",
@@ -1867,5 +1883,32 @@
       "hpa": "HPA",
       "audit": "Audit"
     }
+  },
+  "rollouts": {
+    "title": "Progressive delivery",
+    "notInstalled": "Argo Rollouts and Flagger are not installed in this cluster.",
+    "notInstalledHint": "Install Argo Rollouts or Flagger to see canary and blue-green releases here, read-only.",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "No Rollouts.",
+    "emptyFlagger": "No Canaries.",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "Strategy",
+      "step": "Step",
+      "weight": "Weight",
+      "replicas": "Replicas (desired / updated / ready / available)",
+      "phase": "Phase",
+      "pauseReason": "Pause reason",
+      "analysis": "Latest analysis",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "Images",
+      "target": "Target",
+      "failedChecks": "Failed checks",
+      "lastTransition": "Last transition"
+    },
+    "readOnlyNote": "Read-only. Promote and abort are not offered; use kubectl argo rollouts."
   }
 }

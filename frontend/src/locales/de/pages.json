@@ -167,9 +167,24 @@
       "aria": "External Secrets",
       "columns": {
         "store": "Store",
-        "refresh": "Aktualisierung"
+        "refresh": "Aktualisierung",
+        "lastSync": "Letzte Synchronisierung",
+        "condition": "Zustand",
+        "target": "Ziel-Secret",
+        "health": "Zustand",
+        "provider": "Anbieter"
       },
-      "empty": "Keine ExternalSecret-Ressourcen gefunden."
+      "empty": "Keine ExternalSecret-Ressourcen gefunden.",
+      "never": "Nie",
+      "unavailable": "External Secrets Operator ist nicht installiert oder nicht lesbar.",
+      "health": {
+        "ready": "Bereit",
+        "failing": "Fehlerhaft",
+        "stale": "Veraltet"
+      },
+      "storesTitle": "Secret-Stores",
+      "storesAria": "External-Secrets-Stores",
+      "storesEmpty": "Keine SecretStores oder ClusterSecretStores gefunden."
     },
     "certs": {
       "title": "Zertifikate (cert-manager)",
@@ -838,7 +853,8 @@
         "release": "Release",
         "chart": "Chart",
         "revision": "Revision"
-      }
+      },
+      "history": "Verlauf"
     },
     "gitops": {
       "newApplication": "Neue Anwendung",
@@ -1867,5 +1883,32 @@
       "hpa": "HPA",
       "audit": "Audit"
     }
+  },
+  "rollouts": {
+    "title": "Progressive Delivery",
+    "notInstalled": "Argo Rollouts und Flagger sind in diesem Cluster nicht installiert.",
+    "notInstalledHint": "Installieren Sie Argo Rollouts oder Flagger, um Canary- und Blue-Green-Releases hier schreibgeschützt zu sehen.",
+    "argoTitle": "Argo Rollouts",
+    "flaggerTitle": "Flagger Canaries",
+    "emptyArgo": "Keine Rollouts.",
+    "emptyFlagger": "Keine Canaries.",
+    "region": "Argo Rollouts",
+    "flaggerRegion": "Flagger Canaries",
+    "columns": {
+      "strategy": "Strategie",
+      "step": "Schritt",
+      "weight": "Gewichtung",
+      "replicas": "Replicas (gewünscht / aktualisiert / bereit / verfügbar)",
+      "phase": "Phase",
+      "pauseReason": "Pausengrund",
+      "analysis": "Letzte Analyse",
+      "stable": "Stable",
+      "canary": "Canary",
+      "images": "Images",
+      "target": "Ziel",
+      "failedChecks": "Fehlgeschlagene Prüfungen",
+      "lastTransition": "Letzter Übergang"
+    },
+    "readOnlyNote": "Schreibgeschützt. Promote und Abort werden nicht angeboten; verwenden Sie kubectl argo rollouts."
   }
 }

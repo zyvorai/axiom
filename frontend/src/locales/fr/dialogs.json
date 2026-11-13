@@ -553,5 +553,84 @@
     "cooldownPeriod": "Refroidissement (s)",
     "triggerLegend": "Déclencheur {{n}} · {{type}}",
     "noCredentials": "Aucun identifiant"
+  },
+  "nodeDrain": {
+    "title": "Drainer {{name}}",
+    "failed": "Échec du drain",
+    "step": {
+      "preview": "Aperçu",
+      "confirm": "Confirmer",
+      "run": "Isoler et drainer"
+    },
+    "verdict": {
+      "ok": "Drain sans risque",
+      "caution": "Drain possible, mais avec prudence",
+      "blocked": "Bloqué : un PodDisruptionBudget refusera les évictions"
+    },
+    "reason": {
+      "pdbBlocked": "Un PodDisruptionBudget n'autorise aucune interruption pour les Pods de ce Node.",
+      "pdbTight": "Un PodDisruptionBudget autorise moins d'interruptions que les Pods qu'il couvre ici.",
+      "unmanaged": "Les Pods sans contrôleur seront perdus.",
+      "localStorage": "Les Pods avec emptyDir perdent leurs données (delete-emptydir-data).",
+      "singleReplica": "Les charges à réplica unique subiront une interruption.",
+      "pinnedVolumes": "Les volumes liés à ce Node empêchent leurs Pods de se déplacer.",
+      "noHeadroom": "Les autres Nodes n'ont peut-être pas la place pour les Pods déplacés."
+    },
+    "pdbBlocked": "Bloqué par un PodDisruptionBudget",
+    "pdbAllows": "autorise {{n}} interruptions",
+    "evict": "Seront évincés ({{n}} Pods)",
+    "unmanaged": "Pods non gérés (sans contrôleur) : perdus, rien ne les recrée",
+    "localStorage": "Stockage local (emptyDir) : les données sont supprimées, le drain exige delete-emptydir-data",
+    "singleReplica": "Réplica unique : interruption jusqu'à la replanification",
+    "pinned": "Volume lié à ce Node (claim affiché) : replanification ailleurs impossible",
+    "ignored": "Ignorés ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod miroir",
+      "kube-system": "kube-system",
+      "finished": "terminé"
+    },
+    "reschedule": "Replanification (approximative)",
+    "fits": "Cela semble tenir.",
+    "noFit": "Cela risque de ne pas tenir.",
+    "rescheduleBody": "{{nodes}} autres Nodes planifiables et Ready ; marge de requests libre {{cpu}} CPU et {{mem}} ; nécessaire {{needCpu}} CPU et {{needMem}}.",
+    "approximate": "Estimation basée uniquement sur les requests de ressources. Elle ignore l'affinité, les taints, la topologie et le stockage.",
+    "confirmHelp": "Le Node est d'abord isolé, puis ses Pods sont évincés. Réservé aux opérateurs et administrateurs, et audité.",
+    "confirmLabel": "Saisissez <code>{{name}}</code> pour confirmer",
+    "start": "Isoler et drainer",
+    "progressCordon": "Isolement du Node...",
+    "progressDrain": "Éviction des Pods : {{n}} restants sur le Node",
+    "done": "Drain terminé. {{name}} reste isolé jusqu'à sa réintégration."
+  },
+  "helmHistory": {
+    "title": "Historique de {{name}}",
+    "empty": "Aucune révision trouvée.",
+    "revisions": "Révisions",
+    "revision": "Révision",
+    "chartVersion": "Version du chart",
+    "appVersion": "Version de l'application",
+    "updated": "Mis à jour",
+    "description": "Description",
+    "reviewRollback": "Vérifier la restauration vers la révision {{n}}",
+    "from": "Depuis la révision",
+    "to": "Vers la révision",
+    "compare": "Comparer",
+    "redactNote": "Les valeurs qui ressemblent à des identifiants (mot de passe, token, secret, key) sont masquées.",
+    "values": "Valeurs",
+    "manifest": "Manifeste",
+    "noChanges": "Aucun changement.",
+    "summary": "Restauration de la révision {{from}} vers {{to}} : {{added}} lignes de manifeste ajoutées, {{removed}} supprimées.",
+    "valuesChanged": "Les valeurs du release diffèrent entre ces révisions.",
+    "confirmLabel": "Saisissez <code>{{name}}</code> pour confirmer la restauration",
+    "back": "Retour",
+    "rollingBack": "Restauration…",
+    "rollback": "Restaurer la révision {{n}}",
+    "warn": {
+      "pvc": "Le release possède des PersistentVolumeClaims. Une restauration ne rétablit pas les données qu'ils contiennent.",
+      "crd": "Le release possède des CRDs. Les ressources personnalisées déjà créées ne sont pas migrées en arrière.",
+      "hooks": "Le release définit des hooks Helm ; les hooks de la révision cible s'exécutent à nouveau.",
+      "sameRevision": "La révision cible est la révision active ; la restauration crée une nouvelle révision au contenu identique.",
+      "targetFailed": "La révision cible s'est terminée avec le statut failed et n'était peut-être pas saine."
+    }
   }
 }

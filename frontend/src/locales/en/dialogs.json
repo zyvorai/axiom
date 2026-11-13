@@ -553,5 +553,84 @@
     "cooldownPeriod": "Cooldown (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "No credentials"
+  },
+  "nodeDrain": {
+    "title": "Drain {{name}}",
+    "failed": "Drain failed",
+    "step": {
+      "preview": "Preview",
+      "confirm": "Confirm",
+      "run": "Cordon and drain"
+    },
+    "verdict": {
+      "ok": "Safe to drain",
+      "caution": "Drain is possible, but with caution",
+      "blocked": "Blocked: a PodDisruptionBudget will refuse evictions"
+    },
+    "reason": {
+      "pdbBlocked": "A PodDisruptionBudget allows no disruptions for Pods on this Node.",
+      "pdbTight": "A PodDisruptionBudget allows fewer disruptions than the Pods it covers here.",
+      "unmanaged": "Pods without a controller will be lost.",
+      "localStorage": "Pods with emptyDir lose their data (delete-emptydir-data).",
+      "singleReplica": "Single-replica workloads will have downtime.",
+      "pinnedVolumes": "Volumes pinned to this Node keep their Pods from moving.",
+      "noHeadroom": "Other Nodes may not have room for the displaced Pods."
+    },
+    "pdbBlocked": "Blocked by PodDisruptionBudget",
+    "pdbAllows": "allows {{n}} disruptions",
+    "evict": "Will be evicted ({{n}} Pods)",
+    "unmanaged": "Unmanaged Pods (no controller): lost, nothing recreates them",
+    "localStorage": "Local storage (emptyDir): data is deleted, drain needs delete-emptydir-data",
+    "singleReplica": "Single replica: downtime until it is rescheduled",
+    "pinned": "Volume pinned to this Node (claim shown): cannot reschedule elsewhere",
+    "ignored": "Ignored ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "mirror Pod",
+      "kube-system": "kube-system",
+      "finished": "finished"
+    },
+    "reschedule": "Rescheduling (approximate)",
+    "fits": "Looks like it fits.",
+    "noFit": "May not fit.",
+    "rescheduleBody": "{{nodes}} other schedulable Ready Nodes; free request headroom {{cpu}} CPU and {{mem}}; needed {{needCpu}} CPU and {{needMem}}.",
+    "approximate": "Estimate from resource requests only. It ignores affinity, taints, topology and storage.",
+    "confirmHelp": "The Node is cordoned first, then its Pods are evicted. Only operators and admins can do this, and it is audited.",
+    "confirmLabel": "Type <code>{{name}}</code> to confirm",
+    "start": "Cordon and drain",
+    "progressCordon": "Cordoning the Node...",
+    "progressDrain": "Evicting Pods: {{n}} still on the Node",
+    "done": "Drain finished. {{name}} stays cordoned until you uncordon it."
+  },
+  "helmHistory": {
+    "title": "History of {{name}}",
+    "empty": "No revisions found.",
+    "revisions": "Revisions",
+    "revision": "Revision",
+    "chartVersion": "Chart version",
+    "appVersion": "App version",
+    "updated": "Updated",
+    "description": "Description",
+    "reviewRollback": "Review rollback to revision {{n}}",
+    "from": "From revision",
+    "to": "To revision",
+    "compare": "Compare",
+    "redactNote": "Values that look like credentials (password, token, secret, key) are hidden.",
+    "values": "Values",
+    "manifest": "Manifest",
+    "noChanges": "No changes.",
+    "summary": "Rolling back from revision {{from}} to {{to}}: {{added}} manifest lines added, {{removed}} removed.",
+    "valuesChanged": "The release values differ between these revisions.",
+    "confirmLabel": "Type <code>{{name}}</code> to confirm the rollback",
+    "back": "Back",
+    "rollingBack": "Rolling back…",
+    "rollback": "Roll back to revision {{n}}",
+    "warn": {
+      "pvc": "The release owns PersistentVolumeClaims. A rollback does not revert the data on them.",
+      "crd": "The release owns CRDs. Custom resources that already exist are not migrated back.",
+      "hooks": "The release defines Helm hooks; the hooks of the target revision run again.",
+      "sameRevision": "The target is the live revision; the rollback creates a new revision with identical content.",
+      "targetFailed": "The target revision ended in status failed and may not have been healthy."
+    }
   }
 }

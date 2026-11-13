@@ -27,7 +27,7 @@ import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2, ShieldCheck } fr
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { CERTS } from "@/constants/testIds";
+import { CERTS, EXTERNAL_SECRETS } from "@/constants/testIds";
 
 const SECRET_TYPES = ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth"];
 
@@ -122,62 +122,135 @@ function CreateSecretDialog({ open, onOpenChange, onCreated }) {
     );
 }
 
+const ES_HEALTH_TONE = { ready: "var(--green)", failing: "var(--red)", stale: "var(--amber)" };
+
 function ExternalSecretsSection() {
     const { t } = useTranslation();
-    const [items, setItems] = useState(null);
+    const [rep, setRep] = useState(null);
 
     useEffect(() => {
         let alive = true;
-        api.get("/external-secrets").then((r) => alive && setItems(r.data)).catch(() => alive && setItems([]));
+        api.get("/external-secrets/health")
+            .then((r) => alive && setRep(r.data))
+            .catch(() => alive && setRep({ available: false, rollup: {}, externalSecrets: [], stores: [] }));
         return () => {
             alive = false;
         };
     }, []);
 
+    const items = rep?.externalSecrets || [];
+    const stores = rep?.stores || [];
+    const rollup = rep?.rollup || {};
+    const fmtTime = (v) => (v ? v.slice(0, 19).replace("T", " ") : t("pages:secrets.external.never"));
+    const condStatus = (v) => (v === "True" ? "Ready" : v === "False" ? "Failed" : "Unknown");
+
     return (
-        <GlassCard className="overflow-hidden p-0">
+        <GlassCard className="overflow-hidden p-0" data-testid={EXTERNAL_SECRETS.root}>
             <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
                 <Link2 className="h-4 w-4 text-tone-link" /> {t("pages:secrets.external.title")}
             </div>
-            <div className="max-h-[300px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.aria")}>
-                {!items && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
-                {items && (
-                    <table className="tbl">
-                        <thead>
-                            <tr>
-                                <th>{t("common:fields.name")}</th>
-                                <th>{t("pages:secrets.external.columns.store")}</th>
-                                <th>{t("pages:secrets.external.columns.refresh")}</th>
-                                <th>{t("common:fields.status")}</th>
-                                <th>{t("common:fields.age")}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map((s, i) => (
-                                <tr key={i}>
-                                    <td className="name">
-                                        {s.name}
-                                        <small>{s.namespace}</small>
-                                    </td>
-                                    <td className="mono">{s.store}</td>
-                                    <td>{s.refresh}</td>
-                                    <td>
-                                        <StatusBadge status={s.ready ? "Ready" : s.status} />
-                                    </td>
-                                    <td className="mono">{s.age}</td>
-                                </tr>
-                            ))}
-                            {items.length === 0 && (
+            {!rep && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
+            {rep && !rep.available && (
+                <div className="empty" data-testid={EXTERNAL_SECRETS.unavailable}>{t("pages:secrets.external.unavailable")}</div>
+            )}
+            {rep?.available && (
+                <>
+                    <div className="flex flex-wrap gap-4 border-b px-4 py-2 text-sm" data-testid={EXTERNAL_SECRETS.rollup}>
+                        {["ready", "failing", "stale"].map((k) => (
+                            <span key={k} data-testid={EXTERNAL_SECRETS.count(k)}>
+                                <span className="mono font-medium" style={{ color: ES_HEALTH_TONE[k] }}>{rollup[k] ?? 0}</span>{" "}
+                                {t(`pages:secrets.external.health.${k}`)}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="max-h-[320px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.aria")}>
+                        <table className="tbl">
+                            <thead>
                                 <tr>
-                                    <td colSpan={5}>
-                                        <div className="empty">{t("pages:secrets.external.empty")}</div>
-                                    </td>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("pages:secrets.external.columns.store")}</th>
+                                    <th>{t("pages:secrets.external.columns.refresh")}</th>
+                                    <th>{t("pages:secrets.external.columns.lastSync")}</th>
+                                    <th>{t("pages:secrets.external.columns.condition")}</th>
+                                    <th>{t("pages:secrets.external.columns.target")}</th>
+                                    <th>{t("pages:secrets.external.columns.health")}</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+                            </thead>
+                            <tbody>
+                                {items.map((s) => (
+                                    <tr key={`${s.namespace}/${s.name}`} data-testid={EXTERNAL_SECRETS.row(s.namespace, s.name)}>
+                                        <td className="name">
+                                            {s.name}
+                                            <small>{s.namespace}</small>
+                                        </td>
+                                        <td className="mono">
+                                            {s.store}
+                                            <small>{s.storeKind}</small>
+                                        </td>
+                                        <td className="mono">{s.refreshInterval}</td>
+                                        <td className="mono">{fmtTime(s.lastSync)}</td>
+                                        <td title={s.message}>
+                                            <StatusBadge status={condStatus(s.ready)} />
+                                            <small>{s.reason}</small>
+                                            {s.message && <small>{s.message}</small>}
+                                        </td>
+                                        <td className="mono">{s.targetSecret}</td>
+                                        <td data-testid={EXTERNAL_SECRETS.health(s.namespace, s.name)}>
+                                            <span className="mono" style={{ color: ES_HEALTH_TONE[s.health] }}>
+                                                {t(`pages:secrets.external.health.${s.health || "ready"}`)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {items.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <div className="empty">{t("pages:secrets.external.empty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.external.storesTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.storesAria")} data-testid={EXTERNAL_SECRETS.storesRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("pages:secrets.external.columns.provider")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stores.map((st) => (
+                                    <tr key={`${st.kind}/${st.namespace}/${st.name}`} data-testid={EXTERNAL_SECRETS.storeRow(st.kind, st.name)}>
+                                        <td className="name">
+                                            {st.name}
+                                            {st.namespace && <small>{st.namespace}</small>}
+                                        </td>
+                                        <td className="mono">{st.kind}</td>
+                                        <td className="mono">{st.provider}</td>
+                                        <td>
+                                            <StatusBadge status={condStatus(st.ready)} />
+                                        </td>
+                                        <td>{st.message}</td>
+                                    </tr>
+                                ))}
+                                {stores.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5}>
+                                            <div className="empty">{t("pages:secrets.external.storesEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
         </GlassCard>
     );
 }

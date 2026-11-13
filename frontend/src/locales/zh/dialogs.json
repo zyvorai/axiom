@@ -551,5 +551,84 @@
     "cooldownPeriod": "冷却（s）",
     "triggerLegend": "触发器 {{n}} · {{type}}",
     "noCredentials": "无凭据"
+  },
+  "nodeDrain": {
+    "title": "排空 {{name}}",
+    "failed": "排空失败",
+    "step": {
+      "preview": "预览",
+      "confirm": "确认",
+      "run": "封锁并排空"
+    },
+    "verdict": {
+      "ok": "可安全排空",
+      "caution": "可以排空，但需谨慎",
+      "blocked": "已阻止：PodDisruptionBudget 将拒绝驱逐"
+    },
+    "reason": {
+      "pdbBlocked": "PodDisruptionBudget 不允许此 Node 上的 Pod 中断。",
+      "pdbTight": "PodDisruptionBudget 允许的中断数少于它在此处覆盖的 Pod 数。",
+      "unmanaged": "没有控制器的 Pod 将丢失。",
+      "localStorage": "使用 emptyDir 的 Pod 会丢失数据 (delete-emptydir-data)。",
+      "singleReplica": "单副本工作负载将出现停机。",
+      "pinnedVolumes": "固定在此 Node 上的卷会使其 Pod 无法迁移。",
+      "noHeadroom": "其他 Node 可能没有空间容纳被迁出的 Pod。"
+    },
+    "pdbBlocked": "被 PodDisruptionBudget 阻止",
+    "pdbAllows": "允许 {{n}} 次中断",
+    "evict": "将被驱逐 ({{n}} 个 Pod)",
+    "unmanaged": "未托管的 Pod (无控制器)：将丢失，不会被重新创建",
+    "localStorage": "本地存储 (emptyDir)：数据会被删除，排空需要 delete-emptydir-data",
+    "singleReplica": "单副本：重新调度前会停机",
+    "pinned": "卷固定在此 Node (显示 claim)：无法调度到其他位置",
+    "ignored": "已忽略 ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "镜像 Pod",
+      "kube-system": "kube-system",
+      "finished": "已完成"
+    },
+    "reschedule": "重新调度 (近似)",
+    "fits": "看起来可以容纳。",
+    "noFit": "可能无法容纳。",
+    "rescheduleBody": "其他可调度且 Ready 的 Node：{{nodes}} 个；request 剩余空间 CPU {{cpu}}、{{mem}}；需要 CPU {{needCpu}}、{{needMem}}。",
+    "approximate": "仅根据资源 request 估算，不考虑亲和性、taint、拓扑和存储。",
+    "confirmHelp": "先封锁该 Node，再驱逐其上的 Pod。仅运维人员和管理员可执行，并会记入审计。",
+    "confirmLabel": "输入 <code>{{name}}</code> 以确认",
+    "start": "封锁并排空",
+    "progressCordon": "正在封锁 Node...",
+    "progressDrain": "正在驱逐 Pod：Node 上还剩 {{n}} 个",
+    "done": "排空完成。在你解除封锁之前，{{name}} 保持封锁状态。"
+  },
+  "helmHistory": {
+    "title": "{{name}} 的历史",
+    "empty": "未找到修订版本。",
+    "revisions": "修订版本",
+    "revision": "修订版本",
+    "chartVersion": "chart 版本",
+    "appVersion": "应用版本",
+    "updated": "更新时间",
+    "description": "说明",
+    "reviewRollback": "检查回滚到修订版本 {{n}}",
+    "from": "起始修订版本",
+    "to": "目标修订版本",
+    "compare": "比较",
+    "redactNote": "看起来像凭据的值(password、token、secret、key)会被隐藏。",
+    "values": "值",
+    "manifest": "清单",
+    "noChanges": "没有变更。",
+    "summary": "从修订版本 {{from}} 回滚到 {{to}}:清单新增 {{added}} 行,删除 {{removed}} 行。",
+    "valuesChanged": "这些修订版本之间的 release 值不同。",
+    "confirmLabel": "输入 <code>{{name}}</code> 以确认回滚",
+    "back": "返回",
+    "rollingBack": "正在回滚…",
+    "rollback": "回滚到修订版本 {{n}}",
+    "warn": {
+      "pvc": "该 release 拥有 PersistentVolumeClaim。回滚不会还原其中的数据。",
+      "crd": "该 release 拥有 CRD。已创建的自定义资源不会被迁移回去。",
+      "hooks": "该 release 定义了 Helm 钩子;目标修订版本的钩子会再次运行。",
+      "sameRevision": "目标是当前修订版本;回滚会创建一个内容相同的新修订版本。",
+      "targetFailed": "目标修订版本以 failed 状态结束,可能并不健康。"
+    }
   }
 }

@@ -59,7 +59,7 @@ func isOperatorForbidden(r *http.Request) bool {
 		return true
 	case strings.HasPrefix(p, "/api/v1/integrations/"):
 		return true
-	case isGitOpsCreate(r), isVeleroRestoreWrite(r):
+	case isGitOpsCreate(r), isVeleroRestoreWrite(r), isHelmRollback(r):
 		return true
 	case isCostBudgetOperatorForbidden(r):
 		return true
@@ -101,6 +101,9 @@ func restrictedDenied(r *http.Request) bool {
 	p := r.URL.Path
 	if isNodeShellPath(p) {
 		return true // root on a node is never namespace-scoped
+	}
+	if strings.HasPrefix(p, "/api/v1/nodes/") && strings.HasSuffix(p, "/drain-preview") {
+		return true // lists pods of every namespace on the node
 	}
 	for _, pre := range restrictedSensitivePrefixes {
 		if p == pre || strings.HasPrefix(p, pre+"/") {

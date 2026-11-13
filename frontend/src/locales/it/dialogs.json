@@ -553,5 +553,84 @@
     "cooldownPeriod": "Cooldown (s)",
     "triggerLegend": "Trigger {{n}} · {{type}}",
     "noCredentials": "Nessuna credenziale"
+  },
+  "nodeDrain": {
+    "title": "Drain di {{name}}",
+    "failed": "Drain non riuscito",
+    "step": {
+      "preview": "Anteprima",
+      "confirm": "Conferma",
+      "run": "Cordon e drain"
+    },
+    "verdict": {
+      "ok": "Drain sicuro",
+      "caution": "Il drain è possibile, ma con cautela",
+      "blocked": "Bloccato: un PodDisruptionBudget rifiuterà le evizioni"
+    },
+    "reason": {
+      "pdbBlocked": "Un PodDisruptionBudget non consente interruzioni per i Pod di questo Node.",
+      "pdbTight": "Un PodDisruptionBudget consente meno interruzioni dei Pod che copre qui.",
+      "unmanaged": "I Pod senza controller andranno persi.",
+      "localStorage": "I Pod con emptyDir perdono i dati (delete-emptydir-data).",
+      "singleReplica": "I workload con una sola replica avranno downtime.",
+      "pinnedVolumes": "I volumi vincolati a questo Node impediscono ai Pod di spostarsi.",
+      "noHeadroom": "Gli altri Node potrebbero non avere spazio per i Pod spostati."
+    },
+    "pdbBlocked": "Bloccato da PodDisruptionBudget",
+    "pdbAllows": "consente {{n}} interruzioni",
+    "evict": "Verranno evicted ({{n}} Pod)",
+    "unmanaged": "Pod non gestiti (senza controller): persi, nulla li ricrea",
+    "localStorage": "Storage locale (emptyDir): i dati vengono eliminati, il drain richiede delete-emptydir-data",
+    "singleReplica": "Replica singola: downtime fino alla riprogrammazione",
+    "pinned": "Volume vincolato a questo Node (claim mostrato): non può essere riprogrammato altrove",
+    "ignored": "Ignorati ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod mirror",
+      "kube-system": "kube-system",
+      "finished": "terminato"
+    },
+    "reschedule": "Riprogrammazione (approssimativa)",
+    "fits": "Sembra che ci stia.",
+    "noFit": "Potrebbe non starci.",
+    "rescheduleBody": "{{nodes}} altri Node pianificabili e Ready; margine di request libero {{cpu}} CPU e {{mem}}; necessario {{needCpu}} CPU e {{needMem}}.",
+    "approximate": "Stima basata solo sulle request di risorse. Ignora affinity, taint, topologia e storage.",
+    "confirmHelp": "Il Node viene prima isolato (cordon), poi i suoi Pod vengono evicted. Solo operatori e amministratori possono farlo, ed è registrato nell'audit.",
+    "confirmLabel": "Digita <code>{{name}}</code> per confermare",
+    "start": "Cordon e drain",
+    "progressCordon": "Cordon del Node in corso...",
+    "progressDrain": "Eviction dei Pod: ne restano {{n}} sul Node",
+    "done": "Drain completato. {{name}} resta in cordon finché non fai uncordon."
+  },
+  "helmHistory": {
+    "title": "Cronologia di {{name}}",
+    "empty": "Nessuna revisione trovata.",
+    "revisions": "Revisioni",
+    "revision": "Revisione",
+    "chartVersion": "Versione del chart",
+    "appVersion": "Versione dell'app",
+    "updated": "Aggiornato",
+    "description": "Descrizione",
+    "reviewRollback": "Verifica il rollback alla revisione {{n}}",
+    "from": "Dalla revisione",
+    "to": "Alla revisione",
+    "compare": "Confronta",
+    "redactNote": "I valori che sembrano credenziali (password, token, secret, key) sono nascosti.",
+    "values": "Valori",
+    "manifest": "Manifest",
+    "noChanges": "Nessuna modifica.",
+    "summary": "Rollback dalla revisione {{from}} alla {{to}}: {{added}} righe del manifest aggiunte, {{removed}} rimosse.",
+    "valuesChanged": "I valori del release differiscono tra queste revisioni.",
+    "confirmLabel": "Digita <code>{{name}}</code> per confermare il rollback",
+    "back": "Indietro",
+    "rollingBack": "Rollback in corso…",
+    "rollback": "Rollback alla revisione {{n}}",
+    "warn": {
+      "pvc": "Il release possiede PersistentVolumeClaim. Il rollback non ripristina i dati che contengono.",
+      "crd": "Il release possiede CRD. Le risorse personalizzate già create non vengono migrate indietro.",
+      "hooks": "Il release definisce hook Helm; gli hook della revisione di destinazione vengono eseguiti di nuovo.",
+      "sameRevision": "La revisione di destinazione è quella attiva; il rollback crea una nuova revisione con contenuto identico.",
+      "targetFailed": "La revisione di destinazione è terminata con stato failed e potrebbe non essere stata integra."
+    }
   }
 }

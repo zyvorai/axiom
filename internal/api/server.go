@@ -232,6 +232,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/nodes/{name}/cordon", s.cordon)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/uncordon", s.uncordon)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/drain", s.drain)
+	mux.HandleFunc("GET /api/v1/nodes/{name}/drain-preview", s.drainPreview)
 	mux.HandleFunc("GET /api/v1/nodes/{name}/metrics", s.nodeMetrics)
 	mux.HandleFunc("POST /api/v1/nodes/{name}/taints", s.addTaint)
 	mux.HandleFunc("DELETE /api/v1/nodes/{name}/taints/{key}", s.removeTaint)
@@ -327,6 +328,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/accelerators/rightsizing/apply", s.applyGPURightsizing)
 	mux.HandleFunc("GET /api/v1/dra", s.listDRA)
 	mux.HandleFunc("GET /api/v1/karpenter", s.listKarpenter)
+	mux.HandleFunc("GET /api/v1/rollouts", s.listRollouts)
 	mux.HandleFunc("GET /api/v1/gateway-api", s.listGatewayAPI)
 	mux.HandleFunc("GET /api/v1/certificates", s.listCertificates)
 	mux.HandleFunc("GET /api/v1/admission-policies", s.listAdmissionPolicies)
@@ -336,11 +338,15 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	mux.HandleFunc("POST /api/v1/backups/restore", s.restoreBackup)
 	mux.HandleFunc("GET /api/v1/helm/releases", s.helmReleases)
 	mux.HandleFunc("GET /api/v1/helm/releases/{namespace}/{name}/history", s.helmHistory)
+	mux.HandleFunc("GET /api/v1/helm/releases/{namespace}/{name}/revisions", s.helmRevisions)
+	mux.HandleFunc("GET /api/v1/helm/releases/{namespace}/{name}/diff", s.helmRevisionDiff)
+	mux.HandleFunc("GET /api/v1/helm/releases/{namespace}/{name}/rollback-preview", s.helmRollbackPreview)
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/uninstall", s.helmUninstall)
 	mux.HandleFunc("POST /api/v1/helm/releases/{namespace}/{name}/rollback", s.helmRollback)
 	mux.HandleFunc("POST /api/v1/helm/install", s.helmInstall)
 	mux.HandleFunc("POST /api/v1/helm/upgrade", s.helmUpgrade)
 	mux.HandleFunc("GET /api/v1/external-secrets", s.externalSecrets)
+	mux.HandleFunc("GET /api/v1/external-secrets/health", s.externalSecretsHealth)
 	mux.HandleFunc("GET /api/v1/vm-snapshots", s.vmSnapshots)
 	mux.HandleFunc("POST /api/v1/vm-snapshots", s.createVMSnapshot)
 	mux.HandleFunc("POST /api/v1/vms/{namespace}/{name}/migrate", s.migrateVM)
@@ -740,8 +746,20 @@ func (s *Server) uncordon(w http.ResponseWriter, r *http.Request) {
 	}
 	respondAction(w, err)
 }
+// drainPreview is read-only: what a drain would evict, ignore and block on.
+func (s *Server) drainPreview(w http.ResponseWriter, r *http.Request) {
+	v, err := s.provider.PreviewNodeDrain(r.Context(), r.PathValue("name"))
+	respond(w, v, err)
+}
+
+// drain cordons and evicts. The node name must be echoed as ?confirm=<name>
+// (server-enforced, like GitOps delete); operator/admin and audit apply as before.
 func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")
+	if err := platform.CheckDrainConfirm(name, r.URL.Query().Get("confirm")); err != nil {
+		fail(w, platform.HTTPStatus(err), err)
+		return
+	}
 	err := s.provider.Drain(r.Context(), name)
 	if err == nil {
 		platform.RecordAxiomAudit("node.drain", name, "", s.auditUser(r))

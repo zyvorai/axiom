@@ -553,5 +553,84 @@
     "cooldownPeriod": "Resfriamento (s)",
     "triggerLegend": "Gatilho {{n}} · {{type}}",
     "noCredentials": "Sem credenciais"
+  },
+  "nodeDrain": {
+    "title": "Drenar {{name}}",
+    "failed": "Falha ao drenar",
+    "step": {
+      "preview": "Pré-visualização",
+      "confirm": "Confirmar",
+      "run": "Isolar e drenar"
+    },
+    "verdict": {
+      "ok": "Drenagem segura",
+      "caution": "A drenagem é possível, mas com cautela",
+      "blocked": "Bloqueado: um PodDisruptionBudget recusará as remoções"
+    },
+    "reason": {
+      "pdbBlocked": "Um PodDisruptionBudget não permite interrupções para os Pods deste Node.",
+      "pdbTight": "Um PodDisruptionBudget permite menos interrupções do que os Pods que ele cobre aqui.",
+      "unmanaged": "Pods sem controlador serão perdidos.",
+      "localStorage": "Pods com emptyDir perdem seus dados (delete-emptydir-data).",
+      "singleReplica": "Cargas de réplica única terão indisponibilidade.",
+      "pinnedVolumes": "Volumes fixados neste Node impedem que seus Pods se movam.",
+      "noHeadroom": "Outros Nodes podem não ter espaço para os Pods deslocados."
+    },
+    "pdbBlocked": "Bloqueado por PodDisruptionBudget",
+    "pdbAllows": "permite {{n}} interrupções",
+    "evict": "Serão removidos ({{n}} Pods)",
+    "unmanaged": "Pods não gerenciados (sem controlador): perdidos, nada os recria",
+    "localStorage": "Armazenamento local (emptyDir): dados são apagados, a drenagem exige delete-emptydir-data",
+    "singleReplica": "Réplica única: indisponibilidade até ser reagendado",
+    "pinned": "Volume fixado neste Node (claim exibido): não pode ser reagendado em outro lugar",
+    "ignored": "Ignorados ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "Pod espelho",
+      "kube-system": "kube-system",
+      "finished": "concluído"
+    },
+    "reschedule": "Reagendamento (aproximado)",
+    "fits": "Parece que cabe.",
+    "noFit": "Pode não caber.",
+    "rescheduleBody": "{{nodes}} outros Nodes agendáveis e Ready; folga de requests livre {{cpu}} CPU e {{mem}}; necessário {{needCpu}} CPU e {{needMem}}.",
+    "approximate": "Estimativa apenas com base nos requests de recursos. Ignora afinidade, taints, topologia e armazenamento.",
+    "confirmHelp": "O Node é isolado primeiro e depois seus Pods são removidos. Somente operadores e administradores podem fazer isso, e fica registrado em auditoria.",
+    "confirmLabel": "Digite <code>{{name}}</code> para confirmar",
+    "start": "Isolar e drenar",
+    "progressCordon": "Isolando o Node...",
+    "progressDrain": "Removendo Pods: ainda restam {{n}} no Node",
+    "done": "Drenagem concluída. {{name}} continua isolado até você reintegrá-lo."
+  },
+  "helmHistory": {
+    "title": "Histórico de {{name}}",
+    "empty": "Nenhuma revisão encontrada.",
+    "revisions": "Revisões",
+    "revision": "Revisão",
+    "chartVersion": "Versão do chart",
+    "appVersion": "Versão do app",
+    "updated": "Atualizado",
+    "description": "Descrição",
+    "reviewRollback": "Revisar a reversão para a revisão {{n}}",
+    "from": "Da revisão",
+    "to": "Para a revisão",
+    "compare": "Comparar",
+    "redactNote": "Valores que parecem credenciais (senha, token, secret, key) ficam ocultos.",
+    "values": "Valores",
+    "manifest": "Manifesto",
+    "noChanges": "Sem alterações.",
+    "summary": "Revertendo da revisão {{from}} para a {{to}}: {{added}} linhas do manifesto adicionadas, {{removed}} removidas.",
+    "valuesChanged": "Os valores do release diferem entre estas revisões.",
+    "confirmLabel": "Digite <code>{{name}}</code> para confirmar a reversão",
+    "back": "Voltar",
+    "rollingBack": "Revertendo…",
+    "rollback": "Reverter para a revisão {{n}}",
+    "warn": {
+      "pvc": "O release possui PersistentVolumeClaims. A reversão não restaura os dados nelas.",
+      "crd": "O release possui CRDs. Os recursos personalizados já criados não são migrados de volta.",
+      "hooks": "O release define hooks do Helm; os hooks da revisão de destino são executados novamente.",
+      "sameRevision": "A revisão de destino é a ativa; a reversão cria uma nova revisão com conteúdo idêntico.",
+      "targetFailed": "A revisão de destino terminou com o status failed e pode não ter estado íntegra."
+    }
   }
 }
