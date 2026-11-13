@@ -169,6 +169,33 @@
         "refresh": "更新間隔"
       },
       "empty": "ExternalSecret リソースが見つかりません。"
+    },
+    "certs": {
+      "title": "証明書 (cert-manager)",
+      "aria": "cert-manager の Certificate",
+      "columns": {
+        "issuer": "発行者",
+        "secret": "Secret",
+        "notAfter": "有効期限",
+        "renewal": "更新予定",
+        "days": "残り日数",
+        "state": "状態"
+      },
+      "empty": "Certificate が見つかりません。",
+      "unavailable": "cert-manager がインストールされていないか、読み取れません。",
+      "buckets": {
+        "expired": "期限切れ",
+        "lt7d": "7 日未満",
+        "lt30d": "30 日未満",
+        "ok": "正常",
+        "unknown": "不明"
+      },
+      "issuersTitle": "発行者",
+      "issuersAria": "cert-manager の Issuer",
+      "issuersEmpty": "Issuer / ClusterIssuer が見つかりません。",
+      "failTitle": "失敗したリクエストと Order",
+      "failAria": "失敗した CertificateRequest と Order",
+      "failEmpty": "失敗した CertificateRequest / Order はありません。"
     }
   },
   "secretDetail": {
@@ -377,6 +404,34 @@
         "verdict": "判定"
       },
       "noFlows": "現在の期間にフローはありません。"
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "Gateway、HTTPRoute、GRPCRoute、ReferenceGrant を Accepted / Programmed / ResolvedRefs のステータスとともに表示する読み取り専用ビューです。",
+      "unavailable": "このクラスターには Gateway API の CRD がインストールされていないか、読み取れません。",
+      "routesTitle": "ルート",
+      "noGateways": "Gateway が見つかりません。",
+      "noRoutes": "HTTPRoute または GRPCRoute が見つかりません。",
+      "noGrants": "ReferenceGrant が見つかりません。",
+      "gatewaysRegion": "Gateway",
+      "routesRegion": "ルート",
+      "grantsRegion": "ReferenceGrant",
+      "gotoGateway": "親 Gateway {{name}} へ移動",
+      "columns": {
+        "class": "クラス",
+        "listeners": "リスナー",
+        "addresses": "アドレス",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "ホスト名",
+        "parents": "親 Gateway",
+        "backends": "バックエンド",
+        "from": "送信元",
+        "to": "宛先",
+        "routes": "ルート",
+        "kind": "種類"
+      }
     }
   },
   "networkPolicy": {
@@ -1105,7 +1160,8 @@
     "tabs": {
       "hpa": "水平",
       "vpa": "垂直（VPA）",
-      "keda": "イベント駆動（KEDA）"
+      "keda": "イベント駆動（KEDA）",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "スケーリングなし",
@@ -1158,6 +1214,29 @@
       "new": "新しい ScaledObject",
       "deleteAria": "ScaledObject {{name}} を削除",
       "editAria": "ScaledObject {{name}} を編集"
+    },
+    "karpenter": {
+      "notInstalled": "このクラスターには Karpenter がインストールされていません。",
+      "notInstalledHint": "Karpenter をインストールすると、ノードをオンデマンドでプロビジョニングできます。NodePools と NodeClaims が読み取り専用でここに表示されます。",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "NodePool はありません。",
+      "emptyClaims": "NodeClaim はありません。",
+      "region": "Karpenter NodePools",
+      "claimsRegion": "Karpenter NodeClaims",
+      "columns": {
+        "nodeClass": "ノードクラス",
+        "policy": "統合",
+        "consolidateAfter": "統合までの時間",
+        "cpuLimit": "CPU 上限",
+        "memoryLimit": "メモリ上限",
+        "nodes": "Nodes",
+        "capacity": "キャパシティ",
+        "instanceType": "インスタンスタイプ",
+        "zone": "ゾーン",
+        "nodePool": "NodePool",
+        "phase": "フェーズ"
+      }
     }
   },
   "backups": {

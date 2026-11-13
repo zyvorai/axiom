@@ -4,6 +4,13 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added — Karpenter view
+- Autoscaling → Karpenter tab: read-only NodePools (node class, consolidation, limits, nodes, ready) and NodeClaims (instance type, capacity type, zone, phase) from `GET /api/v1/karpenter`; shows a not-installed state when `karpenter.sh` is absent. Translated in all eight languages
+### Added — Gateway API deep view
+- `GET /api/v1/gateway-api` and a Gateway API section on Networking: Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute and GRPCRoute (hostnames, parentRefs linked to their Gateway, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants. Read-only; the ClusterRole gains get/list/watch on `grpcroutes` and `referencegrants`. Strings in all 8 locales.
+### Added
+- cert-manager read-only view: `GET /api/v1/certificates` (Certificates with expiry heat bucket, Issuers/ClusterIssuers, failing CertificateRequests/Orders); Secrets page Certificates section; ClusterRole get/list on cert-manager.io (k8s + Helm). No write actions.
+
 ## [0.14.1] - 2026-11-12
 
 ### Added — deepen pack (GPU/DRA, GitOps write, cost/bill)

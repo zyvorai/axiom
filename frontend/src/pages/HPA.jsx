@@ -25,7 +25,7 @@ import { Gauge, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { VpaPanel, KedaPanel } from "@/components/AutoscalingPanels";
+import { VpaPanel, KedaPanel, KarpenterPanel } from "@/components/AutoscalingPanels";
 import { AUTOSCALE } from "@/constants/testIds";
 
 function CreateHPADialog({ open, onOpenChange, workloads, onCreated }) {
@@ -283,6 +283,9 @@ export default function HPA() {
                     <TabsTrigger value="keda" data-testid={AUTOSCALE.tab("keda")} className="gap-1.5">
                         {t("pages:autoscaling.tabs.keda")}
                     </TabsTrigger>
+                    <TabsTrigger value="karpenter" data-testid={AUTOSCALE.tab("karpenter")} className="gap-1.5">
+                        {t("pages:autoscaling.tabs.karpenter")}
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="hpa" className="mt-4">
                     <HpaTab />
@@ -292,6 +295,9 @@ export default function HPA() {
                 </TabsContent>
                 <TabsContent value="keda" className="mt-4">
                     <KedaPanel />
+                </TabsContent>
+                <TabsContent value="karpenter" className="mt-4">
+                    <KarpenterPanel />
                 </TabsContent>
             </Tabs>
         </div>

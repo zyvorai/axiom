@@ -170,6 +170,33 @@
         "refresh": "Refresh"
       },
       "empty": "No ExternalSecret resources found."
+    },
+    "certs": {
+      "title": "Certificates (cert-manager)",
+      "aria": "cert-manager Certificates",
+      "columns": {
+        "issuer": "Issuer",
+        "secret": "Secret",
+        "notAfter": "Expires",
+        "renewal": "Renewal",
+        "days": "Days left",
+        "state": "State"
+      },
+      "empty": "No Certificates found.",
+      "unavailable": "cert-manager is not installed or not readable.",
+      "buckets": {
+        "expired": "Expired",
+        "lt7d": "< 7 days",
+        "lt30d": "< 30 days",
+        "ok": "OK",
+        "unknown": "Unknown"
+      },
+      "issuersTitle": "Issuers",
+      "issuersAria": "cert-manager Issuers",
+      "issuersEmpty": "No Issuers or ClusterIssuers found.",
+      "failTitle": "Failing requests and Orders",
+      "failAria": "Failing CertificateRequests and Orders",
+      "failEmpty": "No failing CertificateRequests or Orders."
     }
   },
   "secretDetail": {
@@ -380,6 +407,34 @@
         "verdict": "Verdict"
       },
       "noFlows": "No flows in the current window."
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "Read-only view of Gateways, HTTPRoutes, GRPCRoutes and ReferenceGrants with their Accepted / Programmed / ResolvedRefs status.",
+      "unavailable": "Gateway API CRDs are not installed or not readable on this cluster.",
+      "routesTitle": "Routes",
+      "noGateways": "No Gateways found.",
+      "noRoutes": "No HTTPRoutes or GRPCRoutes found.",
+      "noGrants": "No ReferenceGrants found.",
+      "gatewaysRegion": "Gateways",
+      "routesRegion": "Routes",
+      "grantsRegion": "ReferenceGrants",
+      "gotoGateway": "Go to parent Gateway {{name}}",
+      "columns": {
+        "class": "Class",
+        "listeners": "Listeners",
+        "addresses": "Addresses",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "Hostnames",
+        "parents": "Parent Gateways",
+        "backends": "Backends",
+        "from": "From",
+        "to": "To",
+        "routes": "Routes",
+        "kind": "Kind"
+      }
     }
   },
   "networkPolicy": {
@@ -1114,7 +1169,8 @@
     "tabs": {
       "hpa": "Horizontal",
       "vpa": "Vertical (VPA)",
-      "keda": "Event-driven (KEDA)"
+      "keda": "Event-driven (KEDA)",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "Not scaling",
@@ -1167,6 +1223,29 @@
       "new": "New ScaledObject",
       "deleteAria": "Delete ScaledObject {{name}}",
       "editAria": "Edit ScaledObject {{name}}"
+    },
+    "karpenter": {
+      "notInstalled": "Karpenter is not installed in this cluster.",
+      "notInstalledHint": "Install Karpenter to provision nodes on demand. Its NodePools and NodeClaims will be listed here, read-only.",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "No NodePools.",
+      "emptyClaims": "No NodeClaims.",
+      "region": "Karpenter NodePools",
+      "claimsRegion": "Karpenter NodeClaims",
+      "columns": {
+        "nodeClass": "Node class",
+        "policy": "Consolidation",
+        "consolidateAfter": "Consolidate after",
+        "cpuLimit": "CPU limit",
+        "memoryLimit": "Memory limit",
+        "nodes": "Nodes",
+        "capacity": "Capacity",
+        "instanceType": "Instance type",
+        "zone": "Zone",
+        "nodePool": "NodePool",
+        "phase": "Phase"
+      }
     }
   },
   "backups": {

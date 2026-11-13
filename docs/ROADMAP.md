@@ -5,6 +5,12 @@ what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
 
+## Shipped, unreleased
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Autoscaling | Read-only Karpenter view: NodePools and NodeClaims (instance type, spot/on-demand, zone, phase) on the Autoscaling page | Headlamp Karpenter plugin |
+
 ## Shipped in 0.13.2
 
 | Area | What you get | Comparable to |
@@ -151,6 +157,8 @@ are theirs, not ours.
 | Outage narrative | Incident × who-poked-it × agent runs | Komodor-class storytelling |
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
+| Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
+| cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

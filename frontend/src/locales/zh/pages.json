@@ -169,6 +169,33 @@
         "refresh": "刷新"
       },
       "empty": "未找到 ExternalSecret 资源。"
+    },
+    "certs": {
+      "title": "证书 (cert-manager)",
+      "aria": "cert-manager Certificate",
+      "columns": {
+        "issuer": "颁发者",
+        "secret": "Secret",
+        "notAfter": "到期时间",
+        "renewal": "续期时间",
+        "days": "剩余天数",
+        "state": "状态"
+      },
+      "empty": "未找到 Certificate。",
+      "unavailable": "cert-manager 未安装或无法读取。",
+      "buckets": {
+        "expired": "已过期",
+        "lt7d": "不足 7 天",
+        "lt30d": "不足 30 天",
+        "ok": "正常",
+        "unknown": "未知"
+      },
+      "issuersTitle": "颁发者",
+      "issuersAria": "cert-manager Issuer",
+      "issuersEmpty": "未找到 Issuer 或 ClusterIssuer。",
+      "failTitle": "失败的请求和 Order",
+      "failAria": "失败的 CertificateRequest 和 Order",
+      "failEmpty": "没有失败的 CertificateRequest 或 Order。"
     }
   },
   "secretDetail": {
@@ -377,6 +404,34 @@
         "verdict": "判定"
       },
       "noFlows": "当前时间窗口内没有流量。"
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "只读查看 Gateway、HTTPRoute、GRPCRoute 和 ReferenceGrant 及其 Accepted / Programmed / ResolvedRefs 状态。",
+      "unavailable": "此集群未安装 Gateway API 的 CRD，或无法读取。",
+      "routesTitle": "路由",
+      "noGateways": "未找到 Gateway。",
+      "noRoutes": "未找到 HTTPRoute 或 GRPCRoute。",
+      "noGrants": "未找到 ReferenceGrant。",
+      "gatewaysRegion": "Gateway",
+      "routesRegion": "路由",
+      "grantsRegion": "ReferenceGrant",
+      "gotoGateway": "转到父级 Gateway {{name}}",
+      "columns": {
+        "class": "类",
+        "listeners": "监听器",
+        "addresses": "地址",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "主机名",
+        "parents": "父级 Gateway",
+        "backends": "后端",
+        "from": "来源",
+        "to": "目标",
+        "routes": "路由",
+        "kind": "类型"
+      }
     }
   },
   "networkPolicy": {
@@ -1105,7 +1160,8 @@
     "tabs": {
       "hpa": "水平",
       "vpa": "垂直（VPA）",
-      "keda": "事件驱动（KEDA）"
+      "keda": "事件驱动（KEDA）",
+      "karpenter": "Karpenter"
     },
     "state": {
       "notScaling": "未扩缩",
@@ -1158,6 +1214,29 @@
       "new": "新建 ScaledObject",
       "deleteAria": "删除 ScaledObject {{name}}",
       "editAria": "编辑 ScaledObject {{name}}"
+    },
+    "karpenter": {
+      "notInstalled": "此集群未安装 Karpenter。",
+      "notInstalledHint": "安装 Karpenter 即可按需配置节点。其 NodePools 和 NodeClaims 将以只读方式列在此处。",
+      "pools": "NodePools",
+      "claims": "NodeClaims",
+      "emptyPools": "没有 NodePool。",
+      "emptyClaims": "没有 NodeClaim。",
+      "region": "Karpenter NodePools",
+      "claimsRegion": "Karpenter NodeClaims",
+      "columns": {
+        "nodeClass": "节点类",
+        "policy": "整合",
+        "consolidateAfter": "整合等待时间",
+        "cpuLimit": "CPU 上限",
+        "memoryLimit": "内存上限",
+        "nodes": "Nodes",
+        "capacity": "容量类型",
+        "instanceType": "实例类型",
+        "zone": "可用区",
+        "nodePool": "NodePool",
+        "phase": "阶段"
+      }
     }
   },
   "backups": {
