@@ -93,6 +93,7 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
+| Helm history and rollback | Per-release revision history, values and manifest diff between revisions (credential-looking values redacted) and a reviewed, admin-only rollback with PVC/CRD/hook warnings and a typed confirmation | Rancher/Lens Helm history, `helm history`/`helm rollback` |
 | Helm chart catalog | Administrator-approved chart repositories, search, versions, default values and README, installing through the existing Helm Job; fetches are guarded against reaching private, loopback or metadata addresses | Rancher Apps & Marketplace, Portainer app templates, Lens Helm charts |
 | GitOps application creation | Create an Argo CD Application, a Flux Git source + Kustomization or a Flux Helm source + HelmRelease from typed fields, after previewing the exact YAML; admin only, no credentials in URLs, rolled back if only part of it could be created | Argo CD "New app", Rancher Fleet, Devtron |
 

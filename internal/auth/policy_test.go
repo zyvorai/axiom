@@ -72,7 +72,10 @@ func TestGuardPolicy(t *testing.T) {
 		{"restricted graph other namespace", "rviewer", "GET", "/api/v1/graph/team-b/Deployment/x", 403},
 		{"restricted graph path/query mismatch", "rviewer", "GET", "/api/v1/graph/team-b/Deployment/x?namespace=team-a", 403},
 		{"restricted operator graph other namespace", "roper", "GET", "/api/v1/graph/kube-system/Pod/x", 403},
-		{"operator helm rollback allowed", "oper", "POST", "/api/v1/helm/releases/ns/r/rollback", 204},
+		{"operator helm rollback denied", "oper", "POST", "/api/v1/helm/releases/ns/r/rollback", 403},
+		{"viewer helm rollback denied", "viewer", "POST", "/api/v1/helm/releases/ns/r/rollback", 403},
+		{"admin helm rollback allowed", "demo", "POST", "/api/v1/helm/releases/ns/r/rollback", 204},
+		{"operator helm rollback preview read", "oper", "GET", "/api/v1/helm/releases/ns/r/rollback-preview", 204},
 		{"admin helm install", "demo", "POST", "/api/v1/helm/install", 204},
 		// Namespace restriction: path namespace must be authorized even when a
 		// permitted ?namespace= is attached.

@@ -845,7 +845,8 @@
         "release": "リリース",
         "chart": "チャート",
         "revision": "リビジョン"
-      }
+      },
+      "history": "履歴"
     },
     "gitops": {
       "newApplication": "新しいアプリケーション",

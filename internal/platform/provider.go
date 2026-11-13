@@ -62,6 +62,11 @@ type Provider interface {
 	HelmUninstall(context.Context, string, string) (HelmActionResult, error)
 	HelmRollback(context.Context, string, string, int) (HelmActionResult, error)
 	ListHelmHistory(context.Context, string, string) ([]HelmRelease, error)
+	// Helm revision history, diff and reviewed rollback (helm_history.go).
+	ListHelmRevisions(ctx context.Context, namespace, name string) ([]HelmRevision, error)
+	DiffHelmRevisions(ctx context.Context, namespace, name string, from, to int) (HelmRevisionDiff, error)
+	PreviewHelmRollback(ctx context.Context, namespace, name string, revision int) (HelmRollbackPreview, error)
+	RollbackHelm(context.Context, HelmRollbackRequest) (HelmActionResult, error)
 	ListExternalSecrets(context.Context, string) ([]ExternalSecretSummary, error)
 	ListVMSnapshots(context.Context, string) ([]VMSnapshot, error)
 	CreateVMSnapshot(context.Context, CreateVMSnapshotRequest) (VMSnapshot, error)

@@ -30,3 +30,4 @@ export * from './velero';
 export * from './rollouts';
 export * from './nodedrain';
 export * from './externalsecrets';
+export * from './helmhistory';

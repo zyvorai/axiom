@@ -601,5 +601,36 @@
     "progressCordon": "Isolement du Node...",
     "progressDrain": "Éviction des Pods : {{n}} restants sur le Node",
     "done": "Drain terminé. {{name}} reste isolé jusqu'à sa réintégration."
+  },
+  "helmHistory": {
+    "title": "Historique de {{name}}",
+    "empty": "Aucune révision trouvée.",
+    "revisions": "Révisions",
+    "revision": "Révision",
+    "chartVersion": "Version du chart",
+    "appVersion": "Version de l'application",
+    "updated": "Mis à jour",
+    "description": "Description",
+    "reviewRollback": "Vérifier la restauration vers la révision {{n}}",
+    "from": "Depuis la révision",
+    "to": "Vers la révision",
+    "compare": "Comparer",
+    "redactNote": "Les valeurs qui ressemblent à des identifiants (mot de passe, token, secret, key) sont masquées.",
+    "values": "Valeurs",
+    "manifest": "Manifeste",
+    "noChanges": "Aucun changement.",
+    "summary": "Restauration de la révision {{from}} vers {{to}} : {{added}} lignes de manifeste ajoutées, {{removed}} supprimées.",
+    "valuesChanged": "Les valeurs du release diffèrent entre ces révisions.",
+    "confirmLabel": "Saisissez <code>{{name}}</code> pour confirmer la restauration",
+    "back": "Retour",
+    "rollingBack": "Restauration…",
+    "rollback": "Restaurer la révision {{n}}",
+    "warn": {
+      "pvc": "Le release possède des PersistentVolumeClaims. Une restauration ne rétablit pas les données qu'ils contiennent.",
+      "crd": "Le release possède des CRDs. Les ressources personnalisées déjà créées ne sont pas migrées en arrière.",
+      "hooks": "Le release définit des hooks Helm ; les hooks de la révision cible s'exécutent à nouveau.",
+      "sameRevision": "La révision cible est la révision active ; la restauration crée une nouvelle révision au contenu identique.",
+      "targetFailed": "La révision cible s'est terminée avec le statut failed et n'était peut-être pas saine."
+    }
   }
 }

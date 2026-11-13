@@ -29,3 +29,15 @@ func isHelmRegistryCreds(r *http.Request) bool {
 	p := strings.TrimSuffix(r.URL.Path, "/")
 	return p == "/api/v1/helm/registry-credentials" || strings.HasPrefix(p, "/api/v1/helm/registry-credentials/")
 }
+
+// isHelmRollback reports a Helm release rollback (POST
+// /api/v1/helm/releases/{namespace}/{name}/rollback). It replaces a live
+// release with an older revision, so it is admin-only; the read-only
+// history, diff and rollback-preview routes stay open.
+func isHelmRollback(r *http.Request) bool {
+	if r.Method != http.MethodPost {
+		return false
+	}
+	p := strings.TrimSuffix(r.URL.Path, "/")
+	return strings.HasPrefix(p, "/api/v1/helm/releases/") && strings.HasSuffix(p, "/rollback")
+}

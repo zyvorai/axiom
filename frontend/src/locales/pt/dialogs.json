@@ -601,5 +601,36 @@
     "progressCordon": "Isolando o Node...",
     "progressDrain": "Removendo Pods: ainda restam {{n}} no Node",
     "done": "Drenagem concluída. {{name}} continua isolado até você reintegrá-lo."
+  },
+  "helmHistory": {
+    "title": "Histórico de {{name}}",
+    "empty": "Nenhuma revisão encontrada.",
+    "revisions": "Revisões",
+    "revision": "Revisão",
+    "chartVersion": "Versão do chart",
+    "appVersion": "Versão do app",
+    "updated": "Atualizado",
+    "description": "Descrição",
+    "reviewRollback": "Revisar a reversão para a revisão {{n}}",
+    "from": "Da revisão",
+    "to": "Para a revisão",
+    "compare": "Comparar",
+    "redactNote": "Valores que parecem credenciais (senha, token, secret, key) ficam ocultos.",
+    "values": "Valores",
+    "manifest": "Manifesto",
+    "noChanges": "Sem alterações.",
+    "summary": "Revertendo da revisão {{from}} para a {{to}}: {{added}} linhas do manifesto adicionadas, {{removed}} removidas.",
+    "valuesChanged": "Os valores do release diferem entre estas revisões.",
+    "confirmLabel": "Digite <code>{{name}}</code> para confirmar a reversão",
+    "back": "Voltar",
+    "rollingBack": "Revertendo…",
+    "rollback": "Reverter para a revisão {{n}}",
+    "warn": {
+      "pvc": "O release possui PersistentVolumeClaims. A reversão não restaura os dados nelas.",
+      "crd": "O release possui CRDs. Os recursos personalizados já criados não são migrados de volta.",
+      "hooks": "O release define hooks do Helm; os hooks da revisão de destino são executados novamente.",
+      "sameRevision": "A revisão de destino é a ativa; a reversão cria uma nova revisão com conteúdo idêntico.",
+      "targetFailed": "A revisão de destino terminou com o status failed e pode não ter estado íntegra."
+    }
   }
 }
