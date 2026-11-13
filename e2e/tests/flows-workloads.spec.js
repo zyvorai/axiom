@@ -956,7 +956,8 @@ test("nodes list: drain POSTs /drain, cordons the node (UI + API); uncordon rest
   await expect(page.getByTestId("node-drain-done")).toBeVisible();
   expect((await d).status()).toBeLessThan(300);
   await toastText(page, /gpu-01: drain requested/);
-  await page.getByRole("button", { name: "Close" }).click();
+  // The dialog also has a corner "Close" (X); the wizard's own button is the primary one.
+  await page.getByTestId("node-drain-dialog").locator("button.btn-primary", { hasText: "Close" }).click();
   await page.getByTestId("nav-link-nodes").click();
   await expect(tile).toContainText("Cordoned");
   await expect(tile.getByRole("button", { name: "Uncordon" })).toBeVisible();
@@ -995,7 +996,8 @@ test("node detail: cordon, uncordon and drain buttons drive the same API and ref
   await expect(page.getByTestId("node-drain-done")).toBeVisible();
   expect((await d).status()).toBeLessThan(300);
   await toastText(page, /gpu-01: drain requested/);
-  await page.getByRole("button", { name: "Close" }).click();
+  // The dialog also has a corner "Close" (X); the wizard's own button is the primary one.
+  await page.getByTestId("node-drain-dialog").locator("button.btn-primary", { hasText: "Close" }).click();
   await expect(page.getByRole("button", { name: "Uncordon" })).toBeVisible();
   expect((await findNode(page, "gpu-01")).unschedulable).toBe(true);
 

@@ -650,11 +650,18 @@ test.describe("ops: helm", () => {
     const row = helmRow(page, "ingress-nginx-4.11.0");
     await expect(row).toContainText("rev 3");
     try {
-      await row.getByPlaceholder("rev").fill("2");
+      // History dialog -> review revision 2 -> type the release name -> confirm.
+      await page.getByTestId("helm-history-open-ingress-nginx").click();
+      const dlg = page.getByTestId("helm-history-dialog");
+      await dlg.getByTestId("helm-history-review-2").click();
+      await expect(dlg.getByTestId("helm-rollback-preview")).toBeVisible();
+      const confirm = dlg.getByTestId("helm-rollback-confirm");
+      await expect(confirm).toBeDisabled();
+      await dlg.getByTestId("helm-rollback-confirm-input").fill("ingress-nginx");
       const posted = waitMutation(page, "POST", /\/helm\/releases\/ingress-nginx\/ingress-nginx\/rollback$/);
-      await row.getByTitle("Rollback").click();
+      await confirm.click();
       expect((await posted).status()).toBe(202);
-      expect(t.find("POST", /rollback$/)[0].body).toEqual({ revision: 2 });
+      expect(t.find("POST", /rollback$/)[0].body).toEqual({ revision: 2, confirm: "ingress-nginx" });
       await toastText(page, /ingress-nginx rolled back/);
       await expect(row).toContainText("rev 2");
       // Demo semantics: the release lands on the requested revision.
@@ -663,28 +670,22 @@ test.describe("ops: helm", () => {
       expect(t.failures()).toEqual([]);
       expect(t.errors).toEqual([]);
     } finally {
-      await apiSend(page, "POST", "/helm/releases/ingress-nginx/ingress-nginx/rollback", { revision: 3 });
+      await apiSend(page, "POST", "/helm/releases/ingress-nginx/ingress-nginx/rollback", { revision: 3, confirm: "ingress-nginx" });
     }
   });
 
-  // BUG (demo): an empty revision box posts {revision: 0}, which the real
-  // backend treats as "previous revision" (helm rollback <name>) but the demo
-  // provider stores literally, leaving the release at "rev 0".
+  // The rollback API treats revision 0 / omitted as "the previous revision" (like
+  // `helm rollback <name>`), and now needs the release name as the typed confirmation.
   test("rollback with a blank revision goes to the previous revision, not rev 0", async ({ page }) => {
     // The seeded release's revision is shared demo state that each run decrements, so assert the
     // right outcome for wherever it stands: previous revision if there is one, a clear 409 if not.
     const before = (await release(page, "cert-manager", "cert-manager")).revision;
-    await page.goto("/ops/helm");
-    const row = helmRow(page, "cert-manager-v1.15.1");
-    const posted = waitMutation(page, "POST", /\/helm\/releases\/cert-manager\/cert-manager\/rollback$/);
-    await row.getByTitle("Rollback").click();
-    const res = await posted;
+    const res = await apiSend(page, "POST", "/helm/releases/cert-manager/cert-manager/rollback", { revision: 0, confirm: "cert-manager" });
     if (before > 1) {
-      okStatus(res);
+      expect(res.status).toBeLessThan(300);
       expect((await release(page, "cert-manager", "cert-manager")).revision).toBe(before - 1);
     } else {
-      expect(res.status()).toBe(409);
-      await toastText(page, /Rollback failed/);
+      expect(res.status).toBe(409);
       expect((await release(page, "cert-manager", "cert-manager")).revision).toBe(before);
     }
   });

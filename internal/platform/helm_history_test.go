@@ -3,6 +3,7 @@ package platform
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"strings"
@@ -82,5 +83,42 @@ func TestRevisionPicking(t *testing.T) {
 	revs := []HelmRevision{{Revision: 1, Status: "superseded"}, {Revision: 2, Status: "superseded"}, {Revision: 3, Status: "deployed"}, {Revision: 4, Status: "failed"}}
 	if liveHelmRevision(revs) != 3 || previousHelmRevision(revs, 3) != 2 || previousHelmRevision(revs, 1) != 0 {
 		t.Fatal("picking")
+	}
+}
+
+// A demo rollback keeps the later revisions in history (as real Helm does), so the release can be
+// rolled forward again; the live revision is always the only "deployed" one.
+func TestDemoHelmRollbackKeepsLaterRevisions(t *testing.T) {
+	d := NewDemoProvider()
+	ctx := context.Background()
+	const ns, name = "ingress-nginx", "ingress-nginx"
+	before, err := d.ListHelmRevisions(ctx, ns, name)
+	if err != nil || len(before) < 3 {
+		t.Fatalf("history before: %v %v", before, err)
+	}
+	live := len(before)
+	t.Cleanup(func() { _, _ = d.HelmRollback(ctx, ns, name, live) })
+
+	if _, err := d.HelmRollback(ctx, ns, name, 2); err != nil {
+		t.Fatal(err)
+	}
+	after, _ := d.ListHelmRevisions(ctx, ns, name)
+	if len(after) < live {
+		t.Fatalf("history shrank after rollback: %d -> %d", live, len(after))
+	}
+	deployed := 0
+	for _, r := range after {
+		if r.Status == "deployed" {
+			deployed++
+			if r.Revision != 2 {
+				t.Fatalf("deployed revision = %d, want 2", r.Revision)
+			}
+		}
+	}
+	if deployed != 1 {
+		t.Fatalf("deployed revisions = %d, want 1", deployed)
+	}
+	if _, err := d.PreviewHelmRollback(ctx, ns, name, live); err != nil {
+		t.Fatalf("cannot roll forward again: %v", err)
 	}
 }

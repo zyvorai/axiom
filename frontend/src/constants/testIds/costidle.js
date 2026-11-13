@@ -1,6 +1,6 @@
 // data-testid values for the Idle resources section of Ops -> Cost.
 export const COST_IDLE = {
-    root: 'cost-idle',
+    root: 'cost-idle-section',
     minAge: 'cost-idle-min-age',
     total: 'cost-idle-total',
     savings: 'cost-idle-savings',
