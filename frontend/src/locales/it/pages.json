@@ -1327,7 +1327,26 @@
     "footnote": "Le raccomandazioni aggiungono un margine rispetto all'utilizzo osservato. Axiom non modifica mai le request in autonomia: Applica mostra prima la modifica esatta e agisce solo dopo la conferma.",
     "totalsActual": "{{current}} effettivi nei namespace con budget, su {{budget}} di budget.",
     "basedOnOpenCost": "Basato su OpenCost",
-    "basedOnRequests": "Basato sulle request"
+    "basedOnRequests": "Basato sulle request",
+    "idle": {
+      "title": "Risorse inattive",
+      "intro": "Euristiche in sola lettura basate sullo stato attuale del cluster, senza garanzie. Verifica ogni risultato prima di agire; Axiom non elimina mai nulla da questo elenco.",
+      "minAge": "Più vecchie di",
+      "minAgeOption": "{{n}} giorni",
+      "total": "Risultati",
+      "savings": "Risparmio mensile possibile",
+      "colKind": "Tipo",
+      "colResource": "Risorsa",
+      "colReason": "Motivo",
+      "colAge": "Età",
+      "colConfidence": "Confidenza",
+      "colCost": "Costo mensile stimato",
+      "colAction": "Azione suggerita",
+      "empty": "Nessuna risorsa inattiva trovata per questa età.",
+      "truncated": "L'elenco è limitato per tipo; esistono altri risultati.",
+      "clusterScoped": "cluster",
+      "costNote": "Lo storage è valutato con una stima fissa per GiB."
+    }
   },
   "helmCatalog": {
     "repositories": "Repository",

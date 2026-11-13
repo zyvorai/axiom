@@ -1327,7 +1327,26 @@
     "footnote": "Les recommandations ajoutent une marge au-dessus de l'utilisation observée. Axiom ne modifie jamais les requests de lui-même : Appliquer montre d'abord la modification exacte et n'agit qu'après votre confirmation.",
     "totalsActual": "{{current}} réels sur les namespaces budgétés, pour {{budget}} budgétés.",
     "basedOnOpenCost": "D'après OpenCost",
-    "basedOnRequests": "D'après les requests"
+    "basedOnRequests": "D'après les requests",
+    "idle": {
+      "title": "Ressources inactives",
+      "intro": "Heuristiques en lecture seule fondées sur l'état actuel du cluster, sans garantie. Vérifiez chaque résultat avant d'agir ; Axiom ne supprime jamais rien depuis cette liste.",
+      "minAge": "Plus anciennes que",
+      "minAgeOption": "{{n}} jours",
+      "total": "Résultats",
+      "savings": "Économie mensuelle possible",
+      "colKind": "Type",
+      "colResource": "Ressource",
+      "colReason": "Raison",
+      "colAge": "Âge",
+      "colConfidence": "Confiance",
+      "colCost": "Coût mensuel est.",
+      "colAction": "Action suggérée",
+      "empty": "Aucune ressource inactive trouvée pour cet âge.",
+      "truncated": "La liste est limitée par type ; d'autres résultats existent.",
+      "clusterScoped": "cluster",
+      "costNote": "Le stockage est valorisé selon une estimation forfaitaire par GiB."
+    }
   },
   "helmCatalog": {
     "repositories": "Dépôts",

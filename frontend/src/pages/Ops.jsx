@@ -29,6 +29,7 @@ import { RBAC, HELM_CATALOG, GITOPS_CREATE, OPENCOST, GITOPS_EDIT } from "@/cons
 import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import { CostInvoice } from "@/components/CostInvoice";
+import { CostIdle } from "@/components/CostIdle";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
 import GitOpsEditDialog from "@/components/GitOpsEditDialog";
@@ -1171,6 +1172,7 @@ function CostTab() {
             <CostInvoice />
             <CostBudgets />
             <CostRightsizing />
+            <CostIdle />
             <div className="card p-0">
                 <div className="panel-h">{t("pages:ops.cost.byNamespace")}</div>
                 <TablePanel

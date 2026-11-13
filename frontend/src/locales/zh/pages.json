@@ -1318,7 +1318,26 @@
     "footnote": "建议值在观测用量基础上预留了余量。Axiom 从不自行修改 requests：“应用”会先显示确切的变更，仅在您确认后才执行。",
     "totalsActual": "已设预算的 Namespace 实际成本合计 {{current}}，预算总额 {{budget}}。",
     "basedOnOpenCost": "基于 OpenCost",
-    "basedOnRequests": "基于 requests"
+    "basedOnRequests": "基于 requests",
+    "idle": {
+      "title": "闲置资源",
+      "intro": "基于当前集群状态的只读启发式结果，并非保证。操作前请逐项核实；Axiom 绝不会从此列表中删除任何内容。",
+      "minAge": "存在时间超过",
+      "minAgeOption": "{{n}} 天",
+      "total": "发现项",
+      "savings": "每月可能节省",
+      "colKind": "类型",
+      "colResource": "资源",
+      "colReason": "原因",
+      "colAge": "存在时间",
+      "colConfidence": "置信度",
+      "colCost": "预计月成本",
+      "colAction": "建议操作",
+      "empty": "在此时间范围内未发现闲置资源。",
+      "truncated": "列表按类型设有上限，还有更多发现项。",
+      "clusterScoped": "集群",
+      "costNote": "存储按每 GiB 固定单价估算。"
+    }
   },
   "helmCatalog": {
     "repositories": "仓库",

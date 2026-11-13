@@ -1327,7 +1327,26 @@
     "footnote": "As recomendações adicionam margem sobre o uso observado. O Axiom nunca altera requests por conta própria: Aplicar mostra primeiro a alteração exata e só age quando você confirma.",
     "totalsActual": "{{current}} reais nos namespaces com orçamento, de {{budget}} orçados.",
     "basedOnOpenCost": "Com base no OpenCost",
-    "basedOnRequests": "Com base nos requests"
+    "basedOnRequests": "Com base nos requests",
+    "idle": {
+      "title": "Recursos ociosos",
+      "intro": "Heurísticas somente leitura do estado atual do cluster, sem garantias. Verifique cada achado antes de agir; o Axiom nunca exclui nada desta lista.",
+      "minAge": "Mais antigos que",
+      "minAgeOption": "{{n}} dias",
+      "total": "Achados",
+      "savings": "Economia mensal possível",
+      "colKind": "Tipo",
+      "colResource": "Recurso",
+      "colReason": "Motivo",
+      "colAge": "Idade",
+      "colConfidence": "Confiança",
+      "colCost": "Custo mensal est.",
+      "colAction": "Ação sugerida",
+      "empty": "Nenhum recurso ocioso encontrado para esta idade.",
+      "truncated": "A lista é limitada por tipo; há mais achados.",
+      "clusterScoped": "cluster",
+      "costNote": "O armazenamento é precificado com uma estimativa fixa por GiB."
+    }
   },
   "helmCatalog": {
     "repositories": "Repositórios",
