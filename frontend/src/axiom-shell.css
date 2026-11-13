@@ -82,7 +82,7 @@
   flex-shrink: 0;
 }
 .brand-name {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -295,9 +295,9 @@
   background: var(--success-bg);
 }
 .btn-lg {
-  height: 44px;
-  padding: 0 24px;
-  font-size: 17px;
+  height: 40px;
+  padding: 0 20px;
+  font-size: 14px;
   letter-spacing: -0.022em;
 }
 .btn-sm {
@@ -598,15 +598,15 @@
 }
 .head h1 {
   font-family: var(--font-hero);
-  font-size: clamp(32px, 4vw, 52px);
+  font-size: clamp(22px, 2.2vw, 28px);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
 .head p {
-  font-size: 19px;
+  font-size: 14px;
   color: var(--ink-2);
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: 640px;
   line-height: 1.42;
 }
@@ -753,12 +753,12 @@
   padding-top: 14px;
 }
 .card h2 {
-  font-size: 24px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 .card .lead {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--ink-2);
   margin-top: 4px;
   line-height: 1.5;
@@ -827,7 +827,7 @@
 }
 .stat b {
   display: block;
-  font-size: clamp(28px, 2.6vw, 40px);
+  font-size: clamp(20px, 2vw, 28px);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -984,7 +984,7 @@
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 .tbl th {
   text-align: left;
@@ -1104,7 +1104,7 @@
 .tile-specs b,
 .vm-specs b {
   display: block;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.02em;
@@ -1262,11 +1262,11 @@
   padding: 16px 20px;
 }
 .stat.compact b {
-  font-size: clamp(20px, 2vw, 28px);
+  font-size: clamp(16px, 1.6vw, 22px);
   letter-spacing: -0.025em;
 }
 .stat.compact b.mono {
-  font-size: clamp(18px, 1.8vw, 24px);
+  font-size: clamp(15px, 1.5vw, 20px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

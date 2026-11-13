@@ -349,7 +349,8 @@ if _ssh "test -f .run/mtls/admin.crt -a -f .run/mtls/admin.key"; then
 fi
 HEALTH_OK=false
 for u in "$BASE_URL" "$ALT_URL"; do
-  if curl -fsSk --connect-timeout 10 "${_MTLS_CURL[@]}" "${u}/api/v1/health" >/dev/null; then
+  # set -u: empty "${arr[@]}" is unbound on some bash builds.
+  if curl -fsSk --connect-timeout 10 ${_MTLS_CURL[@]+"${_MTLS_CURL[@]}"} "${u}/api/v1/health" >/dev/null; then
     info "Health OK: ${u}/api/v1/health"
     BASE_URL="$u"
     HEALTH_OK=true

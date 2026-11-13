@@ -31,12 +31,10 @@ module.exports = {
         mono: ['var(--font-mono)'],
       },
       fontSize: {
-        // apple.com-scale headline sizes, layered on top of Tailwind's
-        // defaults rather than replacing them — used by PageHeader/
-        // DetailHeader and any future true marketing hero (Login, Onboarding).
-        hero: ['clamp(2.75rem, 5vw + 1rem, 5.5rem)', { lineHeight: '1.02', letterSpacing: '-0.045em' }],
-        display: ['clamp(2.25rem, 3vw + 1rem, 3.5rem)', { lineHeight: '1.05', letterSpacing: '-0.04em' }],
-        title: ['clamp(1.75rem, 2vw + 1rem, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.035em' }],
+        // Console-scale headlines (not marketing-billboard sizes).
+        hero: ['clamp(1.75rem, 2.5vw + 0.5rem, 2.5rem)', { lineHeight: '1.08', letterSpacing: '-0.035em' }],
+        display: ['clamp(1.5rem, 2vw + 0.4rem, 2rem)', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
+        title: ['clamp(1.25rem, 1.5vw + 0.35rem, 1.6rem)', { lineHeight: '1.15', letterSpacing: '-0.025em' }],
       },
       colors: {
         background: 'hsl(var(--background))',
