@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"sort"
+	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -82,12 +83,24 @@ func karpenterNodePool(it unstructured.Unstructured, age string) KarpenterNodePo
 		ConsolidateAfter: str("spec", "disruption", "consolidateAfter"),
 		CPULimit:         str("spec", "limits", "cpu"),
 		MemoryLimit:      str("spec", "limits", "memory"),
-		Nodes:            str("status", "resources", "nodes"),
+		Nodes:            karpenterNodeCount(it),
 		CPU:              str("status", "resources", "cpu"),
 		Ready:            karpenterCondStatus(it, "Ready"),
 		Age:              age,
 	}
 	return np
+}
+
+// karpenterNodeCount reads the NodePool's node count. Karpenter v1 keeps it as an integer in
+// status.nodes (the "Nodes" printer column); older shapes carried it as status.resources.nodes.
+func karpenterNodeCount(it unstructured.Unstructured) string {
+	if n, found, err := unstructured.NestedInt64(it.Object, "status", "nodes"); err == nil && found {
+		return strconv.FormatInt(n, 10)
+	}
+	if s, found, err := unstructured.NestedString(it.Object, "status", "resources", "nodes"); err == nil && found {
+		return s
+	}
+	return ""
 }
 
 // karpenterNodeClaim maps a NodeClaim; the phase is the furthest lifecycle condition reached.
