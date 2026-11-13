@@ -551,5 +551,53 @@
     "cooldownPeriod": "クールダウン（s）",
     "triggerLegend": "トリガー {{n}} · {{type}}",
     "noCredentials": "認証情報なし"
+  },
+  "nodeDrain": {
+    "title": "{{name}} をドレイン",
+    "failed": "ドレインに失敗しました",
+    "step": {
+      "preview": "プレビュー",
+      "confirm": "確認",
+      "run": "封鎖してドレイン"
+    },
+    "verdict": {
+      "ok": "安全にドレインできます",
+      "caution": "ドレインは可能ですが注意が必要です",
+      "blocked": "ブロック: PodDisruptionBudget が退避を拒否します"
+    },
+    "reason": {
+      "pdbBlocked": "PodDisruptionBudget がこの Node 上の Pod の中断を許可していません。",
+      "pdbTight": "PodDisruptionBudget の許容中断数が、ここで対象となる Pod の数より少なくなっています。",
+      "unmanaged": "コントローラーのない Pod は失われます。",
+      "localStorage": "emptyDir を使う Pod はデータを失います (delete-emptydir-data)。",
+      "singleReplica": "レプリカが 1 つのワークロードはダウンタイムが発生します。",
+      "pinnedVolumes": "この Node に固定されたボリュームがあると Pod は移動できません。",
+      "noHeadroom": "退避した Pod を受け入れる余裕が他の Node にない可能性があります。"
+    },
+    "pdbBlocked": "PodDisruptionBudget によりブロック",
+    "pdbAllows": "{{n}} 件の中断を許可",
+    "evict": "退避される Pod ({{n}})",
+    "unmanaged": "管理されていない Pod (コントローラーなし): 失われ、再作成されません",
+    "localStorage": "ローカルストレージ (emptyDir): データは削除され、ドレインには delete-emptydir-data が必要です",
+    "singleReplica": "単一レプリカ: 再スケジュールされるまでダウンタイムが発生します",
+    "pinned": "この Node に固定されたボリューム (claim を表示): 他の Node へ再スケジュールできません",
+    "ignored": "無視 ({{n}})",
+    "ignoredReason": {
+      "daemonset": "DaemonSet",
+      "mirror": "ミラー Pod",
+      "kube-system": "kube-system",
+      "finished": "完了済み"
+    },
+    "reschedule": "再スケジュール (概算)",
+    "fits": "収まりそうです。",
+    "noFit": "収まらない可能性があります。",
+    "rescheduleBody": "スケジュール可能な Ready の他の Node: {{nodes}} 台。リクエストの空き: CPU {{cpu}}、{{mem}}。必要量: CPU {{needCpu}}、{{needMem}}。",
+    "approximate": "リソース リクエストのみに基づく推定です。アフィニティ、taint、トポロジー、ストレージは考慮しません。",
+    "confirmHelp": "まず Node を封鎖し、その後 Pod を退避します。実行できるのはオペレーターと管理者のみで、監査に記録されます。",
+    "confirmLabel": "確認のため <code>{{name}}</code> を入力してください",
+    "start": "封鎖してドレイン",
+    "progressCordon": "Node を封鎖しています...",
+    "progressDrain": "Pod を退避中: Node 上に残り {{n}} 件",
+    "done": "ドレインが完了しました。{{name}} は解除するまで封鎖されたままです。"
   }
 }

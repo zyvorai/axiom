@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import GlassCard from "@/components/GlassCard";
 import DetailHeader from "@/components/DetailHeader";
@@ -39,6 +39,8 @@ import {
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import NodeShellPanel from "@/components/NodeShellPanel";
+import NodeDrainWizard from "@/components/NodeDrainWizard";
+import { NODE_DRAIN } from "@/constants/testIds";
 import { useTranslation, Trans } from "react-i18next";
 
 // Toast texts per node action (static keys so every string is checked).
@@ -211,6 +213,8 @@ export default function NodeDetail() {
     const [node, setNode] = useState(null);
     const [loadError, setLoadError] = useState(null); // HTTP status of a failed load (0 = no response)
     const [busy, setBusy] = useState("");
+    const [params] = useSearchParams();
+    const [drainOpen, setDrainOpen] = useState(params.get("drain") === "1");
 
     const load = () => api.get(`/nodes/${encodeURIComponent(name)}`).then((r) => setNode(r.data));
 
@@ -292,12 +296,14 @@ export default function NodeDetail() {
                                 <Ban className="mr-1.5 h-3.5 w-3.5" /> {t("pages:nodes.actions.cordon")}
                             </Button>
                         )}
-                        <Button variant="outline" disabled={busy === "drain"} onClick={() => act("drain", "drain")} className="rounded-xl border-soft-danger-border bg-soft-danger text-tone-red hover:bg-soft-danger">
+                        <Button variant="outline" data-testid={NODE_DRAIN.open} onClick={() => setDrainOpen(true)} className="rounded-xl border-soft-danger-border bg-soft-danger text-tone-red hover:bg-soft-danger">
                             <LogOut className="mr-1.5 h-3.5 w-3.5" /> {t("pages:nodes.actions.drain")}
                         </Button>
                     </>
                 }
             />
+
+            <NodeDrainWizard node={node} open={drainOpen} onClose={() => setDrainOpen(false)} onChanged={load} />
 
             <div className="stats">
                 <FeatureTile size="compact" mono label={t("pages:nodes.specs.pods")} value={`${node.pods}/${node.allocatablePods}`} />

@@ -102,6 +102,9 @@ func restrictedDenied(r *http.Request) bool {
 	if isNodeShellPath(p) {
 		return true // root on a node is never namespace-scoped
 	}
+	if strings.HasPrefix(p, "/api/v1/nodes/") && strings.HasSuffix(p, "/drain-preview") {
+		return true // lists pods of every namespace on the node
+	}
 	for _, pre := range restrictedSensitivePrefixes {
 		if p == pre || strings.HasPrefix(p, pre+"/") {
 			return true

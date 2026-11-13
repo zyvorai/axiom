@@ -9,6 +9,7 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
+| Node maintenance | Drain wizard on Node detail: server-side read-only drain preview (`GET /api/v1/nodes/{name}/drain-preview`: Pods to evict by namespace/owner, ignored DaemonSet/mirror/kube-system Pods, emptyDir, bare Pods, PDB-blocked, single-replica, volume-pinned, approximate reschedule headroom, blocked/caution/ok verdict), then typed node-name confirmation (server-enforced) and cordon + drain with progress, uncordon afterwards | Lens/OpenLens drain, Rancher node drain |
 | Idle resources | Read-only idle/zombie finder on Ops → Cost (`GET /api/v1/cost/idle`): unmounted or unbound PVCs with a monthly storage estimate, empty namespaces, LoadBalancer Services with no endpoints, old finished Jobs, scaled-to-zero Deployments, and advisory unreferenced ConfigMaps/Secrets. Heuristics with a confidence level; nothing is deleted | Kubecost abandoned-resources, Robusta KRR/popeye-style sanitizers |
 | Progressive delivery | Read-only Argo Rollouts (strategy, step/weight, replicas, phase, pause reason, latest AnalysisRun, stable vs canary revision and images) and Flagger Canaries (phase, canaryWeight, failedChecks, lastTransitionTime) on Ops → GitOps (`GET /api/v1/rollouts`). Promote/abort are not offered | Argo Rollouts dashboard, Flagger/Weave GitOps |
 | Autoscaling | Read-only Karpenter view: NodePools and NodeClaims (instance type, spot/on-demand, zone, phase) on the Autoscaling page | Headlamp Karpenter plugin |

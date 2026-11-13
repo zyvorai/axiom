@@ -31,6 +31,8 @@ type Provider interface {
 	Utilization(context.Context) (UtilizationSeries, error)
 	Cordon(context.Context, string, bool) error
 	Drain(context.Context, string) error
+	// PreviewNodeDrain reports, read-only, what draining the node would do.
+	PreviewNodeDrain(context.Context, string) (DrainPreview, error)
 	ListEvents(context.Context, string) ([]Event, error)
 	PodLogs(context.Context, string, string, string, bool, int64, bool) (io.ReadCloser, error)
 	ExecCommand(context.Context, string, string, string, []string) (string, error)
