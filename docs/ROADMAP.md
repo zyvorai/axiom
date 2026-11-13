@@ -176,6 +176,7 @@ are theirs, not ours.
 | Login throttle HA | Shared ConfigMap `zyvor-axiom-login-throttle` | — |
 | CSI clone ProposeOnly | `sourcePVC` on volumes + agent action `clone_pvc` | — |
 | Policy coverage | `GET /security/policy-coverage` (PolicyReport rollup) | Kyverno / Gatekeeper reports |
+| Velero restore wizard | Backups page: pick a Backup, namespaces/resources, mapping, restorePVs, existingResourcePolicy, server-side dry-run preview, typed confirm; `/velero/restores` list/preview/create (admin) | Creating a real Restore not yet exercised against a live cluster |
 | Velero CRD fidelity | Create Backup/Schedule validated against upstream v1.15.2 OpenAPI; live script when CRDs exist | — |
 | Helm install RBAC | ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions | Ordinary chart installs under Axiom's SA |
 

@@ -151,7 +151,9 @@
     "scheduleCreated": "Schedule {{name}} created",
     "createScheduleFailed": "Create schedule failed",
     "veleroRequested": "Velero backup {{name}} requested",
-    "veleroFailed": "Velero backup failed"
+    "veleroFailed": "Velero backup failed",
+    "veleroRestoreCreated": "Restore {{name}} created",
+    "veleroRestoreFailed": "Velero restore failed"
   },
   "costPanels": {
     "budgetSaved": "Budget saved for {{namespace}}",

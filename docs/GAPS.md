@@ -92,6 +92,8 @@ Other known gaps found by the functional test pass (see `e2e/README.md`) — **c
 - `/api/v1/session` reports `Operator` and `auth: "saml"` for SAML sessions
 - `DELETE /api/v1/clusters/{unknown}` returns 404
 
+Velero restore wizard (Unreleased): list/preview/create Restores; the create path is covered by unit tests and the demo provider only. It has not been run against a real Velero install, and the Restore object is not yet validated against the upstream restores CRD like Backup/Schedule are.
+
 Closed in the residual / Velero-billing-Helm pack (see CHANGELOG 0.14.0):
 
 - Velero Backup/Schedule create validated against upstream v1.15.2 CRD OpenAPI; live: `e2e/scripts/validate-velero.sh`

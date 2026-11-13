@@ -151,7 +151,9 @@
     "scheduleCreated": "スケジュール {{name}} を作成しました",
     "createScheduleFailed": "スケジュールの作成に失敗しました",
     "veleroRequested": "Velero バックアップ {{name}} をリクエストしました",
-    "veleroFailed": "Velero バックアップに失敗しました"
+    "veleroFailed": "Velero バックアップに失敗しました",
+    "veleroRestoreCreated": "リストア {{name}} を作成しました",
+    "veleroRestoreFailed": "Velero リストアに失敗しました"
   },
   "costPanels": {
     "budgetSaved": "{{namespace}} の予算を保存しました",

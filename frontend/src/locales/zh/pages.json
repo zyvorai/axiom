@@ -1263,6 +1263,13 @@
       "phase": "阶段",
       "schedule": "计划",
       "lastBackup": "上次备份"
+    },
+    "veleroRestores": {
+      "title": "Velero 恢复",
+      "empty": "没有 Velero 恢复。",
+      "new": "新建恢复",
+      "backup": "备份",
+      "policy": "现有对象"
     }
   },
   "costPanels": {

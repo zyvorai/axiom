@@ -151,7 +151,9 @@
     "scheduleCreated": "已创建计划 {{name}}",
     "createScheduleFailed": "创建计划失败",
     "veleroRequested": "已请求 Velero 备份 {{name}}",
-    "veleroFailed": "Velero 备份失败"
+    "veleroFailed": "Velero 备份失败",
+    "veleroRestoreCreated": "已创建恢复 {{name}}",
+    "veleroRestoreFailed": "Velero 恢复失败"
   },
   "costPanels": {
     "budgetSaved": "已保存 {{namespace}} 的预算",
