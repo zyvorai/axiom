@@ -170,6 +170,33 @@
         "refresh": "Actualización"
       },
       "empty": "No se encontraron recursos ExternalSecret."
+    },
+    "certs": {
+      "title": "Certificados (cert-manager)",
+      "aria": "Certificates de cert-manager",
+      "columns": {
+        "issuer": "Emisor",
+        "secret": "Secret",
+        "notAfter": "Caduca",
+        "renewal": "Renovación",
+        "days": "Días restantes",
+        "state": "Estado"
+      },
+      "empty": "No se encontraron Certificates.",
+      "unavailable": "cert-manager no está instalado o no se puede leer.",
+      "buckets": {
+        "expired": "Caducado",
+        "lt7d": "< 7 días",
+        "lt30d": "< 30 días",
+        "ok": "OK",
+        "unknown": "Desconocido"
+      },
+      "issuersTitle": "Emisores",
+      "issuersAria": "Issuers de cert-manager",
+      "issuersEmpty": "No se encontraron Issuers ni ClusterIssuers.",
+      "failTitle": "Solicitudes y Orders con fallos",
+      "failAria": "CertificateRequests y Orders con fallos",
+      "failEmpty": "No hay CertificateRequests ni Orders con fallos."
     }
   },
   "secretDetail": {

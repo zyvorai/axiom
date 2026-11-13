@@ -25,3 +25,13 @@ func (sp *SwitchableProvider) ListDRA(ctx context.Context) (DRAInventory, error)
 	}
 	return DRAInventory{Available: false, Note: "DRA browser not available on this provider", Objects: []DRAObject{}, Counts: map[string]int{}}, nil
 }
+
+func (sp *SwitchableProvider) ListCertManager(ctx context.Context) (CertManagerInventory, error) {
+	type lister interface {
+		ListCertManager(context.Context) (CertManagerInventory, error)
+	}
+	if l, ok := sp.current(ctx).(lister); ok {
+		return l.ListCertManager(ctx)
+	}
+	return emptyCertInventory("cert-manager view not available on this provider"), nil
+}

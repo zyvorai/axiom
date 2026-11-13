@@ -170,6 +170,33 @@
         "refresh": "Aggiornamento"
       },
       "empty": "Nessuna risorsa ExternalSecret trovata."
+    },
+    "certs": {
+      "title": "Certificati (cert-manager)",
+      "aria": "Certificates di cert-manager",
+      "columns": {
+        "issuer": "Emittente",
+        "secret": "Secret",
+        "notAfter": "Scade",
+        "renewal": "Rinnovo",
+        "days": "Giorni rimanenti",
+        "state": "Stato"
+      },
+      "empty": "Nessun Certificate trovato.",
+      "unavailable": "cert-manager non è installato o non è leggibile.",
+      "buckets": {
+        "expired": "Scaduto",
+        "lt7d": "< 7 giorni",
+        "lt30d": "< 30 giorni",
+        "ok": "OK",
+        "unknown": "Sconosciuto"
+      },
+      "issuersTitle": "Emittenti",
+      "issuersAria": "Issuers di cert-manager",
+      "issuersEmpty": "Nessun Issuer o ClusterIssuer trovato.",
+      "failTitle": "Richieste e Orders in errore",
+      "failAria": "CertificateRequests e Orders in errore",
+      "failEmpty": "Nessun CertificateRequest o Order in errore."
     }
   },
   "secretDetail": {

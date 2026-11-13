@@ -151,6 +151,7 @@ are theirs, not ours.
 | Outage narrative | Incident × who-poked-it × agent runs | Komodor-class storytelling |
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
+| cert-manager view | Certificates expiry heat, Issuers, failing CertificateRequests/Orders (read-only, `/certificates`) | Lens cert-manager panels |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

@@ -4,6 +4,9 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added
+- cert-manager read-only view: `GET /api/v1/certificates` (Certificates with expiry heat bucket, Issuers/ClusterIssuers, failing CertificateRequests/Orders); Secrets page Certificates section; ClusterRole get/list on cert-manager.io (k8s + Helm). No write actions.
+
 ## [0.14.1] - 2026-11-12
 
 ### Added — deepen pack (GPU/DRA, GitOps write, cost/bill)

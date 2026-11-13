@@ -170,6 +170,33 @@
         "refresh": "Refresh"
       },
       "empty": "No ExternalSecret resources found."
+    },
+    "certs": {
+      "title": "Certificates (cert-manager)",
+      "aria": "cert-manager Certificates",
+      "columns": {
+        "issuer": "Issuer",
+        "secret": "Secret",
+        "notAfter": "Expires",
+        "renewal": "Renewal",
+        "days": "Days left",
+        "state": "State"
+      },
+      "empty": "No Certificates found.",
+      "unavailable": "cert-manager is not installed or not readable.",
+      "buckets": {
+        "expired": "Expired",
+        "lt7d": "< 7 days",
+        "lt30d": "< 30 days",
+        "ok": "OK",
+        "unknown": "Unknown"
+      },
+      "issuersTitle": "Issuers",
+      "issuersAria": "cert-manager Issuers",
+      "issuersEmpty": "No Issuers or ClusterIssuers found.",
+      "failTitle": "Failing requests and Orders",
+      "failAria": "Failing CertificateRequests and Orders",
+      "failEmpty": "No failing CertificateRequests or Orders."
     }
   },
   "secretDetail": {
