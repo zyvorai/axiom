@@ -63,6 +63,8 @@ func DeepenUpgradeRisk(ctx context.Context, p Provider, rep UpgradeRiskReport) U
 		}
 	}
 
+	rep.Findings = append(rep.Findings, legacyUpgradeFindings(ctx, p)...)
+
 	// Recalculate counts/status.
 	rep.Counts = map[string]int{}
 	for _, f := range rep.Findings {
