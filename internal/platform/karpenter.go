@@ -56,7 +56,7 @@ func emptyKarpenter(note string) KarpenterInventory {
 	return KarpenterInventory{Note: note, NodePools: []KarpenterNodePool{}, NodeClaims: []KarpenterNodeClaim{}}
 }
 
-func condStatus(it unstructured.Unstructured, typ string) string {
+func karpenterCondStatus(it unstructured.Unstructured, typ string) string {
 	conds, _, _ := unstructured.NestedSlice(it.Object, "status", "conditions")
 	for _, c := range conds {
 		m, ok := c.(map[string]any)
@@ -84,7 +84,7 @@ func karpenterNodePool(it unstructured.Unstructured, age string) KarpenterNodePo
 		MemoryLimit:      str("spec", "limits", "memory"),
 		Nodes:            str("status", "resources", "nodes"),
 		CPU:              str("status", "resources", "cpu"),
-		Ready:            condStatus(it, "Ready"),
+		Ready:            karpenterCondStatus(it, "Ready"),
 		Age:              age,
 	}
 	return np
@@ -96,7 +96,7 @@ func karpenterNodeClaim(it unstructured.Unstructured, age string) KarpenterNodeC
 	node, _, _ := unstructured.NestedString(it.Object, "status", "nodeName")
 	phase := "Pending"
 	for _, c := range []string{"Launched", "Registered", "Initialized"} {
-		if condStatus(it, c) == "True" {
+		if karpenterCondStatus(it, c) == "True" {
 			phase = c
 		}
 	}
