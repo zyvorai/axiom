@@ -398,6 +398,7 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 | GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts, DCGM util snapshot, and `waste[]` GPU over-request hints when Prometheus is configured |
 | POST | `/api/v1/accelerators/rightsizing/apply` | Lower `nvidia.com/gpu` requests on a Deployment/StatefulSet (`{namespace,kind,name,container?,dryRun}`). Operator/admin; audited as `accelerators.gpu_rightsizing` |
 | GET | `/api/v1/dra` | Read-only DRA inventory (DeviceClass / ResourceSlice / ResourceClaim[/Template]) when `resource.k8s.io` is present |
+| GET | `/api/v1/gateway-api` | Read-only Gateway API deep view: `gateways` (class, listeners with Programmed/Accepted/attachedRoutes, addresses, conditions), `routes` (HTTPRoute + GRPCRoute: hostnames, parentRefs resolved to namespace, backendRefs, Accepted/ResolvedRefs) and `referenceGrants`. Tries `v1` then `v1beta1`; `available:false` with a note when the CRDs are missing |
 | GET | `/api/v1/fleet/outage-narrative?cluster=&from=&state=` | Compose who-poked-it + recent agent runs for a fleet incident window |
 | GET | `/api/v1/admission-policies` | Native ValidatingAdmissionPolicy + Binding inventory when the API is present |
 | POST | `/api/v1/helm/registry-credentials/cloud-token` | Refresh a short-lived OCI registry password via local CLI (`{provider:ecr\|gar\|acr, registry}`) — admin; write-only follow-up with registry-credentials |

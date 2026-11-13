@@ -377,6 +377,34 @@
         "verdict": "判定"
       },
       "noFlows": "現在の期間にフローはありません。"
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "Gateway、HTTPRoute、GRPCRoute、ReferenceGrant を Accepted / Programmed / ResolvedRefs のステータスとともに表示する読み取り専用ビューです。",
+      "unavailable": "このクラスターには Gateway API の CRD がインストールされていないか、読み取れません。",
+      "routesTitle": "ルート",
+      "noGateways": "Gateway が見つかりません。",
+      "noRoutes": "HTTPRoute または GRPCRoute が見つかりません。",
+      "noGrants": "ReferenceGrant が見つかりません。",
+      "gatewaysRegion": "Gateway",
+      "routesRegion": "ルート",
+      "grantsRegion": "ReferenceGrant",
+      "gotoGateway": "親 Gateway {{name}} へ移動",
+      "columns": {
+        "class": "クラス",
+        "listeners": "リスナー",
+        "addresses": "アドレス",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "ホスト名",
+        "parents": "親 Gateway",
+        "backends": "バックエンド",
+        "from": "送信元",
+        "to": "宛先",
+        "routes": "ルート",
+        "kind": "種類"
+      }
     }
   },
   "networkPolicy": {

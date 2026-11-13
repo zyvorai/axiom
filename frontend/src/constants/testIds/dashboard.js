@@ -39,6 +39,11 @@ export const NET = {
     root: "networking-page",
     policyRow: (name) => `policy-row-${name}`,
     flowRow: (id) => `flow-row-${id}`,
+    gwPanel: "gateway-api-panel",
+    gwGatewayRow: (ns, name) => `gw-gateway-row-${ns}-${name}`,
+    gwRouteRow: (kind, ns, name) => `gw-route-row-${kind}-${ns}-${name}`,
+    gwGrantRow: (ns, name) => `gw-grant-row-${ns}-${name}`,
+    gwParentLink: (ns, name) => `gw-parent-link-${ns}-${name}`,
 };
 
 export const VMS = {

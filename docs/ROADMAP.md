@@ -157,6 +157,7 @@ are theirs, not ours.
 | Outage narrative | Incident × who-poked-it × agent runs | Komodor-class storytelling |
 | MCP HITL | propose_seal / approve / deny | Lightspeed HITL writes |
 | DRA browser | DeviceClass/Slice/Claim inventory | Lens Device Resources |
+| Gateway API deep view | Gateways (class, listeners, addresses, Accepted/Programmed), HTTPRoute/GRPCRoute (hostnames, parentRefs, backendRefs, Accepted/ResolvedRefs) and ReferenceGrants on Networking | Lens/Headlamp Gateway API views |
 
 ## Shipped in 0.14.x (ROADMAP Next closed)
 

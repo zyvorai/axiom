@@ -380,6 +380,34 @@
         "verdict": "Verdict"
       },
       "noFlows": "Aucun flux dans la période actuelle."
+    },
+    "gatewayApi": {
+      "title": "Gateway API",
+      "description": "Vue en lecture seule des Gateways, HTTPRoutes, GRPCRoutes et ReferenceGrants avec leur état Accepted / Programmed / ResolvedRefs.",
+      "unavailable": "Les CRD Gateway API ne sont pas installées ou pas lisibles sur ce cluster.",
+      "routesTitle": "Routes",
+      "noGateways": "Aucun Gateway trouvé.",
+      "noRoutes": "Aucune HTTPRoute ou GRPCRoute trouvée.",
+      "noGrants": "Aucun ReferenceGrant trouvé.",
+      "gatewaysRegion": "Gateways",
+      "routesRegion": "Routes",
+      "grantsRegion": "ReferenceGrants",
+      "gotoGateway": "Aller au Gateway parent {{name}}",
+      "columns": {
+        "class": "Classe",
+        "listeners": "Listeners",
+        "addresses": "Adresses",
+        "accepted": "Accepted",
+        "programmed": "Programmed",
+        "resolvedRefs": "ResolvedRefs",
+        "hostnames": "Noms d'hôte",
+        "parents": "Gateways parents",
+        "backends": "Backends",
+        "from": "De",
+        "to": "Vers",
+        "routes": "Routes",
+        "kind": "Type"
+      }
     }
   },
   "networkPolicy": {
