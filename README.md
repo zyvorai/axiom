@@ -2,6 +2,8 @@
 
 # Axiom
 
+[Client overview (PDF)](docs/Axiom-Client-Overview.pdf)
+
 [![CI](https://github.com/zyvorai/axiom/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/axiom/actions/workflows/ci.yml)
 [![License: Zyvor Production v1.0](https://img.shields.io/badge/License-Zyvor%20Production%20v1.0-orange.svg)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/zyvorai/axiom?label=version&color=informational)](CHANGELOG.md)
