@@ -1,0 +1,103 @@
+{{- if eq .Values.expose.type "NodePort" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom-nodeport
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+      nodePort: {{ .Values.expose.nodePort }}
+    {{- if and .Values.podProxy.addr .Values.podProxy.service.nodePort }}
+    - name: pod-proxy
+      port: {{ .Values.podProxy.service.port }}
+      targetPort: pod-proxy
+      nodePort: {{ .Values.podProxy.service.nodePort }}
+    {{- end }}
+{{- else if eq .Values.expose.type "Ingress" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.expose.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.expose.ingress.className }}
+  ingressClassName: {{ .Values.expose.ingress.className }}
+  {{- end }}
+  tls:
+    - hosts:
+        - {{ required "expose.ingress.host is required when expose.type=Ingress" .Values.expose.ingress.host }}
+      secretName: {{ include "axiom.tlsSecretName" . }}
+  rules:
+    - host: {{ .Values.expose.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zyvor-axiom
+                port:
+                  name: https
+{{- else if eq .Values.expose.type "Gateway" }}
+{{- $host := required "expose.gateway.host is required when expose.type=Gateway" .Values.expose.gateway.host }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  {{- with .Values.expose.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.expose.gateway.className | default "eg" }}
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: {{ .Values.expose.gateway.port | default 443 }}
+      hostname: {{ $host | quote }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "axiom.tlsSecretName" . }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: zyvor-axiom
+      kind: Gateway
+  hostnames:
+    - {{ $host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: zyvor-axiom
+          port: 443
+{{- end }}

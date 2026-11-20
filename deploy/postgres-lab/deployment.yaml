@@ -1,0 +1,85 @@
+# Throwaway Postgres for Axiom Settings → Test connection (lab / customer smoke).
+# Password lives in Secret postgres-lab-auth (created by scripts/postgres-lab-up.sh).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-lab-data
+  namespace: axiom-system
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-lab
+  namespace: axiom-system
+  labels:
+    app: postgres-lab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres-lab
+  template:
+    metadata:
+      labels:
+        app: postgres-lab
+    spec:
+      containers:
+        - name: postgres
+          image: docker.io/library/postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              value: axiom
+            - name: POSTGRES_USER
+              value: axiom
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-lab-auth
+                  key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - name: postgres
+              containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "axiom", "-d", "axiom"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-lab-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-lab
+  namespace: axiom-system
+  labels:
+    app: postgres-lab
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-lab
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

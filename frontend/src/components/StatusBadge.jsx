@@ -1,0 +1,36 @@
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
+
+const MAP = {
+    Healthy:  { tone: "var(--green)",  label: "Healthy" },
+    Ready:    { tone: "var(--green)",  label: "Ready" },
+    Running:  { tone: "var(--green)",  label: "Running" },
+    Bound:    { tone: "var(--green)",  label: "Bound" },
+    Normal:   { tone: "var(--green)",  label: "Normal" },
+    Complete: { tone: "var(--green)",  label: "Complete" },
+    Degraded: { tone: "var(--orange)", label: "Degraded" },
+    Warning:  { tone: "var(--orange)", label: "Warning" },
+    Pending:  { tone: "var(--amber)",  label: "Pending" },
+    Paused:   { tone: "var(--amber)",  label: "Paused" },
+    Migrating:{ tone: "var(--blue)", label: "Migrating" },
+    SchedulingDisabled: { tone: "var(--blue)", label: "Cordoned" },
+    NotReady: { tone: "var(--red)",  label: "NotReady" },
+    Failed:   { tone: "var(--red)",  label: "Failed" },
+    dropped:  { tone: "var(--red)",  label: "dropped" },
+    forwarded:{ tone: "var(--green)",   label: "forwarded" },
+    audit:    { tone: "var(--blue)", label: "audit" },
+};
+
+/** Flat tone-dot pill — see .pill in axiom-shell.css. Known statuses are translated
+ * (common:status.<status>); anything else (e.g. a Kubernetes reason) is shown as-is. */
+export default function StatusBadge({ status, className }) {
+    const { t } = useTranslation();
+    const known = Object.prototype.hasOwnProperty.call(MAP, status) ? MAP[status] : null;
+    const s = known ? { ...known, label: t(`common:status.${status}`) } : { tone: "var(--blue)", label: status };
+    return (
+        <span className={cn("pill", className)} style={{ "--c": s.tone }}>
+            <i aria-hidden="true" />
+            {s.label}
+        </span>
+    );
+}

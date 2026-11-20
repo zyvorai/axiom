@@ -1,0 +1,581 @@
+/*
+ * Sign-in — Netra login language: page-hero headline over a two-point radial
+ * glow, pill CTAs, bordered card for the credentials. Follows the app theme
+ * (light/dark) via styles/tokens.css — no literal colours here.
+ */
+
+/* One accent per tone — solid, tint (wash), and glow (radial depth)
+   variants. Bind with data-tone="…" on a wrapper; consumed by
+   .login-chapter-hero::before and .login-pill. */
+.login-page {
+  --tone-sky: var(--apple-blue);
+  --tone-violet: var(--accent-purple);
+  --tone-emerald: var(--green);
+  --tone-amber: var(--amber);
+  --tone-sky-tint: color-mix(in srgb, var(--tone-sky) 10%, transparent);
+  --tone-sky-glow: color-mix(in srgb, var(--tone-sky) 22%, transparent);
+  --tone-violet-tint: color-mix(in srgb, var(--tone-violet) 10%, transparent);
+  --tone-violet-glow: color-mix(in srgb, var(--tone-violet) 22%, transparent);
+  --tone-emerald-tint: color-mix(in srgb, var(--tone-emerald) 10%, transparent);
+  --tone-emerald-glow: color-mix(in srgb, var(--tone-emerald) 22%, transparent);
+  --tone-amber-tint: color-mix(in srgb, var(--tone-amber) 12%, transparent);
+  --tone-amber-glow: color-mix(in srgb, var(--tone-amber) 24%, transparent);
+}
+
+[data-tone='sky']     { --tone-color: var(--tone-sky);     --tone-wash: var(--tone-sky-tint);     --tone-glow: var(--tone-sky-glow); }
+[data-tone='violet']  { --tone-color: var(--tone-violet);  --tone-wash: var(--tone-violet-tint);  --tone-glow: var(--tone-violet-glow); }
+[data-tone='emerald'] { --tone-color: var(--tone-emerald); --tone-wash: var(--tone-emerald-tint); --tone-glow: var(--tone-emerald-glow); }
+[data-tone='amber']   { --tone-color: var(--tone-amber);   --tone-wash: var(--tone-amber-tint);   --tone-glow: var(--tone-amber-glow); }
+
+@keyframes login-fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.login-page {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-primary);
+  /* Deep night-ops canvas — ink + ember + cyan mesh (not flat page fill). */
+  --login-ink: color-mix(in srgb, var(--bg-page) 55%, var(--login-ink-deep) 45%);
+  --login-ember: color-mix(in srgb, var(--brand) 70%, var(--login-ember-hot) 30%);
+  --login-cyan: color-mix(in srgb, var(--apple-blue) 55%, var(--login-cyan-bright) 45%);
+  background:
+    radial-gradient(120% 80% at 12% -10%, color-mix(in srgb, var(--login-ember) 28%, transparent), transparent 55%),
+    radial-gradient(90% 70% at 92% 8%, color-mix(in srgb, var(--login-cyan) 22%, transparent), transparent 50%),
+    radial-gradient(70% 55% at 50% 110%, color-mix(in srgb, var(--login-ember) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, var(--login-ink) 0%, var(--bg-page) 48%, color-mix(in srgb, var(--bg-page) 70%, var(--login-ink-mid) 30%) 100%);
+  font-family: var(--font-hero);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text-primary) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, var(--login-mask-opaque) 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, var(--login-mask-opaque) 20%, transparent 75%);
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--login-ember) 35%, transparent) 0%, transparent 28%),
+    radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--login-cyan) 30%, transparent) 0%, transparent 26%),
+    radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--login-ember) 18%, transparent) 0%, transparent 32%);
+  filter: blur(40px);
+  animation: login-aurora 18s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+@keyframes login-aurora {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+
+.login-store-scroll,
+.login-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Full-viewport snap scroll between hero + sign-in chapters */
+.login-store-page {
+  overflow: hidden;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+.login-store-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-store-scroll {
+    scroll-snap-type: none;
+  }
+}
+
+.login-chapter {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(2rem, 6vh, 4rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.login-chapter-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: transparent;
+  text-align: center;
+  animation: login-fade-in-up 0.55s var(--ease-apple) both;
+}
+
+.login-chapter-hero::before {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 18% 22%, color-mix(in srgb, var(--login-ember) 40%, transparent), transparent 58%),
+    radial-gradient(ellipse at 85% 78%, color-mix(in srgb, var(--login-cyan) 32%, transparent), transparent 55%),
+    radial-gradient(55% 70% at 50% 8%, var(--tone-glow, var(--tone-sky-glow)), transparent 70%);
+  opacity: 0.95;
+  pointer-events: none;
+  animation: login-aurora 22s ease-in-out infinite alternate-reverse;
+}
+
+.login-chapter-sign-in {
+  background: color-mix(in srgb, var(--bg-page) 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-hairline) 70%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  justify-content: center;
+}
+
+.login-chapter-inner {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-sign-in-inner {
+  max-width: 26rem;
+}
+
+/* Meta-style: the hero copy sits in a large rounded, glass "media" panel over the glow */
+.login-chapter-hero .login-chapter-inner {
+  max-width: 56rem;
+  padding: clamp(2.5rem, 7vh, 4.5rem) clamp(1.25rem, 4vw, 3.5rem);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-3xl);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Brand mark — the Zyvor orange tile used as the shell's `logo` */
+.login-logo {
+  display: block;
+}
+
+.axiom-login-mark {
+  display: block;
+  border-radius: var(--radius-base);
+  /* Soft lift so the brand mark reads as the anchor. */
+  box-shadow: var(--mark-shadow);
+}
+
+/* Brand first — small-caps eyebrow, chapter-divider style */
+.login-wordmark {
+  margin: 0;
+  font-family: var(--font-hero);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--tone-color, var(--tone-sky));
+  text-wrap: balance;
+}
+
+/* Huge Store headline */
+.login-hero-title {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-hero);
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.login-tagline {
+  margin: 1rem auto 0;
+  max-width: 34rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.011em;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.47;
+  font-weight: 400;
+}
+
+/* Side-by-side Store CTAs — primary Action Blue + outline */
+.login-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 2rem;
+}
+
+.login-cta-primary,
+.login-cta-secondary,
+a.login-cta-primary,
+a.login-cta-secondary,
+button.login-cta-primary,
+button.login-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: 980px;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.28s var(--ease-apple), color 0.28s var(--ease-apple), border-color 0.28s var(--ease-apple), transform 0.28s var(--ease-apple), filter 0.28s var(--ease-apple);
+}
+
+.login-cta-primary,
+a.login-cta-primary,
+button.login-cta-primary {
+  border: none;
+  background: var(--apple-blue);
+  color: var(--on-accent);
+}
+
+.login-cta-primary:hover,
+a.login-cta-primary:hover,
+button.login-cta-primary:hover {
+  background: var(--apple-blue-hover);
+  color: var(--on-accent);
+  filter: brightness(1.06);
+}
+
+.login-cta-secondary,
+a.login-cta-secondary,
+button.login-cta-secondary {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.login-cta-secondary:hover,
+a.login-cta-secondary:hover,
+button.login-cta-secondary:hover {
+  background: var(--hover-fill);
+  color: var(--text-primary);
+}
+
+.login-cta-primary:active,
+.login-cta-secondary:active,
+a.login-cta-primary:active,
+a.login-cta-secondary:active,
+button.login-cta-primary:active,
+button.login-cta-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Tone-tinted pill row — one pill per Axiom domain, under the tagline and
+   above the CTAs. */
+.login-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.login-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem 0.5rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--tone-wash, var(--tone-sky-tint));
+  border: 1px solid color-mix(in srgb, var(--tone-color, var(--apple-blue)) 28%, transparent);
+}
+
+.login-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tone-color, var(--apple-blue));
+  flex-shrink: 0;
+}
+
+.login-chapter-note {
+  margin: 2.25rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.login-form-heading {
+  margin: 0 0 1rem;
+  text-align: center;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+}
+
+.login-card {
+  width: 100%;
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-3xl);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--card-shadow);
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .login-card {
+    padding: 2rem 1.75rem;
+  }
+}
+
+.login-shake {
+  animation: login-shake 0.45s ease-out;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  font-family: inherit;
+  transition: border-color 0.2s var(--ease-apple), box-shadow 0.2s var(--ease-apple);
+}
+
+.login-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px var(--focus-outline);
+}
+
+.login-input:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+
+.login-input:disabled {
+  background: var(--disabled-bg);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+.login-field-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.login-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.8125rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--on-accent);
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--apple-blue);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.28s var(--ease-apple), filter 0.28s var(--ease-apple), transform 0.28s var(--ease-apple);
+}
+
+.login-btn-primary:hover:not(:disabled) {
+  background: var(--apple-blue-hover);
+  filter: brightness(1.06);
+}
+
+.login-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* solid disabled fill — never an opacity fade (netra) */
+.login-btn-primary:disabled {
+  background: var(--disabled-bg);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+.login-hint {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+  margin-top: 1.5rem;
+  max-width: 38ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.login-hint-action {
+  color: var(--apple-link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+}
+
+.login-hint-action:hover {
+  filter: brightness(1.15);
+}
+
+.login-sso-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.875rem;
+  font-size: 0.875rem;
+  color: var(--apple-link);
+  text-decoration: none;
+}
+
+.login-sso-link:hover {
+  text-decoration: underline;
+}
+
+.login-apple-step {
+  animation: login-apple-step-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes login-apple-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-apple-host {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.login-apple-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.75rem 0.45rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.login-apple-identity:hover {
+  background: var(--hover-fill);
+}
+
+.login-apple-identity:active {
+  transform: scale(0.98);
+}
+
+.login-apple-fields {
+  margin-bottom: 0.25rem;
+}
+
+.axiom-login-footer {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-apple-step,
+  .login-chapter-hero,
+  .login-page::after,
+  .login-chapter-hero::before {
+    animation: none !important;
+  }
+  .login-shake {
+    animation: none !important;
+  }
+}

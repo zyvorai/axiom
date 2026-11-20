@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: axiom-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zyvor-axiom-auth
+  namespace: axiom-system
+type: Opaque
+stringData:
+  username: demo
+  password: demo
+---
+# Default: the published GHCR image. scripts/deploy-remote.sh --build swaps in a locally built zyvor-axiom:<tag>;
+# AXIOM_IMAGE=<ref> overrides the image.
+# For registry deploys, set image to ghcr.io/zyvorai/axiom:<version>.
+# Remote deploy always mounts zyvor-axiom-tls (self-signed) — HTTPS only.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zyvor-axiom
+  template:
+    metadata:
+      labels:
+        app: zyvor-axiom
+    spec:
+      serviceAccountName: zyvor-axiom
+      # Meets the Pod Security "restricted" profile. The binary keeps no local
+      # state (everything is stored in Kubernetes objects), so the root
+      # filesystem can be read-only; the distroless image already runs as 65532.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zyvor-axiom
+          image: ghcr.io/zyvorai/axiom:0.15.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: https
+              containerPort: 5090
+          env:
+            - name: AXIOM_MODE
+              value: kubernetes
+            - name: AXIOM_ADDR
+              value: :5090
+            - name: AXIOM_TLS_CERT
+              value: /etc/axiom/tls/tls.crt
+            - name: AXIOM_TLS_KEY
+              value: /etc/axiom/tls/tls.key
+            # Mutual TLS: browsers/API clients must present a cert signed by this CA.
+            # Import .run/mtls/admin.p12 (password: axiom) or use curl --cert/--key.
+            - name: AXIOM_TLS_CLIENT_CA
+              value: /etc/axiom/mtls/ca.crt
+            - name: AXIOM_TLS_MTLS
+              value: require
+            - name: AXIOM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: username
+            - name: AXIOM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: password
+            # Lab default Secret is demo/demo — remove this (and change the Secret)
+            # before any production exposure.
+            - name: AXIOM_ALLOW_DEFAULT_CREDS
+              value: "true"
+            # Optional env bootstrap only. Prefer Settings → Integrations in the UX
+            # (persisted to ConfigMap/Secret zyvor-axiom-integrations).
+            - name: AXIOM_ATLAS_URL
+              value: ""
+            - name: AXIOM_ATLAS_CONSOLE_URL
+              value: ""
+            - name: AXIOM_OIDC_ISSUER
+              value: ""
+            - name: AXIOM_OIDC_LOGIN_URL
+              value: ""
+            - name: AXIOM_OIDC_CLIENT_ID
+              value: ""
+            # PacketWolf has no Settings → Integrations persistence (unlike Atlas
+            # above) — deploy-remote.sh's auto-wire step patches these live via
+            # `kubectl set env` after every deploy. Declared here so the manifest
+            # stays self-documenting; the empty defaults are what a fresh/manual
+            # `kubectl apply` leaves in place until that step runs.
+            - name: AXIOM_PACKETWOLF_URL
+              value: ""
+            - name: AXIOM_PACKETWOLF_API_KEY
+              value: ""
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/axiom/tls
+              readOnly: true
+            - name: mtls
+              mountPath: /etc/axiom/mtls
+              readOnly: true
+          # tcpSocket: HTTP probes cannot present a client cert under mTLS require.
+          readinessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: tls
+          secret:
+            secretName: zyvor-axiom-tls
+        - name: mtls
+          secret:
+            secretName: zyvor-axiom-mtls
+            items:
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+spec:
+  selector:
+    app: zyvor-axiom
+  ports:
+    - name: https
+      port: 443
+      targetPort: https

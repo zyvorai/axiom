@@ -1,0 +1,138 @@
+{
+  "groups": {
+    "Core": "Core",
+    "Cluster": "Cluster",
+    "Network": "Rete",
+    "Storage": "Archiviazione",
+    "Config": "Configurazione",
+    "Observe": "Osservabilità",
+    "Admin": "Amministrazione",
+    "Extensions": "Estensioni"
+  },
+  "items": {
+    "getting-started": "Per iniziare",
+    "overview": "Panoramica",
+    "fleet": "Flotta",
+    "nodes": "Nodes",
+    "workloads": "Carichi di lavoro",
+    "jobs": "Jobs e CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "Intent di piattaforma",
+    "networking": "Rete · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "Macchine virtuali",
+    "storage": "Archiviazione",
+    "atlas": "Atlas",
+    "backups": "Backup",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "Quote e limiti",
+    "autoscaling": "Scalabilità automatica",
+    "custom-resources": "Risorse personalizzate",
+    "logs": "Log dei Pod",
+    "events": "Eventi",
+    "timeline": "Cronologia",
+    "health-check": "Controllo di integrità",
+    "alerts": "Avvisi",
+    "ops": "Operazioni",
+    "security": "Sicurezza",
+    "users": "Utenti",
+    "settings": "Impostazioni"
+  },
+  "sidebar": {
+    "expand": "Espandi barra laterale",
+    "collapse": "Comprimi barra laterale",
+    "collapseShort": "Comprimi"
+  },
+  "topbar": {
+    "toggleSidebar": "Mostra/nascondi barra laterale",
+    "home": "Home di Axiom",
+    "byZyvor": "by Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "Namespace per tutte le pagine",
+    "allNamespaces": "Tutti i namespace",
+    "searchTitle": "Cerca (⌘K)",
+    "search": "Cerca",
+    "connect": "Connetti",
+    "sampleMode": "Modalità dati di esempio",
+    "sampleModeHint": "Puntare KUBECONFIG a questa dashboard per passare a un cluster reale.",
+    "toggleTheme": "Cambia tema (attuale: {{theme}})",
+    "themeTitle": "Tema: {{theme}}",
+    "clusterState": "{{name}}: {{state}}",
+    "clusterStateError": "{{name}}: {{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "system": "Sistema",
+    "label": "Tema"
+  },
+  "shell": {
+    "skipToContent": "Vai al contenuto"
+  },
+  "palette": {
+    "placeholder": "Vai a una pagina, pod, service, secret, VM o azione…",
+    "empty": "Nessun elemento trovato.",
+    "navigate": "Naviga",
+    "pods": "Pods",
+    "workloads": "Carichi di lavoro",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "Macchine virtuali",
+    "jobs": "Jobs",
+    "switchCluster": "Cambia cluster",
+    "actions": "Azioni",
+    "current": "attuale",
+    "cron": "{{namespace}} · cron",
+    "nsPods_one": "{{count}} pod",
+    "nsPods_other": "{{count}} pod",
+    "switchTheme": {
+      "light": "Passa al tema chiaro",
+      "dark": "Passa al tema scuro",
+      "system": "Passa al tema di sistema"
+    },
+    "shortcuts": "Scorciatoie da tastiera",
+    "signOut": "Esci"
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "description": "Le scorciatoie sono sospese durante la digitazione in un campo.",
+    "then": "poi",
+    "or": "oppure",
+    "groups": {
+      "General": "Generali",
+      "Go to": "Vai a"
+    },
+    "items": {
+      "palette": "Apri la palette dei comandi",
+      "search": "Attiva la casella di ricerca di questa pagina",
+      "help": "Mostra le scorciatoie da tastiera",
+      "escape": "Chiudi una finestra di dialogo o un menu",
+      "overview": "Vai a Panoramica",
+      "pods": "Vai a Pods",
+      "workloads": "Vai a Carichi di lavoro",
+      "namespaces": "Vai a Namespaces",
+      "events": "Vai a Eventi",
+      "logs": "Vai a Log"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "Locale",
+    "accountSecurity": "Sicurezza dell'account",
+    "signOut": "Esci",
+    "signedOut": "Disconnesso",
+    "signedOutHint": "La sessione Axiom è stata terminata."
+  },
+  "breadcrumbs": {
+    "clusters": "Cluster"
+  },
+  "clusterSwitcher": {
+    "title": "Apri i cluster nelle Impostazioni",
+    "label": "Cluster"
+  }
+}

@@ -1,0 +1,58 @@
+# Example: expose Axiom through Envoy Gateway (Gateway API).
+# Prefer this over Ingress NGINX (retiring). Requires Envoy Gateway installed
+# and a GatewayClass (default name: eg) with controller
+# gateway.envoyproxy.io/gatewayclass-controller.
+#
+# Install Envoy Gateway (once per cluster):
+#   helm install eg oci://docker.io/envoyproxy/gateway-helm \
+#     --version v1.2.1 -n envoy-gateway-system --create-namespace
+#
+# Then apply (edit hostname + certificate Secret first):
+#   kubectl apply -f deploy/k8s/envoy-gateway-example.yaml
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+  labels:
+    app.kubernetes.io/name: zyvor-axiom
+    app.kubernetes.io/part-of: axiom
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: axiom.example.com
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: zyvor-axiom-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+  labels:
+    app.kubernetes.io/name: zyvor-axiom
+    app.kubernetes.io/part-of: axiom
+spec:
+  parentRefs:
+    - name: zyvor-axiom
+      kind: Gateway
+  hostnames:
+    - axiom.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: zyvor-axiom
+          port: 443

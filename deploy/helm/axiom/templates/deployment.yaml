@@ -1,0 +1,284 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "axiom.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "axiom.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: zyvor-axiom
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: zyvor-axiom
+          image: {{ include "axiom.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: https
+              containerPort: 5090
+            {{- if .Values.podProxy.addr }}
+            - name: pod-proxy
+              containerPort: {{ splitList ":" .Values.podProxy.addr | last | int }}
+            {{- end }}
+          env:
+            - name: AXIOM_MODE
+              value: kubernetes
+            - name: AXIOM_ADDR
+              value: :5090
+            - name: AXIOM_TLS_CERT
+              value: /etc/axiom/tls/tls.crt
+            - name: AXIOM_TLS_KEY
+              value: /etc/axiom/tls/tls.key
+            - name: AXIOM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: username
+            - name: AXIOM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: password
+            {{- if .Values.auth.allowDefaultCreds }}
+            - name: AXIOM_ALLOW_DEFAULT_CREDS
+              value: "true"
+            {{- end }}
+            {{- if .Values.clusterName }}
+            - name: AXIOM_CLUSTER_NAME
+              value: {{ .Values.clusterName | quote }}
+            {{- end }}
+            {{- if .Values.auth.sessionSecret }}
+            - name: AXIOM_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: sessionSecret
+            {{- end }}
+            {{- if .Values.auth.totpSecret }}
+            - name: AXIOM_TOTP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: totpSecret
+            {{- end }}
+            {{- if (.Values.cost | default dict).prometheusUrl }}
+            - name: AXIOM_PROMETHEUS_URL
+              value: {{ .Values.cost.prometheusUrl | quote }}
+            {{- end }}
+            {{- if (.Values.cost | default dict).prometheusToken }}
+            - name: AXIOM_PROMETHEUS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: prometheusToken
+            {{- end }}
+            {{- if (.Values.cost | default dict).opencostUrl }}
+            - name: AXIOM_OPENCOST_URL
+              value: {{ .Values.cost.opencostUrl | quote }}
+            {{- end }}
+            {{- if (.Values.cost | default dict).opencostToken }}
+            - name: AXIOM_OPENCOST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: zyvor-axiom-auth
+                  key: opencostToken
+            {{- end }}
+            {{- if .Values.auth.sessionTTL }}
+            - name: AXIOM_SESSION_TTL
+              value: {{ .Values.auth.sessionTTL | quote }}
+            {{- end }}
+            {{- if .Values.auth.fleetProbeInterval }}
+            - name: AXIOM_FLEET_PROBE_INTERVAL
+              value: {{ .Values.auth.fleetProbeInterval | quote }}
+            {{- end }}
+            {{- if .Values.auth.fleetHistoryPersistInterval }}
+            - name: AXIOM_FLEET_HISTORY_PERSIST_INTERVAL
+              value: {{ .Values.auth.fleetHistoryPersistInterval | quote }}
+            {{- end }}
+            {{- if .Values.auth.budgetCheckInterval }}
+            - name: AXIOM_BUDGET_CHECK_INTERVAL
+              value: {{ .Values.auth.budgetCheckInterval | quote }}
+            {{- end }}
+            {{- if .Values.auth.requireMFA }}
+            - name: AXIOM_REQUIRE_MFA
+              value: {{ .Values.auth.requireMFA | quote }}
+            {{- end }}
+            {{- if .Values.auth.revocationRefresh }}
+            - name: AXIOM_REVOCATION_REFRESH
+              value: {{ .Values.auth.revocationRefresh | quote }}
+            {{- end }}
+            {{- if (.Values.helmCatalog | default dict).allowPrivateRepos }}
+            - name: AXIOM_HELM_ALLOW_PRIVATE_REPOS
+              value: "true"
+            {{- end }}
+            {{- if (.Values.helmCatalog | default dict).allowInsecureRepos }}
+            - name: AXIOM_HELM_ALLOW_INSECURE_REPOS
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.samlAllowIdPInitiated }}
+            - name: AXIOM_SAML_ALLOW_IDP_INITIATED
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.auditRingSize }}
+            - name: AXIOM_AUDIT_RING_SIZE
+              value: {{ .Values.auth.auditRingSize | quote }}
+            {{- end }}
+            {{- if .Values.auth.trustedProxyHeader }}
+            - name: AXIOM_TRUSTED_PROXY_HEADER
+              value: {{ .Values.auth.trustedProxyHeader | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlLoginURL }}
+            - name: AXIOM_SAML_LOGIN_URL
+              value: {{ .Values.auth.samlLoginURL | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlEntityID }}
+            - name: AXIOM_SAML_ENTITY_ID
+              value: {{ .Values.auth.samlEntityID | quote }}
+            {{- end }}
+            {{- if .Values.auth.samlAllowUnsigned }}
+            - name: AXIOM_SAML_ALLOW_UNSIGNED
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.ldapEnabled }}
+            - name: AXIOM_LDAP_ENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.auth.ldapURL }}
+            - name: AXIOM_LDAP_URL
+              value: {{ .Values.auth.ldapURL | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapDomain }}
+            - name: AXIOM_LDAP_DOMAIN
+              value: {{ .Values.auth.ldapDomain | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapBaseDN }}
+            - name: AXIOM_LDAP_BASE_DN
+              value: {{ .Values.auth.ldapBaseDN | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapGroupAttr }}
+            - name: AXIOM_LDAP_GROUP_ATTR
+              value: {{ .Values.auth.ldapGroupAttr | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapAdminGroup }}
+            - name: AXIOM_LDAP_ADMIN_GROUP
+              value: {{ .Values.auth.ldapAdminGroup | quote }}
+            {{- end }}
+            {{- if .Values.auth.ldapViewerGroup }}
+            - name: AXIOM_LDAP_VIEWER_GROUP
+              value: {{ .Values.auth.ldapViewerGroup | quote }}
+            {{- end }}
+            {{- if .Values.auth.oidcDefaultRole }}
+            - name: AXIOM_OIDC_DEFAULT_ROLE
+              value: {{ .Values.auth.oidcDefaultRole | quote }}
+            {{- end }}
+            - name: AXIOM_ATLAS_URL
+              value: {{ .Values.atlas.url | quote }}
+            - name: AXIOM_ATLAS_CONSOLE_URL
+              value: {{ .Values.atlas.consoleURL | quote }}
+            - name: AXIOM_OIDC_ISSUER
+              value: {{ .Values.oidc.issuer | quote }}
+            - name: AXIOM_OIDC_LOGIN_URL
+              value: {{ .Values.oidc.loginURL | quote }}
+            - name: AXIOM_OIDC_CLIENT_ID
+              value: {{ .Values.oidc.clientID | quote }}
+            {{- if .Values.oidc.groupsClaim }}
+            - name: AXIOM_OIDC_GROUPS_CLAIM
+              value: {{ .Values.oidc.groupsClaim | quote }}
+            {{- end }}
+            {{- if .Values.oidc.adminGroup }}
+            - name: AXIOM_OIDC_ADMIN_GROUP
+              value: {{ .Values.oidc.adminGroup | quote }}
+            {{- end }}
+            {{- if .Values.oidc.viewerGroup }}
+            - name: AXIOM_OIDC_VIEWER_GROUP
+              value: {{ .Values.oidc.viewerGroup | quote }}
+            {{- end }}
+            {{- if .Values.podProxy.addr }}
+            - name: AXIOM_POD_PROXY_ADDR
+              value: {{ .Values.podProxy.addr | quote }}
+            - name: AXIOM_POD_PROXY_ORIGIN
+              value: {{ required "podProxy.origin is required when podProxy.addr is set" .Values.podProxy.origin | quote }}
+            {{- if .Values.podProxy.tlsSecret }}
+            - name: AXIOM_POD_PROXY_TLS_CERT
+              value: /etc/axiom/pod-proxy-tls/tls.crt
+            - name: AXIOM_POD_PROXY_TLS_KEY
+              value: /etc/axiom/pod-proxy-tls/tls.key
+            {{- end }}
+            {{- end }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: AXIOM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/axiom/tls
+              readOnly: true
+            {{- if and .Values.podProxy.addr .Values.podProxy.tlsSecret }}
+            - name: pod-proxy-tls
+              mountPath: /etc/axiom/pod-proxy-tls
+              readOnly: true
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ include "axiom.tlsSecretName" . }}
+        {{- if and .Values.podProxy.addr .Values.podProxy.tlsSecret }}
+        - name: pod-proxy-tls
+          secret:
+            secretName: {{ .Values.podProxy.tlsSecret | quote }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-axiom
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    {{- include "axiom.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+    {{- if .Values.podProxy.addr }}
+    - name: pod-proxy
+      port: {{ .Values.podProxy.service.port }}
+      targetPort: pod-proxy
+    {{- end }}

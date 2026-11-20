@@ -1,0 +1,37 @@
+Zyvor Axiom has been deployed to namespace "{{ .Values.namespace }}".
+
+{{- if eq .Values.expose.type "NodePort" }}
+
+Access the UI at:
+  https://<any-node-ip>:{{ .Values.expose.nodePort }}
+
+{{- else if eq .Values.expose.type "Ingress" }}
+
+Access the UI at:
+  https://{{ .Values.expose.ingress.host }}
+
+{{- else }}
+
+Service zyvor-axiom is ClusterIP-only. Port-forward to reach it:
+  kubectl -n {{ .Values.namespace }} port-forward svc/zyvor-axiom 5090:443
+
+{{- end }}
+
+{{- if .Values.tls.selfSigned.enabled }}
+{{- if not .Values.tls.existingSecret }}
+
+This install is using a self-signed TLS certificate — your browser will
+show a warning the first time. For production, set tls.existingSecret to
+a Secret containing a CA-issued certificate instead.
+{{- end }}
+{{- end }}
+
+Sign in with the credentials from `auth.username` / `auth.password`
+(default demo/demo — change these before using anywhere but a throwaway
+evaluation cluster; see docs/QUICKSTART.md).
+
+Health check:
+  curl -k https://<node-ip-or-host>/api/v1/health
+
+Uninstall:
+  helm uninstall {{ .Release.Name }} -n {{ .Values.namespace }}

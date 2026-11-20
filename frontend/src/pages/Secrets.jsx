@@ -1,0 +1,554 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { api } from "@/lib/api";
+import GlassCard from "@/components/GlassCard";
+import PageHeader from "@/components/PageHeader";
+import StatusBadge from "@/components/StatusBadge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { KeySquare, Search, Trash2, Plus, X, RefreshCcw, Link2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { CERTS, EXTERNAL_SECRETS } from "@/constants/testIds";
+
+const SECRET_TYPES = ["Opaque", "kubernetes.io/tls", "kubernetes.io/dockerconfigjson", "kubernetes.io/basic-auth"];
+
+function CreateSecretDialog({ open, onOpenChange, onCreated }) {
+    const { t } = useTranslation();
+    const [namespace, setNamespace] = useState("default");
+    const [name, setName] = useState("");
+    const [type, setType] = useState("Opaque");
+    const [pairs, setPairs] = useState([{ key: "", value: "" }]);
+    const [busy, setBusy] = useState(false);
+
+    const setPair = (i, patch) => setPairs((p) => p.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
+    const addPair = () => setPairs((p) => [...p, { key: "", value: "" }]);
+    const removePair = (i) => setPairs((p) => p.filter((_, idx) => idx !== i));
+
+    const submit = async () => {
+        if (!name) return;
+        const data = {};
+        for (const { key, value } of pairs) if (key) data[key] = value;
+        setBusy(true);
+        try {
+            await api.post("/secrets", { namespace, name, type, data });
+            toast.success(t("toasts:secrets.created", { name }));
+            onOpenChange(false);
+            setName("");
+            setPairs([{ key: "", value: "" }]);
+            onCreated();
+        } catch (e) {
+            toast.error(t("toasts:secrets.createFailed"), { description: e?.response?.data?.error || e.message });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{t("dialogs:secrets.create.title")}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="secrets-namespace" className="text-xs text-muted-foreground">{t("common:fields.namespace")}</Label>
+                            <Input id="secrets-namespace" value={namespace} onChange={(e) => setNamespace(e.target.value)} className="bg-muted/30" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="secrets-name" className="text-xs text-muted-foreground">{t("common:fields.name")}</Label>
+                            <Input id="secrets-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="app-config" className="bg-muted/30" />
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="secrets-type" className="text-xs text-muted-foreground">{t("common:fields.type")}</Label>
+                        <Select value={type} onValueChange={setType}>
+                            <SelectTrigger id="secrets-type" className="bg-muted/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {SECRET_TYPES.map((st) => (
+                                    <SelectItem key={st} value={st}>
+                                        {st}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <div id="secret-data-label" className="text-xs font-medium leading-none text-muted-foreground">{t("dialogs:secrets.create.data")}</div>
+                        <div className="space-y-2" role="group" aria-labelledby="secret-data-label">
+                            {pairs.map((p, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                    <Input value={p.key} onChange={(e) => setPair(i, { key: e.target.value })} placeholder={t("dialogs:secrets.create.keyPlaceholder")} aria-label={t("dialogs:secrets.create.keyAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <Input value={p.value} onChange={(e) => setPair(i, { value: e.target.value })} placeholder={t("dialogs:secrets.create.valuePlaceholder")} aria-label={t("dialogs:secrets.create.valueAria", { n: i + 1 })} className="bg-muted/30" />
+                                    <button aria-label={t("dialogs:secrets.create.removeRow")} title={t("dialogs:secrets.create.removeRow")} onClick={() => removePair(i)} className="shrink-0 text-muted-foreground hover:text-tone-red">
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={addPair} className="mt-1 text-xs text-muted-foreground">
+                            <Plus className="mr-1 h-3.5 w-3.5" /> {t("dialogs:secrets.create.addKey")}
+                        </Button>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="brand" onClick={submit} disabled={busy || !name} className="rounded-xl">
+                        {busy ? t("dialogs:secrets.create.creating") : t("common:actions.create")}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+const ES_HEALTH_TONE = { ready: "var(--green)", failing: "var(--red)", stale: "var(--amber)" };
+
+function ExternalSecretsSection() {
+    const { t } = useTranslation();
+    const [rep, setRep] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/external-secrets/health")
+            .then((r) => alive && setRep(r.data))
+            .catch(() => alive && setRep({ available: false, rollup: {}, externalSecrets: [], stores: [] }));
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    const items = rep?.externalSecrets || [];
+    const stores = rep?.stores || [];
+    const rollup = rep?.rollup || {};
+    const fmtTime = (v) => (v ? v.slice(0, 19).replace("T", " ") : t("pages:secrets.external.never"));
+    const condStatus = (v) => (v === "True" ? "Ready" : v === "False" ? "Failed" : "Unknown");
+
+    return (
+        <GlassCard className="overflow-hidden p-0" data-testid={EXTERNAL_SECRETS.root}>
+            <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
+                <Link2 className="h-4 w-4 text-tone-link" /> {t("pages:secrets.external.title")}
+            </div>
+            {!rep && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
+            {rep && !rep.available && (
+                <div className="empty" data-testid={EXTERNAL_SECRETS.unavailable}>{t("pages:secrets.external.unavailable")}</div>
+            )}
+            {rep?.available && (
+                <>
+                    <div className="flex flex-wrap gap-4 border-b px-4 py-2 text-sm" data-testid={EXTERNAL_SECRETS.rollup}>
+                        {["ready", "failing", "stale"].map((k) => (
+                            <span key={k} data-testid={EXTERNAL_SECRETS.count(k)}>
+                                <span className="mono font-medium" style={{ color: ES_HEALTH_TONE[k] }}>{rollup[k] ?? 0}</span>{" "}
+                                {t(`pages:secrets.external.health.${k}`)}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="max-h-[320px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.aria")}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("pages:secrets.external.columns.store")}</th>
+                                    <th>{t("pages:secrets.external.columns.refresh")}</th>
+                                    <th>{t("pages:secrets.external.columns.lastSync")}</th>
+                                    <th>{t("pages:secrets.external.columns.condition")}</th>
+                                    <th>{t("pages:secrets.external.columns.target")}</th>
+                                    <th>{t("pages:secrets.external.columns.health")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((s) => (
+                                    <tr key={`${s.namespace}/${s.name}`} data-testid={EXTERNAL_SECRETS.row(s.namespace, s.name)}>
+                                        <td className="name">
+                                            {s.name}
+                                            <small>{s.namespace}</small>
+                                        </td>
+                                        <td className="mono">
+                                            {s.store}
+                                            <small>{s.storeKind}</small>
+                                        </td>
+                                        <td className="mono">{s.refreshInterval}</td>
+                                        <td className="mono">{fmtTime(s.lastSync)}</td>
+                                        <td title={s.message}>
+                                            <StatusBadge status={condStatus(s.ready)} />
+                                            <small>{s.reason}</small>
+                                            {s.message && <small>{s.message}</small>}
+                                        </td>
+                                        <td className="mono">{s.targetSecret}</td>
+                                        <td data-testid={EXTERNAL_SECRETS.health(s.namespace, s.name)}>
+                                            <span className="mono" style={{ color: ES_HEALTH_TONE[s.health] }}>
+                                                {t(`pages:secrets.external.health.${s.health || "ready"}`)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {items.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <div className="empty">{t("pages:secrets.external.empty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.external.storesTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.external.storesAria")} data-testid={EXTERNAL_SECRETS.storesRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("pages:secrets.external.columns.provider")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stores.map((st) => (
+                                    <tr key={`${st.kind}/${st.namespace}/${st.name}`} data-testid={EXTERNAL_SECRETS.storeRow(st.kind, st.name)}>
+                                        <td className="name">
+                                            {st.name}
+                                            {st.namespace && <small>{st.namespace}</small>}
+                                        </td>
+                                        <td className="mono">{st.kind}</td>
+                                        <td className="mono">{st.provider}</td>
+                                        <td>
+                                            <StatusBadge status={condStatus(st.ready)} />
+                                        </td>
+                                        <td>{st.message}</td>
+                                    </tr>
+                                ))}
+                                {stores.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5}>
+                                            <div className="empty">{t("pages:secrets.external.storesEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </GlassCard>
+    );
+}
+
+const CERT_BUCKET_TONE = {
+    expired: "var(--red)",
+    lt7d: "var(--red)",
+    lt30d: "var(--amber)",
+    ok: "var(--green)",
+    unknown: "var(--ink-3)",
+};
+
+function CertificatesSection() {
+    const { t } = useTranslation();
+    const [inv, setInv] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/certificates").then((r) => alive && setInv(r.data)).catch(() => alive && setInv({ available: false, certificates: [], issuers: [], failures: [] }));
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    const fmt = (v) => (v ? v.slice(0, 10) : "-");
+    const certs = inv?.certificates || [];
+    const issuers = inv?.issuers || [];
+    const failures = inv?.failures || [];
+
+    return (
+        <GlassCard className="overflow-hidden p-0" data-testid={CERTS.root}>
+            <div className="flex items-center gap-2 border-b px-4 py-3 text-sm font-medium">
+                <ShieldCheck className="h-4 w-4 text-tone-link" /> {t("pages:secrets.certs.title")}
+            </div>
+            {!inv && <Skeleton className="m-4 h-16 rounded-xl bg-muted" />}
+            {inv && !inv.available && (
+                <div className="empty" data-testid={CERTS.unavailable}>{t("pages:secrets.certs.unavailable")}</div>
+            )}
+            {inv?.available && (
+                <>
+                    <div className="max-h-[320px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.aria")}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("pages:secrets.certs.columns.issuer")}</th>
+                                    <th>{t("pages:secrets.certs.columns.secret")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("pages:secrets.certs.columns.notAfter")}</th>
+                                    <th>{t("pages:secrets.certs.columns.renewal")}</th>
+                                    <th>{t("pages:secrets.certs.columns.days")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {certs.map((c) => (
+                                    <tr key={`${c.namespace}/${c.name}`} data-testid={CERTS.certRow(c.namespace, c.name)}>
+                                        <td className="name">
+                                            {c.name}
+                                            <small>{c.namespace}</small>
+                                        </td>
+                                        <td className="mono">{c.issuer}</td>
+                                        <td className="mono">{c.secretName}</td>
+                                        <td title={c.message}>
+                                            <StatusBadge status={c.ready === "True" ? "Ready" : c.ready === "False" ? "Failed" : "Unknown"} />
+                                        </td>
+                                        <td className="mono">{fmt(c.notAfter)}</td>
+                                        <td className="mono">{fmt(c.renewalTime)}</td>
+                                        <td data-testid={CERTS.bucket(c.namespace, c.name)}>
+                                            <span className="mono" style={{ color: CERT_BUCKET_TONE[c.expiryBucket] }}>
+                                                {c.daysToExpiry ?? "-"} · {t(`pages:secrets.certs.buckets.${c.expiryBucket || "unknown"}`)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {certs.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <div className="empty">{t("pages:secrets.certs.empty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.certs.issuersTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.issuersAria")} data-testid={CERTS.issuersRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("common:fields.type")}</th>
+                                    <th>{t("common:fields.ready")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {issuers.map((i) => (
+                                    <tr key={`${i.kind}/${i.namespace}/${i.name}`} data-testid={CERTS.issuerRow(i.kind, i.name)}>
+                                        <td className="name">
+                                            {i.name}
+                                            {i.namespace && <small>{i.namespace}</small>}
+                                        </td>
+                                        <td className="mono">{i.kind}</td>
+                                        <td className="mono">{i.type}</td>
+                                        <td>
+                                            <StatusBadge status={i.ready === "True" ? "Ready" : i.ready === "False" ? "Failed" : "Unknown"} />
+                                        </td>
+                                        <td>{i.message}</td>
+                                    </tr>
+                                ))}
+                                {issuers.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5}>
+                                            <div className="empty">{t("pages:secrets.certs.issuersEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="border-t px-4 py-2 text-sm font-medium">{t("pages:secrets.certs.failTitle")}</div>
+                    <div className="max-h-[240px] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.certs.failAria")} data-testid={CERTS.failuresRoot}>
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>{t("common:fields.name")}</th>
+                                    <th>{t("common:fields.kind")}</th>
+                                    <th>{t("pages:secrets.certs.columns.state")}</th>
+                                    <th>{t("common:fields.message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {failures.map((f) => (
+                                    <tr key={`${f.kind}/${f.namespace}/${f.name}`} data-testid={CERTS.failureRow(f.kind, f.namespace, f.name)}>
+                                        <td className="name">
+                                            {f.name}
+                                            <small>{f.namespace}</small>
+                                        </td>
+                                        <td className="mono">{f.kind}</td>
+                                        <td className="mono">{f.state}</td>
+                                        <td>{f.message}</td>
+                                    </tr>
+                                ))}
+                                {failures.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <div className="empty">{t("pages:secrets.certs.failEmpty")}</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </GlassCard>
+    );
+}
+
+export default function Secrets() {
+    const { t } = useTranslation();
+    const confirm = useConfirm();
+    const [data, setData] = useState(null);
+    const [q, setQ] = useState("");
+    const [createOpen, setCreateOpen] = useState(false);
+
+    const load = () => api.get("/secrets").then((r) => setData(r.data));
+
+    useEffect(() => {
+        let alive = true;
+        api.get("/secrets").then((r) => alive && setData(r.data));
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    const rows = useMemo(
+        () => (data || []).filter((s) => q === "" || s.name.toLowerCase().includes(q.toLowerCase())),
+        [data, q]
+    );
+
+    const remove = async (s) => {
+        const ok = await confirm({
+            title: t("dialogs:secrets.delete.title", { name: s.name }),
+            description: t("dialogs:secrets.delete.description"),
+            confirmLabel: t("common:actions.delete"),
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/secrets/${s.namespace}/${encodeURIComponent(s.name)}`);
+            toast.success(t("toasts:secrets.deleted", { name: s.name }));
+            load();
+        } catch (e) {
+            toast.error(t("toasts:secrets.deleteFailed"), { description: e?.response?.data?.error || e.message });
+        }
+    };
+
+    if (!data) {
+        return (
+            <div className="page">
+                <Skeleton className="h-16 rounded-2xl bg-muted" />
+                <Skeleton className="mt-4 h-96 rounded-2xl bg-muted" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="page">
+            <PageHeader
+                title={t("pages:secrets.title")}
+                description={t("pages:secrets.description")}
+                action={
+                    <>
+                        <button type="button" className="btn btn-line" onClick={load}>
+                            <RefreshCcw size={15} /> {t("common:actions.refresh")}
+                        </button>
+                        <button type="button" className="btn btn-fill" onClick={() => setCreateOpen(true)}>
+                            <Plus size={15} /> {t("pages:secrets.create")}
+                        </button>
+                    </>
+                }
+                tools={
+                    <div className="input">
+                        <Search size={15} className="text-ink-3" />
+                        <input
+                            placeholder={t("pages:secrets.searchPlaceholder")}
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)} className="bare-input"
+                        />
+                    </div>
+                }
+            />
+
+            <GlassCard className="overflow-hidden p-0">
+                <div className="max-h-[65vh] overflow-auto scrollbar-thin" tabIndex={0} role="region" aria-label={t("pages:secrets.tableAria")}>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("common:fields.name")}</th>
+                                <th>{t("common:fields.namespace")}</th>
+                                <th>{t("common:fields.type")}</th>
+                                <th>{t("pages:secrets.columns.keys")}</th>
+                                <th>{t("common:fields.age")}</th>
+                                <th><span className="sr-only">{t("common:fields.actions")}</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((s) => (
+                                <tr key={`${s.namespace}/${s.name}`}>
+                                    <td className="name">
+                                        <span className="flex gap-2 items-center">
+                                            <KeySquare size={14} className="text-ink-3" />
+                                            <Link
+                                                to={`/secrets/${encodeURIComponent(s.namespace)}/${encodeURIComponent(s.name)}`}
+                                                className="hover:underline"
+                                                title={s.name}
+                                            >
+                                                {s.name}
+                                            </Link>
+                                        </span>
+                                    </td>
+                                    <td className="mono">{s.namespace}</td>
+                                    <td className="mono">{s.type}</td>
+                                    <td>
+                                        <div className="flex flex-wrap gap-1">
+                                            {(s.keys || []).map((k) => (
+                                                <Badge key={k} variant="outline" className="mono text-[11px] bg-muted/30">
+                                                    {k}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="mono">{s.age}</td>
+                                    <td>
+                                        <button type="button" className="btn btn-line btn-sm" aria-label={t("pages:secrets.deleteAria", { name: s.name })} title={t("pages:secrets.deleteAria", { name: s.name })} onClick={() => remove(s)}>
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {rows.length === 0 && (
+                                <tr>
+                                    <td colSpan={6}>
+                                        <div className="empty">{t("pages:secrets.empty")}</div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </GlassCard>
+
+            <ExternalSecretsSection />
+
+            <CertificatesSection />
+
+            <CreateSecretDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
+        </div>
+    );
+}

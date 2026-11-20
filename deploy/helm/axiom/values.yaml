@@ -1,0 +1,211 @@
+# Default values for the Axiom Helm chart.
+# See docs/QUICKSTART.md for a walkthrough of a first install.
+
+namespace: axiom-system
+# Create the namespace as part of the release. Set to false if it already
+# exists (e.g. you used `helm install -n axiom-system --create-namespace`).
+createNamespace: true
+
+image:
+  repository: ghcr.io/zyvorai/axiom
+  tag: "" # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# For HA set replicaCount: 2 (or more) AND auth.sessionSecret to a stable
+# random value so OIDC/SAML sessions validate on every replica.
+
+# Sets AXIOM_CLUSTER_NAME (the label shown in the sidebar cluster switcher
+# and Settings -> Clusters). Defaults to "in-cluster" if left blank.
+clusterName: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Local operator credentials, seeded into Secret zyvor-axiom-auth.
+# CHANGE THESE before installing anywhere but a throwaway evaluation
+# cluster — see docs/QUICKSTART.md and docs/DEPLOYMENT.md#production-hardening-checklist.
+auth:
+  username: demo
+  password: demo
+  # Non-demo mode refuses demo/demo unless this is true. Keep true only for
+  # throwaway labs; set false (and change username/password) before production.
+  allowDefaultCreds: true
+  # Signs OIDC/SAML session cookies/tokens. REQUIRED when replicaCount > 1
+  # so sessions validate on every replica. Generate with:
+  #   openssl rand -base64 32
+  sessionSecret: ""
+  # Login session lifetime (a Go duration, default 12h). Maps to AXIOM_SESSION_TTL.
+  # Revocations reach other replicas within auth.revocationRefresh (default 15s).
+  sessionTTL: ""
+  # How often registered clusters are health-probed (Go duration, default 30s; "off" disables
+  # background probing). Maps to AXIOM_FLEET_PROBE_INTERVAL. Shown on the Fleet page.
+  fleetProbeInterval: ""
+  # How often the fleet health history is saved to the zyvor-axiom-fleet-history ConfigMap so it
+  # survives restarts (Go duration, default 5m, minimum 1m; "off" disables).
+  # Maps to AXIOM_FLEET_HISTORY_PERSIST_INTERVAL.
+  fleetHistoryPersistInterval: ""
+  # How often cost budgets are checked for warning/over notifications (Go duration, default 5m,
+  # minimum 1m; "off" disables). Maps to AXIOM_BUDGET_CHECK_INTERVAL.
+  budgetCheckInterval: ""
+  # Require a second factor for local accounts: off (default) | admin | operator | all.
+  # Maps to AXIOM_REQUIRE_MFA. SSO/LDAP accounts and API keys are never affected; the
+  # built-in admin is exempt unless totpSecret is set (break glass).
+  requireMFA: ""
+  # How often each replica re-reads the shared session-revocation ConfigMap (Go duration,
+  # default 15s, minimum 5s; "off" disables). Maps to AXIOM_REVOCATION_REFRESH.
+  revocationRefresh: ""
+  # TOTP second factor for the built-in admin account (base32, >= 16 chars). Stored in
+  # Secret zyvor-axiom-auth; maps to AXIOM_TOTP_SECRET. Local accounts enrol themselves
+  # from the user menu instead. Generate with: head -c20 /dev/urandom | base32
+  totpSecret: ""
+  # Audit ring retention (default 5000). Maps to AXIOM_AUDIT_RING_SIZE.
+  auditRingSize: 5000
+  # Set to a header name (e.g. "X-Forwarded-For") ONLY if Axiom sits behind
+  # a reverse proxy that itself sets/overwrites that header — otherwise
+  # leave blank. Enables the login rate limiter to key on the real client
+  # IP instead of the proxy's, so one user's failed logins can't lock out
+  # everyone else behind the same proxy.
+  trustedProxyHeader: ""
+  # SAML (optional). ACS is always /api/v1/auth/saml/acs on this Service.
+  samlLoginURL: ""
+  samlEntityID: ""
+  samlAllowUnsigned: false
+  # Accept unsolicited (IdP-initiated) SAML responses. Off unless you sign in from an
+  # IdP dashboard tile — such responses are not bound to a browser sign-in.
+  samlAllowIdPInitiated: false
+  # LDAP (optional). When enabled, Basic-auth form binds against ldapURL.
+  ldapEnabled: false
+  ldapURL: ""
+  ldapDomain: ""
+  ldapBaseDN: ""
+  # Group-based role mapping (optional, only takes effect with ldapBaseDN set —
+  # see docs/GAPS.md). ldapGroupAttr defaults to memberOf when either group is set.
+  ldapGroupAttr: ""
+  ldapAdminGroup: ""
+  ldapViewerGroup: ""
+  # OIDC default role when admin/viewer groups are unset (admin|viewer|operator).
+  oidcDefaultRole: admin
+
+# Helm chart catalog (Ops -> Helm repository browsing). By default Axiom fetches
+# chart repositories only over https and only from public addresses.
+helmCatalog:
+  # Allow repositories on loopback/private/link-local addresses, e.g. an in-cluster
+  # ChartMuseum or Harbor. Maps to AXIOM_HELM_ALLOW_PRIVATE_REPOS.
+  allowPrivateRepos: false
+  # Allow http:// repositories. Maps to AXIOM_HELM_ALLOW_INSECURE_REPOS.
+  allowInsecureRepos: false
+
+# Cost rightsizing (Ops -> Cost). With a Prometheus that scrapes cAdvisor
+# (container_cpu_usage_seconds_total, container_memory_working_set_bytes),
+# recommendations use p95 CPU / p99 memory over a window; without it they fall
+# back to a one-sample metrics-server snapshot.
+cost:
+  # e.g. http://prometheus-operated.monitoring.svc:9090. Maps to AXIOM_PROMETHEUS_URL.
+  prometheusUrl: ""
+  # Optional bearer token. Stored in Secret zyvor-axiom-auth (key prometheusToken);
+  # maps to AXIOM_PROMETHEUS_TOKEN.
+  prometheusToken: ""
+  # OpenCost (or Kubecost's bundled OpenCost) allocation API, e.g.
+  # http://opencost.opencost.svc:9003. When set, Ops -> Cost and budgets use
+  # actual cost instead of request-based estimates. Maps to AXIOM_OPENCOST_URL.
+  opencostUrl: ""
+  # Optional bearer token. Stored in Secret zyvor-axiom-auth (key opencostToken);
+  # maps to AXIOM_OPENCOST_TOKEN.
+  opencostToken: ""
+
+tls:
+  # If set, the chart uses this pre-existing TLS Secret (type: kubernetes.io/tls)
+  # instead of generating one — the right choice for a CA-issued certificate.
+  existingSecret: ""
+  # Only used when existingSecret is empty: the chart generates and reuses a
+  # self-signed cert across upgrades (same shape as scripts/deploy-remote.sh's
+  # lab flow). Fine for evaluation; replace with existingSecret in production.
+  selfSigned:
+    enabled: true
+    hosts:
+      - axiom.local
+
+# Optional separate origin for the pod HTTP proxy ("Open" on a pod port). Off
+# by default. When addr is set, Axiom runs a second listener for pod content and
+# the Service gains a "pod-proxy" port; origin is the public URL browsers use to
+# reach it and must differ from the console's (a separate hostname is
+# recommended). This chart does not create an Ingress for it — see
+# docs/DEPLOYMENT.md. Maps to AXIOM_POD_PROXY_ADDR / AXIOM_POD_PROXY_ORIGIN.
+#
+# origin may contain {id} as its leftmost host label (https://{id}.pods.example.com):
+# every pod session then gets its own hostname/origin, which needs wildcard DNS
+# and a wildcard certificate for *.pods.example.com (see tlsSecret).
+podProxy:
+  addr: ""      # e.g. ":5091"
+  origin: ""    # e.g. https://pods.example.com or https://{id}.pods.example.com
+  # Name of an existing kubernetes.io/tls Secret (e.g. the wildcard certificate
+  # for *.pods.example.com) the pod proxy listener serves instead of the
+  # console's certificate. Maps to AXIOM_POD_PROXY_TLS_CERT / _KEY. Empty: the
+  # console's certificate.
+  tlsSecret: ""
+  service:
+    port: 5091
+    # With expose.type=NodePort, the node port for the pod proxy (empty: none).
+    nodePort: ""
+
+# How the Service is exposed. One of: ClusterIP, NodePort, Ingress, Gateway.
+# Prefer Gateway (Envoy Gateway) over Ingress NGINX — the Ingress NGINX
+# controller is retiring; Gateway API + Envoy is the cloud-native path
+# (HTTP/gRPC observability, HTTP/3-capable data plane).
+expose:
+  type: NodePort
+  nodePort: 30590
+  ingress:
+    className: ""
+    host: ""
+    annotations: {}
+  gateway:
+    # GatewayClass created by Envoy Gateway (helm: eg / controller
+    # gateway.envoyproxy.io/gatewayclass-controller).
+    className: eg
+    host: ""
+    port: 443
+    annotations: {}
+
+# Optional OIDC wiring (can also be configured later via Settings -> Integrations).
+oidc:
+  issuer: ""
+  loginURL: ""
+  clientID: ""
+  groupsClaim: ""
+  adminGroup: ""
+  viewerGroup: ""
+
+# Optional Atlas storage control-plane wiring (can also be configured later
+# via Settings -> Integrations).
+atlas:
+  url: ""
+  consoleURL: ""
+
+# RBAC scope. The default ClusterRole matches deploy/k8s/rbac.yaml exactly.
+# Set to false only if you're supplying your own narrower Role/RoleBinding
+# per docs/DEPLOYMENT.md's least-privilege guidance.
+rbac:
+  create: true
+
+# Hardening. Defaults satisfy the Pod Security "restricted" profile. Axiom keeps
+# no local state, so a read-only root filesystem is safe. Set either to {} to
+# opt out (e.g. on a cluster that assigns its own UIDs, such as OpenShift).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

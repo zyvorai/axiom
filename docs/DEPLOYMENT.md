@@ -1,0 +1,360 @@
+# Deploying Zyvor Axiom on k3s / Kubernetes
+
+For a first install, see [QUICKSTART.md](QUICKSTART.md) — it uses the Helm
+chart at `deploy/helm/axiom` and only assumes `helm`, `kubectl`, and a
+browser. The rest of this document covers the underlying raw-manifest
+deploy (what the Helm chart templates) and remains useful for the lab-SSH
+workflow, understanding what the chart does under the hood, or building
+from source.
+
+## 1. Build the production binary
+
+```bash
+go mod download -modfile=go.production.mod
+go build -modfile=go.production.mod -tags kubernetes -o bin/zyvor-axiom-kubernetes ./cmd/zyvor-axiom
+```
+
+## 2. Build the container
+
+The Dockerfile builds the production Kubernetes binary (`-tags kubernetes`, `go.production.mod`).
+
+Recommended image identity for registry deploys:
+
+```text
+ghcr.io/zyvorai/axiom:<version>
+```
+
+For k3s lab hosts, use `./scripts/deploy-remote.sh` to build locally with podman and import into k3s (see below).
+
+## 3. Configure credentials and TLS
+
+The Deployment expects **HTTPS + mTLS** by default:
+
+- Server cert: `AXIOM_TLS_CERT` / `AXIOM_TLS_KEY` (Secret `zyvor-axiom-tls`)
+- Client CA: `AXIOM_TLS_CLIENT_CA` (Secret `zyvor-axiom-mtls`, key `ca.crt`)
+- Mode: `AXIOM_TLS_MTLS=require` (or `request` / `off`)
+
+Browsers must import the admin PKCS#12 (`.run/mtls/admin.p12`, password `axiom`) from a remote deploy; API clients use `curl --cert admin.crt --key admin.key`.
+
+```bash
+# Auth (remote deploy defaults to admin / Admin@321)
+kubectl -n axiom-system create secret generic zyvor-axiom-auth \
+  --from-literal=username=admin \
+  --from-literal=password='replace-with-strong-secret' \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Self-signed TLS (lab) — or use your CA-issued cert
+openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+  -keyout tls.key -out tls.crt \
+  -subj "/CN=axiom.local/O=Zyvor Axiom" \
+  -addext "subjectAltName=DNS:axiom.local,IP:127.0.0.1"
+kubectl -n axiom-system create secret tls zyvor-axiom-tls \
+  --cert=tls.crt --key=tls.key \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# mTLS client CA + admin client cert (minted automatically by deploy-remote.sh)
+kubectl -n axiom-system create secret generic zyvor-axiom-mtls \
+  --from-file=ca.crt=mtls/ca.crt \
+  --from-file=tls.crt=mtls/admin.crt \
+  --from-file=tls.key=mtls/admin.key \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+## 4. Apply RBAC and deployment
+
+```bash
+kubectl apply -f deploy/k8s/rbac.yaml
+kubectl apply -f deploy/k8s/deployment.yaml
+kubectl apply -f deploy/k8s/nodeport.yaml   # lab NodePort 30590
+```
+
+`deploy/k8s/rbac.yaml` grants: core resources (Pods, Services, ServiceAccounts, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, ...), `apps` Deployments/StatefulSets (+ read ReplicaSets/ControllerRevisions for Helm), `policy` PodDisruptionBudgets, `coordination.k8s.io` Leases, `discovery.k8s.io` EndpointSlices, `batch` Jobs/CronJobs, `networking.k8s.io` NetworkPolicies/Ingresses, plus the KubeVirt/Helm/Velero/GitOps/Haven CRD groups Axiom optionally reads. Those extras exist so console Helm installs of ordinary charts (ServiceAccount + Deployment + Service + PDB + Lease) succeed under Axiom's own ServiceAccount. Charts that mint CRDs or ClusterRoles still need a wider Role or an out-of-band `helm` install. If you narrow this ClusterRole, keep `secrets` write access in Axiom's own namespace — both the Integrations hub and local Users store (`zyvor-axiom-users` Secret) depend on it.
+
+For least privilege, replace the ClusterRole with namespace-scoped Roles where your operating model permits it.
+
+Optionally set `AXIOM_CLUSTER_NAME` on the Deployment to label the single connected cluster shown in the sidebar switcher and Settings → Clusters (defaults to `in-cluster` — see [ARCHITECTURE.md](ARCHITECTURE.md#multi-cluster-switchableprovider)).
+
+To map OIDC group membership to Axiom roles, also set `AXIOM_OIDC_ADMIN_GROUP` and/or `AXIOM_OIDC_VIEWER_GROUP` (and `AXIOM_OIDC_GROUPS_CLAIM` if your IdP doesn't use the claim name `groups`) — leave both unset and every OIDC login stays admin, unchanged from the default.
+
+Sign-in hardening variables:
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_SESSION_TTL` | `12h` | Lifetime of login sessions (a Go duration such as `8h`; clamped to 1 minute – 30 days). Helm: `auth.sessionTTL`. |
+| `AXIOM_ALLOW_DEFAULT_CREDS` | unset / false | Outside demo mode, Axiom **refuses to start** when username and password are both still `demo`. Set `true` only for sealed labs (Helm: `auth.allowDefaultCreds`, default `true` on the chart so eval installs boot; turn it off after you change `auth.username` / `auth.password`). |
+| `AXIOM_TOTP_SECRET` | unset | Adds a TOTP second factor to the built-in admin account (`AXIOM_USERNAME`). Base32, at least 16 characters; generate one with `head -c20 /dev/urandom \| base32`. Once set, that account signs in through `POST /api/v1/auth/login` with a code instead of HTTP Basic, which the web UI does automatically; keep the API key (`AXIOM_API_KEY`) for automation. Local accounts enrol themselves from the user menu → **Account security**. Helm: `auth.totpSecret` (kept in Secret `zyvor-axiom-auth`). |
+
+Fleet health probing (clusters registered under Settings → Clusters):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_REQUIRE_MFA` | `off` | Require a second factor for local and LDAP directory accounts (by their mapped role): `admin` (admins), `operator` (operators and admins) or `all` (every local account, viewers included). A covered account that has not enrolled can still sign in, but every request except reading its session, enrolling (`/auth/mfa*`) and signing out gets `403` with `mfaEnrollmentRequired: true`, and the UI sends it to **Account security**. SSO accounts (their MFA belongs to the IdP) and API keys are never affected. The built-in admin (`AXIOM_USERNAME`) is break-glass: without `AXIOM_TOTP_SECRET` it is exempt (a warning is logged at start-up) so you cannot lock yourself out; with it, it already needs a code and is satisfied. An unrecognised value is logged and treated as `off`. Helm: `auth.requireMFA`. |
+| `AXIOM_REVOCATION_REFRESH` | `15s` | How often each replica re-reads the shared `zyvor-axiom-revocations` ConfigMap, so a logout or "sign out everywhere" on one replica applies on the others within this interval (minimum `5s`; `off` or `0` disables). Writes are merged with resourceVersion-checked updates, so two replicas revoking at once both keep their entry. Has no effect in demo mode (no shared store). Helm: `auth.revocationRefresh`. |
+| `AXIOM_FLEET_PROBE_INTERVAL` | `30s` | How often every registered cluster is asked for its overview to decide healthy / degraded / unreachable (minimum `5s`). `off` or `0` disables background probing; clusters are then probed only when the Fleet page or `GET /api/v1/fleet` is read. Each probe is one overview request per cluster, so keep it generous for large fleets. Helm: `fleetProbeInterval`. |
+| `AXIOM_FLEET_HISTORY_PERSIST_INTERVAL` | `5m` | How often each replica saves a 5-minute-resolution copy of the fleet health history (last 24 h) to the `zyvor-axiom-fleet-history` ConfigMap, under its own key `history-<POD_NAME or hostname>`; it is also saved on graceful shutdown and restored at startup (minimum `1m`). `off` or `0` disables saving and restoring (history is then lost on restart). Kubernetes mode only; demo mode keeps history in memory. Helm: `auth.fleetHistoryPersistInterval`. |
+| `AXIOM_BUDGET_CHECK_INTERVAL` | `5m` | How often the budget watcher evaluates every cost budget (minimum `1m`) and notifies through the configured Slack / alert webhook when a namespace crosses into `warning` or `over` or returns to `ok` (needs `notifyOnWarnings` and a webhook in Settings → Integrations; the audit entries are written either way). `off` or `0` disables the watcher. Evaluates the default active cluster. Helm: `budgetCheckInterval`. |
+
+Helm chart catalog (Ops → Helm repository browsing; see `docs/API.md` → Helm chart catalog):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_HELM_ALLOW_PRIVATE_REPOS` | `false` | `true` lets chart repositories (and the chart archives their indexes name) live on loopback, private, link-local or CGNAT addresses — needed for an in-cluster ChartMuseum or Harbor. Off, Axiom refuses to connect to any non-public address, so the catalog cannot be used to reach internal services or the cloud metadata endpoint. Helm: `helmCatalog.allowPrivateRepos`. |
+| `AXIOM_HELM_ALLOW_INSECURE_REPOS` | `false` | `true` allows `http://` chart repositories and archive URLs. Off, only `https://` is fetched (redirects included). Helm: `helmCatalog.allowInsecureRepos`. |
+
+Both flags also govern OCI chart repositories (`oci://host/path`): with `AXIOM_HELM_ALLOW_PRIVATE_REPOS` an in-cluster or loopback registry can be added, and with `AXIOM_HELM_ALLOW_INSECURE_REPOS` a registry that does not speak TLS is browsed over plain `http://`; such a repository is recorded as plain http and its charts are installed with `helm … --plain-http`.
+
+Private OCI registries: an administrator stores a username and password (or access token) under Helm → Registries (`POST /api/v1/helm/registry-credentials`) and references it by name when adding the OCI repository (`credentialsSecret`). In the kubernetes build every credential lives in one Secret, `zyvor-axiom-helm-registry-creds` (key `credentials.json`), in Axiom's namespace — back it up with the namespace, restrict who can read Secrets there, and note that it is not encrypted beyond what the cluster's Secret encryption at rest provides. An install or upgrade from such a repository creates a short-lived `<job>-registry` Secret next to the Helm Job (owned by it, removed with it), so the Job's namespace sees the credential for the Job's lifetime. No RBAC change: the ClusterRole already covers Secrets. In demo mode credentials are kept in memory only.
+
+Cost rightsizing (Ops → Cost; see `docs/API.md` → Cost budgets and rightsizing):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_PROMETHEUS_URL` | unset | Base URL of a Prometheus (or Prometheus-compatible API such as Thanos Query or VictoriaMetrics) used for p95 CPU / p99 memory rightsizing over a window, e.g. `http://prometheus-operated.monitoring.svc:9090`. `http`/`https` only, no userinfo; in-cluster and private addresses are allowed because the operator sets it. Each query has a 10 s timeout and an 8 MiB response cap, ignores `HTTP(S)_PROXY`, and never follows a redirect to another host. It needs the kubelet/cAdvisor series `container_cpu_usage_seconds_total` and `container_memory_working_set_bytes` with `namespace`, `pod` and `container` labels (kube-prometheus-stack scrapes them by default). Unset or failing, rightsizing falls back to a one-sample metrics.k8s.io snapshot (low confidence). Applies to the cluster Axiom starts on. Helm: `cost.prometheusUrl`. |
+| `AXIOM_PROMETHEUS_TOKEN` | unset | Optional bearer token sent to Prometheus as `Authorization: Bearer …`. Never logged or returned. Helm: `cost.prometheusToken` (stored in Secret `zyvor-axiom-auth`, key `prometheusToken`). |
+| `AXIOM_COST_GPU_RATE` | `100` | USD per GPU per month used when `GET /api/v1/cost` is on the request estimate path (`nvidia.com/gpu` and `nvidia.com/mig-*` requests). Ignored when OpenCost is answering. |
+| `AXIOM_OPENCOST_URL` | unset | Base URL of an OpenCost allocation API (OpenCost's cost-model, or the one bundled with Kubecost), e.g. `http://opencost.opencost.svc:9003`. When set, Ops → Cost and cost budgets use **actual** cost (`/allocation/compute`, aggregated by namespace and controller, scaled to a 30-day month) instead of request-based estimates; rightsizing savings keep the request rates. `http`/`https` only, no userinfo; in-cluster and private addresses are allowed because the operator sets it. Same client rules as Prometheus: 10 s timeout, 8 MiB cap, no `HTTP(S)_PROXY`, no redirect to another host, URL never in errors. Answers are cached for 60 s. Unreachable or failing, the cost page shows the estimate with a note (`opencostConfigured` / `opencostReachable` / `opencostError` on the response). Applies to the cluster Axiom starts on. Helm: `cost.opencostUrl`. |
+| `AXIOM_OPENCOST_TOKEN` | unset | Optional bearer token sent to OpenCost as `Authorization: Bearer …` (for an OpenCost behind an authenticating proxy). Never logged or returned. Helm: `cost.opencostToken` (stored in Secret `zyvor-axiom-auth`, key `opencostToken`). |
+
+SAML is configured with these variables (register `https://<axiom-host>/api/v1/auth/saml/acs` as the ACS URL at the IdP):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_SAML_LOGIN_URL` | unset (off) | IdP SSO URL. `GET /api/v1/auth/saml/login` redirects there with an AuthnRequest whose ID the ACS later requires as `InResponseTo`. |
+| `AXIOM_SAML_ENTITY_ID` | unset | Axiom's SP entity ID; sent as the AuthnRequest `Issuer` and required as the assertion `Audience`. |
+| `AXIOM_SAML_IDP_CERT` | unset | PEM certificate of the IdP signing key; responses must carry a valid XML-DSig signature from it. |
+| `AXIOM_SAML_ALLOW_UNSIGNED` | `false` | Lab only: accept responses without signature verification. |
+| `AXIOM_SAML_ALLOW_IDP_INITIATED` | `false` | Accept unsolicited (IdP-initiated) responses, i.e. ones with no `InResponseTo`, such as an IdP dashboard tile. Leave off unless you need it: such responses are not bound to a browser sign-in and can be replayed within their validity window. Helm: `auth.samlAllowIdPInitiated`. |
+
+Pod proxy origin (optional; see `docs/API.md` → Pod proxy origin):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `AXIOM_POD_PROXY_ADDR` | unset (off) | Listen address of a second listener that serves pod web content ("Open" on a pod port), e.g. `:5091`. Uses `AXIOM_TLS_CERT`/`AXIOM_TLS_KEY` when those are set. Helm: `podProxy.addr` (adds a `pod-proxy` port to the Service). |
+| `AXIOM_POD_PROXY_ORIGIN` | unset (off) | The public origin browsers use to reach that listener, e.g. `https://pods.example.com` (scheme, host and optional port, nothing else). Must differ from the console's origin by host or port. With `{id}` as the leftmost host label (`https://{id}.pods.example.com`) every pod session gets its own hostname (host mode, below). Helm: `podProxy.origin`. |
+| `AXIOM_POD_PROXY_TLS_CERT` / `AXIOM_POD_PROXY_TLS_KEY` | unset | Certificate and key the pod proxy listener serves instead of `AXIOM_TLS_CERT`/`AXIOM_TLS_KEY`, e.g. a wildcard certificate for `*.pods.example.com`. Both or neither. Helm: `podProxy.tlsSecret` (an existing `kubernetes.io/tls` Secret, mounted at `/etc/axiom/pod-proxy-tls`). |
+
+Both must be set. If only one is, or the origin equals the console's (`AXIOM_ALLOW_ORIGIN`, or the console's own listen address on the same host), Axiom logs why and keeps serving pod windows from the console's origin as before. When on, the old in-origin route answers `410`.
+
+**How to expose it.** Give the pod proxy its **own hostname** (e.g. `pods.example.com` next to `axiom.example.com`) with its own TLS certificate, routed to the Service's `pod-proxy` port. The chart does not create that Ingress: add a host rule pointing at `zyvor-axiom:5091`, or set `podProxy.service.nodePort` with `expose.type=NodePort` for a lab. Avoid a subdomain *of* the console's hostname where you can, and never use the same host and port. A different port on the same host (e.g. `https://axiom.example.com:5091`) is a different origin for the same-origin policy and works, but cookies are not isolated by port: browsers send the console's host-scoped `axiom_session` cookie to every port of that host. That is why the proxy listener never reads it and accepts no Basic/Bearer/API-key credentials, only its own single-use tickets and the session cookie it sets itself, and why a separate hostname is the recommended setup.
+
+**Several replicas.** With `AXIOM_SESSION_SECRET` set (Helm `auth.sessionSecret`, which the chart already requires when `replicaCount>1`), pod proxy tickets and session cookies are HMAC-signed tokens (key derived from the session secret for this purpose only) that every replica accepts, so the console and the proxy hosts need **no session affinity**: a link minted on one replica can be redeemed on another, and the session cookie works on any of them. The sliding 10-minute idle expiry is kept by re-issuing the cookie with a later signed deadline (at most once a minute), never past 1 hour from the signed creation time. Tickets stay single use across replicas through the `zyvor-axiom-pod-proxy-redeemed` ConfigMap in the release namespace (ids of redeemed tickets only, each dropped once its 60-second ticket has expired; the existing ConfigMap permissions cover it), plus each replica's own memory. Revocation is checked on every request against the shared revocation set, which each replica re-reads every `AXIOM_REVOCATION_REFRESH` (default 15 s), so a revocation made on another replica applies within that interval, as for console sessions. Without a session secret (single replica, random per-process key) tickets and sessions stay in memory exactly as before; a multi-replica install without one would need affinity. The startup log line `pod proxy origin listening … shared=true` says which mode is on. See `docs/GAPS.md` for the residual limits.
+
+**Host mode: one origin per pod session.** With a fixed proxy origin every pod opened through it shares that origin, so one pod's page can read another's `localStorage`, IndexedDB and non-HttpOnly cookies, and pod UIs that use absolute paths break under the `/s/<sid>/` prefix. Set `AXIOM_POD_PROXY_ORIGIN=https://{id}.pods.example.com` instead and every "Open" gets a fresh hostname `<32 hex>.pods.example.com` — its own origin, served at the root, with a host-only `__Host-` session cookie. Requirements:
+
+- **Wildcard DNS**: `*.pods.example.com` → the Ingress/load balancer in front of the `pod-proxy` port, which must pass the original `Host` header through (the listener routes on it and answers `404` to any other host).
+- **Wildcard TLS certificate** for `*.pods.example.com`; the console's certificate will not match. Terminate it at the Ingress, or let Axiom serve it with `AXIOM_POD_PROXY_TLS_CERT`/`_KEY` (Helm `podProxy.tlsSecret`).
+- **Ingress (not created by the chart)**: a rule for host `*.pods.example.com`, path `/`, backend `zyvor-axiom` port `pod-proxy` (5091), and the wildcard certificate in its `tls` section.
+- **Base domain outside the console's host**: the base domain may not be the console's host, contain it, or contain it as a parent (`AXIOM_ALLOW_ORIGIN` `https://axiom.pods.example.com` or `https://pods.example.com` with base `pods.example.com` is refused, as is base `pods.axiom.example.com` for console `axiom.example.com`), because a page can set cookies for its parent domains. Set `AXIOM_ALLOW_ORIGIN` so this can be checked. For the strongest isolation use a separate registrable domain (e.g. `*.axiom-pods.example.net`).
+- **Labs**: `http://{id}.localhost:5091` needs no DNS or certificate: Chromium and Firefox resolve `*.localhost` to loopback (Safari may not; use another browser or a wildcard DNS name there). Open the console on `http://127.0.0.1:5090` rather than `http://localhost:5090`, which would be the pod base domain and is refused when `AXIOM_ALLOW_ORIGIN` says so.
+
+The placeholder must appear exactly once, as a whole leftmost label, with an `http`/`https` scheme; anything else is logged and leaves the feature off. Without `{id}` the fixed-origin behaviour is unchanged.
+
+Outstanding AuthnRequests live in memory on the replica that issued them (5 minutes, single use). With more than one replica, enable session affinity on the Service/Ingress so the login redirect and the IdP's POST back reach the same pod. Behind a reverse proxy, forward `X-Forwarded-Proto` and `X-Forwarded-Host` so the ACS URL Axiom advertises and checks against the assertion's `Recipient` is the public one.
+
+## 5. Expose the UI
+
+For a lab NodePort (self-signed HTTPS):
+
+```text
+https://<node-ip>:30590
+```
+
+If port `30590` is already allocated (e.g. by another NodePort service), override with `AXIOM_NODE_PORT=30591` when deploying.
+
+Accept the browser certificate warning once. Probe with:
+
+```bash
+curl -k https://<node-ip>:30590/api/v1/health
+```
+
+Port-forward (HTTPS):
+
+```bash
+kubectl -n axiom-system port-forward svc/zyvor-axiom 5090:443
+curl -k https://localhost:5090/api/v1/health
+```
+
+Plain HTTP is not supported for cluster deploys. For production, place Axiom behind your Gateway/Ingress with a real certificate and enterprise authentication.
+
+## 6. k3s notes
+
+Axiom uses the Kubernetes API and does not depend on a specific distro. In a k3s cluster the same ServiceAccount, workload, Pod log/exec, eviction and node APIs are used.
+
+## Remote lab deploy (k3s)
+
+One command deploys Axiom to a remote k3s node (**HTTPS only**, self-signed TLS):
+
+```bash
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai
+```
+
+Flow: rsync → generate/reuse `.run/tls` cert → Secret `zyvor-axiom-tls` → podman build → k3s import → kubectl apply → `curl -k` health.
+
+Fast redeploy (skip image rebuild):
+
+```bash
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --quick
+```
+
+Also deploy [Atlas](../../atlas) (the separate storage control-plane service) to the same host and wire it into Axiom automatically — mints an admin token from Atlas's freshly-created `atlas-gateway-auth` secret and `PUT`s it into Axiom's own `/api/v1/integrations`, the same call Settings → Integrations makes:
+
+```bash
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --with-atlas
+```
+
+Requires a sibling `../atlas` checkout with its own `scripts/deploy-remote.sh` (override the path with `ATLAS_REPO=/path/to/atlas`, and its NodePort with `ATLAS_NODE_PORT` if not `30510`). If the wiring step fails (e.g. Axiom's own health check didn't pass yet), it prints the Atlas URL so you can finish it by hand in Settings → Integrations.
+
+**`--with-atlas` deploys Atlas's own fake/demo image** (namespace `zyvor-system`, port `30510`).
+A *real*-Ceph Atlas gateway — the one `../hypercluster`'s `storage apply` deploys via
+`../atlas/scripts/deploy-ceph-gateway-remote.sh` for a production Ceph cluster — lives in
+namespace `rook-ceph` on port `30511` instead, and `--with-atlas` doesn't know about it. Every
+deploy (no flag needed) now auto-detects and wires that path too if present and not already
+configured, plus auto-detects and wires a PacketWolf deployment (`AXIOM_PACKETWOLF_URL`/
+`AXIOM_PACKETWOLF_API_KEY`, read live from env — no Settings → Integrations persistence for
+PacketWolf, so unlike Atlas this re-wires on *every* deploy, not just once, since a bare
+`kubectl apply` would otherwise silently drop it on the next redeploy). Found live (2026-08-31):
+a cluster with a fully healthy real-Ceph Atlas gateway and PacketWolf deploy still showed neither
+wired in Axiom's own UI, because the only wiring path assumed a namespace/port this deployment
+mode never used.
+
+Check last target and health:
+
+```bash
+./scripts/deploy status
+```
+
+Or via Make:
+
+```bash
+make deploy-remote H=<ephemeral-ip> U=zyvorai
+```
+
+### Prerequisites (remote host)
+
+- SSH access (key-based recommended): `ssh zyvorai@<host>` — some lab hosts use a different user (e.g. `operator@<ephemeral-ip>`); pass it as the second argument
+- k3s with `kubectl` configured for the deploy user (`~/.kube/config`)
+- `podman` or `docker` for image builds
+- `openssl` for self-signed cert generation
+
+### Defaults
+
+| Setting | Default |
+|---------|---------|
+| Remote SSH user | `zyvorai` (override: 2nd arg or `DEPLOY_USER`) |
+| Remote checkout | `~/.deployment/axiom` |
+| Image | `ghcr.io/zyvorai/axiom:<version>` (published; `--build` uses a local `zyvor-axiom:dev` import) |
+| NodePort | `30590` (HTTPS; use `30591` if `30590` is taken) |
+| Lab login | existing `zyvor-axiom-auth` Secret if present, else `demo` / `demo` (shown automatically when SSO is off) |
+| TLS | Self-signed, reused under `.run/tls/` |
+
+Override with environment variables: `AXIOM_IMAGE_TAG`, `AXIOM_NODE_PORT`, `AXIOM_USERNAME`, `AXIOM_PASSWORD`.
+
+### After deploy
+
+- UI: `https://<ephemeral-ip>:30591` (accept self-signed warning; port may differ if `30590` is in use)
+- Health: `curl -k https://<ephemeral-ip>:30591/api/v1/health`
+- **Lab sign-in:** username `demo`, password `demo` — the login form appears automatically when SSO is not configured
+
+### Troubleshooting
+
+```bash
+ssh zyvorai@<ephemeral-ip> kubectl -n axiom-system get pods,svc
+ssh zyvorai@<ephemeral-ip> kubectl -n axiom-system logs -l app=zyvor-axiom --tail=50
+ssh zyvorai@<ephemeral-ip> 'sudo ufw status; sudo firewall-cmd --list-ports 2>/dev/null'
+```
+
+If the NodePort is blocked, open TCP `30590` (or your `AXIOM_NODE_PORT`) on the host firewall (the deploy script attempts this automatically).
+
+If deploy fails with `nodePort ... already allocated to another Service`, another Service on that cluster already holds the port (shared lab hosts often have unrelated workloads squatting on NodePorts). Find it and redeploy on a free one:
+
+```bash
+ssh zyvorai@<ephemeral-ip> 'kubectl get svc -A -o wide | grep 30590'
+AXIOM_NODE_PORT=30592 ./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --quick
+```
+
+Uninstall:
+
+```bash
+./scripts/deploy-remote.sh <ephemeral-ip> zyvorai --uninstall
+```
+
+## Troubleshooting tools: debug containers and the node shell
+
+Both are set with environment variables on the Axiom Deployment (for example `kubectl -n axiom-system set env deploy/zyvor-axiom AXIOM_ENABLE_NODE_SHELL=true`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AXIOM_DEBUG_IMAGE` | `busybox` | Image for ephemeral debug containers (`POST /pods/{ns}/{name}/debug`). Use a toolbox such as `nicolaka/netshoot` if you need `tcpdump`/`dig`; it must provide `sleep`. Clients cannot choose the image. |
+| `AXIOM_ENABLE_NODE_SHELL` | unset (off) | Set to `true` to enable the admin-only node shell. Anything else leaves it off and the endpoint answers `403` with an explanation. |
+| `AXIOM_NODE_SHELL_NAMESPACE` | `axiom-node-shell` | Dedicated namespace for the short-lived node-shell pods. |
+| `AXIOM_NODE_SHELL_IMAGE` | `alpine:3.20` | Image for the node-shell pod; must contain `nsenter` and be pullable by the nodes (air-gapped clusters: mirror it). |
+| `AXIOM_NODE_SHELL_TIMEOUT` | `15m` | Hard session limit (Go duration, capped at `1h`). |
+
+**RBAC.** Debug containers need `update` on `pods/ephemeralcontainers`, already in `deploy/k8s/rbac.yaml` and the Helm chart. The node shell reuses the grants Axiom already has (create namespaces, create/delete pods, `pods/exec`); no extra rule is needed. Clusters that previously applied the old ClusterRole must re-apply it for debug containers to work.
+
+**Pod Security.** The debug container is non-root with all capabilities dropped and the `RuntimeDefault` seccomp profile, so it is admitted under the `restricted` profile (Kubernetes also checks ephemeral containers against the pod's namespace policy). The node shell is the opposite: its pod is `privileged`, uses `hostPID` and `hostNetwork`, and **cannot run in a namespace enforcing `baseline` or `restricted`**. Axiom creates `axiom-node-shell` with `pod-security.kubernetes.io/enforce=privileged`; if you pre-create it, or a policy engine (Kyverno, Gatekeeper, ValidatingAdmissionPolicy) blocks privileged pods there, the shell fails with a clear error and nothing is left running. Keep that namespace exempt from, and only from, those policies — never relax them for workload namespaces.
+
+**What the node shell grants.** Root on the host: it can read every pod's volumes and credentials on that node. Enable it only where an administrator needs break-glass access, keep `AXIOM_ENABLE_NODE_SHELL` unset elsewhere, and forward the audit log (`node.shell` entries) to your SIEM. Operators, viewers and namespace-restricted accounts can never open it. Each session's pod is deleted on disconnect or timeout, has an `activeDeadlineSeconds`, and any leftover (for example after an Axiom crash) is swept at the next session.
+## AI assistant and privacy
+
+The "Explain with AI" feature (pod diagnosis banner, Warning events) is **off by default** and is configured by an admin under Settings → AI assistant: provider (`openai-compatible`, `anthropic` or `ollama`), base URL, model, API key and a redaction switch. It works with any endpoint you control, including a self-hosted Ollama or vLLM, so it can run fully air-gapped.
+
+What is sent, per click (after you review the redacted payload in the side drawer and press *Send*):
+
+- the pod's status, container states, restart count, limits and image;
+- the built-in diagnosis and the Warning events for that object;
+- a short tail (about 40 lines) of the logs of up to three unhealthy containers;
+- your optional question.
+
+What is never read or sent: Secret or ConfigMap data, environment variable values, pod IPs, labels and annotations. Before sending, a redactor also removes bearer tokens, JWTs, well-known API-key formats, PEM blocks, kubeconfig text, URL credentials, `password=`/`token:`-style assignments, env-dump lines and base64-looking blobs. With "mask IP addresses and hostnames" on (the default) IPs and DNS names are replaced too. Redaction is pattern based and best effort: log lines can still contain business data, so review the preview, and point the assistant at a model you trust with that data.
+
+Controls and guarantees:
+
+- Disabled means the buttons are hidden and `/api/v1/ai/explain` returns `409`.
+- Read only: the model returns text; there are no tool calls and nothing is ever applied to the cluster.
+- Scoped to the caller: only the namespace in the request (authorized like every other namespaced route) is read; namespace-restricted accounts cannot ask about other namespaces.
+- Each send is audited as `ai.explain` with the target only (never the prompt or answer) and is rate limited per user.
+- The API key lives only in the `zyvor-axiom-integrations` Secret and is never returned by the API.
+- Outbound traffic: TLS verification stays on, redirects to a different host are refused, request bodies are capped at 64 KiB and responses at 1 MiB, timeouts are 60 s (10 s for the connection test). Only `http`/`https` base URLs are accepted. The base URL is chosen by an admin and is therefore a deliberate egress destination (including internal addresses such as a local Ollama); restrict who is admin and use an egress NetworkPolicy if you need to pin it.
+- Demo mode returns canned answers and contacts no model.
+
+## Cloud bill reconciliation (experimental)
+
+Ops → Cost can show the actual cloud invoice for the previous and the current month next to the allocated cost (OpenCost or the request estimate), with the difference as *unallocated*. It is **experimental**: clients are covered by httptest fixtures (including AWS `NextPageToken` merge and STS session tokens) plus an opt-in live harness — `e2e/scripts/validate-billing-live.sh` or `AXIOM_BILLING_LIVE=1` with `AWS_*` for Cost Explorer. Check its numbers against your invoice before relying on them.
+
+An admin configures it under Settings → Cloud bill reconciliation; there are no environment variables or Helm values, and nothing extra is needed in the ClusterRole (the settings use the existing `zyvor-axiom-integrations` ConfigMap and Secret). Use read-only credentials:
+
+| Provider | Settings | Grant |
+|---|---|---|
+| AWS Cost Explorer | Access key ID + secret access key, optional session token (STS), region `us-east-1` (or `cn-northwest-1` for China) | IAM `ce:GetCostAndUsage` on the payer or member account. Cost Explorer must be enabled; tag filters need the tag activated as a cost-allocation tag |
+| Azure Cost Management | Tenant ID, client (application) ID, client secret, subscription ID | *Cost Management Reader* on the subscription for the app registration |
+| Google Cloud Billing | Billing export table `project.dataset.table`, optional query project, service-account key JSON | Cloud Billing export to BigQuery enabled; *BigQuery Job User* on the query project and *BigQuery Data Viewer* on the export dataset |
+
+The optional tag / label filter (key = value) narrows the invoice to one cost-allocation tag (AWS), resource tag (Azure) or resource label (GCP), for example the cluster's own tag.
+
+Network and safety:
+
+- Outbound HTTPS only to the provider's fixed API hosts: `ce.us-east-1.amazonaws.com` (or `ce.cn-northwest-1.amazonaws.com.cn`); `login.microsoftonline.com` and `management.azure.com`; `oauth2.googleapis.com` and `bigquery.googleapis.com`. There is no configurable endpoint, and the GCP key file's own `token_uri` is ignored. Allow these in your egress policy.
+- No `HTTP(S)_PROXY`, no redirects, and the Helm catalog's dialer refuses any of those names resolving to a private, loopback or link-local address.
+- 20 s per request, 45 s per refresh, 4 MiB per response; invoice answers are cached for one hour (failures for five minutes), so a page load does not call the billing API.
+- Credentials are stored in the `zyvor-axiom-integrations` Secret only, are never returned by the API, never logged and never part of an error message. Cost Explorer charges per API request (about 0.01 USD); the hourly cache keeps this to a few requests a day. The BigQuery query scans the export table for two invoice months.
+- Settings → *Test connection* (`POST /api/v1/integrations/billing/test`) makes one uncached call and shows the monthly totals or the provider's error code.
+- Demo mode shows canned figures and contacts nothing.
+
+## Production hardening checklist
+
+- Real TLS certificate (replace self-signed lab cert)
+- If operators open pod web UIs from the console, enable the separate pod proxy origin (`AXIOM_POD_PROXY_ADDR` / `AXIOM_POD_PROXY_ORIGIN`, Helm `podProxy.*`) on its own hostname
+- OIDC or an identity-aware proxy instead of reference Basic Auth
+- If using OIDC, set `AXIOM_SESSION_SECRET` (Helm: `auth.sessionSecret`) to a stable random value — left unset, Axiom generates a safe random one per process automatically, but sessions won't survive a restart
+- If Axiom sits behind a reverse proxy or identity-aware proxy, set `AXIOM_TRUSTED_PROXY_HEADER` (Helm: `auth.trustedProxyHeader`, e.g. `X-Forwarded-For`) so the login rate limiter keys on the real client IP — otherwise every client behind that proxy shares one rate-limit bucket
+- Local `viewer`-role accounts (Settings → Users) for anyone who doesn't need write access, instead of sharing the admin credential — restrict them to specific namespaces when a team should only see their own workloads
+- namespace-scoped RBAC where possible, both at the Kubernetes ServiceAccount level (`deploy/k8s/rbac.yaml`) and at Axiom's own viewer-account level (Settings → Users)
+- network policy protecting the Axiom namespace
+- external secret management
+- forward the audit log (`GET /api/v1/audit`, persisted in `zyvor-axiom-audit`) to your real log/SIEM pipeline — Axiom keeps only the most recent 200 entries
+- immutable image tags/digests
+- enforce the PodSecurity `restricted` profile on the Axiom namespace (`kubectl label ns axiom-system pod-security.kubernetes.io/enforce=restricted`). The Axiom pod already complies: the Helm chart (`podSecurityContext`/`securityContext`) and `deploy/k8s/deployment.yaml` run it as non-root (65532) with a read-only root filesystem, all capabilities dropped, no privilege escalation and the `RuntimeDefault` seccomp profile
+- resource quotas and LimitRanges (viewable live on Axiom's own Quotas & Limits page)
+- backups for cluster state and Axiom configuration
+- configure Settings → Notifications (Slack/webhook) so cluster Warning events actually reach someone

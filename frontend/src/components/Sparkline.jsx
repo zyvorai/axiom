@@ -1,0 +1,47 @@
+import { useId } from "react";
+import {
+    Area,
+    AreaChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
+
+export default function Sparkline({ data, color = "var(--apple-blue)", formatter, domain, height = 80 }) {
+    const gradientId = `sp-${useId().replace(/:/g, "")}`;
+    const rows = (data || []).map((v, i) => ({ i, v }));
+    const fmt = formatter || ((v) => `${v}%`);
+    return (
+        <ResponsiveContainer width="100%" height={height}>
+            <AreaChart data={rows} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                        <stop offset="100%" stopColor={color} stopOpacity={0} />
+                    </linearGradient>
+                </defs>
+                <Area
+                    type="monotone"
+                    dataKey="v"
+                    stroke={color}
+                    strokeWidth={2}
+                    fill={`url(#${gradientId})`}
+                    isAnimationActive={false}
+                />
+                <XAxis dataKey="i" hide />
+                <YAxis hide domain={domain || [0, 100]} />
+                <Tooltip
+                    contentStyle={{
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--line-2)",
+                        borderRadius: 12,
+                        color: "var(--ink)",
+                    }}
+                    formatter={fmt}
+                    labelFormatter={() => ""}
+                />
+            </AreaChart>
+        </ResponsiveContainer>
+    );
+}

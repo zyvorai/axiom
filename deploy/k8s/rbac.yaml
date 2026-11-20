@@ -1,0 +1,226 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zyvor-axiom
+  namespace: axiom-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: zyvor-axiom
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec", "services", "events", "nodes", "namespaces", "endpoints", "persistentvolumeclaims", "persistentvolumes", "secrets", "configmaps", "serviceaccounts", "resourcequotas", "limitranges"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # EndpointSlices (discovery.k8s.io) — Helm charts / Services often manage these.
+  # cert-manager read-only view (GET /api/v1/certificates)
+  - apiGroups: ["cert-manager.io"]
+    resources: ["certificates", "issuers", "clusterissuers", "certificaterequests"]
+    verbs: ["get", "list"]
+  - apiGroups: ["acme.cert-manager.io"]
+    resources: ["orders"]
+    verbs: ["get", "list"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # The Eviction API needs its own rule on the pods/eviction subresource —
+  # a real gap found by testing the Pods page's evict action end-to-end
+  # against a real cluster: it was always missing, so evict has silently
+  # 500'd in every production deploy until now.
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  # Ephemeral debug containers (POST /api/v1/pods/{ns}/{name}/debug) are added
+  # through the pods/ephemeralcontainers subresource, which needs its own
+  # "update" rule. The opt-in node shell (AXIOM_ENABLE_NODE_SHELL=true) needs
+  # nothing extra: it creates/execs/deletes a pod and creates its dedicated
+  # namespace using the pods, pods/exec and namespaces rules above.
+  - apiGroups: [""]
+    resources: ["pods/ephemeralcontainers"]
+    verbs: ["update"]
+  # In-place pod resize (POST /api/v1/cost/rightsizing/apply with inPlace:true)
+  # patches the pods/resize subresource (Kubernetes >= 1.33 beta, 1.35 stable).
+  - apiGroups: [""]
+    resources: ["pods/resize"]
+    verbs: ["patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # No "create": Axiom's Launch wizard doesn't create DaemonSets, only
+  # lists/restarts/deletes ones already installed by the platform team.
+  - apiGroups: ["apps"]
+    resources: ["daemonsets"]
+    verbs: ["get", "list", "watch", "update", "patch", "delete"]
+  # Read-only: Helm needs this to apply/verify a Deployment's owned
+  # ReplicaSets during `helm install` (confirmed against a real cluster —
+  # installs fail without it, even with --wait removed).
+  - apiGroups: ["apps"]
+    resources: ["replicasets", "controllerrevisions"]
+    verbs: ["get", "list", "watch"]
+  # Leader-election Leases that many charts create alongside Deployments.
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies", "ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["scheduling.k8s.io"]
+    resources: ["priorityclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Autoscaling: VerticalPodAutoscaler recommendations and KEDA ScaledObjects
+  # (list, create from the typed form, delete). Both CRDs are optional;
+  # without them the pages show "not installed". TriggerAuthentications are
+  # read for their names only (the create form's dropdown and the existence
+  # check); no Secret access is added for them.
+  - apiGroups: ["autoscaling.k8s.io"]
+    resources: ["verticalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
+  - apiGroups: ["keda.sh"]
+    resources: ["triggerauthentications"]
+    verbs: ["get", "list"]
+  - apiGroups: ["karpenter.sh"]
+    resources: ["nodepools", "nodeclaims"]
+    verbs: ["get", "list"]
+  - apiGroups: ["argoproj.io"]
+    resources: ["rollouts", "analysisruns"]
+    verbs: ["get", "list"]
+  - apiGroups: ["flagger.app"]
+    resources: ["canaries"]
+    verbs: ["get", "list"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["external-secrets.io"]
+    resources: ["externalsecrets", "secretstores", "clustersecretstores"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["snapshot.kubevirt.io"]
+    resources: ["virtualmachinesnapshots", "virtualmachinerestores", "virtualmachinesnapshotcontents"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["clone.kubevirt.io"]
+    resources: ["virtualmachineclones"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["export.kubevirt.io"]
+    resources: ["virtualmachineexports"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["velero.io"]
+    resources: ["backups"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: ["velero.io"]
+    resources: ["backupstoragelocations"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["velero.io"]
+    resources: ["restores"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: ["velero.io"]
+    resources: ["schedules"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: ["kubevirt.io"]
+    resources: ["virtualmachines", "virtualmachineinstances", "virtualmachineinstancemigrations"]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete"]
+  - apiGroups: ["subresources.kubevirt.io"]
+    resources: ["virtualmachineinstances/vnc", "virtualmachineinstances/console"]
+    verbs: ["get"]
+  # ClusterRole/ClusterRoleBinding stay read-only deliberately — write access
+  # to Role/RoleBinding is granted below, but a UI path to create
+  # cluster-scoped roles would be a materially bigger privilege-escalation
+  # surface than a namespace-scoped one.
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["prometheusrules", "alertmanagers"]
+    verbs: ["get", "list", "watch"]
+  # delete: GitOps application deletion (admin-only, typed confirmation when
+  # the controller's finalizer/prune/uninstall would cascade).
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: ["helmreleases"]
+    verbs: ["get", "list", "watch", "patch", "create", "delete"]
+  # GitOps application creation: the Flux source object is created first;
+  # delete rolls it back when the Kustomization/HelmRelease that follows it
+  # cannot be created, and removes it on application delete with
+  # removeSource=true (only when unshared and labelled managed-by zyvor-axiom).
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["gitrepositories", "helmrepositories"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
+  - apiGroups: ["platform.example.com"]
+    resources: ["agentruns", "intents"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["platform.example.com"]
+    resources: ["agentruns/status", "intents/status"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["identity.haven.dev"]
+    resources: ["identityplanes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["k8s.keycloak.org"]
+    resources: ["keycloaks"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gatewayclasses", "gateways", "httproutes", "grpcroutes", "referencegrants"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["axiom.zyvor.dev"]
+    resources: ["axiomplugins"]
+    verbs: ["get", "list", "watch"]
+  # Security views (RBAC viewer, NetworkPolicy analysis, /security). Read-only:
+  # ServiceAccounts for the RBAC viewer's subject list; scanner output from
+  # Trivy Operator and wgpolicyk8s.io PolicyReports (Kyverno / Gatekeeper
+  # compatible). The CRDs are optional — without them /security shows an
+  # install hint. roles/rolebindings/clusterroles/clusterrolebindings are
+  # already readable above.
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["aquasecurity.github.io"]
+    resources: ["vulnerabilityreports", "configauditreports", "sbomreports", "clustersbomreports"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["wgpolicyk8s.io"]
+    resources: ["policyreports", "clusterpolicyreports"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: zyvor-axiom
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: zyvor-axiom
+subjects:
+  - kind: ServiceAccount
+    name: zyvor-axiom
+    namespace: axiom-system

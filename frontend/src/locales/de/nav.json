@@ -1,0 +1,138 @@
+{
+  "groups": {
+    "Core": "Kern",
+    "Cluster": "Cluster",
+    "Network": "Netzwerk",
+    "Storage": "Speicher",
+    "Config": "Konfiguration",
+    "Observe": "Beobachten",
+    "Admin": "Verwaltung",
+    "Extensions": "Erweiterungen"
+  },
+  "items": {
+    "getting-started": "Erste Schritte",
+    "overview": "Übersicht",
+    "fleet": "Flotte",
+    "nodes": "Nodes",
+    "workloads": "Workloads",
+    "jobs": "Jobs & CronJobs",
+    "pods": "Pods",
+    "namespaces": "Namespaces",
+    "platform-intents": "Plattform-Intents",
+    "networking": "Netzwerk · Cilium",
+    "services": "Services",
+    "ingresses": "Ingresses",
+    "vms": "Virtuelle Maschinen",
+    "storage": "Speicher",
+    "atlas": "Atlas",
+    "backups": "Backups",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "quotas": "Quotas & Limits",
+    "autoscaling": "Autoscaling",
+    "custom-resources": "Custom Resources",
+    "logs": "Pod-Logs",
+    "events": "Ereignisse",
+    "timeline": "Zeitachse",
+    "health-check": "Zustandsprüfung",
+    "alerts": "Warnungen",
+    "ops": "Betrieb",
+    "security": "Sicherheit",
+    "users": "Benutzer",
+    "settings": "Einstellungen"
+  },
+  "sidebar": {
+    "expand": "Seitenleiste ausklappen",
+    "collapse": "Seitenleiste einklappen",
+    "collapseShort": "Einklappen"
+  },
+  "topbar": {
+    "toggleSidebar": "Seitenleiste umschalten",
+    "home": "Axiom-Startseite",
+    "byZyvor": "von Zyvor",
+    "namespace": "Namespace",
+    "namespaceScope": "Namespace-Bereich für alle Seiten",
+    "allNamespaces": "Alle Namespaces",
+    "searchTitle": "Suchen (⌘K)",
+    "search": "Suchen",
+    "connect": "Verbinden",
+    "sampleMode": "Beispieldatenmodus",
+    "sampleModeHint": "Richten Sie KUBECONFIG auf dieses Dashboard, um zu einem echten Cluster zu wechseln.",
+    "toggleTheme": "Design umschalten (aktuell {{theme}})",
+    "themeTitle": "Design: {{theme}}",
+    "clusterState": "{{name}}: {{state}}",
+    "clusterStateError": "{{name}}: {{state}} — {{error}}"
+  },
+  "theme": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System",
+    "label": "Design"
+  },
+  "shell": {
+    "skipToContent": "Zum Inhalt springen"
+  },
+  "palette": {
+    "placeholder": "Zu einer Seite, einem Pod, Service, Secret, einer VM oder Aktion springen…",
+    "empty": "Nichts gefunden.",
+    "navigate": "Navigieren",
+    "pods": "Pods",
+    "workloads": "Workloads",
+    "namespaces": "Namespaces",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "secrets": "Secrets",
+    "vms": "Virtuelle Maschinen",
+    "jobs": "Jobs",
+    "switchCluster": "Cluster wechseln",
+    "actions": "Aktionen",
+    "current": "aktuell",
+    "cron": "{{namespace}} · Cron",
+    "nsPods_one": "{{count}} Pod",
+    "nsPods_other": "{{count}} Pods",
+    "switchTheme": {
+      "light": "Zum hellen Design wechseln",
+      "dark": "Zum dunklen Design wechseln",
+      "system": "Zum System-Design wechseln"
+    },
+    "shortcuts": "Tastenkürzel",
+    "signOut": "Abmelden"
+  },
+  "shortcuts": {
+    "title": "Tastenkürzel",
+    "description": "Tastenkürzel sind pausiert, während Sie in ein Feld tippen.",
+    "then": "dann",
+    "or": "oder",
+    "groups": {
+      "General": "Allgemein",
+      "Go to": "Gehe zu"
+    },
+    "items": {
+      "palette": "Befehlspalette öffnen",
+      "search": "Suchfeld dieser Seite fokussieren",
+      "help": "Tastenkürzel anzeigen",
+      "escape": "Dialog oder Menü schließen",
+      "overview": "Zur Übersicht",
+      "pods": "Zu den Pods",
+      "workloads": "Zu den Workloads",
+      "namespaces": "Zu den Namespaces",
+      "events": "Zu den Ereignissen",
+      "logs": "Zu den Logs"
+    }
+  },
+  "userMenu": {
+    "sso": "SSO",
+    "local": "Lokal",
+    "accountSecurity": "Kontosicherheit",
+    "signOut": "Abmelden",
+    "signedOut": "Abgemeldet",
+    "signedOutHint": "Ihre Axiom-Sitzung wurde beendet."
+  },
+  "breadcrumbs": {
+    "clusters": "Cluster"
+  },
+  "clusterSwitcher": {
+    "title": "Cluster in den Einstellungen öffnen",
+    "label": "Cluster"
+  }
+}

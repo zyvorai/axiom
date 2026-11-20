@@ -1,0 +1,10 @@
+---
+description: Axiom product identity and private-cloud framing for docs and UI copy
+alwaysApply: true
+---
+
+# Axiom product identity
+
+- **Binary / NS / env:** `zyvor-axiom`, `axiom-system`, `AXIOM_*`
+- **Positioning:** Your k8s-native private cloud — k3s to production, one console.
+- **Not Aether:** no Metal3-first story, no multi-runtime portability / 16 migration paths.

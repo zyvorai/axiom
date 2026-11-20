@@ -1,0 +1,649 @@
+package auth
+
+import (
+	"context"
+	"crypto/subtle"
+	"encoding/base64"
+	"math"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// UserAuthenticator checks local multi-user credentials beyond the single
+// env-configured operator account. Implemented by platform.UserHub.
+// namespaces is non-empty only for a namespace-restricted viewer account.
+type UserAuthenticator interface {
+	Authenticate(username, password string) (role string, namespaces []string, ok bool)
+}
+
+// UserLookup resolves a local account's current role and namespace restriction
+// without a password. Sessions issued by the local login (Issuer "local") are
+// re-resolved through it on every request, so a role change, a new namespace
+// restriction or a deleted account takes effect immediately rather than when
+// the session expires. Implemented by platform.UserHub.
+type UserLookup interface {
+	Lookup(username string) (role string, namespaces []string, ok bool)
+}
+
+// MFAProvider is the second-factor side of local accounts. Implemented by
+// platform.UserHub.
+type MFAProvider interface {
+	// MFAEnrolled reports whether username has two-factor sign-in enabled.
+	MFAEnrolled(username string) bool
+	// VerifySecondFactor checks a TOTP or recovery code. It must be single-use:
+	// a code that has been accepted once is never accepted again.
+	VerifySecondFactor(username, code string, now time.Time) bool
+}
+
+// LocalSessionIssuer marks sessions created by POST /api/v1/auth/login.
+const LocalSessionIssuer = "local"
+
+// LDAPSessionIssuer marks sessions POST /api/v1/auth/login creates for a
+// directory (LDAP) account. They carry the role mapped at bind time and are not
+// re-resolved per request (there is no local account to look up): a directory
+// group change takes effect at the next sign-in. Revocation applies as to any
+// session.
+const LDAPSessionIssuer = "ldap"
+
+// SAMLSessionIssuer marks sessions created by POST /api/v1/auth/saml/acs.
+const SAMLSessionIssuer = "saml"
+
+// Identity is the resolved caller of an authorized request, attached to the
+// request context so handlers and audit logging can read who acted and
+// with what role without re-parsing credentials.
+type Identity struct {
+	User string
+	Role string
+	// Namespaces restricts this identity to the listed namespaces when
+	// non-empty. Only ever set for local viewer accounts — the env admin
+	// account, API keys, and OIDC/SAML sessions are always unrestricted.
+	Namespaces []string
+	// viaCredentials is set only when the identity was established by
+	// verifying a username/password supplied with this request (not by a
+	// session, API key or ticket).
+	viaCredentials bool
+	// mfaPending is set on a rejected identity whose password was right but
+	// whose account requires a second factor, so the caller is told to supply
+	// one rather than that the password was wrong.
+	mfaPending bool
+	// source says how this identity's credentials are managed (local account,
+	// env admin, or elsewhere); the require-MFA policy keys off it.
+	source identitySource
+}
+
+func (id Identity) namespaceRestricted() bool {
+	return len(id.Namespaces) > 0
+}
+
+func (id Identity) allowsNamespace(ns string) bool {
+	for _, allowed := range id.Namespaces {
+		if allowed == ns {
+			return true
+		}
+	}
+	return false
+}
+
+type ctxKey string
+
+const identityCtxKey ctxKey = "axiom-identity"
+
+// IdentityFromContext returns the authenticated caller for this request, if any.
+func IdentityFromContext(ctx context.Context) (Identity, bool) {
+	v, ok := ctx.Value(identityCtxKey).(Identity)
+	return v, ok
+}
+
+type Guard struct {
+	Username string
+	Password string
+	APIKey   string
+	// SessionSecret signs OIDC session cookies. Defaults to Password when empty.
+	SessionSecret string
+	// Users resolves local multi-user accounts created under Settings → Users.
+	// Optional — nil means only the single env-configured account exists.
+	Users UserAuthenticator
+	// LDAP, when enabled, tries a directory simple-bind for Basic auth
+	// credentials before falling through to local users.
+	LDAP LDAPConfig
+	// Limiter throttles repeated failed logins per client IP. Optional — a
+	// fresh one is created automatically in Middleware when left nil.
+	Limiter *RateLimiter
+	// AccountLimiter throttles failed logins per attempted account name, on top
+	// of the per-IP Limiter, so rotating source IPs or interleaving successes
+	// from another account does not defeat throttling. Optional — created
+	// automatically in Middleware when left nil.
+	AccountLimiter *RateLimiter
+	// MFA, when set, supplies two-factor sign-in for local accounts: an account
+	// with a second factor can no longer authenticate with Basic credentials
+	// alone and must sign in through POST /api/v1/auth/login.
+	MFA MFAProvider
+	// ExternalMFA, when set, supplies two-factor sign-in for directory (LDAP)
+	// accounts, keyed by the directory username. It is consulted only for an
+	// identity established by the LDAP bind, and only when no local account has
+	// that name (the local account's own second factor applies then).
+	ExternalMFA MFAProvider
+	// RequireMFA (AXIOM_REQUIRE_MFA) blocks covered local accounts that have
+	// not enrolled a second factor from everything but enrolment and sign-out.
+	// The zero value (MFAPolicyOff) requires nothing.
+	RequireMFA MFAPolicy
+	// EnvTOTP adds a second factor to the single env-configured account
+	// (AXIOM_TOTP_SECRET). Optional.
+	EnvTOTP *EnvTOTP
+	// Revocations ends sessions before they expire (logout, sign-out
+	// everywhere, role/password changes). Optional — nil revokes nothing.
+	Revocations *Revocations
+	// Tickets redeems single-use ?ticket= credentials for WebSocket/SSE/log
+	// streams (POST /api/v1/ws-ticket). Optional — nil disables tickets.
+	Tickets *TicketStore
+	// Audit records failed logins and rate-limit lockouts to the platform
+	// audit trail. Optional — nil means these events aren't audited (they
+	// still fully function, just without a security-review trail).
+	Audit AuditLogger
+	// TrustedProxyHeader, when set, is the header (e.g. "X-Forwarded-For")
+	// the rate limiter reads the real client IP from instead of
+	// RemoteAddr. Leave empty unless Axiom sits behind a reverse proxy
+	// that itself sets/overwrites this header — see clientKey's doc
+	// comment in ratelimit.go for why trusting it by default is unsafe.
+	TrustedProxyHeader string
+}
+
+// AuditLogger records a security-relevant event. Implemented by an adapter
+// around platform.RecordAxiomAudit — kept as an interface here so this
+// package doesn't need to import platform.
+type AuditLogger interface {
+	Record(action, target, detail, user string)
+}
+
+// writeRateLimited sends the 429 for a locked-out key, rounding Retry-After up
+// so a client never retries before the lockout has actually cleared.
+func writeRateLimited(w http.ResponseWriter, wait time.Duration) {
+	w.Header().Set("Content-Type", "application/json")
+	retryAfter := int(math.Ceil(wait.Seconds()))
+	if retryAfter < 1 {
+		retryAfter = 1
+	}
+	w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
+	w.WriteHeader(http.StatusTooManyRequests)
+	_, _ = w.Write([]byte(`{"error":"too many failed login attempts — try again shortly"}`))
+}
+
+func (g Guard) sessionSecret() string {
+	if g.SessionSecret != "" {
+		return g.SessionSecret
+	}
+	return g.Password
+}
+
+func (g Guard) Middleware(next http.Handler) http.Handler {
+	limiter := g.Limiter
+	if limiter == nil {
+		limiter = NewRateLimiter()
+	}
+	acctLimiter := g.AccountLimiter
+	if acctLimiter == nil {
+		acctLimiter = NewAccountRateLimiter(time.Now)
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && r.URL.Path == LoginPath {
+			g.serveLogin(w, r, limiter, acctLimiter)
+			return
+		}
+		if isPublicPath(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		key := clientKey(r, g.TrustedProxyHeader)
+		if !limiter.Allowed(key) {
+			if g.Audit != nil {
+				g.Audit.Record("auth.rate_limited", key, r.URL.Path, attemptedUsername(r))
+			}
+			writeRateLimited(w, limiter.RetryAfter(key))
+			return
+		}
+		acct := ""
+		if u := attemptedUsername(r); u != "" {
+			acct = accountKey(u)
+		}
+		var id Identity
+		var ok, viaTicket bool
+		if t := r.URL.Query().Get(TicketParam); t != "" {
+			// A presented ticket is the only credential considered: it is
+			// redeemed (and destroyed) exactly once, for exactly its path, and
+			// any miss fails closed rather than falling back to other creds.
+			viaTicket = true
+			if r.Method == http.MethodGet && g.Tickets != nil {
+				id, ok = g.Tickets.Consume(t, r.URL.Path)
+			}
+		} else {
+			// Per-account throttle. Skipped for a request that already carries
+			// a valid session cookie/token (no password is being tested).
+			if acct != "" {
+				if _, hasSession := SessionFromRequest(g.sessionSecret(), r); !hasSession && !acctLimiter.Allowed(acct) {
+					if g.Audit != nil {
+						g.Audit.Record("auth.account_rate_limited", acct, r.URL.Path, attemptedUsername(r))
+					}
+					writeRateLimited(w, acctLimiter.RetryAfter(acct))
+					return
+				}
+			}
+			id, ok = g.authorizeDetail(r)
+		}
+		if !ok && id.mfaPending {
+			// The password was right, so this is not a failed guess; tell the
+			// client a second factor is needed (see POST /api/v1/auth/login).
+			w.Header().Set(MFAHeader, "required")
+			http.Error(w, "unauthorized: two-factor code required", http.StatusUnauthorized)
+			return
+		}
+		if !ok {
+			limiter.RecordFailure(key)
+			if acct != "" && !viaTicket {
+				acctLimiter.RecordFailure(acct)
+			}
+			if g.Audit != nil {
+				action := "auth.login_failed"
+				if viaTicket {
+					action = "auth.ticket_rejected"
+				}
+				g.Audit.Record(action, key, r.URL.Path, attemptedUsername(r))
+			}
+			// Do not set WWW-Authenticate — that triggers the browser's native
+			// Basic-auth popup on top of Axiom's custom login form.
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		limiter.RecordSuccess(key)
+		// Only clear the account counter when this account's own credentials
+		// were verified. A success via a cookie, API key or ticket says
+		// nothing about the (possibly someone else's) name in the Basic header.
+		if id.viaCredentials && acct != "" {
+			acctLimiter.RecordSuccess(acct)
+		}
+		if !viaTicket && usesURLCredentials(r) {
+			noteDeprecatedURLCredentials(w)
+		}
+		deny := func(code int, msg string) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(code)
+			_, _ = w.Write([]byte(`{"error":"` + msg + `"}`))
+		}
+		if g.mfaEnrollmentPending(id) && !isMFAEnrollmentPath(r) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(mfaEnrollmentRequiredBody))
+			return
+		}
+		if id.Role == "viewer" && isMutatingMethod(r.Method) && !isTicketIssueRequest(r) && !isReadOnlyPost(r) && !isSelfServiceAuth(r) {
+			deny(http.StatusForbidden, "read-only user: this account cannot perform write actions")
+			return
+		}
+		if id.Role != "admin" && isGitOpsCredentials(r) {
+			deny(http.StatusForbidden, "GitOps repository credentials require the admin role")
+			return
+		}
+		if id.Role != "admin" && isHelmRegistryCreds(r) {
+			deny(http.StatusForbidden, "Helm registry credentials require the admin role")
+			return
+		}
+		if id.Role == "viewer" && isInteractivePath(r.URL.Path) {
+			deny(http.StatusForbidden, "read-only user: shells, consoles and the pod proxy require the operator role")
+			return
+		}
+		if isNodeShellPath(r.URL.Path) && id.Role != "admin" {
+			deny(http.StatusForbidden, "the node shell requires the admin role")
+			return
+		}
+		if id.Role == "viewer" && isRBACViewRead(r) {
+			deny(http.StatusForbidden, "read-only user: the RBAC viewer lists every subject's permissions and requires the operator role")
+			return
+		}
+		if sns, isVals := secretValuesTarget(r); isVals {
+			if id.Role == "viewer" {
+				deny(http.StatusForbidden, "read-only user: reading secret values requires the operator role")
+				return
+			}
+			if id.Role != "admin" && strings.EqualFold(sns, axiomNamespace) {
+				deny(http.StatusForbidden, "secret values in the Axiom namespace require the admin role")
+				return
+			}
+		}
+		if id.Role != "admin" && isAdminOnlyRead(r) {
+			deny(http.StatusForbidden, "this view requires the admin role")
+			return
+		}
+		if id.Role == "operator" && ((isMutatingMethod(r.Method) && isAdminOnlyPath(r.URL.Path)) || isOperatorForbidden(r)) {
+			deny(http.StatusForbidden, "operator role cannot manage users, integrations, RBAC, Helm installs, or the cluster registry")
+			return
+		}
+		if id.namespaceRestricted() {
+			if restrictedDenied(r) {
+				deny(http.StatusForbidden, "this account is restricted to specific namespaces")
+				return
+			}
+			if nss, scoped := namespacesOfRequest(r); scoped {
+				for _, ns := range nss {
+					if ns == "" || strings.EqualFold(ns, "all") || !id.allowsNamespace(ns) {
+						deny(http.StatusForbidden, "this account is restricted to specific namespaces")
+						return
+					}
+				}
+			}
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), identityCtxKey, id)))
+	})
+}
+
+// namespacedResourcePrefixes lists the API paths that expose namespaced
+// resources — via a `?namespace=` query parameter on the list form, or a
+// `{namespace}` path segment on the single-resource GET form. Deliberately
+// conservative: cluster-wide administrative views (RBAC, Cost, Audit, Users,
+// Clusters, Nodes, Settings/Integrations) are intentionally left out, since
+// namespace-scoping a viewer is about workload/resource visibility, not
+// administrative surfaces.
+var namespacedResourcePrefixes = []string{
+	"/api/v1/workloads",
+	"/api/v1/pods",
+	"/api/v1/services",
+	"/api/v1/secrets",
+	"/api/v1/configmaps",
+	"/api/v1/resourcequotas",
+	"/api/v1/limitranges",
+	"/api/v1/ingresses",
+	"/api/v1/jobs",
+	"/api/v1/cronjobs",
+	"/api/v1/events",
+	"/api/v1/network",
+	"/api/v1/volumes",
+	"/api/v1/backups",
+	"/api/v1/external-secrets",
+	"/api/v1/vm-snapshots",
+	"/api/v1/vm-clones",
+	"/api/v1/vm-exports",
+	"/api/v1/vm-restores",
+	"/api/v1/vms",
+	"/api/v1/alerts",
+	"/api/v1/agent-runs",
+	"/api/v1/platform-intents",
+	"/api/v1/resources",
+	"/api/v1/helm/releases",
+	"/api/v1/velero/backups",
+	"/api/v1/velero/schedules",
+	"/api/v1/velero/restores",
+	"/api/v1/haven/identity",
+	"/api/v1/haven/planes",
+	"/api/v1/hpas",
+	"/api/v1/vpas",
+	"/api/v1/scaledobjects",
+	"/api/v1/triggerauthentications",
+	"/api/v1/poddisruptionbudgets",
+	"/api/v1/networkpolicies",
+	"/api/v1/gateways",
+	"/api/v1/graph",
+	"/api/v1/timeline",
+	"/api/v1/changes",
+	"/api/v1/diagnose",
+	"/api/v1/networking/policies",
+	"/api/v1/security/reports",
+	"/api/v1/security/policy-coverage",
+	"/api/v1/serviceaccounts",
+	// AI assistant: POST /api/v1/ai/explain?namespace=<ns>. Only the explain
+	// route is namespaced; GET /api/v1/ai/status carries no cluster data.
+	"/api/v1/ai/explain",
+	// Also blocks a restricted viewer from GET /api/v1/crds (the bare list
+	// of installed CRD definitions, which is cluster-scoped metadata with
+	// no namespace of its own) when no ?namespace= is given — an
+	// acceptable over-restriction given this list's existing fail-closed
+	// philosophy, versus leaving CRD instances readable across every
+	// namespace.
+	"/api/v1/crds",
+}
+
+func matchNamespacedPrefix(path string) (string, bool) {
+	for _, prefix := range namespacedResourcePrefixes {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return prefix, true
+		}
+	}
+	return "", false
+}
+
+func isMutatingMethod(m string) bool {
+	switch m {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
+}
+
+func isPublicPath(r *http.Request) bool {
+	path := r.URL.Path
+	if r.Method == http.MethodGet && path == "/api/v1/health" {
+		return true
+	}
+	// Public like /health: a Prometheus scraper shouldn't need Basic Auth
+	// creds baked into its scrape config, and the exposed labels (route
+	// prefix, method, status code, request counts) carry no cluster data.
+	if r.Method == http.MethodGet && path == "/api/v1/metrics" {
+		return true
+	}
+	if r.Method == http.MethodGet && path == "/api/v1/auth/providers" {
+		return true
+	}
+	if r.Method == http.MethodGet && (path == "/api/v1/auth/oidc/login" || path == "/api/v1/auth/oidc/callback" || path == "/api/v1/auth/saml/login") {
+		return true
+	}
+	if r.Method == http.MethodPost && path == "/api/v1/auth/saml/acs" {
+		return true
+	}
+	if r.Method == http.MethodPost && path == "/api/v1/auth/logout" {
+		return true
+	}
+	return false
+}
+
+func (g Guard) authorize(r *http.Request) bool {
+	_, ok := g.authorizeDetail(r)
+	return ok
+}
+
+func (g Guard) authorizeDetail(r *http.Request) (Identity, bool) {
+	if sess, ok := SessionFromRequest(g.sessionSecret(), r); ok {
+		if id, ok := g.identityFromSession(sess); ok {
+			return id, true
+		}
+		// A revoked session, or one for an account that no longer exists, is
+		// simply not a session: fall through to whatever else the request has.
+	}
+	if g.APIKey != "" {
+		if bearer := bearerToken(r.Header.Get("Authorization")); bearer != "" {
+			if subtle.ConstantTimeCompare([]byte(bearer), []byte(g.APIKey)) == 1 {
+				return Identity{User: "apikey", Role: "admin"}, true
+			}
+		}
+		if key := strings.TrimSpace(r.URL.Query().Get("api_key")); key != "" {
+			if subtle.ConstantTimeCompare([]byte(key), []byte(g.APIKey)) == 1 {
+				return Identity{User: "apikey", Role: "admin"}, true
+			}
+		}
+	}
+	u, p, ok := credentialsFromRequest(r)
+	if !ok {
+		return Identity{}, false
+	}
+	if g.APIKey != "" && (u == "apikey" || u == "__apikey__") {
+		if subtle.ConstantTimeCompare([]byte(p), []byte(g.APIKey)) == 1 {
+			return Identity{User: "apikey", Role: "admin"}, true
+		}
+		return Identity{}, false
+	}
+	id, ok := g.authenticatePassword(u, p)
+	if ok && id.mfaPending {
+		// Right password, but this account needs a second factor and HTTP Basic
+		// cannot carry one: refuse, and say why so the client can ask for it.
+		return Identity{User: id.User, mfaPending: true}, false
+	}
+	return id, ok
+}
+
+// identityFromSession turns a valid signed session into an Identity, or
+// reports false if it has been revoked or its local account is gone. Sessions
+// from the local login are re-resolved against the live account so role and
+// namespace changes apply at once.
+func (g Guard) identityFromSession(sess Session) (Identity, bool) {
+	if g.Revocations.Revoked(sess) {
+		return Identity{}, false
+	}
+	role := sess.Role
+	if role == "" {
+		role = "admin"
+	}
+	id := Identity{User: sess.User, Role: role}
+	if sess.Issuer == LDAPSessionIssuer {
+		// Role as mapped by the directory at sign-in; nothing to re-resolve.
+		id.source = sourceLDAP
+		return id, true
+	}
+	if sess.Issuer == LocalSessionIssuer {
+		if userMatches(g.Username, sess.User) {
+			id.Role, id.source = "admin", sourceEnv
+			return id, true
+		}
+		lk, ok := g.Users.(UserLookup)
+		if !ok {
+			return Identity{}, false
+		}
+		r, ns, ok := lk.Lookup(sess.User)
+		if !ok {
+			return Identity{}, false
+		}
+		id.Role, id.Namespaces, id.source = r, ns, sourceLocal
+	}
+	return id, true
+}
+
+// authenticatePassword checks a username and password against the env account,
+// local accounts and LDAP. When it succeeds for an account that requires a
+// second factor the returned identity has mfaPending set; the caller decides
+// whether that is acceptable (the login endpoint collects the code, Basic auth
+// refuses).
+func (g Guard) authenticatePassword(u, p string) (Identity, bool) {
+	if userMatches(g.Username, u) && subtle.ConstantTimeCompare([]byte(p), []byte(g.Password)) == 1 {
+		return Identity{User: g.Username, Role: "admin", viaCredentials: true, mfaPending: g.EnvTOTP != nil, source: sourceEnv}, true
+	}
+	// Local accounts first: it is a cheap in-memory bcrypt check, and trying
+	// LDAP first would send every local user's password to the directory on
+	// every API call (and count each miss toward AD lockout policy).
+	if g.Users != nil {
+		if role, namespaces, ok := g.Users.Authenticate(u, p); ok {
+			return Identity{User: u, Role: role, Namespaces: namespaces, viaCredentials: true,
+				mfaPending: g.MFA != nil && g.MFA.MFAEnrolled(u), source: sourceLocal}, true
+		}
+	}
+	if g.LDAP.Enabled || g.LDAP.URL != "" {
+		// The directory password is verified before anything about the
+		// account's second factor is looked at (same ordering as local).
+		if role, ok, err := ldapAuthenticate(g.LDAP, u, p); ok && err == nil {
+			mfa := g.ldapMFAProvider(u)
+			return Identity{User: u, Role: role, viaCredentials: true,
+				mfaPending: mfa != nil && mfa.MFAEnrolled(u), source: sourceLDAP}, true
+		}
+	}
+	return Identity{}, false
+}
+
+// isAdminOnlyPath lists mutating API prefixes reserved for RoleAdmin.
+func isAdminOnlyPath(path string) bool {
+	if strings.HasPrefix(path, "/api/v1/users") {
+		return true
+	}
+	if path == "/api/v1/integrations" {
+		return true
+	}
+	if path == "/api/v1/clusters" {
+		// POST register — GET list is fine for operators; Guard only runs this
+		// on mutating methods, so GET /clusters stays allowed.
+		return true
+	}
+	if strings.HasPrefix(path, "/api/v1/clusters/") {
+		// activate is OK for operators; register/unregister need admin.
+		if strings.HasSuffix(path, "/activate") {
+			return false
+		}
+		return true
+	}
+	return false
+}
+
+// userMatches accepts the configured username, and when that is "demo"
+// also accepts demo@zyvor.dev (preferred login identity).
+func userMatches(configured, provided string) bool {
+	configured = strings.TrimSpace(configured)
+	provided = strings.TrimSpace(provided)
+	if subtle.ConstantTimeCompare([]byte(provided), []byte(configured)) == 1 {
+		return true
+	}
+	if strings.EqualFold(configured, "demo") && strings.EqualFold(provided, "demo@zyvor.dev") {
+		return true
+	}
+	if strings.EqualFold(configured, "demo@zyvor.dev") && strings.EqualFold(provided, "demo") {
+		return true
+	}
+	return false
+}
+
+func bearerToken(v string) string {
+	if !strings.HasPrefix(v, "Bearer ") {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(v, "Bearer "))
+}
+
+func parseBasic(v string) (string, string, bool) {
+	if !strings.HasPrefix(v, "Basic ") {
+		return "", "", false
+	}
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(strings.TrimPrefix(v, "Basic ")))
+	if err != nil {
+		return "", "", false
+	}
+	user, pass, ok := strings.Cut(string(raw), ":")
+	return user, pass, ok
+}
+
+// attemptedUsername extracts just the username from a request's credentials,
+// for audit logging — never the password, and never validated.
+func attemptedUsername(r *http.Request) string {
+	u, _, ok := credentialsFromRequest(r)
+	if !ok {
+		return ""
+	}
+	return u
+}
+
+// credentialsFromRequest reads Basic auth from the header or access_token query
+// (base64 user:pass) so browser EventSource/WebSocket clients can authenticate.
+func credentialsFromRequest(r *http.Request) (string, string, bool) {
+	if u, p, ok := parseBasic(r.Header.Get("Authorization")); ok {
+		return u, p, true
+	}
+	token := strings.TrimSpace(r.URL.Query().Get("access_token"))
+	if token == "" {
+		return "", "", false
+	}
+	raw, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return "", "", false
+	}
+	return strings.Cut(string(raw), ":")
+}
+
+// Basic keeps the legacy constructor used by older call sites / tests.
+type Basic struct{ Username, Password string }
+
+func (b Basic) Middleware(next http.Handler) http.Handler {
+	return Guard{Username: b.Username, Password: b.Password}.Middleware(next)
+}
