@@ -201,4 +201,4 @@ internal/platform/  demo + Kubernetes providers e2e/        Playwright suites
 Source-available under the **[Zyvor Production License v1.0](LICENSE)**.
 
 - **Free** for evaluation, development, testing, proofs of concept, research, education and all other non-production use.
-- **Production use needs a commercial license** from Zyvor AI Labs Private Limited: production clusters, customer workloads, SaaS, managed services, OEM and redistribution. See [SUBSCRIPTION-MODEL](docs/SUBSCRIPTION-MODEL.md) or talk to us at [zyvor.dev](https://zyvor.dev?utm_source=github&utm_medium=axiom&utm_campaign=readme_footer).
+- **Production use needs a commercial license** from Zyvor AI Labs Private Limited, INR 19,999 per node per year including 18% GST (about USD 202, GST-free; INR 14,999 per node from 10 nodes, by invoice): production clusters, customer workloads, SaaS, managed services, OEM and redistribution. See [SUBSCRIPTION-MODEL](docs/SUBSCRIPTION-MODEL.md) or talk to us at [zyvor.dev](https://zyvor.dev?utm_source=github&utm_medium=axiom&utm_campaign=readme_footer).
