@@ -15,9 +15,7 @@ Axiom is source-available under the [Zyvor Production License v1.0](../LICENSE).
 | Enterprise | Advanced edition, updates and upgrades | Priority business hours, four-business-hour critical response |
 | Premium | Contracted enterprise scope and critical escalation | 24x7 critical intake, one-hour initial response target |
 
-Priced per managed compute core, with an annual minimum. 
-
-Rates are quoted by Zyvor: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
+Priced per node per year: **INR 19,999 per node including 18% GST** (about USD 202, GST-free). Team and volume price: INR 14,999 per node (about USD 151) with a minimum of 10 nodes (INR 149,990), by invoice. Axiom is separately licensed and is not part of the Zyvor Support meter. Non-production use stays free. Quote or invoice: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## Terms
 
