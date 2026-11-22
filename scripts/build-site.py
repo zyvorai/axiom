@@ -22,7 +22,7 @@ PAGES = [
     ("GAPS.md", "gaps", "Known limitations", "What is intentionally missing or still open.", "Operate"),
     ("VERIFICATION.md", "verification", "Verification checklist", "What has been proven on real systems, and what to check on yours.", "Operate"),
     ("DESIGN-SYSTEM.md", "design-system", "Design system", "Tokens, components, accessibility and translations of the console UI.", "Understand"),
-    ("SUBSCRIPTION-MODEL.md", "plans", "Plans & licensing", "The Zyvor Production License and enterprise subscription plans.", "Start"),
+    ("SUBSCRIPTION-MODEL.md", "plans", "Plans & licensing", "The Zyvor Production Licence v2.0 and enterprise subscription plans.", "Start"),
 ]
 SLUG = {p[0]: p[1] for p in PAGES}
 
@@ -66,7 +66,7 @@ def layout(title, desc, slug, side, body, prevnext=""):
 <a class="skip" href="#main">Skip to content</a>
 <nav class="top"><div><b><a href="../">Axiom</a></b><span><a href="../#apps">Product</a><a class="on" href="./">Docs</a><a href="https://github.com/zyvorai/axiom/releases/latest">Download</a><a href="https://github.com/zyvorai/axiom">GitHub</a></span></div></nav>
 <div class="docs">{side}<article id="main">{body}{prevnext}</article></div>
-<footer><div class="in">© 2026 Zyvor AI Labs. Licensed under the <a href="https://github.com/zyvorai/axiom/blob/main/LICENSE">Zyvor Production License v1.0</a>. <a href="https://github.com/zyvorai/axiom/edit/main/docs/">Edit these docs on GitHub</a>.</div></footer>
+<footer><div class="in">© 2026 Zyvor AI Labs. Licensed under the <a href="https://github.com/zyvorai/axiom/blob/main/LICENSE">Zyvor Production Licence v2.0</a>. <a href="https://github.com/zyvorai/axiom/edit/main/docs/">Edit these docs on GitHub</a>.</div></footer>
 </body></html>"""
 
 def sidebar(active, toc=""):

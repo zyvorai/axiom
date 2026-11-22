@@ -27,7 +27,7 @@ are theirs, not ours.
 
 | Area | What you get | Comparable to |
 |------|--------------|---------------|
-| License | Zyvor Production License v1.0: source-available, commercial license required for production | — |
+| License | Zyvor Production Licence v2.0: source-available, commercial license required for production | — |
 | Website | Refreshed GitHub Pages site with the full 0.13 feature set, framed screenshots and a new social card | — |
 | Docs | Plans & licensing, the real-world verification checklist and the design system are published alongside the guides | — |
 

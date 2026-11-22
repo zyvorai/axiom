@@ -5,7 +5,7 @@
 [Client overview (PDF)](docs/Axiom-Client-Overview.pdf)
 
 [![CI](https://github.com/zyvorai/axiom/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/axiom/actions/workflows/ci.yml)
-[![License: Zyvor Production v1.0](https://img.shields.io/badge/License-Zyvor%20Production%20v1.0-orange.svg)](LICENSE)
+[![License: Zyvor Production 2.0](https://img.shields.io/badge/License-Zyvor%20Production%202.0-orange.svg)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/zyvorai/axiom?label=version&color=informational)](CHANGELOG.md)
 [![Go](https://img.shields.io/badge/Go-one%20binary-00ADD8?logo=go&logoColor=white)](go.mod)
 [![React](https://img.shields.io/badge/UI-React%2019%20%C2%B7%20Tailwind%20%C2%B7%20shadcn-2997ff?logo=react&logoColor=white)](frontend)
@@ -198,7 +198,7 @@ internal/platform/  demo + Kubernetes providers e2e/        Playwright suites
 
 ## License
 
-Source-available under the **[Zyvor Production License v1.0](LICENSE)**.
+Source-available under the **[Zyvor Production Licence v2.0](LICENSE)**.
 
-- **Free for 30 days** per organization, for evaluation, development, testing, proofs of concept, research and education. After that a commercial license is required.
+- **Trial:** a 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0.
 - **Production use needs a commercial license** from Zyvor AI Labs Private Limited, INR 19,999 per node per year including 18% GST in India, or USD 202 per node per year excluding tax elsewhere (team and volume: INR 14,999 / USD 151 per node, minimum 10 nodes = INR 149,990 / USD 1,513, by invoice); a 30-day trial key is available for production evaluation: production clusters, customer workloads, SaaS, managed services, OEM and redistribution. See [SUBSCRIPTION-MODEL](docs/SUBSCRIPTION-MODEL.md) or buy or get a quote at [zyvor.dev/buy](https://zyvor.dev/buy?utm_source=github&utm_medium=axiom&utm_campaign=readme_footer#axiom) or contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere (VAT, GST or sales tax added where applicable). Pay online by UPI, card or netbanking where a buy page exists; international cards work (charged in rupees). Orders of USD 5,000 or more and quotes are invoiced in USD through Skydo. Custom pricing: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
