@@ -4,7 +4,7 @@ Axiom is available under an annual **enterprise subscription** for production us
 
 ## License
 
-Axiom is source-available under the [Zyvor Production License v1.0](../LICENSE). Production use needs a commercial license from Zyvor AI Labs Private Limited, which is what the subscription below provides.
+Axiom is source-available under the [Zyvor Production Licence v2.0](../LICENSE). Production use needs a commercial license from Zyvor AI Labs Private Limited, which is what the subscription below provides.
 
 ## Plans
 
