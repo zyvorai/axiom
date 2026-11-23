@@ -827,7 +827,8 @@
       "access": "访问控制",
       "webhooks": "Webhook",
       "cost": "成本",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "就绪度"
     },
     "results": "结果",
     "noneFound": "未找到。",
@@ -1898,5 +1899,61 @@
       "lastTransition": "上次转换"
     },
     "readOnlyNote": "只读。不提供 promote 和 abort;请使用 kubectl argo rollouts。"
+  },
+  "readiness": {
+    "truncated": "列表已限制数量，还有更多发现。",
+    "severity": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "backup": {
+      "title": "备份覆盖",
+      "intro": "哪些包含数据的命名空间拥有足够新的已完成 Velero 备份。只读：Axiom 在这里不会创建任何内容，已完成的备份也不能证明可以恢复。",
+      "maxAge": "最新备份在",
+      "maxAgeOption": "{{n}} 天内",
+      "gaps": "存在缺口的命名空间",
+      "atRisk": "没有近期备份的数据",
+      "colNamespace": "命名空间",
+      "colStatus": "状态",
+      "colData": "数据",
+      "colLastGood": "上次成功备份",
+      "colReason": "原因",
+      "data": "{{pvcs}} 个 PVC，{{gi}} GiB",
+      "empty": "未找到包含数据的命名空间。",
+      "status": {
+        "protected": "已保护",
+        "stale": "已过期",
+        "failing": "失败",
+        "unprotected": "无备份"
+      }
+    },
+    "disruption": {
+      "title": "中断就绪度",
+      "intro": "会阻塞节点排空的 PodDisruptionBudget，以及没有预算的多副本工作负载。只读；滚动更新期间预算阻塞属于正常现象。",
+      "colSeverity": "严重程度",
+      "colTarget": "预算",
+      "colReason": "原因",
+      "colAction": "建议操作",
+      "wholeNamespace": "此命名空间没有预算",
+      "empty": "未发现中断相关问题。"
+    },
+    "deprecations": {
+      "title": "弃用 API 检查",
+      "intro": "粘贴清单以查找 Kubernetes 已移除或已弃用的 API 版本。不会应用任何内容，也不会连接集群。",
+      "label": "清单 (YAML)",
+      "check": "检查清单",
+      "checking": "检查中…",
+      "summary": "{{objects}} 个对象：{{removed}} 个已移除，{{deprecated}} 个已弃用",
+      "clean": "未发现已移除或已弃用的 API。",
+      "colObject": "对象",
+      "colStatus": "状态",
+      "colRemoved": "移除于",
+      "colReplacement": "请改用",
+      "status": {
+        "removed": "已移除",
+        "deprecated": "已弃用"
+      }
+    }
   }
 }

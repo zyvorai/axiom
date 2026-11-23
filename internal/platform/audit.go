@@ -10,9 +10,9 @@ import (
 const auditRingSizeDefault = 5000
 
 var (
-	auditMu    sync.RWMutex
-	auditRing  []AuditEntry
-	auditStore AuditStore
+	auditMu       sync.RWMutex
+	auditRing     []AuditEntry
+	auditStore    AuditStore
 	auditRingSize = auditRingSizeDefault
 	// auditDirty signals the single background persister (started once by
 	// SetAuditStore) that the ring changed. Buffered to 1: a burst of rapid

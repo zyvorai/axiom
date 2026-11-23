@@ -86,8 +86,8 @@ func TestUserHubUpdateRoleAndResetPassword(t *testing.T) {
 
 func TestNormalizeRole(t *testing.T) {
 	cases := map[string]string{
-		"viewer": RoleViewer,
-		"Viewer": RoleViewer,
+		"viewer":   RoleViewer,
+		"Viewer":   RoleViewer,
 		" VIEWER ": RoleViewer,
 		"admin":    RoleAdmin,
 		"operator": RoleOperator,

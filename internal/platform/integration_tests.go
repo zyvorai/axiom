@@ -95,9 +95,9 @@ func TestOIDCConnection(ctx context.Context, issuer string) ConnectionTestResult
 	return ConnectionTestResult{
 		OK: true, Service: "oidc", LatencyMS: ms,
 		Detail: map[string]any{
-			"issuer":           doc["issuer"],
+			"issuer":                 doc["issuer"],
 			"authorization_endpoint": doc["authorization_endpoint"],
-			"token_endpoint":       doc["token_endpoint"],
+			"token_endpoint":         doc["token_endpoint"],
 		},
 	}
 }

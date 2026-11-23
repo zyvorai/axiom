@@ -78,7 +78,7 @@ func AssessUpgradeRisk(ctx context.Context, p Provider) (UpgradeRiskReport, erro
 				(pdb.MinAvailable != "" || pdb.MaxUnavailable == "0" || pdb.MaxUnavailable == "0%") {
 				rep.Findings = append(rep.Findings, UpgradeFinding{
 					Severity: "warning", Code: "pdb-blocks-drain",
-					Title:  "PDB may block node drain",
+					Title: "PDB may block node drain",
 					Detail: fmt.Sprintf("%s/%s current=%d desired=%d minAvailable=%s maxUnavailable=%s",
 						pdb.Namespace, pdb.Name, pdb.CurrentHealthy, pdb.DesiredHealthy, pdb.MinAvailable, pdb.MaxUnavailable),
 					Hint: "Drain will wait; raise maxUnavailable or scale before upgrade",

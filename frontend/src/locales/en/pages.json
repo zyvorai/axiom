@@ -835,7 +835,8 @@
       "access": "Access",
       "webhooks": "Webhooks",
       "cost": "Cost",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "Readiness"
     },
     "results": "Results",
     "noneFound": "None found.",
@@ -1910,5 +1911,61 @@
       "lastTransition": "Last transition"
     },
     "readOnlyNote": "Read-only. Promote and abort are not offered; use kubectl argo rollouts."
+  },
+  "readiness": {
+    "truncated": "The list is capped; more findings exist.",
+    "severity": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "backup": {
+      "title": "Backup coverage",
+      "intro": "Which namespaces holding data have a completed Velero backup that is recent enough. Read-only: Axiom creates nothing here, and a completed backup is not proof it can be restored.",
+      "maxAge": "Newest backup within",
+      "maxAgeOption": "{{n}} days",
+      "gaps": "Namespaces with a gap",
+      "atRisk": "Data without a recent backup",
+      "colNamespace": "Namespace",
+      "colStatus": "Status",
+      "colData": "Data",
+      "colLastGood": "Last good backup",
+      "colReason": "Why",
+      "data": "{{pvcs}} PVCs, {{gi}} GiB",
+      "empty": "No namespaces with data were found.",
+      "status": {
+        "protected": "Protected",
+        "stale": "Stale",
+        "failing": "Failing",
+        "unprotected": "No backup"
+      }
+    },
+    "disruption": {
+      "title": "Disruption readiness",
+      "intro": "PodDisruptionBudgets that would stall a node drain, and replicated workloads with no budget. Read-only, and a blocking budget during a rollout is normal.",
+      "colSeverity": "Severity",
+      "colTarget": "Budget",
+      "colReason": "Why",
+      "colAction": "Suggested action",
+      "wholeNamespace": "No budget in this namespace",
+      "empty": "No disruption problems found."
+    },
+    "deprecations": {
+      "title": "Deprecated API check",
+      "intro": "Paste manifests to find API versions Kubernetes has removed or deprecated. Nothing is applied and no cluster is contacted.",
+      "label": "Manifests (YAML)",
+      "check": "Check manifests",
+      "checking": "Checking…",
+      "summary": "{{objects}} objects: {{removed}} removed, {{deprecated}} deprecated",
+      "clean": "No removed or deprecated APIs found.",
+      "colObject": "Object",
+      "colStatus": "Status",
+      "colRemoved": "Removed in",
+      "colReplacement": "Use instead",
+      "status": {
+        "removed": "Removed",
+        "deprecated": "Deprecated"
+      }
+    }
   }
 }

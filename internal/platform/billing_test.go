@@ -204,11 +204,11 @@ func TestAWSBillingLive(t *testing.T) {
 		t.Skip("AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY required")
 	}
 	cfg := Integrations{
-		BillingProvider: "aws",
-		BillingAWSRegion: envOr("AWS_REGION", "us-east-1"),
+		BillingProvider:       "aws",
+		BillingAWSRegion:      envOr("AWS_REGION", "us-east-1"),
 		BillingAWSAccessKeyID: id, BillingAWSSecretAccessKey: secret,
 		BillingAWSSessionToken: os.Getenv("AWS_SESSION_TOKEN"),
-		BillingTagKey: os.Getenv("BILLING_TAG_KEY"), BillingTagValue: os.Getenv("BILLING_TAG_VALUE"),
+		BillingTagKey:          os.Getenv("BILLING_TAG_KEY"), BillingTagValue: os.Getenv("BILLING_TAG_VALUE"),
 	}.Normalize()
 	c, err := newAWSBillingClient(cfg, nil)
 	if err != nil {

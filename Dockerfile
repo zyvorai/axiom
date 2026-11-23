@@ -1,4 +1,4 @@
-FROM node:20-slim AS ui
+FROM node:24-slim AS ui
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install --legacy-peer-deps
@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 go build -modfile=go.production.mod -tags kubernetes \
       -trimpath -ldflags="-s -w -X github.com/zyvorai/axiom/internal/api.buildVersion=${AXIOM_VERSION}" \
       -o /out/zyvor-axiom ./cmd/zyvor-axiom
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot
 COPY --from=build /out/zyvor-axiom /zyvor-axiom
 EXPOSE 5090
 USER nonroot:nonroot

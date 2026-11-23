@@ -70,29 +70,29 @@ func NewAlertmanagerClient(rawURL, token string) (*AlertmanagerClient, error) {
 
 // FiringAlert is one Alertmanager alert.
 type FiringAlert struct {
-	Fingerprint string            `json:"fingerprint"`
-	Status      string            `json:"status"`
-	Labels      map[string]string `json:"labels"`
-	Annotations map[string]string `json:"annotations"`
-	StartsAt    string            `json:"startsAt,omitempty"`
-	EndsAt      string            `json:"endsAt,omitempty"`
-	GeneratorURL string           `json:"generatorURL,omitempty"`
-	Summary     string            `json:"summary,omitempty"`
-	Severity    string            `json:"severity,omitempty"`
-	AlertName   string            `json:"alertname,omitempty"`
-	Namespace   string            `json:"namespace,omitempty"`
-	Pod         string            `json:"pod,omitempty"`
+	Fingerprint  string            `json:"fingerprint"`
+	Status       string            `json:"status"`
+	Labels       map[string]string `json:"labels"`
+	Annotations  map[string]string `json:"annotations"`
+	StartsAt     string            `json:"startsAt,omitempty"`
+	EndsAt       string            `json:"endsAt,omitempty"`
+	GeneratorURL string            `json:"generatorURL,omitempty"`
+	Summary      string            `json:"summary,omitempty"`
+	Severity     string            `json:"severity,omitempty"`
+	AlertName    string            `json:"alertname,omitempty"`
+	Namespace    string            `json:"namespace,omitempty"`
+	Pod          string            `json:"pod,omitempty"`
 }
 
 // AlertSilence is an Alertmanager silence.
 type AlertSilence struct {
-	ID        string              `json:"id,omitempty"`
-	Status    string              `json:"status,omitempty"`
-	CreatedBy string              `json:"createdBy,omitempty"`
-	Comment   string              `json:"comment,omitempty"`
-	StartsAt  string              `json:"startsAt,omitempty"`
-	EndsAt    string              `json:"endsAt,omitempty"`
-	Matchers  []SilenceMatcher    `json:"matchers,omitempty"`
+	ID        string           `json:"id,omitempty"`
+	Status    string           `json:"status,omitempty"`
+	CreatedBy string           `json:"createdBy,omitempty"`
+	Comment   string           `json:"comment,omitempty"`
+	StartsAt  string           `json:"startsAt,omitempty"`
+	EndsAt    string           `json:"endsAt,omitempty"`
+	Matchers  []SilenceMatcher `json:"matchers,omitempty"`
 }
 
 type SilenceMatcher struct {
@@ -160,13 +160,15 @@ func (c *AlertmanagerClient) ListFiring(ctx context.Context) ([]FiringAlert, err
 		return nil, fmt.Errorf("Alertmanager returned HTTP %d", code)
 	}
 	var parsed []struct {
-		Fingerprint string            `json:"fingerprint"`
-		Status      struct{ State string `json:"state"` } `json:"status"`
-		Labels      map[string]string `json:"labels"`
-		Annotations map[string]string `json:"annotations"`
-		StartsAt    time.Time         `json:"startsAt"`
-		EndsAt      time.Time         `json:"endsAt"`
-		GeneratorURL string           `json:"generatorURL"`
+		Fingerprint string `json:"fingerprint"`
+		Status      struct {
+			State string `json:"state"`
+		} `json:"status"`
+		Labels       map[string]string `json:"labels"`
+		Annotations  map[string]string `json:"annotations"`
+		StartsAt     time.Time         `json:"startsAt"`
+		EndsAt       time.Time         `json:"endsAt"`
+		GeneratorURL string            `json:"generatorURL"`
 	}
 	if err := json.Unmarshal(raw, &parsed); err != nil {
 		return nil, fmt.Errorf("Alertmanager returned a malformed response")
@@ -206,11 +208,13 @@ func (c *AlertmanagerClient) ListSilences(ctx context.Context) ([]AlertSilence, 
 	}
 	var parsed []struct {
 		ID     string `json:"id"`
-		Status struct{ State string `json:"state"` } `json:"status"`
-		CreatedBy string `json:"createdBy"`
-		Comment   string `json:"comment"`
-		StartsAt  time.Time `json:"startsAt"`
-		EndsAt    time.Time `json:"endsAt"`
+		Status struct {
+			State string `json:"state"`
+		} `json:"status"`
+		CreatedBy string           `json:"createdBy"`
+		Comment   string           `json:"comment"`
+		StartsAt  time.Time        `json:"startsAt"`
+		EndsAt    time.Time        `json:"endsAt"`
 		Matchers  []SilenceMatcher `json:"matchers"`
 	}
 	if err := json.Unmarshal(raw, &parsed); err != nil {

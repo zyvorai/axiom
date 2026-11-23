@@ -60,8 +60,12 @@ func basic(user, pass string) string {
 
 type reqOpt func(*http.Request)
 
-func withBasic(u, p string) reqOpt { return func(r *http.Request) { r.Header.Set("Authorization", basic(u, p)) } }
-func withCookie(c string) reqOpt   { return func(r *http.Request) { r.Header.Set("Cookie", "axiom_session="+c) } }
+func withBasic(u, p string) reqOpt {
+	return func(r *http.Request) { r.Header.Set("Authorization", basic(u, p)) }
+}
+func withCookie(c string) reqOpt {
+	return func(r *http.Request) { r.Header.Set("Cookie", "axiom_session="+c) }
+}
 func withBearer(tok string) reqOpt {
 	return func(r *http.Request) { r.Header.Set("Authorization", "Bearer "+tok) }
 }

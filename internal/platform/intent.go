@@ -24,15 +24,15 @@ type PlaceScores struct {
 }
 
 type PlaceDraft struct {
-	Intent   string      `json:"intent"`
-	Name     string      `json:"name"`
-	Replicas int32       `json:"replicas"`
-	Floor    Floor       `json:"floor"`
-	Namespace string     `json:"namespace"`
-	Memory   string      `json:"memory"`
-	NoRoot   bool        `json:"noRoot"`
-	Image    string      `json:"image"`
-	Scores   PlaceScores `json:"scores"`
+	Intent    string      `json:"intent"`
+	Name      string      `json:"name"`
+	Replicas  int32       `json:"replicas"`
+	Floor     Floor       `json:"floor"`
+	Namespace string      `json:"namespace"`
+	Memory    string      `json:"memory"`
+	NoRoot    bool        `json:"noRoot"`
+	Image     string      `json:"image"`
+	Scores    PlaceScores `json:"scores"`
 }
 
 func NamespaceForFloor(f Floor) string {
@@ -132,7 +132,7 @@ func ParseIntent(raw string) PlaceDraft {
 	return PlaceDraft{
 		Intent: text, Name: name, Replicas: replicas, Floor: floor,
 		Namespace: NamespaceForFloor(floor), Memory: memory, NoRoot: noRoot,
-		Image: image,
+		Image:  image,
 		Scores: PlaceScores{Cost: cost, Fit: fit, Latency: lat, Policy: pol},
 	}
 }

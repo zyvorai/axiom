@@ -15,10 +15,10 @@ type AgentAutoRunner struct {
 	Demo     bool
 	Interval time.Duration
 
-	mu       sync.Mutex
-	seen     map[string]time.Time
-	stop     chan struct{}
-	running  bool
+	mu      sync.Mutex
+	seen    map[string]time.Time
+	stop    chan struct{}
+	running bool
 }
 
 func (a *AgentAutoRunner) Start() {

@@ -519,7 +519,7 @@ func agentRunFromUnstructured(obj *unstructured.Unstructured) AgentRun {
 		Goal: goal, Autonomy: autonomy, DryRun: dryRun, Target: target,
 		Phase: phase, Approval: approval, Message: message, Risk: risk,
 		Plan: plan, Executed: executed,
-		Age: age(obj.GetCreationTimestamp().Time),
+		Age:          age(obj.GetCreationTimestamp().Time),
 		OwnedByAxiom: owned, Source: src,
 		CreatedAt: obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
 	}

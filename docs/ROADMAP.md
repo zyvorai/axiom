@@ -5,6 +5,14 @@ what is deliberately left for later. Competitor capabilities come from public
 product documentation and vendor pages (checked November 2026); vendor claims
 are theirs, not ours.
 
+## Shipped in Unreleased (readiness pack)
+
+| Area | What you get | Comparable to |
+|------|--------------|---------------|
+| Backup coverage | Namespaces with data and no recent completed Velero backup, ranked by data at risk (`GET /api/v1/backups/coverage`) | Velero lists backups, not which namespaces lack one |
+| Disruption readiness | PDBs that stall a drain and replicated namespaces with no PDB (`GET /api/v1/disruption/audit`) | Per-node drain previews; no console equivalent found |
+| Deprecated API check | Paste manifests, get removed/deprecated apiVersions with the replacement (`POST /api/v1/manifests/deprecations`) | Pluto, kubent (CLI tools); see [RESEARCH.md](RESEARCH.md) |
+
 ## Shipped in 0.15.0
 
 | Area | What you get | Comparable to |

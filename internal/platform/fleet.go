@@ -480,4 +480,3 @@ func (sp *SwitchableProvider) Fleet(ctx context.Context) Fleet {
 	st.mu.Unlock()
 	return out
 }
-

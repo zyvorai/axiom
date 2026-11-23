@@ -15,9 +15,9 @@ type DRAObject struct {
 
 // DRAInventory is GET /api/v1/dra.
 type DRAInventory struct {
-	Available bool        `json:"available"`
-	Note      string      `json:"note,omitempty"`
-	Objects   []DRAObject `json:"objects"`
+	Available bool           `json:"available"`
+	Note      string         `json:"note,omitempty"`
+	Objects   []DRAObject    `json:"objects"`
 	Counts    map[string]int `json:"counts"`
 }
 

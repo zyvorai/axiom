@@ -12,13 +12,13 @@ var (
 	demoAgentRuns   = []AgentRun{
 		{
 			Namespace: "default", Name: "diagnose-broken-pod",
-			Goal: "Diagnose why this pod is unhealthy and propose the safest fix.",
+			Goal:     "Diagnose why this pod is unhealthy and propose the safest fix.",
 			Autonomy: "ProposeOnly", DryRun: true,
 			Target: &AgentObjectRef{APIVersion: "v1", Kind: "Pod", Namespace: "default", Name: "broken-demo"},
-			Phase: "Proposed", Approval: "Pending", Risk: "medium",
+			Phase:  "Proposed", Approval: "Pending", Risk: "medium",
 			OwnedByAxiom: true, Source: AgentSourceManual,
 			Plan: &AgentPlan{
-				Summary: "Pod CrashLoopBackOff — restart recommended",
+				Summary:   "Pod CrashLoopBackOff — restart recommended",
 				RootCause: "container exit 1", Risk: "medium", RequiresApproval: true,
 				Actions: []AgentAction{
 					{ID: "a1", Type: AgentActionRestartPod, Risk: "low", Description: "Delete pod to force recreate",

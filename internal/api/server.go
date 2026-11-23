@@ -55,21 +55,21 @@ type AuthOptions struct {
 	ExternalMFAStore *platform.ExternalMFAStore
 	// TOTPSecret, when set (AXIOM_TOTP_SECRET), adds a TOTP second factor to the
 	// built-in admin account. Base32, at least 80 bits.
-	TOTPSecret string
-	OIDCLogin  string
-	OIDCIssuer         string
-	OIDCClient         string
-	SAMLLogin          string
-	SAMLEntityID       string
-	SAMLIDPCert        string
-	SAMLAllowUnsigned  bool
-	LDAPEnabled        bool
-	LDAPDomain         string
-	LDAPURL            string
-	LDAPBaseDN         string
-	LDAPBindDN         string
-	LDAPBindPW         string
-	LDAPUserAttr       string
+	TOTPSecret        string
+	OIDCLogin         string
+	OIDCIssuer        string
+	OIDCClient        string
+	SAMLLogin         string
+	SAMLEntityID      string
+	SAMLIDPCert       string
+	SAMLAllowUnsigned bool
+	LDAPEnabled       bool
+	LDAPDomain        string
+	LDAPURL           string
+	LDAPBaseDN        string
+	LDAPBindDN        string
+	LDAPBindPW        string
+	LDAPUserAttr      string
 	// LDAPGroupAttr/LDAPAdminGroup/LDAPViewerGroup map a bound user's directory
 	// group membership to a viewer/admin/operator role, the LDAP equivalent of
 	// OIDCGroupsClaim/OIDCAdminGroup/OIDCViewerGroup below. Group lookup only
@@ -84,10 +84,10 @@ type AuthOptions struct {
 	// claim to a viewer/admin/operator role. When OIDCAdminGroup and
 	// OIDCViewerGroup are both unset, OIDCDefaultRole is used (default admin
 	// for backwards compatibility — set to viewer for safer greenfield).
-	OIDCGroupsClaim  string
-	OIDCAdminGroup   string
-	OIDCViewerGroup  string
-	OIDCDefaultRole  string
+	OIDCGroupsClaim string
+	OIDCAdminGroup  string
+	OIDCViewerGroup string
+	OIDCDefaultRole string
 
 	// SAMLAllowIdPInitiated accepts SAML responses with no InResponseTo
 	// (AXIOM_SAML_ALLOW_IDP_INITIATED). Off by default: an unsolicited
@@ -113,21 +113,21 @@ var serverSeq atomic.Uint64
 type Server struct {
 	// id is unique per Server for the life of the process. Shared limiter tables key on it instead
 	// of the pointer, because the garbage collector may hand a freed Server's address to a new one.
-	id          uint64
-	provider    platform.Provider
-	mode        string
-	username    string
-	password    string
-	allowOrigin string
-	auth        AuthOptions
-	hub         *platform.IntegrationHub
-	users       *platform.UserHub
-	tickets     *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
-	podProxy    *PodProxyOrigin   // separate pod-proxy origin, or nil (podproxy_origin.go)
-	revocations *auth.Revocations // revoked sessions (logout, sign out everywhere)
-	envTOTP     *auth.EnvTOTP     // second factor for the env account, or nil
-	guard            auth.Guard // used to re-verify a password for account-security actions
-	aiRL             aiRateLimiter // per-user limiter for /ai/explain (zero value ready)
+	id               uint64
+	provider         platform.Provider
+	mode             string
+	username         string
+	password         string
+	allowOrigin      string
+	auth             AuthOptions
+	hub              *platform.IntegrationHub
+	users            *platform.UserHub
+	tickets          *auth.TicketStore // single-use ws/SSE tickets (see tickets.go)
+	podProxy         *PodProxyOrigin   // separate pod-proxy origin, or nil (podproxy_origin.go)
+	revocations      *auth.Revocations // revoked sessions (logout, sign out everywhere)
+	envTOTP          *auth.EnvTOTP     // second factor for the env account, or nil
+	guard            auth.Guard        // used to re-verify a password for account-security actions
+	aiRL             aiRateLimiter     // per-user limiter for /ai/explain (zero value ready)
 	loginIPLimiter   *auth.RateLimiter
 	loginAcctLimiter *auth.RateLimiter
 
@@ -274,6 +274,7 @@ func NewWithUsers(provider platform.Provider, mode, username, password, allowOri
 	s.registerHelmCatalog(mux)
 	s.registerAutoscaling(mux)
 	s.registerCost(mux)
+	s.registerReadiness(mux)
 	mux.HandleFunc("GET /api/v1/auth/saml/login", s.samlLogin)
 	mux.HandleFunc("POST /api/v1/auth/saml/acs", s.samlACS)
 	mux.HandleFunc("GET /api/v1/nodes/{name}", s.nodeDetail)
@@ -753,6 +754,7 @@ func (s *Server) uncordon(w http.ResponseWriter, r *http.Request) {
 	}
 	respondAction(w, err)
 }
+
 // drainPreview is read-only: what a drain would evict, ignore and block on.
 func (s *Server) drainPreview(w http.ResponseWriter, r *http.Request) {
 	v, err := s.provider.PreviewNodeDrain(r.Context(), r.PathValue("name"))

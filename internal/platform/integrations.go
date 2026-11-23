@@ -23,10 +23,10 @@ type Integrations struct {
 	PostgresPassword string `json:"postgresPassword,omitempty"`
 	PostgresSSLMode  string `json:"postgresSslMode"`
 
-	ProbePodNamespace  string `json:"probePodNamespace"`
-	ProbePodName       string `json:"probePodName"`
-	ProbePodContainer  string `json:"probePodContainer"`
-	ProbeURL           string `json:"probeUrl"`
+	ProbePodNamespace string `json:"probePodNamespace"`
+	ProbePodName      string `json:"probePodName"`
+	ProbePodContainer string `json:"probePodContainer"`
+	ProbeURL          string `json:"probeUrl"`
 
 	SlackWebhookURL  string `json:"slackWebhookUrl,omitempty"`
 	AlertWebhookURL  string `json:"alertWebhookUrl,omitempty"`
@@ -47,33 +47,33 @@ type Integrations struct {
 	// Actual-bill reconciliation (EXPERIMENTAL, see billing.go). Credentials
 	// (AWS access key pair, Azure client secret, GCP service-account key) live
 	// in the integrations Secret only and are never returned.
-	BillingProvider            string `json:"billingProvider"`
-	BillingTagKey              string `json:"billingTagKey"`
-	BillingTagValue            string `json:"billingTagValue"`
-	BillingAWSRegion           string `json:"billingAwsRegion"`
-	BillingAWSAccessKeyID      string `json:"billingAwsAccessKeyId,omitempty"`
-	BillingAWSSecretAccessKey  string `json:"billingAwsSecretAccessKey,omitempty"`
+	BillingProvider           string `json:"billingProvider"`
+	BillingTagKey             string `json:"billingTagKey"`
+	BillingTagValue           string `json:"billingTagValue"`
+	BillingAWSRegion          string `json:"billingAwsRegion"`
+	BillingAWSAccessKeyID     string `json:"billingAwsAccessKeyId,omitempty"`
+	BillingAWSSecretAccessKey string `json:"billingAwsSecretAccessKey,omitempty"`
 	// BillingAWSSessionToken is an optional STS session token for temporary keys.
-	BillingAWSSessionToken string `json:"billingAwsSessionToken,omitempty"`
-	BillingAzureTenantID       string `json:"billingAzureTenantId"`
-	BillingAzureClientID       string `json:"billingAzureClientId"`
-	BillingAzureSubscriptionID string `json:"billingAzureSubscriptionId"`
-	BillingAzureClientSecret   string `json:"billingAzureClientSecret,omitempty"`
-	BillingGCPProjectID        string `json:"billingGcpProjectId"`
-	BillingGCPTable            string `json:"billingGcpTable"`
+	BillingAWSSessionToken      string `json:"billingAwsSessionToken,omitempty"`
+	BillingAzureTenantID        string `json:"billingAzureTenantId"`
+	BillingAzureClientID        string `json:"billingAzureClientId"`
+	BillingAzureSubscriptionID  string `json:"billingAzureSubscriptionId"`
+	BillingAzureClientSecret    string `json:"billingAzureClientSecret,omitempty"`
+	BillingGCPProjectID         string `json:"billingGcpProjectId"`
+	BillingGCPTable             string `json:"billingGcpTable"`
 	BillingGCPServiceAccountKey string `json:"billingGcpServiceAccountKey,omitempty"`
 }
 
 // IntegrationsView is the safe GET payload (secrets never returned in cleartext).
 type IntegrationsView struct {
-	AtlasURL         string `json:"atlasUrl"`
-	AtlasTokenSet    bool   `json:"atlasTokenSet"`
-	AtlasConsoleURL  string `json:"atlasConsoleUrl"`
-	OIDCIssuer       string `json:"oidcIssuer"`
-	OIDCLoginURL     string `json:"oidcLoginUrl"`
-	OIDCClientID     string `json:"oidcClientId"`
-	AtlasConfigured  bool   `json:"atlasConfigured"`
-	OIDCConfigured   bool   `json:"oidcConfigured"`
+	AtlasURL        string `json:"atlasUrl"`
+	AtlasTokenSet   bool   `json:"atlasTokenSet"`
+	AtlasConsoleURL string `json:"atlasConsoleUrl"`
+	OIDCIssuer      string `json:"oidcIssuer"`
+	OIDCLoginURL    string `json:"oidcLoginUrl"`
+	OIDCClientID    string `json:"oidcClientId"`
+	AtlasConfigured bool   `json:"atlasConfigured"`
+	OIDCConfigured  bool   `json:"oidcConfigured"`
 
 	PostgresHost        string `json:"postgresHost"`
 	PostgresPort        int    `json:"postgresPort"`
@@ -202,13 +202,13 @@ type IntegrationsPatch struct {
 	OIDCLoginURL    *string `json:"oidcLoginUrl"`
 	OIDCClientID    *string `json:"oidcClientId"`
 
-	PostgresHost        *string `json:"postgresHost"`
-	PostgresPort        *int    `json:"postgresPort"`
-	PostgresDatabase    *string `json:"postgresDatabase"`
-	PostgresUser        *string `json:"postgresUser"`
-	PostgresPassword    *string `json:"postgresPassword"`
-	PostgresPasswordClear bool  `json:"postgresPasswordClear"`
-	PostgresSSLMode     *string `json:"postgresSslMode"`
+	PostgresHost          *string `json:"postgresHost"`
+	PostgresPort          *int    `json:"postgresPort"`
+	PostgresDatabase      *string `json:"postgresDatabase"`
+	PostgresUser          *string `json:"postgresUser"`
+	PostgresPassword      *string `json:"postgresPassword"`
+	PostgresPasswordClear bool    `json:"postgresPasswordClear"`
+	PostgresSSLMode       *string `json:"postgresSslMode"`
 
 	ProbePodNamespace *string `json:"probePodNamespace"`
 	ProbePodName      *string `json:"probePodName"`
@@ -221,14 +221,14 @@ type IntegrationsPatch struct {
 	AlertWebhookURLClear bool    `json:"alertWebhookUrlClear"`
 	NotifyOnWarnings     *bool   `json:"notifyOnWarnings"`
 
-	AIEnabled      *bool   `json:"aiEnabled"`
-	AIProvider     *string `json:"aiProvider"`
-	AIBaseURL      *string `json:"aiBaseUrl"`
-	AIModel        *string `json:"aiModel"`
-	AIAPIKey       *string `json:"aiApiKey"`
-	AIAPIKeyClear  bool    `json:"aiApiKeyClear"`
-	AIRedact       *bool   `json:"aiRedact"`
-	AgentAutoRuns  *bool   `json:"agentAutoRuns"`
+	AIEnabled     *bool   `json:"aiEnabled"`
+	AIProvider    *string `json:"aiProvider"`
+	AIBaseURL     *string `json:"aiBaseUrl"`
+	AIModel       *string `json:"aiModel"`
+	AIAPIKey      *string `json:"aiApiKey"`
+	AIAPIKeyClear bool    `json:"aiApiKeyClear"`
+	AIRedact      *bool   `json:"aiRedact"`
+	AgentAutoRuns *bool   `json:"agentAutoRuns"`
 
 	BillingProvider                  *string `json:"billingProvider"`
 	BillingTagKey                    *string `json:"billingTagKey"`

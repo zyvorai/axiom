@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { dateFnsLocale } from "@/lib/i18n";
-import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard, Pause, Play, History } from "lucide-react";
+import { Anchor, GitBranch, Boxes, Bot, Fingerprint, ScrollText, ShieldCheck, DollarSign, Trash2, RotateCcw, Check, X, Webhook, Plus, Search, Download, Pencil, CircuitBoard, ClipboardCheck, Pause, Play, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,7 @@ import HelmCatalog from "@/components/HelmCatalog";
 import { CostBudgets, CostRightsizing } from "@/components/CostPanels";
 import { CostInvoice } from "@/components/CostInvoice";
 import { CostIdle } from "@/components/CostIdle";
+import { ReadinessPanel } from "@/components/Readiness";
 import GitOpsCreateDialog from "@/components/GitOpsCreateDialog";
 import RolloutsPanel from "@/components/RolloutsPanel";
 import GitOpsDeleteDialog from "@/components/GitOpsDeleteDialog";
@@ -49,6 +50,7 @@ const TABS = [
     { key: "webhooks", labelKey: "pages:ops.tabs.webhooks", icon: Webhook },
     { key: "accelerators", labelKey: "pages:ops.tabs.accelerators", icon: CircuitBoard },
     { key: "cost", labelKey: "pages:ops.tabs.cost", icon: DollarSign },
+    { key: "readiness", labelKey: "pages:ops.tabs.readiness", icon: ClipboardCheck },
 ];
 
 function relTime(iso) {
@@ -1558,6 +1560,7 @@ const PANELS = {
     webhooks: WebhooksTab,
     accelerators: AcceleratorsTab,
     cost: CostTab,
+    readiness: ReadinessPanel,
 };
 
 export default function Ops() {

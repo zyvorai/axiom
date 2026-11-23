@@ -105,6 +105,8 @@ Closed in the residual / Velero-billing-Helm pack (see CHANGELOG 0.14.0):
 - Cloud invoice AWS pagination + STS session tokens; live: `e2e/scripts/validate-billing-live.sh` / `AXIOM_BILLING_LIVE=1` (still experimental until you run it against your account)
 - Helm ClusterRole covers ServiceAccounts, PDBs, Leases, EndpointSlices, ControllerRevisions for ordinary chart installs
 
+Readiness reports (backup coverage, disruption audit, deprecated API check) are heuristics over lists Axiom already reads, tested against the demo provider and unit tables only, not a live cluster: backup coverage reads Velero Backup objects and cannot prove restorability or tie a Schedule to a namespace; the disruption audit cannot match a PDB to a workload (no selector in the summary) so a missing budget is per namespace; the API deprecation table is static and built-in APIs only (no CRDs), and it checks pasted manifests, not live objects or Helm release manifests (see RESEARCH.md for the follow-up).
+
 Still thinner than a full private-cloud suite (**deliberate** — see ROADMAP Not planned):
 
 - ClusterRole write UI

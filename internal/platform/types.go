@@ -179,18 +179,18 @@ type AcceleratorsOperator struct {
 }
 
 type AcceleratorNode struct {
-	Name             string            `json:"name"`
-	Status           string            `json:"status"`
-	GPU              string            `json:"gpu,omitempty"`
-	AllocatableGPU   string            `json:"allocatableGpu,omitempty"`
-	Product          string            `json:"product,omitempty"`
-	Driver           string            `json:"driver,omitempty"`
-	SharingStrategy  string            `json:"sharingStrategy,omitempty"` // none | time-slicing | mps
-	Replicas         string            `json:"replicas,omitempty"`        // GFD nvidia.com/gpu.replicas
-	MIGConfig        string            `json:"migConfig,omitempty"`
-	MIGConfigState   string            `json:"migConfigState,omitempty"`
-	MIG              map[string]string `json:"mig,omitempty"`
-	Unschedulable    bool              `json:"unschedulable,omitempty"`
+	Name            string            `json:"name"`
+	Status          string            `json:"status"`
+	GPU             string            `json:"gpu,omitempty"`
+	AllocatableGPU  string            `json:"allocatableGpu,omitempty"`
+	Product         string            `json:"product,omitempty"`
+	Driver          string            `json:"driver,omitempty"`
+	SharingStrategy string            `json:"sharingStrategy,omitempty"` // none | time-slicing | mps
+	Replicas        string            `json:"replicas,omitempty"`        // GFD nvidia.com/gpu.replicas
+	MIGConfig       string            `json:"migConfig,omitempty"`
+	MIGConfigState  string            `json:"migConfigState,omitempty"`
+	MIG             map[string]string `json:"mig,omitempty"`
+	Unschedulable   bool              `json:"unschedulable,omitempty"`
 }
 
 type AcceleratorPod struct {
@@ -305,17 +305,17 @@ type TaintSummary struct {
 }
 
 type Node struct {
-	Name              string          `json:"name"`
-	Status            string          `json:"status"`
-	Role              string          `json:"role"`
-	Version           string          `json:"version"`
-	InternalIP        string          `json:"internalIp"`
-	Pods              int             `json:"pods"`
-	CPU               string          `json:"cpu"`
-	Memory            string          `json:"memory"`
-	AllocatableCPU    string          `json:"allocatableCpu,omitempty"`
-	AllocatableMemory string          `json:"allocatableMemory,omitempty"`
-	AllocatablePods   string          `json:"allocatablePods,omitempty"`
+	Name              string `json:"name"`
+	Status            string `json:"status"`
+	Role              string `json:"role"`
+	Version           string `json:"version"`
+	InternalIP        string `json:"internalIp"`
+	Pods              int    `json:"pods"`
+	CPU               string `json:"cpu"`
+	Memory            string `json:"memory"`
+	AllocatableCPU    string `json:"allocatableCpu,omitempty"`
+	AllocatableMemory string `json:"allocatableMemory,omitempty"`
+	AllocatablePods   string `json:"allocatablePods,omitempty"`
 	// GPU / AllocatableGPU are nvidia.com/gpu Capacity / Allocatable (e.g. "4").
 	GPU              string            `json:"gpu,omitempty"`
 	AllocatableGPU   string            `json:"allocatableGpu,omitempty"`
@@ -513,12 +513,12 @@ type CreateIngressRequest struct {
 }
 
 type CreateServiceRequest struct {
-	Namespace string            `json:"namespace"`
-	Name      string            `json:"name"`
-	Type      string            `json:"type"`
-	Port      int32             `json:"port"`
-	TargetPort int32            `json:"targetPort"`
-	Selector  map[string]string `json:"selector"`
+	Namespace  string            `json:"namespace"`
+	Name       string            `json:"name"`
+	Type       string            `json:"type"`
+	Port       int32             `json:"port"`
+	TargetPort int32             `json:"targetPort"`
+	Selector   map[string]string `json:"selector"`
 }
 
 type CreateVolumeRequest struct {
@@ -837,11 +837,11 @@ const (
 )
 
 type CostEstimate struct {
-	TotalMonthlyUSD float64         `json:"totalMonthlyUsd"`
-	CPURatePerCore  float64         `json:"cpuRatePerCore"`
-	MemoryRatePerGi float64         `json:"memoryRatePerGi"`
+	TotalMonthlyUSD float64 `json:"totalMonthlyUsd"`
+	CPURatePerCore  float64 `json:"cpuRatePerCore"`
+	MemoryRatePerGi float64 `json:"memoryRatePerGi"`
 	// GPURatePerGpu is the flat estimate rate for nvidia.com/gpu (+ MIG keys).
-	GPURatePerGpu float64 `json:"gpuRatePerGpu,omitempty"`
+	GPURatePerGpu float64         `json:"gpuRatePerGpu,omitempty"`
 	Namespaces    []NamespaceCost `json:"namespaces"`
 	Workloads     []WorkloadCost  `json:"workloads"`
 	// Source is "estimate" (requests priced at the flat rates) or "opencost"

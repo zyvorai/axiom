@@ -835,7 +835,8 @@
       "access": "Zugriff",
       "webhooks": "Webhooks",
       "cost": "Kosten",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "Bereitschaft"
     },
     "results": "Ergebnisse",
     "noneFound": "Keine gefunden.",
@@ -1910,5 +1911,61 @@
       "lastTransition": "Letzter Übergang"
     },
     "readOnlyNote": "Schreibgeschützt. Promote und Abort werden nicht angeboten; verwenden Sie kubectl argo rollouts."
+  },
+  "readiness": {
+    "truncated": "Die Liste ist begrenzt; es gibt weitere Befunde.",
+    "severity": {
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    },
+    "backup": {
+      "title": "Backup-Abdeckung",
+      "intro": "Welche Namespaces mit Daten ein ausreichend aktuelles, abgeschlossenes Velero-Backup haben. Nur lesend: Axiom erstellt hier nichts, und ein abgeschlossenes Backup beweist nicht, dass es sich wiederherstellen lässt.",
+      "maxAge": "Neuestes Backup innerhalb von",
+      "maxAgeOption": "{{n}} Tagen",
+      "gaps": "Namespaces mit Lücke",
+      "atRisk": "Daten ohne aktuelles Backup",
+      "colNamespace": "Namespace",
+      "colStatus": "Status",
+      "colData": "Daten",
+      "colLastGood": "Letztes gutes Backup",
+      "colReason": "Grund",
+      "data": "{{pvcs}} PVCs, {{gi}} GiB",
+      "empty": "Keine Namespaces mit Daten gefunden.",
+      "status": {
+        "protected": "Geschützt",
+        "stale": "Veraltet",
+        "failing": "Fehlerhaft",
+        "unprotected": "Kein Backup"
+      }
+    },
+    "disruption": {
+      "title": "Unterbrechungsbereitschaft",
+      "intro": "PodDisruptionBudgets, die ein Node-Drain blockieren würden, und replizierte Workloads ohne Budget. Nur lesend; ein blockierendes Budget während eines Rollouts ist normal.",
+      "colSeverity": "Schweregrad",
+      "colTarget": "Budget",
+      "colReason": "Grund",
+      "colAction": "Empfohlene Aktion",
+      "wholeNamespace": "Kein Budget in diesem Namespace",
+      "empty": "Keine Probleme bei Unterbrechungen gefunden."
+    },
+    "deprecations": {
+      "title": "Prüfung veralteter APIs",
+      "intro": "Manifeste einfügen, um API-Versionen zu finden, die Kubernetes entfernt oder als veraltet markiert hat. Es wird nichts angewendet und kein Cluster kontaktiert.",
+      "label": "Manifeste (YAML)",
+      "check": "Manifeste prüfen",
+      "checking": "Prüfe…",
+      "summary": "{{objects}} Objekte: {{removed}} entfernt, {{deprecated}} veraltet",
+      "clean": "Keine entfernten oder veralteten APIs gefunden.",
+      "colObject": "Objekt",
+      "colStatus": "Status",
+      "colRemoved": "Entfernt in",
+      "colReplacement": "Stattdessen verwenden",
+      "status": {
+        "removed": "Entfernt",
+        "deprecated": "Veraltet"
+      }
+    }
   }
 }

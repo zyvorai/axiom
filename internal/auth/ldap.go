@@ -12,12 +12,12 @@ import (
 // LDAPConfig holds directory bind settings. When Enabled (or URL is set),
 // Guard tries an LDAP simple-bind before falling through to local users.
 type LDAPConfig struct {
-	Enabled bool
-	URL     string // ldap:// or ldaps:// host[:port]
-	Domain  string // AD-style DOMAIN or email domain for UPN bind
-	BaseDN  string // optional search base; when set with BindDN, look up DN by uid/sAMAccountName
-	BindDN  string // optional service account for user search
-	BindPW  string
+	Enabled  bool
+	URL      string // ldap:// or ldaps:// host[:port]
+	Domain   string // AD-style DOMAIN or email domain for UPN bind
+	BaseDN   string // optional search base; when set with BindDN, look up DN by uid/sAMAccountName
+	BindDN   string // optional service account for user search
+	BindPW   string
 	UserAttr string // default sAMAccountName; also tries uid / userPrincipalName
 
 	// GroupAttr/AdminGroup/ViewerGroup map the bound user's directory group

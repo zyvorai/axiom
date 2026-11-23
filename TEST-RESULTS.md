@@ -1,5 +1,21 @@
 # Zyvor Axiom Validation Results
 
+## 2026-11-23 (latest) - Dependency upgrades and readiness pack (Linux host, demo provider and fake clientsets only)
+
+```text
+gofmt -l .                                                                   empty
+go vet ./cmd/... ./internal/...                                              PASS
+go vet -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...  PASS
+go test -race -p 3 ./cmd/... ./internal/...                                  auth, config, platform ok; api: one failure, TestFleetSearchRateLimit
+                                                                             (timing under -race on a loaded host), fixed; targeted -race rerun of
+                                                                             FleetSearch/Readiness/Deprecations/Coverage/Disruption ok. The full api
+                                                                             package under -race takes about 15 minutes and was not repeated after the fix.
+go test -p 3 -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...   PASS (go.production.mod still pins the pre-upgrade versions)
+npm run lint, craco build (frontend/)                                        PASS
+```
+
+Not run: e2e (Playwright needs a browser), Docker image build, Helm, any real cluster. The new reports are exercised against the demo provider and unit tables only.
+
 ## 2026-08-29 (latest) — Nice-to-have tier: PriorityClasses, per-workload cost, audit filtering/export, multi-tab terminal
 
 Closes the last tier from the "what's missing" audit (a fifth item, a plugin/extension architecture, stays deliberately deferred — a large architectural investment with no concrete design basis, left for its own dedicated conversation rather than a batch-plan bullet):

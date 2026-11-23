@@ -36,24 +36,24 @@ type AgentExecuted struct {
 // When the platform.example.com AgentRun CRD is present, runs live there;
 // otherwise Axiom persists them in ConfigMap zyvor-axiom-agent-runs.
 type AgentRun struct {
-	Namespace    string           `json:"namespace"`
-	Name         string           `json:"name"`
-	Goal         string           `json:"goal"`
-	Autonomy     string           `json:"autonomy"`
-	DryRun       bool             `json:"dryRun"`
-	Target       *AgentObjectRef  `json:"target,omitempty"`
-	Phase        string           `json:"phase"`
-	Approval     string           `json:"approval"`
-	Message      string           `json:"message,omitempty"`
-	Risk         string           `json:"risk,omitempty"`
-	Plan         *AgentPlan       `json:"plan,omitempty"`
-	Executed     []AgentExecuted  `json:"executed,omitempty"`
-	Age          string           `json:"age"`
-	CanApprove   bool             `json:"canApprove"`
-	CanDeny      bool             `json:"canDeny"`
-	OwnedByAxiom bool             `json:"ownedByAxiom,omitempty"`
-	Source       string           `json:"source,omitempty"`
-	CreatedAt    string           `json:"createdAt,omitempty"`
+	Namespace    string          `json:"namespace"`
+	Name         string          `json:"name"`
+	Goal         string          `json:"goal"`
+	Autonomy     string          `json:"autonomy"`
+	DryRun       bool            `json:"dryRun"`
+	Target       *AgentObjectRef `json:"target,omitempty"`
+	Phase        string          `json:"phase"`
+	Approval     string          `json:"approval"`
+	Message      string          `json:"message,omitempty"`
+	Risk         string          `json:"risk,omitempty"`
+	Plan         *AgentPlan      `json:"plan,omitempty"`
+	Executed     []AgentExecuted `json:"executed,omitempty"`
+	Age          string          `json:"age"`
+	CanApprove   bool            `json:"canApprove"`
+	CanDeny      bool            `json:"canDeny"`
+	OwnedByAxiom bool            `json:"ownedByAxiom,omitempty"`
+	Source       string          `json:"source,omitempty"`
+	CreatedAt    string          `json:"createdAt,omitempty"`
 }
 
 type CreateAgentRunRequest struct {
