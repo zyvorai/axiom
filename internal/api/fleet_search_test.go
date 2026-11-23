@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/zyvorai/axiom/internal/auth"
 	"github.com/zyvorai/axiom/internal/platform"
@@ -91,6 +92,17 @@ func TestFleetSearchAccess(t *testing.T) {
 
 func TestFleetSearchRateLimit(t *testing.T) {
 	e := newFleetEnv(t)
+	// Freeze the limiter clock: on a slow host (or under -race) 20 requests can
+	// take longer than the 10 s window and the bucket would refill mid-test.
+	frozen := time.Now()
+	fleetSearchRL.mu.Lock()
+	fleetSearchRL.now = func() time.Time { return frozen }
+	fleetSearchRL.mu.Unlock()
+	t.Cleanup(func() {
+		fleetSearchRL.mu.Lock()
+		fleetSearchRL.now = nil
+		fleetSearchRL.mu.Unlock()
+	})
 	for i := 0; i < fleetSearchPerWindow; i++ {
 		if w := e.do("GET", "/api/v1/fleet/search?q=payments&kind=Namespace", "", withBasic("viewer1", "viewer-password")); w.Code != 200 {
 			t.Fatalf("request %d: %d", i, w.Code)

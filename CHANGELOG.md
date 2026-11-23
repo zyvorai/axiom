@@ -27,6 +27,7 @@ All notable changes to Zyvor Axiom are documented here.
 - Gateway API front door is now Setura instead of Envoy Gateway: Helm `expose.gateway.className` defaults to `setura`, the example manifest is `deploy/k8s/setura-gateway-example.yaml` (installed with `setura gateway install`), the demo inventory simulates Setura, and the Ingresses page detects and recommends Setura (`provider=setura`). Envoy Gateway and other controllers are still detected and listed.
 
 ### Fixed
+- `TestFleetSearchRateLimit` failed under `go test -race` on a loaded host: 20 requests took longer than the 10 s limiter window, so the bucket refilled mid-test. The test now freezes the limiter clock (no change to the limiter).
 - 38 Go files were not gofmt-clean; formatted (whitespace only) so `gofmt -l .` is empty.
 - The per-user fleet-search rate limiter keyed its buckets on the server's memory address, so in a long-running test process a freed server's address could be reused and two servers shared a bucket (an intermittent `429` in `TestFleetSearchRateLimit`, which failed the 0.15.1 container image's verify step once). Buckets now key on a unique per-server id. No effect on a normal single-server run.
 
