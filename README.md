@@ -139,7 +139,7 @@ go build -modfile=go.production.mod -tags kubernetes -o bin/zyvor-axiom-kubernet
 KUBECONFIG=$HOME/.kube/config AXIOM_MODE=kubernetes ./bin/zyvor-axiom-kubernetes
 ```
 
-Only the `kubernetes`-tagged build registers the interactive terminal WebSocket and Pod `resources`. Requires Node 20+ for the frontend.
+Only the `kubernetes`-tagged build registers the interactive terminal WebSocket and Pod `resources`. Requires Node 24 (CI and the Dockerfile use it; 20+ is expected to work) for the frontend.
 </details>
 
 ---

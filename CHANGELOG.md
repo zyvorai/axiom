@@ -4,6 +4,20 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Dependencies and tooling
+- Go modules updated with `go get -u ./... && go mod tidy` (client-go, api and apimachinery 0.37.0 to 0.37.2, pgx 5.13.0, x/crypto 0.59.0, x/net 0.63.0, etree 1.8.1, goxmldsig 1.6.1 and the transitive set). `go` directive stays 1.27.0 (the toolchain is 1.27.4). No newer major module path exists for any direct dependency (probed pgx, websocket, etree, sigs.k8s.io/yaml, goxmldsig).
+- Frontend packages updated to their latest releases, including the majors for i18next 27, react-i18next 18, lucide-react 1.x, framer-motion 14, dotenv 18, globals 17, zod 4 and @hookform/resolvers 7 (the last two are not imported anywhere); the `react-router` override follows react-router-dom 7.18.6. `npm run lint` and `craco build` pass.
+- GitHub Actions bumped to checkout v7, setup-go v7, setup-node v7, setup-python v7, upload-pages-artifact v5, deploy-pages v5, download-artifact v8, build-push-action v7, setup-buildx-action v4, login-action v4, metadata-action v6, azure/setup-helm v5 and cosign-installer v4; CI, release and image builds use Node 24 and the Pages job Python 3.14. The Docker image builds the UI on `node:24-slim` and runs on `gcr.io/distroless/static-debian13:nonroot` (both tags verified to exist).
+
+### Held back (with reasons)
+- `go.production.mod` / `go.production.sum` (used by the Dockerfile and the `kubernetes` CI jobs) were not touched and still pin the previous versions; they were identical to `go.mod`/`go.sum` before this change and no repo document says they must be kept in sync, so refresh them with the same `go get -u` when ready. `go.mod.bak.prod` is an old backup (client-go 0.32.4) and is left alone.
+- `eslint` and `@eslint/js` stay on 9.x: eslint 10 is rejected by the peer ranges of eslint-plugin-import, jsx-a11y and react, and by react-scripts 5.
+- `eslint-plugin-react-hooks` stays on 5.2.0: 7.x adds compiler rules that fail the CRA build on existing code (`react-hooks/set-state-in-effect`).
+- `tailwindcss` stays on 3.4.x (4 needs the new PostCSS plugin and config migration; CRA/craco does not support it). `react-scripts` 5.0.1 is the last release.
+- `react-day-picker` stays on 8 and `react-resizable-panels` on 3: the unused shadcn wrappers `ui/calendar.jsx` and `ui/resizable.jsx` are written for the old APIs.
+- `react-router` 8.x (react-router-dom has no v8 line): needs a migration of imports; stays on 7.18.6.
+- `deploy/postgres-lab` keeps `postgres:16-alpine`: a major bump would not start on existing data volumes. `actions/upload-artifact@v4` and `actions/configure-pages@v5` were not verified and are unchanged. A Go 1.26.x CI matrix was not added because `go.mod` requires 1.27.0. The Pages `markdown==3.7` pin was not raised: the site build could not be run here (no pip/venv on the host), so Python 3.14 for that job is also untested.
+
 ### Changed
 - Gateway API front door is now Setura instead of Envoy Gateway: Helm `expose.gateway.className` defaults to `setura`, the example manifest is `deploy/k8s/setura-gateway-example.yaml` (installed with `setura gateway install`), the demo inventory simulates Setura, and the Ingresses page detects and recommends Setura (`provider=setura`). Envoy Gateway and other controllers are still detected and listed.
 
