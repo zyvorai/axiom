@@ -49,23 +49,23 @@ curl -k https://<any-node-ip>:30590/api/v1/health
 
 ## 3. Common install variations
 
-**Behind Envoy Gateway (recommended)** — Gateway API replaces Ingress NGINX
-(retiring). Install [Envoy Gateway](https://gateway.envoyproxy.io/) once, then:
+**Behind Setura (recommended)** — Gateway API replaces Ingress NGINX
+(retiring). Install [Setura](https://github.com/zyvorai/zyvor-setura-gateway) once, then:
 
 ```bash
 # once per cluster
-helm install eg oci://docker.io/envoyproxy/gateway-helm \
-  --version v1.2.1 -n envoy-gateway-system --create-namespace
+setura gateway install --image ghcr.io/zyvorai/zyvor-setura-gateway:0.7.0 \
+  --namespace setura-system | kubectl apply -f -
 
 helm install axiom deploy/helm/axiom \
   --set expose.type=Gateway \
-  --set expose.gateway.className=eg \
+  --set expose.gateway.className=setura \
   --set expose.gateway.host=axiom.yourcompany.com \
   --set tls.existingSecret=your-ca-cert-secret \
   --set auth.username=admin --set auth.password='...'
 ```
 
-Or apply the example manifests: `deploy/k8s/envoy-gateway-example.yaml`.
+Or apply the example manifests: `deploy/k8s/setura-gateway-example.yaml`.
 
 **Legacy Ingress** (only if you still run an Ingress controller):
 

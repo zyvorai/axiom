@@ -396,7 +396,7 @@ A cordoned node's `status` reports `"SchedulingDisabled"` (and `unschedulable: t
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects (`controller`, `provider` e.g. `envoy`, `addresses`). Returns `[]` (not an error) when the Gateway API CRDs aren't installed. Prefer Envoy Gateway (`provider=envoy`) over Ingress NGINX. |
+| GET | `/api/v1/gateways?namespace=...` | List GatewayClass/Gateway/HTTPRoute objects (`controller`, `provider` e.g. `setura`, `envoy`, `addresses`). Returns `[]` (not an error) when the Gateway API CRDs aren't installed. Prefer Setura (`provider=setura`) over Ingress NGINX. |
 | GET | `/api/v1/accelerators` | NVIDIA GPU inventory: operator/device-plugin/DCGM, GPU nodes (product, sharing, MIG), GPU pods (incl. FailedScheduling), GPU ResourceQuotas, optional DRA counts, DCGM util snapshot, and `waste[]` GPU over-request hints when Prometheus is configured |
 | POST | `/api/v1/accelerators/rightsizing/apply` | Lower `nvidia.com/gpu` requests on a Deployment/StatefulSet (`{namespace,kind,name,container?,dryRun}`). Operator/admin; audited as `accelerators.gpu_rightsizing` |
 | GET | `/api/v1/dra` | Read-only DRA inventory (DeviceClass / ResourceSlice / ResourceClaim[/Template]) when `resource.k8s.io` is present |

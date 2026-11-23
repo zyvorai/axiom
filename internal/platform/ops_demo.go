@@ -689,8 +689,8 @@ func (d *DemoProvider) ListIngresses(ctx context.Context, ns string) ([]IngressS
 
 func (d *DemoProvider) ListGateways(ctx context.Context, ns string) ([]GatewaySummary, error) {
 	all := []GatewaySummary{
-		{Kind: "GatewayClass", Name: "eg", Controller: "gateway.envoyproxy.io/gatewayclass-controller", Provider: "envoy", Status: "Accepted", Age: "60d"},
-		{Kind: "Gateway", Namespace: "commerce", Name: "checkout-gateway", Class: "eg", Provider: "envoy", Hosts: []string{"checkout.zyvor.dev"}, Addresses: []string{"203.0.113.40"}, Status: "Programmed", Age: "20d"},
+		{Kind: "GatewayClass", Name: "setura", Controller: "zyvor.dev/setura-gateway", Provider: "setura", Status: "Accepted", Age: "60d"},
+		{Kind: "Gateway", Namespace: "commerce", Name: "checkout-gateway", Class: "setura", Provider: "setura", Hosts: []string{"checkout.zyvor.dev"}, Addresses: []string{"203.0.113.40"}, Status: "Programmed", Age: "20d"},
 		{Kind: "HTTPRoute", Namespace: "commerce", Name: "checkout-route", Hosts: []string{"checkout.zyvor.dev"}, Status: "Accepted", Age: "20d"},
 		{Kind: "HTTPRoute", Namespace: "commerce", Name: "checkout-grpc", Hosts: []string{"checkout-grpc.zyvor.dev"}, Status: "Accepted", Age: "12d"},
 	}

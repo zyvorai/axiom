@@ -1137,7 +1137,7 @@ type GatewaySummary struct {
 	Name       string   `json:"name"`
 	Class      string   `json:"class,omitempty"`
 	Controller string   `json:"controller,omitempty"` // GatewayClass.spec.controllerName
-	Provider   string   `json:"provider,omitempty"`   // envoy | nginx | istio | other | ""
+	Provider   string   `json:"provider,omitempty"`   // setura | envoy | nginx | istio | other | ""
 	Hosts      []string `json:"hosts,omitempty"`
 	Addresses  []string `json:"addresses,omitempty"`
 	Status     string   `json:"status,omitempty"`

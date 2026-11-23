@@ -643,12 +643,12 @@
     "noGateways": "Gateway API オブジェクト（GatewayClass/Gateway/HTTPRoute）が見つかりません。",
     "legacyTitle": "Ingress resources",
     "gatewayTitle": "Gateway API",
-    "envoy": {
-      "title": "Envoy Gateway",
+    "setura": {
+      "title": "Setura",
       "detected": "detected",
       "notDetected": "not installed",
-      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Envoy (deep observability, gRPC/HTTP3-capable data plane). Use this instead of Ingress NGINX when migrating.",
-      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Envoy Gateway (Gateway + HTTPRoute)."
+      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Setura (built-in Go proxy, no extra images, HTTP/gRPC/TLS/TCP/UDP routes). Use this instead of Ingress NGINX when migrating.",
+      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Setura (Gateway + HTTPRoute)."
     }
   },
   "autoTable": {

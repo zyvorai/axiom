@@ -64,7 +64,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  gatewayClassName: {{ .Values.expose.gateway.className | default "eg" }}
+  gatewayClassName: {{ .Values.expose.gateway.className | default "setura" }}
   listeners:
     - name: https
       protocol: HTTPS

@@ -3,7 +3,7 @@ package platform
 import "strings"
 
 // gatewayProvider classifies a GatewayClass controller / class name for the UI
-// (Envoy Gateway is the recommended replacement for retiring Ingress NGINX).
+// (Setura is the recommended replacement for retiring Ingress NGINX; Envoy Gateway and others are still recognised).
 func gatewayProvider(controller, className string) string {
 	c := strings.ToLower(strings.TrimSpace(controller))
 	class := strings.ToLower(strings.TrimSpace(className))
@@ -11,6 +11,8 @@ func gatewayProvider(controller, className string) string {
 	switch {
 	case s == "":
 		return ""
+	case strings.Contains(s, "setura"):
+		return "setura"
 	case strings.Contains(s, "envoyproxy.io") || strings.Contains(s, "envoy") ||
 		class == "eg" || class == "envoy-gateway":
 		return "envoy"
