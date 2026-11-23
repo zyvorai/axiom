@@ -31,6 +31,7 @@
 | When this happens… | Axiom gives you… |
 |---|---|
 | Your team thinks in apps, not Pods | An application-first Workloads view with start, stop, restart, scale, rollout history and undo |
+| An upgrade or drain is coming | A Readiness page: namespaces without a recent Velero backup, PodDisruptionBudgets that will stall a drain, and a removed/deprecated API check for your manifests |
 | A pod will not start | A plain-English "why is this pod not running", built from scheduling conditions, Events and container waiting reasons |
 | Something broke and nobody knows what changed | A Timeline of events, audit entries, alerts and rollouts, also a *What changed* tab on every workload |
 | You run more than one cluster | Fleet: every cluster's health, latency, nodes, pods and CPU/memory, with one-click switching |
@@ -76,7 +77,7 @@ Axiom is deliberately small to run: a single Go binary with the React UI embedde
 | **Storage** | PVCs by StorageClass, PersistentVolumes, Backups (VolumeSnapshots and Velero), and the optional Atlas control plane. |
 | **Virtual machines** | KubeVirt lifecycle (start, stop, migrate), snapshots, clones, exports, restores. |
 | **Understand** | Health check, Timeline, Security reports, a resource graph per workload, an Access review ("who can delete Secrets here?"), and opt-in *Explain with AI* with redacted, previewed payloads. |
-| **Ops hub** | Helm, GitOps, Agents, Identity, Audit with CSV export, RBAC, Webhooks, Cost. |
+| **Ops hub** | Helm, GitOps, Agents, Identity, Audit with CSV export, RBAC, Webhooks, Cost, and Readiness (backup coverage, drain-blocking PodDisruptionBudgets, deprecated-API check). |
 | **Everywhere** | ⌘K command palette, saved views, keyboard shortcuts, notification inbox, light and dark themes, English, Deutsch, Español, Français, Português, Italiano, 日本語 and 简体中文. |
 
 The complete page-by-page list is in [docs/customer/PAGE_INDEX.md](docs/customer/PAGE_INDEX.md).
@@ -185,7 +186,7 @@ Fake clientsets do not reproduce API-server validation, admission, server-side a
 
 ## Documentation
 
-[Quickstart](docs/QUICKSTART.md) · [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.md) · [Deployment](docs/DEPLOYMENT.md) · [Design system](docs/DESIGN-SYSTEM.md) · [Backup and restore](docs/BACKUP-RESTORE.md) · [Compliance](docs/COMPLIANCE.md) · [Roadmap](docs/ROADMAP.md) · [Verification](docs/VERIFICATION.md) · [Changelog](CHANGELOG.md)
+[Quickstart](docs/QUICKSTART.md) · [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.md) · [Deployment](docs/DEPLOYMENT.md) · [Design system](docs/DESIGN-SYSTEM.md) · [Backup and restore](docs/BACKUP-RESTORE.md) · [Compliance](docs/COMPLIANCE.md) · [Roadmap](docs/ROADMAP.md) · [Research](docs/RESEARCH.md) · [Verification](docs/VERIFICATION.md) · [Changelog](CHANGELOG.md)
 
 ```text
 cmd/zyvor-axiom/    server entrypoint          frontend/    React UX source (edit here)

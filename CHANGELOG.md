@@ -4,6 +4,11 @@ All notable changes to Zyvor Axiom are documented here.
 
 ## [Unreleased]
 
+### Added
+- **Backup coverage** (`GET /api/v1/backups/coverage`, MCP `backup_coverage`, Ops -> Readiness): per namespace that holds data, whether a completed Velero backup that includes it is recent enough (`protected`, `stale`, `failing`, `unprotected`), with the data size at risk. Read-only; a completed backup is not proof it restores.
+- **Disruption readiness audit** (`GET /api/v1/disruption/audit`, MCP `disruption_audit`, Ops -> Readiness): PodDisruptionBudgets that can never allow an eviction (`minAvailable` at or above the Pods, `100%`, `maxUnavailable` 0), budgets with too few healthy Pods, budgets that select nothing, and namespaces running replicated workloads with no budget. Budgets are not matched to workloads (the PDB summary has no selector).
+- **Deprecated API check** (`POST /api/v1/manifests/deprecations`, MCP `check_api_deprecations`, Ops -> Readiness): paste manifests and see removed or deprecated built-in API versions with the release that removed them and the replacement. Static table, size and document caps, nothing applied. Strings in all 8 locales; research and ranking in [docs/RESEARCH.md](docs/RESEARCH.md).
+
 ### Dependencies and tooling
 - Go modules updated with `go get -u ./... && go mod tidy` (client-go, api and apimachinery 0.37.0 to 0.37.2, pgx 5.13.0, x/crypto 0.59.0, x/net 0.63.0, etree 1.8.1, goxmldsig 1.6.1 and the transitive set). `go` directive stays 1.27.0 (the toolchain is 1.27.4). No newer major module path exists for any direct dependency (probed pgx, websocket, etree, sigs.k8s.io/yaml, goxmldsig).
 - Frontend packages updated to their latest releases, including the majors for i18next 27, react-i18next 18, lucide-react 1.x, framer-motion 14, dotenv 18, globals 17, zod 4 and @hookform/resolvers 7 (the last two are not imported anywhere); the `react-router` override follows react-router-dom 7.18.6. `npm run lint` and `craco build` pass.

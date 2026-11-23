@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -143,6 +144,9 @@ func (s *Server) mcpToolDefs() []mcpTool {
 			"namespace": str, "kind": str, "name": str,
 		}, "namespace", "name")},
 		{Name: "list_dra", Description: "DRA inventory (DeviceClass / ResourceSlice / ResourceClaim)", InputSchema: obj(map[string]any{})},
+		{Name: "backup_coverage", Description: "Which namespaces with data have no recent completed Velero backup (read-only)", InputSchema: obj(map[string]any{"maxAgeDays": str})},
+		{Name: "disruption_audit", Description: "PodDisruptionBudgets that would stall a drain, and replicated namespaces with no budget (read-only)", InputSchema: obj(map[string]any{"namespace": str})},
+		{Name: "check_api_deprecations", Description: "Flag removed or deprecated Kubernetes apiVersions in a manifest you pass (nothing is applied)", InputSchema: obj(map[string]any{"manifest": str}, "manifest")},
 		{Name: "recent_changes", Description: "Ranked changes (GitOps, Helm, rollouts, config, nodes, HPA, audit) before a time; window like 60m", InputSchema: obj(map[string]any{
 			"namespace": str, "workload": str, "at": str, "window": str,
 		})},
@@ -235,6 +239,21 @@ func (s *Server) mcpCallTool(r *http.Request, params json.RawMessage) (map[strin
 		payload, err = s.provider.GetResource(ctx, str("namespace"), str("kind"), str("name"))
 	case "list_dra":
 		payload, err = platform.ListDRA(ctx, s.provider)
+	case "backup_coverage":
+		maxAge := platform.BackupCoverageDefaultMaxAgeDays
+		if v := str("maxAgeDays"); v != "" {
+			n, perr := strconv.Atoi(v)
+			if perr != nil || n < 1 || n > platform.BackupCoverageMaxAgeDaysCap {
+				err = fmt.Errorf("maxAgeDays must be a whole number from 1 to %d", platform.BackupCoverageMaxAgeDaysCap)
+				break
+			}
+			maxAge = n
+		}
+		payload, err = platform.BackupCoverage(ctx, s.provider, maxAge)
+	case "disruption_audit":
+		payload, err = platform.DisruptionAudit(ctx, s.provider, str("namespace"))
+	case "check_api_deprecations":
+		payload, err = platform.CheckAPIDeprecations(str("manifest"))
 	case "recent_changes":
 		at, window, perr := parseChangeParams(str("at"), str("window"), time.Now())
 		if perr != nil {
