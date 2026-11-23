@@ -3,9 +3,9 @@ package platform
 import "sync"
 
 var (
-	trackMu          sync.Mutex
-	presenceCounts   = map[string]int{}
-	windowCounts     = map[string]int{}
+	trackMu        sync.Mutex
+	presenceCounts = map[string]int{}
+	windowCounts   = map[string]int{}
 )
 
 func podKey(ns, name string) string { return ns + "/" + name }

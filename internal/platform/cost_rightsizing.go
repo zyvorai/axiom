@@ -16,8 +16,8 @@ import (
 // rightsizing recommender prices its deltas with the same rates so a
 // recommendation's savings line up with the Cost tab's totals.
 const (
-	costCPURatePerCore     = 20.0
-	costMemoryRatePerGi    = 5.0
+	costCPURatePerCore       = 20.0
+	costMemoryRatePerGi      = 5.0
 	costGPURatePerGpuDefault = 100.0
 )
 

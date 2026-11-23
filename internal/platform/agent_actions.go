@@ -8,12 +8,12 @@ import (
 
 // Allowlisted AgentAction.Type values Axiom will propose and execute.
 const (
-	AgentActionRestartPod      = "restart_pod"
-	AgentActionDeletePod       = "delete_pod"
-	AgentActionScaleWorkload   = "scale_workload"
-	AgentActionRolloutRestart  = "rollout_restart"
-	AgentActionCordonNode      = "cordon_node"
-	AgentActionUncordonNode    = "uncordon_node"
+	AgentActionRestartPod       = "restart_pod"
+	AgentActionDeletePod        = "delete_pod"
+	AgentActionScaleWorkload    = "scale_workload"
+	AgentActionRolloutRestart   = "rollout_restart"
+	AgentActionCordonNode       = "cordon_node"
+	AgentActionUncordonNode     = "uncordon_node"
 	AgentActionApplyRightsizing = "apply_rightsizing"
 	AgentActionSealWorkload     = "seal_workload"
 	AgentActionClonePVC         = "clone_pvc"

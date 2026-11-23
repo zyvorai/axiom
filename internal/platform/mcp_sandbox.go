@@ -42,7 +42,7 @@ func MintMCPSandbox(user, namespace string, actions []string, ttl time.Duration)
 		}
 	}
 	g := MCPSandboxGrant{
-		ID: fmt.Sprintf("sbx-%d", time.Now().UnixNano()),
+		ID:   fmt.Sprintf("sbx-%d", time.Now().UnixNano()),
 		User: user, Namespace: namespace, Actions: actions,
 		ExpiresAt: time.Now().UTC().Add(ttl),
 		Note:      "Ephemeral HITL sandbox — does not mint ClusterRoles; gates allowlisted agent apply",

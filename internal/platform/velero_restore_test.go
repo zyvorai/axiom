@@ -22,10 +22,13 @@ func TestNormalizeVeleroRestoreRequest(t *testing.T) {
 		"policy":    func(r *VeleroRestoreRequest) { r.ExistingResourcePolicy = "delete" },
 		"star mix":  func(r *VeleroRestoreRequest) { r.IncludedNamespaces = []string{"*", "a"} },
 		"excl star": func(r *VeleroRestoreRequest) { r.ExcludedNamespaces = []string{"*"} },
-		"both":      func(r *VeleroRestoreRequest) { r.IncludedNamespaces = []string{"a"}; r.ExcludedNamespaces = []string{"a"} },
-		"map dup":   func(r *VeleroRestoreRequest) { r.NamespaceMapping = map[string]string{"a": "x", "b": "x"} },
-		"map bad":   func(r *VeleroRestoreRequest) { r.NamespaceMapping = map[string]string{"a": "X Y"} },
-		"ns bad":    func(r *VeleroRestoreRequest) { r.IncludedNamespaces = []string{"a b"} },
+		"both": func(r *VeleroRestoreRequest) {
+			r.IncludedNamespaces = []string{"a"}
+			r.ExcludedNamespaces = []string{"a"}
+		},
+		"map dup": func(r *VeleroRestoreRequest) { r.NamespaceMapping = map[string]string{"a": "x", "b": "x"} },
+		"map bad": func(r *VeleroRestoreRequest) { r.NamespaceMapping = map[string]string{"a": "X Y"} },
+		"ns bad":  func(r *VeleroRestoreRequest) { r.IncludedNamespaces = []string{"a b"} },
 	}
 	for name, mut := range bad {
 		r := baseRestore()

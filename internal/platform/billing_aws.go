@@ -22,11 +22,11 @@ import (
 // Live accounts: e2e/scripts/validate-billing-live.sh.
 
 type awsBillingClient struct {
-	t                    billingTransport
-	host, region         string
-	accessKey, secret    string
-	sessionToken         string
-	tagKey, tagValue     string
+	t                 billingTransport
+	host, region      string
+	accessKey, secret string
+	sessionToken      string
+	tagKey, tagValue  string
 }
 
 func newAWSBillingClient(cfg Integrations, t *billingTransport) (*awsBillingClient, error) {
@@ -46,7 +46,7 @@ func newAWSBillingClient(cfg Integrations, t *billingTransport) (*awsBillingClie
 		t: tr, host: host, region: cfg.BillingAWSRegion,
 		accessKey: cfg.BillingAWSAccessKeyID, secret: cfg.BillingAWSSecretAccessKey,
 		sessionToken: strings.TrimSpace(cfg.BillingAWSSessionToken),
-		tagKey: cfg.BillingTagKey, tagValue: cfg.BillingTagValue,
+		tagKey:       cfg.BillingTagKey, tagValue: cfg.BillingTagValue,
 	}, nil
 }
 
@@ -84,8 +84,8 @@ type awsCEResponse struct {
 		TimePeriod struct{ Start, End string } `json:"TimePeriod"`
 		Total      map[string]awsCEMetric      `json:"Total"`
 		Groups     []struct {
-			Keys    []string                `json:"Keys"`
-			Metrics map[string]awsCEMetric  `json:"Metrics"`
+			Keys    []string               `json:"Keys"`
+			Metrics map[string]awsCEMetric `json:"Metrics"`
 		} `json:"Groups"`
 	} `json:"ResultsByTime"`
 	NextPageToken string `json:"NextPageToken,omitempty"`

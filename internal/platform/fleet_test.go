@@ -27,7 +27,7 @@ func newFake(ov Overview) *fakeCluster {
 	return f
 }
 
-func (f *fakeCluster) setErr(err error)    { f.err.Store(errBox{err}) }
+func (f *fakeCluster) setErr(err error)  { f.err.Store(errBox{err}) }
 func (f *fakeCluster) setOv(ov Overview) { f.ov.Store(ov) }
 
 func (f *fakeCluster) Overview(ctx context.Context) (Overview, error) {

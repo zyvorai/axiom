@@ -177,10 +177,10 @@ func (c *OpenCostClient) fetch(ctx context.Context, window string) (openCostAllo
 	u := *c.base
 	u.Path = c.base.Path + "/allocation/compute"
 	u.RawQuery = url.Values{
-		"window":     {window},
-		"aggregate":  {"namespace,controllerKind,controller"},
-		"accumulate": {"true"},
-		"shareIdle":  {"true"},
+		"window":      {window},
+		"aggregate":   {"namespace,controllerKind,controller"},
+		"accumulate":  {"true"},
+		"shareIdle":   {"true"},
 		"includeIdle": {"true"},
 	}.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)

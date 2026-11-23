@@ -7,13 +7,13 @@ import (
 
 // VAPSummary is a ValidatingAdmissionPolicy (native Kubernetes admission).
 type VAPSummary struct {
-	Name       string   `json:"name"`
-	Kind       string   `json:"kind"` // ValidatingAdmissionPolicy | ValidatingAdmissionPolicyBinding
-	ParamKind  string   `json:"paramKind,omitempty"`
-	Validations int     `json:"validations,omitempty"`
-	Bindings   []string `json:"bindings,omitempty"`
-	Age        string   `json:"age,omitempty"`
-	Status     string   `json:"status,omitempty"`
+	Name        string   `json:"name"`
+	Kind        string   `json:"kind"` // ValidatingAdmissionPolicy | ValidatingAdmissionPolicyBinding
+	ParamKind   string   `json:"paramKind,omitempty"`
+	Validations int      `json:"validations,omitempty"`
+	Bindings    []string `json:"bindings,omitempty"`
+	Age         string   `json:"age,omitempty"`
+	Status      string   `json:"status,omitempty"`
 }
 
 // VAPReport is GET /api/v1/admission-policies.

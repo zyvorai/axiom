@@ -230,14 +230,14 @@ func truncateBytes(b []byte, n int) string {
 
 func DemoAtlasSummary() AtlasSummary {
 	return AtlasSummary{
-		Available: true,
-		Reason:    "demo Atlas fabric",
-		BaseURL:   "demo://atlas",
-		Backends:  json.RawMessage(`[{"id":"ceph-lab","kind":"ceph","healthy":true}]`),
-		Pools:     json.RawMessage(`[{"name":"rbd-prod","backend":"ceph-lab","type":"rbd"}]`),
-		Policies:  json.RawMessage(`[{"intent":"production","storage_class":"zyvor-rbd-prod"},{"intent":"shared","storage_class":"zyvor-cephfs-shared"}]`),
-		Volumes:   json.RawMessage(`[]`),
-		Buckets:   json.RawMessage(`[]`),
+		Available:      true,
+		Reason:         "demo Atlas fabric",
+		BaseURL:        "demo://atlas",
+		Backends:       json.RawMessage(`[{"id":"ceph-lab","kind":"ceph","healthy":true}]`),
+		Pools:          json.RawMessage(`[{"name":"rbd-prod","backend":"ceph-lab","type":"rbd"}]`),
+		Policies:       json.RawMessage(`[{"intent":"production","storage_class":"zyvor-rbd-prod"},{"intent":"shared","storage_class":"zyvor-cephfs-shared"}]`),
+		Volumes:        json.RawMessage(`[]`),
+		Buckets:        json.RawMessage(`[]`),
 		StorageClasses: json.RawMessage(`[{"name":"zyvor-rbd-prod"},{"name":"zyvor-cephfs-shared"}]`),
 	}
 }

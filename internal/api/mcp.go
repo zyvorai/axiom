@@ -50,9 +50,9 @@ func (s *Server) registerMCP(mux *http.ServeMux) {
 
 func (s *Server) mcpInfo(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"protocol": "mcp",
+		"protocol":  "mcp",
 		"transport": "http+jsonrpc",
-		"endpoint": "/api/v1/mcp",
+		"endpoint":  "/api/v1/mcp",
 		"server": map[string]string{
 			"name":    "zyvor-axiom",
 			"version": buildVersion,

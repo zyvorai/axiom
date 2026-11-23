@@ -39,29 +39,29 @@ type HavenDatabase struct {
 
 // HavenAdminBootstrap points at the Keycloak operator bootstrap secret (no password returned).
 type HavenAdminBootstrap struct {
-	Namespace  string `json:"namespace"`
-	SecretName string `json:"secretName"`
+	Namespace   string `json:"namespace"`
+	SecretName  string `json:"secretName"`
 	UsernameKey string `json:"usernameKey,omitempty"`
 	PasswordKey string `json:"passwordKey,omitempty"`
-	Exists     bool   `json:"exists"`
-	Hint       string `json:"hint,omitempty"`
+	Exists      bool   `json:"exists"`
+	Hint        string `json:"hint,omitempty"`
 }
 
 // HavenIdentitySummary is the Ops → Identity deck payload.
 type HavenIdentitySummary struct {
-	Planes     []IdentityPlane      `json:"planes"`
-	Keycloaks  []HavenKeycloak      `json:"keycloaks"`
-	Databases  []HavenDatabase      `json:"databases"`
-	Admin      *HavenAdminBootstrap `json:"admin,omitempty"`
-	OIDC       HavenOIDCHints       `json:"oidc"`
-	Ready      bool                 `json:"ready"`
-	Message    string               `json:"message,omitempty"`
+	Planes    []IdentityPlane      `json:"planes"`
+	Keycloaks []HavenKeycloak      `json:"keycloaks"`
+	Databases []HavenDatabase      `json:"databases"`
+	Admin     *HavenAdminBootstrap `json:"admin,omitempty"`
+	OIDC      HavenOIDCHints       `json:"oidc"`
+	Ready     bool                 `json:"ready"`
+	Message   string               `json:"message,omitempty"`
 }
 
 type HavenOIDCHints struct {
-	Issuer   string `json:"issuer,omitempty"`
-	LoginURL string `json:"loginURL,omitempty"`
-	ClientID string `json:"clientID,omitempty"`
-	Configured bool `json:"configured"`
-	Note     string `json:"note,omitempty"`
+	Issuer     string `json:"issuer,omitempty"`
+	LoginURL   string `json:"loginURL,omitempty"`
+	ClientID   string `json:"clientID,omitempty"`
+	Configured bool   `json:"configured"`
+	Note       string `json:"note,omitempty"`
 }

@@ -10,7 +10,7 @@ func (d *DemoProvider) GetHavenIdentity(ctx context.Context, ns string) (HavenId
 	return HavenIdentitySummary{
 		Planes: planes, Keycloaks: kcs, Databases: dbs, Admin: &admin,
 		OIDC: HavenOIDCHints{
-			Issuer: "http://auth.example.local/realms/platform",
+			Issuer:   "http://auth.example.local/realms/platform",
 			LoginURL: "http://auth.example.local/realms/platform/protocol/openid-connect/auth",
 			ClientID: "axiom", Configured: false,
 			Note: "Demo — configure AXIOM_OIDC_* against a live Haven plane",

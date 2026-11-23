@@ -34,12 +34,12 @@ type Config struct {
 	// TLSClientCA (AXIOM_TLS_CLIENT_CA) enables mutual TLS: the PEM CA that
 	// signs browser/API client certificates. TLSMTLS (AXIOM_TLS_MTLS) is
 	// require|request|off; when the CA is set and TLSMTLS is empty, require.
-	TLSClientCA string
-	TLSMTLS     string
-	APIKey             string
-	OIDCLogin          string
-	OIDCIssuer         string
-	OIDCClient         string
+	TLSClientCA       string
+	TLSMTLS           string
+	APIKey            string
+	OIDCLogin         string
+	OIDCIssuer        string
+	OIDCClient        string
 	SAMLLogin         string
 	SAMLEntityID      string
 	SAMLIDPCert       string
@@ -163,24 +163,24 @@ func FromEnv() Config {
 		TOTPSecret: strings.TrimSpace(os.Getenv("AXIOM_TOTP_SECRET")),
 		SessionTTL: envDuration("AXIOM_SESSION_TTL", 12*time.Hour),
 
-		FleetProbeInterval: fleetProbeInterval(),
+		FleetProbeInterval:          fleetProbeInterval(),
 		FleetHistoryPersistInterval: fleetHistoryPersistInterval(),
-		BudgetCheckInterval: budgetCheckInterval(),
-		RequireMFA:         requireMFA(),
-		RevocationRefresh:  revocationRefresh(),
-		SAMLAllowIdPInitiated: truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
+		BudgetCheckInterval:         budgetCheckInterval(),
+		RequireMFA:                  requireMFA(),
+		RevocationRefresh:           revocationRefresh(),
+		SAMLAllowIdPInitiated:       truthy(os.Getenv("AXIOM_SAML_ALLOW_IDP_INITIATED")),
 
-		PrometheusURL:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
-		PrometheusToken: strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
+		PrometheusURL:     strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_URL")),
+		PrometheusToken:   strings.TrimSpace(os.Getenv("AXIOM_PROMETHEUS_TOKEN")),
 		AlertmanagerURL:   strings.TrimSpace(os.Getenv("AXIOM_ALERTMANAGER_URL")),
 		AlertmanagerToken: strings.TrimSpace(os.Getenv("AXIOM_ALERTMANAGER_TOKEN")),
 
-		PodProxyAddr:   strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
-		PodProxyOrigin: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
+		PodProxyAddr:    strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ADDR")),
+		PodProxyOrigin:  strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_ORIGIN")),
 		PodProxyTLSCert: strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_TLS_CERT")),
 		PodProxyTLSKey:  strings.TrimSpace(os.Getenv("AXIOM_POD_PROXY_TLS_KEY")),
-		OpenCostURL:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
-		OpenCostToken: strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
+		OpenCostURL:     strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_URL")),
+		OpenCostToken:   strings.TrimSpace(os.Getenv("AXIOM_OPENCOST_TOKEN")),
 	}
 }
 

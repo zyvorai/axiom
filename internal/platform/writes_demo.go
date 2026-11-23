@@ -97,8 +97,8 @@ func (d *DemoProvider) CreateService(ctx context.Context, req CreateServiceReque
 	}
 	svc := Service{
 		Namespace: req.Namespace, Name: req.Name, Type: typ, ClusterIP: "10.96.0.50",
-		Ports:     []ServicePort{{Port: port, TargetPort: fmt.Sprintf("%d", tp), Protocol: "TCP"}},
-		Selector:  req.Selector, Endpoints: []string{}, Age: "now",
+		Ports:    []ServicePort{{Port: port, TargetPort: fmt.Sprintf("%d", tp), Protocol: "TCP"}},
+		Selector: req.Selector, Endpoints: []string{}, Age: "now",
 	}
 	demoServicesExtraMu.Lock()
 	defer demoServicesExtraMu.Unlock()

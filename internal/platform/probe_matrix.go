@@ -8,8 +8,8 @@ import (
 
 // ProbeMatrixRequest runs data-plane reachability checks from pods (or Axiom).
 type ProbeMatrixRequest struct {
-	URLs []string          `json:"urls"`
-	Pods []ProbeMatrixPod  `json:"pods"`
+	URLs []string         `json:"urls"`
+	Pods []ProbeMatrixPod `json:"pods"`
 }
 
 type ProbeMatrixPod struct {

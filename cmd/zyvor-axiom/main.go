@@ -153,7 +153,7 @@ func main() {
 
 		HelmRegistryCredStore: platform.OpenHelmRegistryCredStore(cfg.Mode, provider),
 
-		PodProxy:          podProxy,
+		PodProxy:           podProxy,
 		SAMLRequestStore:   platform.OpenSAMLRequestStore(cfg.Mode, provider),
 		StreamTicketStore:  platform.OpenStreamTicketStore(cfg.Mode, provider),
 		LoginThrottleStore: platform.OpenLoginThrottleStore(cfg.Mode, provider),
