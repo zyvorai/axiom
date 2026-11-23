@@ -638,7 +638,7 @@
   },
   "ingresses": {
     "title": "Ingresses",
-    "description": "Legacy Ingress routes and Gateway API (Envoy Gateway preferred) for exposing services.",
+    "description": "Legacy Ingress routes and Gateway API (Setura preferred) for exposing services.",
     "search": "Search by name or host",
     "legacyTitle": "Ingress resources",
     "gatewayTitle": "Gateway API",
@@ -649,13 +649,13 @@
       "provider": "Provider"
     },
     "empty": "No ingresses match the current filters.",
-    "noGateways": "No Gateway API objects found. Install Envoy Gateway and apply a GatewayClass (eg) — see deploy/k8s/envoy-gateway-example.yaml.",
-    "envoy": {
-      "title": "Envoy Gateway",
+    "noGateways": "No Gateway API objects found. Install Setura (setura gateway install) — see deploy/k8s/setura-gateway-example.yaml.",
+    "setura": {
+      "title": "Setura",
       "detected": "detected",
       "notDetected": "not installed",
-      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Envoy (deep observability, gRPC/HTTP3-capable data plane). Use this instead of Ingress NGINX when migrating.",
-      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Envoy Gateway (Gateway + HTTPRoute)."
+      "lead": "Preferred north-south path for cloud-native traffic: Gateway API + Setura (built-in Go proxy, no extra images, HTTP/gRPC/TLS/TCP/UDP routes). Use this instead of Ingress NGINX when migrating.",
+      "nginxRetiring": "Ingress class nginx is still in use. Ingress NGINX is retiring — plan a move to Setura (Gateway + HTTPRoute)."
     }
   },
   "autoTable": {

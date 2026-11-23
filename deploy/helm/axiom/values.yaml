@@ -156,9 +156,9 @@ podProxy:
     nodePort: ""
 
 # How the Service is exposed. One of: ClusterIP, NodePort, Ingress, Gateway.
-# Prefer Gateway (Envoy Gateway) over Ingress NGINX — the Ingress NGINX
-# controller is retiring; Gateway API + Envoy is the cloud-native path
-# (HTTP/gRPC observability, HTTP/3-capable data plane).
+# Prefer Gateway (Setura) over Ingress NGINX — the Ingress NGINX
+# controller is retiring; Gateway API + Setura is the cloud-native path
+# (HTTP/gRPC/TLS/TCP/UDP routes, built-in Go data plane).
 expose:
   type: NodePort
   nodePort: 30590
@@ -167,9 +167,9 @@ expose:
     host: ""
     annotations: {}
   gateway:
-    # GatewayClass created by Envoy Gateway (helm: eg / controller
-    # gateway.envoyproxy.io/gatewayclass-controller).
-    className: eg
+    # GatewayClass created by `setura gateway install` (class setura / controller
+    # zyvor.dev/setura-gateway).
+    className: setura
     host: ""
     port: 443
     annotations: {}

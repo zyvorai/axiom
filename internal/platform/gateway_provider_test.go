@@ -6,6 +6,8 @@ func TestGatewayProvider(t *testing.T) {
 	cases := []struct {
 		controller, class, want string
 	}{
+		{"zyvor.dev/setura-gateway", "setura", "setura"},
+		{"", "setura", "setura"},
 		{"gateway.envoyproxy.io/gatewayclass-controller", "eg", "envoy"},
 		{"", "eg", "envoy"},
 		{"", "envoy-gateway", "envoy"},

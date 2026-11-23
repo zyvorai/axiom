@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 function providerTone(provider) {
     switch (provider) {
+        case "setura":
         case "envoy":
             return "var(--green)";
         case "nginx":
@@ -59,8 +60,8 @@ export default function Ingresses() {
         return list.filter((g) => !g.namespace || g.namespace === ns);
     }, [gateways, ns]);
 
-    const hasEnvoy = useMemo(
-        () => (gateways || []).some((g) => g.provider === "envoy" || String(g.controller || "").includes("envoyproxy.io")),
+    const hasSetura = useMemo(
+        () => (gateways || []).some((g) => g.provider === "setura" || String(g.controller || "").includes("zyvor.dev/setura-gateway")),
         [gateways]
     );
     const hasNginxIngressClass = useMemo(
@@ -101,23 +102,23 @@ export default function Ingresses() {
             <GlassCard className="space-y-2 p-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
                     <Radio size={15} className="text-tone-link" />
-                    {t("pages:ingresses.envoy.title")}
-                    {hasEnvoy ? (
+                    {t("pages:ingresses.setura.title")}
+                    {hasSetura ? (
                         <span className="pill" style={{ "--c": "var(--green)" }}>
                             <i aria-hidden="true" />
-                            {t("pages:ingresses.envoy.detected")}
+                            {t("pages:ingresses.setura.detected")}
                         </span>
                     ) : (
                         <span className="pill" style={{ "--c": "var(--ink-3)" }}>
                             <i aria-hidden="true" />
-                            {t("pages:ingresses.envoy.notDetected")}
+                            {t("pages:ingresses.setura.notDetected")}
                         </span>
                     )}
                 </div>
-                <p className="text-[13px] text-ink-3">{t("pages:ingresses.envoy.lead")}</p>
-                {hasNginxIngressClass && !hasEnvoy ? (
+                <p className="text-[13px] text-ink-3">{t("pages:ingresses.setura.lead")}</p>
+                {hasNginxIngressClass && !hasSetura ? (
                     <p className="text-[13px] text-tone-amber" role="status">
-                        {t("pages:ingresses.envoy.nginxRetiring")}
+                        {t("pages:ingresses.setura.nginxRetiring")}
                     </p>
                 ) : null}
             </GlassCard>

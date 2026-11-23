@@ -1,14 +1,14 @@
-# Example: expose Axiom through Envoy Gateway (Gateway API).
-# Prefer this over Ingress NGINX (retiring). Requires Envoy Gateway installed
-# and a GatewayClass (default name: eg) with controller
-# gateway.envoyproxy.io/gatewayclass-controller.
+# Example: expose Axiom through Setura (Gateway API).
+# Prefer this over Ingress NGINX (retiring). Requires Setura installed
+# and its GatewayClass (default name: setura) with controller
+# zyvor.dev/setura-gateway, plus the standard Gateway API CRDs.
 #
-# Install Envoy Gateway (once per cluster):
-#   helm install eg oci://docker.io/envoyproxy/gateway-helm \
-#     --version v1.2.1 -n envoy-gateway-system --create-namespace
+# Install Setura (once per cluster; needs the `setura` CLI):
+#   setura gateway install --image ghcr.io/zyvorai/zyvor-setura-gateway:0.7.0 \
+#     --namespace setura-system | kubectl apply -f -
 #
 # Then apply (edit hostname + certificate Secret first):
-#   kubectl apply -f deploy/k8s/envoy-gateway-example.yaml
+#   kubectl apply -f deploy/k8s/setura-gateway-example.yaml
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -19,7 +19,7 @@ metadata:
     app.kubernetes.io/name: zyvor-axiom
     app.kubernetes.io/part-of: axiom
 spec:
-  gatewayClassName: eg
+  gatewayClassName: setura
   listeners:
     - name: https
       protocol: HTTPS

@@ -102,10 +102,10 @@ func ListGatewayAPI(ctx context.Context, p Provider) (GatewayAPIInventory, error
 func (d *DemoProvider) ListGatewayAPI(ctx context.Context) (GatewayAPIInventory, error) {
 	return GatewayAPIInventory{
 		Available: true,
-		Note:      "Demo Gateway API inventory (simulated Envoy Gateway)",
+		Note:      "Demo Gateway API inventory (simulated Setura)",
 		Gateways: []GWGatewayInfo{{
-			Namespace: "envoy-gateway-system", Name: "eg", Class: "eg",
-			Controller: "gateway.envoyproxy.io/gatewayclass-controller", Provider: "envoy",
+			Namespace: "setura-system", Name: "setura", Class: "setura",
+			Controller: "zyvor.dev/setura-gateway", Provider: "setura",
 			Listeners: []GWListener{
 				{Name: "http", Port: 80, Protocol: "HTTP", Hostname: "*.example.com", Programmed: "True", Accepted: "True", AttachedRoutes: 2},
 				{Name: "https", Port: 443, Protocol: "HTTPS", Hostname: "shop.example.com", Programmed: "True", Accepted: "True", AttachedRoutes: 1},
@@ -119,15 +119,15 @@ func (d *DemoProvider) ListGatewayAPI(ctx context.Context) (GatewayAPIInventory,
 		}},
 		Routes: []GWRouteInfo{
 			{Kind: "HTTPRoute", Namespace: "shop", Name: "storefront", Hostnames: []string{"shop.example.com"},
-				ParentRefs:  []GWParentRef{{Namespace: "envoy-gateway-system", Name: "eg", SectionName: "https", Accepted: "True", ResolvedRefs: "True"}},
+				ParentRefs:  []GWParentRef{{Namespace: "setura-system", Name: "setura", SectionName: "https", Accepted: "True", ResolvedRefs: "True"}},
 				BackendRefs: []GWBackendRef{{Kind: "Service", Namespace: "shop", Name: "storefront", Port: 8080, Weight: 1}},
 				Accepted:    "True", ResolvedRefs: "True", Age: "9d"},
 			{Kind: "HTTPRoute", Namespace: "shop", Name: "payments", Hostnames: []string{"pay.example.com"},
-				ParentRefs:  []GWParentRef{{Namespace: "envoy-gateway-system", Name: "eg", Accepted: "True", ResolvedRefs: "False"}},
+				ParentRefs:  []GWParentRef{{Namespace: "setura-system", Name: "setura", Accepted: "True", ResolvedRefs: "False"}},
 				BackendRefs: []GWBackendRef{{Kind: "Service", Namespace: "payments", Name: "payments-api", Port: 9000, Weight: 1}},
 				Accepted:    "True", ResolvedRefs: "False", Age: "3d"},
 			{Kind: "GRPCRoute", Namespace: "shop", Name: "inventory", Hostnames: []string{"grpc.example.com"},
-				ParentRefs:  []GWParentRef{{Namespace: "envoy-gateway-system", Name: "eg", SectionName: "http", Accepted: "True", ResolvedRefs: "True"}},
+				ParentRefs:  []GWParentRef{{Namespace: "setura-system", Name: "setura", SectionName: "http", Accepted: "True", ResolvedRefs: "True"}},
 				BackendRefs: []GWBackendRef{{Kind: "Service", Namespace: "shop", Name: "inventory", Port: 50051, Weight: 1}},
 				Accepted:    "True", ResolvedRefs: "True", Age: "5d"},
 		},
