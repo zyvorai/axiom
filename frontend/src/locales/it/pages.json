@@ -835,7 +835,8 @@
       "access": "Accessi",
       "webhooks": "Webhook",
       "cost": "Costi",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "Prontezza"
     },
     "results": "Risultati",
     "noneFound": "Nessun risultato.",
@@ -1910,5 +1911,61 @@
       "lastTransition": "Ultima transizione"
     },
     "readOnlyNote": "Sola lettura. Promote e abort non sono offerti; usa kubectl argo rollouts."
+  },
+  "readiness": {
+    "truncated": "L'elenco è limitato; esistono altri risultati.",
+    "severity": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Bassa"
+    },
+    "backup": {
+      "title": "Copertura dei backup",
+      "intro": "Quali namespace con dati hanno un backup Velero completato e abbastanza recente. Sola lettura: Axiom qui non crea nulla, e un backup completato non prova che sia ripristinabile.",
+      "maxAge": "Backup più recente entro",
+      "maxAgeOption": "{{n}} giorni",
+      "gaps": "Namespace con una lacuna",
+      "atRisk": "Dati senza backup recente",
+      "colNamespace": "Namespace",
+      "colStatus": "Stato",
+      "colData": "Dati",
+      "colLastGood": "Ultimo backup valido",
+      "colReason": "Motivo",
+      "data": "{{pvcs}} PVC, {{gi}} GiB",
+      "empty": "Nessun namespace con dati trovato.",
+      "status": {
+        "protected": "Protetto",
+        "stale": "Obsoleto",
+        "failing": "In errore",
+        "unprotected": "Nessun backup"
+      }
+    },
+    "disruption": {
+      "title": "Prontezza alle interruzioni",
+      "intro": "PodDisruptionBudget che bloccherebbero il drain di un nodo e workload replicati senza budget. Sola lettura; un budget bloccante durante un rollout è normale.",
+      "colSeverity": "Gravità",
+      "colTarget": "Budget",
+      "colReason": "Motivo",
+      "colAction": "Azione suggerita",
+      "wholeNamespace": "Nessun budget in questo namespace",
+      "empty": "Nessun problema di interruzione trovato."
+    },
+    "deprecations": {
+      "title": "Verifica delle API deprecate",
+      "intro": "Incolla i manifest per trovare le versioni API rimosse o deprecate da Kubernetes. Non viene applicato nulla e nessun cluster viene contattato.",
+      "label": "Manifest (YAML)",
+      "check": "Verifica i manifest",
+      "checking": "Verifica in corso…",
+      "summary": "{{objects}} oggetti: {{removed}} rimossi, {{deprecated}} deprecati",
+      "clean": "Nessuna API rimossa o deprecata trovata.",
+      "colObject": "Oggetto",
+      "colStatus": "Stato",
+      "colRemoved": "Rimossa in",
+      "colReplacement": "Usare invece",
+      "status": {
+        "removed": "Rimossa",
+        "deprecated": "Deprecata"
+      }
+    }
   }
 }

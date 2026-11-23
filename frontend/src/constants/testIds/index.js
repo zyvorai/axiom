@@ -26,6 +26,7 @@ export * from './deferred';
 export * from './billing';
 export * from './podresize';
 export * from './costidle';
+export * from './readiness';
 export * from './velero';
 export * from './rollouts';
 export * from './nodedrain';

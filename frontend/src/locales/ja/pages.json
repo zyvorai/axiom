@@ -827,7 +827,8 @@
       "access": "アクセス",
       "webhooks": "Webhook",
       "cost": "コスト",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "準備状況"
     },
     "results": "結果",
     "noneFound": "見つかりません。",
@@ -1898,5 +1899,61 @@
       "lastTransition": "最終遷移"
     },
     "readOnlyNote": "読み取り専用です。promote と abort は提供されません。kubectl argo rollouts を使用してください。"
+  },
+  "readiness": {
+    "truncated": "一覧は件数が制限されています。ほかにも検出結果があります。",
+    "severity": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "backup": {
+      "title": "バックアップのカバレッジ",
+      "intro": "データを持つ namespace のうち、十分に新しい完了済み Velero バックアップがあるものを示します。読み取り専用で、Axiom はここで何も作成しません。完了したバックアップが復元できる証明にはなりません。",
+      "maxAge": "最新バックアップの期限",
+      "maxAgeOption": "{{n}} 日以内",
+      "gaps": "不足のある namespace",
+      "atRisk": "最近のバックアップがないデータ",
+      "colNamespace": "Namespace",
+      "colStatus": "状態",
+      "colData": "データ",
+      "colLastGood": "最後の正常なバックアップ",
+      "colReason": "理由",
+      "data": "PVC {{pvcs}} 件、{{gi}} GiB",
+      "empty": "データを持つ namespace は見つかりませんでした。",
+      "status": {
+        "protected": "保護済み",
+        "stale": "古い",
+        "failing": "失敗",
+        "unprotected": "バックアップなし"
+      }
+    },
+    "disruption": {
+      "title": "中断への備え",
+      "intro": "ノードのドレインを止める PodDisruptionBudget と、予算のないレプリカ構成のワークロードを示します。読み取り専用です。ロールアウト中に予算が妨げになるのは通常の動作です。",
+      "colSeverity": "重大度",
+      "colTarget": "予算",
+      "colReason": "理由",
+      "colAction": "推奨される対応",
+      "wholeNamespace": "この namespace に予算なし",
+      "empty": "中断に関する問題は見つかりませんでした。"
+    },
+    "deprecations": {
+      "title": "非推奨 API の確認",
+      "intro": "マニフェストを貼り付けて、Kubernetes が削除または非推奨にした API バージョンを探します。何も適用されず、クラスターにも接続しません。",
+      "label": "マニフェスト (YAML)",
+      "check": "マニフェストを確認",
+      "checking": "確認中…",
+      "summary": "{{objects}} 個のオブジェクト: 削除済み {{removed}}、非推奨 {{deprecated}}",
+      "clean": "削除済みまたは非推奨の API は見つかりませんでした。",
+      "colObject": "オブジェクト",
+      "colStatus": "状態",
+      "colRemoved": "削除されたバージョン",
+      "colReplacement": "代わりに使用",
+      "status": {
+        "removed": "削除済み",
+        "deprecated": "非推奨"
+      }
+    }
   }
 }

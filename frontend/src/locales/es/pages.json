@@ -835,7 +835,8 @@
       "access": "Acceso",
       "webhooks": "Webhooks",
       "cost": "Coste",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "Preparación"
     },
     "results": "Resultados",
     "noneFound": "No se encontró ninguno.",
@@ -1910,5 +1911,61 @@
       "lastTransition": "Última transición"
     },
     "readOnlyNote": "Solo lectura. No se ofrecen promote ni abort; use kubectl argo rollouts."
+  },
+  "readiness": {
+    "truncated": "La lista está limitada; existen más hallazgos.",
+    "severity": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja"
+    },
+    "backup": {
+      "title": "Cobertura de copias de seguridad",
+      "intro": "Qué espacios de nombres con datos tienen una copia de Velero completada y lo bastante reciente. Solo lectura: Axiom no crea nada aquí, y una copia completada no demuestra que se pueda restaurar.",
+      "maxAge": "Copia más reciente dentro de",
+      "maxAgeOption": "{{n}} días",
+      "gaps": "Espacios de nombres con carencia",
+      "atRisk": "Datos sin copia reciente",
+      "colNamespace": "Espacio de nombres",
+      "colStatus": "Estado",
+      "colData": "Datos",
+      "colLastGood": "Última copia válida",
+      "colReason": "Motivo",
+      "data": "{{pvcs}} PVC, {{gi}} GiB",
+      "empty": "No se encontraron espacios de nombres con datos.",
+      "status": {
+        "protected": "Protegido",
+        "stale": "Obsoleto",
+        "failing": "Con errores",
+        "unprotected": "Sin copia"
+      }
+    },
+    "disruption": {
+      "title": "Preparación ante interrupciones",
+      "intro": "PodDisruptionBudgets que bloquearían un drenaje de nodo y cargas replicadas sin presupuesto. Solo lectura; un presupuesto que bloquea durante un despliegue es normal.",
+      "colSeverity": "Gravedad",
+      "colTarget": "Presupuesto",
+      "colReason": "Motivo",
+      "colAction": "Acción sugerida",
+      "wholeNamespace": "Sin presupuesto en este espacio de nombres",
+      "empty": "No se encontraron problemas de interrupción."
+    },
+    "deprecations": {
+      "title": "Comprobación de API obsoletas",
+      "intro": "Pegue manifiestos para encontrar versiones de API que Kubernetes ha eliminado o declarado obsoletas. No se aplica nada ni se contacta con ningún clúster.",
+      "label": "Manifiestos (YAML)",
+      "check": "Comprobar manifiestos",
+      "checking": "Comprobando…",
+      "summary": "{{objects}} objetos: {{removed}} eliminados, {{deprecated}} obsoletos",
+      "clean": "No se encontraron API eliminadas ni obsoletas.",
+      "colObject": "Objeto",
+      "colStatus": "Estado",
+      "colRemoved": "Eliminada en",
+      "colReplacement": "Usar en su lugar",
+      "status": {
+        "removed": "Eliminada",
+        "deprecated": "Obsoleta"
+      }
+    }
   }
 }

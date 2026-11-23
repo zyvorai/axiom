@@ -835,7 +835,8 @@
       "access": "Accès",
       "webhooks": "Webhooks",
       "cost": "Coût",
-      "accelerators": "Accelerators"
+      "accelerators": "Accelerators",
+      "readiness": "Préparation"
     },
     "results": "Résultats",
     "noneFound": "Aucun élément trouvé.",
@@ -1910,5 +1911,61 @@
       "lastTransition": "Dernière transition"
     },
     "readOnlyNote": "Lecture seule. Promote et abort ne sont pas proposés ; utilisez kubectl argo rollouts."
+  },
+  "readiness": {
+    "truncated": "La liste est limitée ; d'autres constats existent.",
+    "severity": {
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible"
+    },
+    "backup": {
+      "title": "Couverture des sauvegardes",
+      "intro": "Quels namespaces contenant des données ont une sauvegarde Velero terminée et assez récente. Lecture seule : Axiom ne crée rien ici, et une sauvegarde terminée ne prouve pas qu'elle est restaurable.",
+      "maxAge": "Sauvegarde la plus récente sous",
+      "maxAgeOption": "{{n}} jours",
+      "gaps": "Namespaces avec une lacune",
+      "atRisk": "Données sans sauvegarde récente",
+      "colNamespace": "Namespace",
+      "colStatus": "Statut",
+      "colData": "Données",
+      "colLastGood": "Dernière bonne sauvegarde",
+      "colReason": "Raison",
+      "data": "{{pvcs}} PVC, {{gi}} GiB",
+      "empty": "Aucun namespace avec des données trouvé.",
+      "status": {
+        "protected": "Protégé",
+        "stale": "Périmé",
+        "failing": "En échec",
+        "unprotected": "Sans sauvegarde"
+      }
+    },
+    "disruption": {
+      "title": "Préparation aux interruptions",
+      "intro": "PodDisruptionBudgets qui bloqueraient un drain de nœud, et charges répliquées sans budget. Lecture seule ; un budget bloquant pendant un déploiement est normal.",
+      "colSeverity": "Gravité",
+      "colTarget": "Budget",
+      "colReason": "Raison",
+      "colAction": "Action suggérée",
+      "wholeNamespace": "Aucun budget dans ce namespace",
+      "empty": "Aucun problème d'interruption trouvé."
+    },
+    "deprecations": {
+      "title": "Vérification des API obsolètes",
+      "intro": "Collez des manifestes pour trouver les versions d'API que Kubernetes a supprimées ou dépréciées. Rien n'est appliqué et aucun cluster n'est contacté.",
+      "label": "Manifestes (YAML)",
+      "check": "Vérifier les manifestes",
+      "checking": "Vérification…",
+      "summary": "{{objects}} objets : {{removed}} supprimés, {{deprecated}} dépréciés",
+      "clean": "Aucune API supprimée ou dépréciée trouvée.",
+      "colObject": "Objet",
+      "colStatus": "Statut",
+      "colRemoved": "Supprimée en",
+      "colReplacement": "À utiliser à la place",
+      "status": {
+        "removed": "Supprimée",
+        "deprecated": "Dépréciée"
+      }
+    }
   }
 }
