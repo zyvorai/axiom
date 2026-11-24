@@ -1966,6 +1966,33 @@
         "removed": "Rimossa",
         "deprecated": "Deprecata"
       }
+    },
+    "hygiene": {
+      "colSeverity": "Gravità",
+      "colTarget": "Oggetto",
+      "colDetail": "Dettaglio",
+      "colReason": "Perché",
+      "colAction": "Azione suggerita",
+      "empty": "Nulla da segnalare.",
+      "summary": "{{scanned}} controllati, {{total}} rilievi",
+      "quota": {
+        "title": "Margine delle quote",
+        "intro": "Voci ResourceQuota piene o vicine al limite: un deploy o uno scale-up può essere rifiutato. Sola lettura.",
+        "threshold": "Avvisa da",
+        "thresholdOption": "{{n}}%"
+      },
+      "images": {
+        "title": "Tag delle immagini",
+        "intro": "Workload che usano un'immagine latest o senza tag, che può cambiare tra un riavvio e l'altro. Sola lettura."
+      },
+      "autoscaling": {
+        "title": "Saturazione dell'autoscaler",
+        "intro": "HorizontalPodAutoscaler che non possono scalare, non hanno una metrica o sono al massimo. Sola lettura."
+      },
+      "services": {
+        "title": "Collegamento dei Service",
+        "intro": "Service il cui selettore non trova alcun Pod, o solo Pod non pronti. Sola lettura."
+      }
     }
   }
 }

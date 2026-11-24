@@ -1966,6 +1966,33 @@
         "removed": "Supprimée",
         "deprecated": "Dépréciée"
       }
+    },
+    "hygiene": {
+      "colSeverity": "Gravité",
+      "colTarget": "Objet",
+      "colDetail": "Détail",
+      "colReason": "Pourquoi",
+      "colAction": "Action suggérée",
+      "empty": "Rien à signaler.",
+      "summary": "{{scanned}} vérifiés, {{total}} constats",
+      "quota": {
+        "title": "Marge de quota",
+        "intro": "Entrées ResourceQuota pleines ou proches de leur limite : un déploiement ou une montée en charge peut être refusé. Lecture seule.",
+        "threshold": "Alerter à partir de",
+        "thresholdOption": "{{n}} %"
+      },
+      "images": {
+        "title": "Tags d'image",
+        "intro": "Charges de travail utilisant une image latest ou sans tag, qui peut changer entre deux redémarrages. Lecture seule."
+      },
+      "autoscaling": {
+        "title": "Saturation de l'autoscaler",
+        "intro": "HorizontalPodAutoscalers qui ne peuvent pas évoluer, n'ont pas de métrique ou sont à leur maximum. Lecture seule."
+      },
+      "services": {
+        "title": "Câblage des Services",
+        "intro": "Services dont le sélecteur ne trouve aucun Pod, ou seulement des Pods non prêts. Lecture seule."
+      }
     }
   }
 }

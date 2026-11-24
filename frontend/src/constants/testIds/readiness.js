@@ -1,4 +1,4 @@
-// data-testid values for Ops -> Readiness (backup coverage, disruption audit, API deprecations).
+// data-testid values for Ops -> Readiness (backup coverage, disruption audit, API deprecations, hygiene audits).
 export const READINESS = {
     backupRoot: 'readiness-backup',
     backupMaxAge: 'readiness-backup-max-age',
@@ -21,4 +21,10 @@ export const READINESS = {
     deprecationsSummary: 'readiness-deprecations-summary',
     deprecationsClean: 'readiness-deprecations-clean',
     deprecationsRow: (i) => `readiness-deprecations-row-${i}`,
+    auditRoot: (kind) => `readiness-audit-${kind}`,
+    auditSummary: (kind) => `readiness-audit-summary-${kind}`,
+    auditEmpty: (kind) => `readiness-audit-empty-${kind}`,
+    auditError: (kind) => `readiness-audit-error-${kind}`,
+    auditThreshold: 'readiness-audit-threshold',
+    auditRow: (kind, fkind, ns, name) => `readiness-audit-row-${kind}-${fkind}-${ns}-${name}`,
 };

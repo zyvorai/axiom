@@ -555,6 +555,14 @@ Reads are open to every role except namespace-restricted accounts (`403`: `/api/
 
 The same three are MCP tools: `backup_coverage`, `disruption_audit` and `check_api_deprecations`.
 
+| GET | `/api/v1/audits/quota?namespace=&threshold=80` | ResourceQuota headroom: `{"summary":{"total","scanned","byKind":{}},"findings":[{"kind":"exhausted\|near-limit","severity","namespace","name","detail":"<quota resource>","reason","suggestion"}],"truncated","note"}`. `threshold` is a whole percent 1 to 100 (`400` otherwise) |
+| GET | `/api/v1/audits/images?namespace=` | Workloads on a `latest` or untagged image (`latest-tag`, `no-tag`); `detail` is the image. Same response shape |
+| GET | `/api/v1/audits/autoscaling?namespace=` | HPAs that cannot scale, miss a metric, are at max or fixed-size (`cannot-scale`, `metric-missing`, `at-max`, `fixed-size`) |
+| GET | `/api/v1/audits/services?namespace=` | Services with a selector and no endpoints (`selector-matches-nothing`, `no-ready-endpoints`) |
+
+The four audits are read-only, cap at 300 findings, return `403` to namespace-restricted accounts and `400` for an invalid namespace. MCP tools: `quota_headroom`, `image_hygiene`, `autoscaler_saturation`, `service_wiring`.
+
+
 ### GitOps application creation and deletion
 
 | Method | Path | Purpose |

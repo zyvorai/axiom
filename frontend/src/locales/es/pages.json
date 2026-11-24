@@ -1966,6 +1966,33 @@
         "removed": "Eliminada",
         "deprecated": "Obsoleta"
       }
+    },
+    "hygiene": {
+      "colSeverity": "Gravedad",
+      "colTarget": "Objeto",
+      "colDetail": "Detalle",
+      "colReason": "Por qué",
+      "colAction": "Acción sugerida",
+      "empty": "Nada que informar.",
+      "summary": "{{scanned}} revisados, {{total}} hallazgos",
+      "quota": {
+        "title": "Margen de cuota",
+        "intro": "Entradas de ResourceQuota llenas o cerca del límite, por lo que un despliegue o escalado puede ser rechazado. Solo lectura.",
+        "threshold": "Avisar desde",
+        "thresholdOption": "{{n}} %"
+      },
+      "images": {
+        "title": "Etiquetas de imagen",
+        "intro": "Cargas que usan una imagen latest o sin etiqueta, que puede cambiar entre reinicios. Solo lectura."
+      },
+      "autoscaling": {
+        "title": "Saturación del autoescalador",
+        "intro": "HorizontalPodAutoscalers que no pueden escalar, no tienen una métrica o están en su máximo. Solo lectura."
+      },
+      "services": {
+        "title": "Conexión de Services",
+        "intro": "Services cuyo selector no encuentra ningún Pod, o solo Pods que no están listos. Solo lectura."
+      }
     }
   }
 }

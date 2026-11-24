@@ -265,12 +265,100 @@ function ApiDeprecations() {
     );
 }
 
+const THRESHOLDS = [70, 80, 90, 95];
+
+/** Read-only hygiene report: one table per audit endpoint (quota, images, autoscaling, services). */
+function HygieneAudit({ kind, endpoint }) {
+    const { t } = useTranslation();
+    const [threshold, setThreshold] = useState(80);
+    const [data, setData] = useState(null);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let alive = true;
+        setData(null);
+        api
+            .get(`/audits/${endpoint}`, { params: kind === "quota" ? { threshold } : undefined })
+            .then((r) => alive && (setData(r.data), setError("")))
+            .catch((e) => alive && setError(errText(e)));
+        return () => {
+            alive = false;
+        };
+    }, [endpoint, kind, threshold]);
+
+    if (error) return <div className="notice danger" role="alert" data-testid={T.auditError(kind)}>{error}</div>;
+    if (!data) return <Skeleton className="h-32 rounded-2xl bg-muted" />;
+    const findings = data.findings || [];
+    const title = t(`pages:readiness.hygiene.${kind}.title`);
+
+    return (
+        <div className="card p-0" data-testid={T.auditRoot(kind)}>
+            <div className="panel-h flex flex-wrap items-center justify-between gap-2">
+                <span>{title}</span>
+                {kind === "quota" ? (
+                    <label className="flex items-center gap-2 text-[12.5px] text-ink-3">
+                        {t("pages:readiness.hygiene.quota.threshold")}
+                        <select className="select" data-testid={T.auditThreshold} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))}>
+                            {THRESHOLDS.map((n) => (
+                                <option key={n} value={n}>{t("pages:readiness.hygiene.quota.thresholdOption", { n })}</option>
+                            ))}
+                        </select>
+                    </label>
+                ) : null}
+            </div>
+            <div className="border-b border-border px-4 py-2.5 text-[12.5px] text-ink-3">{t(`pages:readiness.hygiene.${kind}.intro`)}</div>
+            <div className="border-b border-border px-4 py-2 text-[12.5px]" data-testid={T.auditSummary(kind)}>
+                {t("pages:readiness.hygiene.summary", { scanned: data.summary?.scanned ?? 0, total: data.summary?.total ?? 0 })}
+            </div>
+            {findings.length === 0 ? (
+                <div className="empty" data-testid={T.auditEmpty(kind)}>{t("pages:readiness.hygiene.empty")}</div>
+            ) : (
+                <div className="max-h-[60vh] overflow-auto" tabIndex={0} role="region" aria-label={title}>
+                    <table className="tbl">
+                        <thead>
+                            <tr>
+                                <th>{t("pages:readiness.hygiene.colSeverity")}</th>
+                                <th>{t("pages:readiness.hygiene.colTarget")}</th>
+                                <th>{t("pages:readiness.hygiene.colReason")}</th>
+                                <th>{t("pages:readiness.hygiene.colAction")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {findings.map((f) => (
+                                <tr key={`${f.kind}/${f.namespace}/${f.name}/${f.detail || ""}`} data-testid={T.auditRow(kind, f.kind, f.namespace, f.name)}>
+                                    <td>
+                                        <Pill tone={f.severity} label={t(`pages:readiness.severity.${f.severity}`, { defaultValue: f.severity })} />
+                                    </td>
+                                    <td className="name">
+                                        {f.name}
+                                        <small>{f.namespace}</small>
+                                    </td>
+                                    <td className="text-[12.5px]">
+                                        {f.reason}
+                                        {f.detail ? <small className="mono block text-ink-3">{f.detail}</small> : null}
+                                    </td>
+                                    <td className="text-[12.5px] text-ink-3">{f.suggestion}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            {data.truncated ? <div className="border-t border-border px-4 py-2.5 text-[12.5px] text-ink-3">{t("pages:readiness.truncated")}</div> : null}
+        </div>
+    );
+}
+
 export function ReadinessPanel() {
     return (
         <div className="space-y-4">
             <BackupCoverage />
             <DisruptionAudit />
             <ApiDeprecations />
+            <HygieneAudit kind="quota" endpoint="quota" />
+            <HygieneAudit kind="images" endpoint="images" />
+            <HygieneAudit kind="autoscaling" endpoint="autoscaling" />
+            <HygieneAudit kind="services" endpoint="services" />
         </div>
     );
 }

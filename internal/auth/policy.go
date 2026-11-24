@@ -92,6 +92,7 @@ var restrictedSensitivePrefixes = []string{
 	"/api/v1/cost/idle",
 	"/api/v1/backups/coverage", // namespace names and sizes of every namespace
 	"/api/v1/disruption",
+	"/api/v1/audits",       // cluster-wide hygiene reports
 	"/api/v1/cost/invoice", // the cloud bill of the whole account (experimental)
 }
 

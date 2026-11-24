@@ -1966,6 +1966,33 @@
         "removed": "Entfernt",
         "deprecated": "Veraltet"
       }
+    },
+    "hygiene": {
+      "colSeverity": "Schweregrad",
+      "colTarget": "Objekt",
+      "colDetail": "Detail",
+      "colReason": "Warum",
+      "colAction": "Empfohlene Aktion",
+      "empty": "Nichts zu melden.",
+      "summary": "{{scanned}} geprüft, {{total}} Befunde",
+      "quota": {
+        "title": "Quota-Reserve",
+        "intro": "ResourceQuota-Einträge, die voll oder nahe am Limit sind, sodass ein Deploy oder Hochskalieren abgelehnt werden kann. Nur lesend.",
+        "threshold": "Warnen ab",
+        "thresholdOption": "{{n}} %"
+      },
+      "images": {
+        "title": "Image-Tags",
+        "intro": "Workloads mit latest- oder tag-losem Image, das sich zwischen Neustarts ändern kann. Nur lesend."
+      },
+      "autoscaling": {
+        "title": "Autoscaler-Auslastung",
+        "intro": "HorizontalPodAutoscaler, die nicht skalieren können, eine Metrik vermissen oder am Maximum stehen. Nur lesend."
+      },
+      "services": {
+        "title": "Service-Verdrahtung",
+        "intro": "Services, deren Selector keinen Pod findet oder nur Pods, die nicht bereit sind. Nur lesend."
+      }
     }
   }
 }

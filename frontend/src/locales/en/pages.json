@@ -1966,6 +1966,33 @@
         "removed": "Removed",
         "deprecated": "Deprecated"
       }
+    },
+    "hygiene": {
+      "colSeverity": "Severity",
+      "colTarget": "Object",
+      "colDetail": "Detail",
+      "colReason": "Why",
+      "colAction": "Suggested action",
+      "empty": "Nothing to report.",
+      "summary": "{{scanned}} checked, {{total}} findings",
+      "quota": {
+        "title": "Quota headroom",
+        "intro": "ResourceQuota entries that are full or close to their limit, so a deploy or scale-up may be refused. Read-only.",
+        "threshold": "Warn at",
+        "thresholdOption": "{{n}}%"
+      },
+      "images": {
+        "title": "Image tags",
+        "intro": "Workloads running a latest or untagged image, which can change between restarts. Read-only."
+      },
+      "autoscaling": {
+        "title": "Autoscaler saturation",
+        "intro": "HorizontalPodAutoscalers that cannot scale, lack a metric, or sit at their maximum. Read-only."
+      },
+      "services": {
+        "title": "Service wiring",
+        "intro": "Services whose selector finds no Pod, or only Pods that are not ready. Read-only."
+      }
     }
   }
 }
