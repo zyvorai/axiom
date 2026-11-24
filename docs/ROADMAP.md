@@ -12,6 +12,10 @@ are theirs, not ours.
 | Backup coverage | Namespaces with data and no recent completed Velero backup, ranked by data at risk (`GET /api/v1/backups/coverage`) | Velero lists backups, not which namespaces lack one |
 | Disruption readiness | PDBs that stall a drain and replicated namespaces with no PDB (`GET /api/v1/disruption/audit`) | Per-node drain previews; no console equivalent found |
 | Deprecated API check | Paste manifests, get removed/deprecated apiVersions with the replacement (`POST /api/v1/manifests/deprecations`) | Pluto, kubent (CLI tools); see [RESEARCH.md](RESEARCH.md) |
+| Quota headroom | ResourceQuota entries full or near their limit (`GET /api/v1/audits/quota`) | Popeye, Grafana quota dashboards; see [RESEARCH.md](RESEARCH.md) |
+| Image tag audit | Workloads on `latest` or untagged images (`GET /api/v1/audits/images`) | Polaris `tagNotSpecified`, Popeye |
+| Autoscaler saturation | HPAs that cannot scale, miss metrics or sit at max (`GET /api/v1/audits/autoscaling`) | Popeye HPA checks, Polaris HPA checks |
+| Service wiring | Services whose selector finds no ready Pod (`GET /api/v1/audits/services`) | Popeye Service checks |
 
 ## Shipped in 0.15.0
 

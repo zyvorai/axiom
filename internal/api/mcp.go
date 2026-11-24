@@ -146,6 +146,10 @@ func (s *Server) mcpToolDefs() []mcpTool {
 		{Name: "list_dra", Description: "DRA inventory (DeviceClass / ResourceSlice / ResourceClaim)", InputSchema: obj(map[string]any{})},
 		{Name: "backup_coverage", Description: "Which namespaces with data have no recent completed Velero backup (read-only)", InputSchema: obj(map[string]any{"maxAgeDays": str})},
 		{Name: "disruption_audit", Description: "PodDisruptionBudgets that would stall a drain, and replicated namespaces with no budget (read-only)", InputSchema: obj(map[string]any{"namespace": str})},
+		{Name: "quota_headroom", Description: "ResourceQuota entries at or near their hard limit (read-only); threshold is a percent, default 80", InputSchema: obj(map[string]any{"namespace": str, "threshold": str})},
+		{Name: "image_hygiene", Description: "Workloads running a latest or untagged image (read-only)", InputSchema: obj(map[string]any{"namespace": str})},
+		{Name: "autoscaler_saturation", Description: "HPAs that cannot scale, lack a metric, or are pinned at maxReplicas (read-only)", InputSchema: obj(map[string]any{"namespace": str})},
+		{Name: "service_wiring", Description: "Services with a selector but no endpoints: selector matches no Pod, or no matching Pod is ready (read-only)", InputSchema: obj(map[string]any{"namespace": str})},
 		{Name: "check_api_deprecations", Description: "Flag removed or deprecated Kubernetes apiVersions in a manifest you pass (nothing is applied)", InputSchema: obj(map[string]any{"manifest": str}, "manifest")},
 		{Name: "recent_changes", Description: "Ranked changes (GitOps, Helm, rollouts, config, nodes, HPA, audit) before a time; window like 60m", InputSchema: obj(map[string]any{
 			"namespace": str, "workload": str, "at": str, "window": str,
@@ -252,6 +256,28 @@ func (s *Server) mcpCallTool(r *http.Request, params json.RawMessage) (map[strin
 		payload, err = platform.BackupCoverage(ctx, s.provider, maxAge)
 	case "disruption_audit":
 		payload, err = platform.DisruptionAudit(ctx, s.provider, str("namespace"))
+	case "quota_headroom", "image_hygiene", "autoscaler_saturation", "service_wiring":
+		ns := str("namespace")
+		if ns != "" && ns != "all" {
+			if err = platform.ValidateCostNamespace(ns); err != nil {
+				break
+			}
+		}
+		switch p.Name {
+		case "quota_headroom":
+			th, perr := parseQuotaThreshold(str("threshold"))
+			if perr != nil {
+				err = perr
+				break
+			}
+			payload, err = platform.QuotaHeadroom(ctx, s.provider, ns, th)
+		case "image_hygiene":
+			payload, err = platform.ImageHygiene(ctx, s.provider, ns)
+		case "autoscaler_saturation":
+			payload, err = platform.HPASaturation(ctx, s.provider, ns)
+		default:
+			payload, err = platform.ServiceWiring(ctx, s.provider, ns)
+		}
 	case "check_api_deprecations":
 		payload, err = platform.CheckAPIDeprecations(str("manifest"))
 	case "recent_changes":

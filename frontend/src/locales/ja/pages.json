@@ -1954,6 +1954,33 @@
         "removed": "削除済み",
         "deprecated": "非推奨"
       }
+    },
+    "hygiene": {
+      "colSeverity": "重大度",
+      "colTarget": "オブジェクト",
+      "colDetail": "詳細",
+      "colReason": "理由",
+      "colAction": "推奨アクション",
+      "empty": "報告する項目はありません。",
+      "summary": "{{scanned}} 件を確認、{{total}} 件の指摘",
+      "quota": {
+        "title": "クォータの余裕",
+        "intro": "上限に達している、または近い ResourceQuota の項目です。デプロイやスケールアップが拒否される場合があります。読み取り専用。",
+        "threshold": "警告のしきい値",
+        "thresholdOption": "{{n}}%"
+      },
+      "images": {
+        "title": "イメージタグ",
+        "intro": "latest またはタグなしのイメージで動くワークロードです。再起動のたびに中身が変わる可能性があります。読み取り専用。"
+      },
+      "autoscaling": {
+        "title": "オートスケーラーの飽和",
+        "intro": "スケールできない、メトリクスがない、または最大値に達している HorizontalPodAutoscaler です。読み取り専用。"
+      },
+      "services": {
+        "title": "Service の接続",
+        "intro": "セレクターに一致する Pod がない、または準備完了の Pod がない Service です。読み取り専用。"
+      }
     }
   }
 }

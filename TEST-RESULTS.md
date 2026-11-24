@@ -1,6 +1,22 @@
 # Zyvor Axiom Validation Results
 
-## 2026-11-23 (latest) - Dependency upgrades and readiness pack (Linux host, demo provider and fake clientsets only)
+## 2026-11-24 (latest) - Hygiene audits round (Linux host, demo provider and fake data only)
+
+```text
+gofmt -l cmd internal                                                         empty
+go vet ./cmd/... ./internal/...                                              PASS
+go test ./cmd/... ./internal/...                                             PASS (api, auth, config, platform)
+go vet -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/...  PASS
+go test -tags kubernetes -modfile=go.production.mod ./cmd/... ./internal/... PASS
+npm run lint (design tokens, a11y, i18n 8 languages)                         PASS
+npx craco build (frontend/)                                                  PASS (Compiled successfully)
+```
+
+New tests: `internal/platform/hygiene_audits_test.go` (quota, image refs, HPA, Service wiring, cap) and `internal/api/audits_test.go` (four endpoints with injected findings, parameter validation, restricted-account 403, non-GET refused, MCP tools listed and called).
+
+Not run: e2e (Playwright needs a browser), Docker image build, Helm lint, pip-based manifest validation, Pages site build, any real cluster, `go test -race`.
+
+## 2026-11-23 - Dependency upgrades and readiness pack (Linux host, demo provider and fake clientsets only)
 
 ```text
 gofmt -l .                                                                   empty

@@ -1954,6 +1954,33 @@
         "removed": "已移除",
         "deprecated": "已弃用"
       }
+    },
+    "hygiene": {
+      "colSeverity": "严重程度",
+      "colTarget": "对象",
+      "colDetail": "详情",
+      "colReason": "原因",
+      "colAction": "建议操作",
+      "empty": "没有需要报告的内容。",
+      "summary": "已检查 {{scanned}} 项，{{total}} 条发现",
+      "quota": {
+        "title": "配额余量",
+        "intro": "已满或接近上限的 ResourceQuota 条目，部署或扩容可能被拒绝。只读。",
+        "threshold": "预警阈值",
+        "thresholdOption": "{{n}}%"
+      },
+      "images": {
+        "title": "镜像标签",
+        "intro": "使用 latest 或无标签镜像的工作负载，重启后内容可能改变。只读。"
+      },
+      "autoscaling": {
+        "title": "自动伸缩饱和",
+        "intro": "无法伸缩、缺少指标或已达到最大副本数的 HorizontalPodAutoscaler。只读。"
+      },
+      "services": {
+        "title": "Service 连接",
+        "intro": "选择器找不到任何 Pod，或只有未就绪 Pod 的 Service。只读。"
+      }
     }
   }
 }

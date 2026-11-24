@@ -52,3 +52,15 @@ Fleet health, history and search; Helm catalog (including OCI), history and roll
 - Rank 1 compares only `apiVersion` and `kind` against a static table written from the Kubernetes deprecation guide (https://kubernetes.io/docs/reference/using-api/deprecation-guide/, read only up to v1.32 removals; the page was truncated for the research tool). The v1 `Endpoints` deprecation in 1.33 is included from memory of the 1.33 release **[U]**: the release-blog URL tried returned 404 and was not read. Re-check the table against the guide when a new Kubernetes minor ships.
 - Ranks 2 and 3 are heuristics (see `docs/GAPS.md`).
 - Percentage handling in PDB values follows the PDB page above: only `100%` and `maxUnavailable` 0 are treated as unsatisfiable; other percentages round at runtime and are not simulated.
+
+## Round 3 (2026-11-24): hygiene audits
+
+Fetched and read this round: Popeye's README (https://github.com/derailed/popeye), KRR's README (https://github.com/robusta-dev/krr) and Polaris's reliability checks (https://polaris.docs.fairwinds.com/checks/reliability/). A search for "resource quota near limit" in Lens, Rancher, Portainer and Headlamp found only generic quota views and Prometheus/Grafana recipes (alert at a usage percentage); Lens's own quota page (docs.lenshq.io) returned 404, so whether Lens flags near-limit usage is **[U]**.
+
+| Product | Relevant checks (vendor-stated) | Source |
+|---|---|---|
+| Popeye | Pod image with no tag or `latest`; Service with no endpoints or no matching Pod labels; HPA utilisation and max burst; PDB `minAvailable`; unused PVCs, ConfigMaps, Secrets; node conditions; probes and requests/limits presence; single cluster score 0 to 100 | https://github.com/derailed/popeye |
+| Polaris | `tagNotSpecified` (no tag or `latest`, "danger"), probes missing, single-replica Deployments, missing PDB, HPA min/max sanity | https://polaris.docs.fairwinds.com/checks/reliability/ |
+| KRR | CPU and memory request/limit recommendations from Prometheus; Axiom already has rightsizing | https://github.com/robusta-dev/krr |
+
+Built, all read-only from lists the Provider already serves: quota headroom, image tag audit, autoscaler saturation, Service wiring. Not built (candidates): probe and requests/limits presence (needs container specs the workload summary does not carry), unused ServiceAccounts/Roles, a single cluster hygiene score (a number that hides what is wrong), Ingress backend validation (the Ingress summary has no backend list). The Service audit trusts `Service.Endpoints` and Pod labels as the provider reports them; it was run against the demo provider and unit tables, not a live cluster.
